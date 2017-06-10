@@ -1,0 +1,325 @@
+## YAML file describing the neuron models and the general architecture of a network
+
+################
+# Neuron Models
+################
+
+neurons:
+    ht_neuron: # Key should be string of base nest model
+        params:
+            g_peak_NaP: 0.5
+            g_peak_h: 0.0
+            g_peak_T: 0.0
+            g_peak_KNa: 0.5
+            g_KL: 1.0
+            E_rev_NaP: 55.0
+            g_peak_AMPA: 0.1
+            g_peak_NMDA: 0.075 * 0.2
+            g_peak_GABA_A: 0.33
+            g_peak_GABA_B: 0.0132
+            # old NEST NMDA parameters:
+            instant_unblock_NMDA: true
+            S_act_NMDA: 1/2.5
+            V_act_NMDA: -58
+        children:
+            cortical_excitatory:
+                params:
+                    theta_eq: -51.0
+                    tau_theta: 2.0
+                    tau_spike: 1.75
+                    tau_m: 16.0
+                children:
+                    l1_exc:
+                        params: null
+                    l2_exc:
+                        params: null
+                    l3_exc:
+                        params: null
+            cortical_inhibitory:
+                params:
+                    theta_eq: -53.0
+                    tau_theta: 1.0
+                    tau_spike: 0.5
+                    tau_m: 8.0
+                children:
+                    l1_exc:
+                        params: null
+                    l2_exc:
+                        params: null
+                    l3_exc:
+                        params: null
+    poisson: # Key should be string of base nest model
+        params: null
+        children:
+            v1_exc:
+                params: null
+
+
+### ### ### ### ### ### ###
+### ### Synapse Models ### ###
+### ### ### ### ### ### ###
+
+synapses:
+
+    base_synapse_models:
+
+        base_nest:
+            base_cortical:
+                nest_model: ht_synapse
+                base_params: null
+            base_v1:
+                nest_model: static_synapse
+                base_params: null
+
+        network:
+            STDP:
+                base: base_synapse
+                params: TODO
+            v1_input:
+                base: static_synapse
+                base_params: null
+
+
+    synapses:
+
+        AMPA_syn:
+            base: STDP
+            params:
+                receptor_type: AMPA
+
+        NMDA_syn:
+            base: STDP
+            params:
+                receptor_type: NMDA
+
+        GABA_A_syn:
+            base: STDP
+            params:
+                receptor_type: GABA_A
+
+        GABA_B_syn:
+            base: STDP
+            params:
+                receptor_type: GABA_B
+
+        v1_syn:
+            base: static_synapse
+            params:
+                receptor_type: AMPA
+
+
+
+### ### ### ### ### ### ###
+### ### Layers ### ###
+### ### ### ### ### ### ###
+
+
+layers:
+
+    v1_layer:
+        - model: v1
+          number: 1
+
+    l1:
+        - model: l1_exc
+          number: null
+        - model: l1_inh
+          number: 1
+
+    l2:
+        - model: l2_exc
+          number: null
+        - model: l2_inh
+          number: 1
+
+    l3:
+        - model: l3_exc
+          number: null
+        - model: l3_inh
+          number: 1
+
+
+
+### ### ### ### ### ### ###
+### ### Connections ### ###
+### ### ### ### ### ### ###
+
+base_connection_models:
+
+    horizontal_exc:
+        connection_type: divergent
+        synapse_model: AMPA_syn
+        mask:
+            circular:
+                radius: 12 # ... * dpcP during init
+        kernel:
+            gaussian:
+                p_center: 0.05
+                sigma: 7.5 # ... * dpcP during init
+        weights: 1.0 # ... * weight gain during init
+        delays:
+            uniform:
+                min: 1.75
+                max: 2.25
+        allow_autapses: false
+        allow_multapses: false
+
+    horizontal_inh:
+        connection_type: divergent
+        synapse_model: GABA_A_syn
+        mask:
+            circular:
+                radius: 7 # ... * dpcP during init
+        kernel:
+            gaussian:
+                p_center: 0.25 # TODO: much stronger than excitatory -> check
+                sigma: 7.5 # ... * dpcP during init
+        weights: 1.0 # ... * weight gain during init
+        delays:
+            uniform:
+                min: 1.75
+                max: 2.25
+        allow_autapses: false
+        allow_multapses: false
+
+    FF_exc:
+        connection_type: convergent
+        synapse_model: AMPA_syn
+        mask:
+            circular:
+                radius: 12 # ... * dpcP during init
+        kernel: 0.8
+        weights: 1.0 # ... * weight gain during init
+        delays:
+            uniform:
+                min: 1.75
+                max: 2.25
+        allow_autapses: false
+        allow_multapses: false
+
+    v1_input:
+        connection_type: convergent
+        synapse_model: static_synapse
+        mask:
+            circular:
+                radius: 12 # ... * dpcP during init
+        kernel: 0.8
+        weights: 1.0 # ... * weight gain during init
+        delays:
+            uniform:
+                min: 1.75
+                max: 2.25
+        allow_autapses: false
+        allow_multapses: false
+
+
+connections:
+
+
+    ### v1 ###
+
+    # excitatory on l1 for each v1 population
+    - sources: v1
+      target: l1_exc
+      base_type: v1_input
+      params: null
+
+    - sources: v1
+      target: l1_inh
+      base_type: v1_input
+      params: null
+
+
+    ### l1 ###
+
+    # l1 excitatory horizontal
+    - sources: l1_exc
+      target: l1_exc
+      base_type: horizontal_exc
+      params: null
+
+    - sources: l1_exc
+      target: l1_inh
+      base_type: horizontal_exc
+      params: null
+
+    # l1 inhibitory horizontal
+    - sources: l1_inh
+      target: l1_exc
+      base_type: horizontal_inh
+      params: null
+    - sources: l1_inh
+      target: l1_inh
+      base_type: horizontal_inh
+      params: null
+
+    # l1 excitatory FF
+    - sources: l1_exc
+      target: l2_exc
+      base_type: FF_exc
+      params: null
+    - sources: l1_exc
+      target: l2_inh
+      base_type: FF_exc
+      params: null
+
+
+    ### l2 ###
+
+    # l2 excitatory horizontal
+    - sources: l2_exc
+      target: l2_exc
+      base_type: horizontal_exc
+      params: null
+
+    - sources: l2_exc
+      target: l2_inh
+      base_type: horizontal_exc
+      params: null
+
+    # l2 inhibitory horizontal
+    - sources: l2_inh
+      target: l2_exc
+      base_type: horizontal_inh
+      params: null
+
+    - sources: l2_inh
+      target: l2_inh
+      base_type: horizontal_inh
+      params: null
+
+    # l2 excitatory FF
+    - sources: l2_exc
+      target: l3_exc
+      base_type: FF_exc
+      params: null
+
+    - sources: l2_exc
+      target: l3_inh
+      base_type: FF_exc
+      params: null
+
+
+    ### l3 ###
+
+    # l3 excitatory horizontal
+    - sources: l3_exc
+      target: l3_exc
+      base_type: horizontal_exc
+      params: null
+
+    - sources: l3_exc
+      target: l3_inh
+      base_type: horizontal_exc
+      params: null
+
+    # l3 inhibitory horizontal
+    - sources: l3_inh
+      target: l3_exc
+      base_type: horizontal_inh
+      params: null
+
+    - sources: l3_inh
+      target: l3_inh
+      base_type: horizontal_inh
+      params: null
