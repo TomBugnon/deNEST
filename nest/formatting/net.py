@@ -15,6 +15,7 @@ def get_Network(network):
         - dict:'neuron_models':<neuron_models>,
                  'synapse_models':<synapse_models>,
                  'layers':<layers>,
+                 'non_extended_layers': <non_extended_layers>,
                  'connections':<connections>,
                  'areas':<areas>} where:
             - <neuron_models> is list of tuples each of the form:
@@ -28,19 +29,22 @@ def get_Network(network):
                  - 'params' contains all the parameters related to this layer,
                  - 'nest_params' contains the nest_formatted parameters
                     used to create the layer,
+            - <non_extended_layers> is similar to layers but without layer
+                duplication for different filters.
             - <connections> is a list of tuples each of the form:
                 (<source_layer>, <target_layer>, <params_chainmap>)
             - <areas> is a dictionary of the form:
                 {<area_name>: <list_of_layers>} where <list_of_layers> is the
                 list of all layers of the network within a given area
     '''
-    layers = get_Layers(network['layers'])
+    layers = get_Layers(network['layers'], extended=True)
     return {
         'neuron_models': get_Models(network['neuron_models']),
         'synapse_models': get_Models(network['synapse_models']),
         'layers': layers,
         'connections': get_Connections(network),
-        'areas': get_Areas(layers)
+        'areas': get_Areas(layers),
+        'non_extended_layers': get_Layers(network['layers'], extended=False)
     }
 
 
@@ -72,9 +76,11 @@ def get_Models(model_tree):
     ])
 
 
-def get_Layers(layers_tree):
+def get_Layers(layers_tree, extended=True):
     """ Generates from a tree a flat dictionnary describing the
-    layers-leaf of <layers_tree>
+    layers-leaf of <layers_tree>. If <extended>=True, returns the extended tree
+    after taking in account the replication of layers for different filters,
+    otherwise don't replicate layers whatsoever.
 
     Args:
         - <layers_tree> (dict): Tree that will be traversed to gather all
@@ -90,16 +96,17 @@ def get_Layers(layers_tree):
                 used to create the layer,
     """
     # List of tuples of the form (<layer_name>, <params_chainmap>).
-    # The layers whose <params_chainmap> contains the field 'filters' are
-    # replicated with different names.
-    layer_list = expand_layer_list(
-        traverse(
-            layers_tree,
-            params_key='params',
-            children_key='children',
-            name_key='name',
-            accumulator=[]))
-    return format_layer_list(layer_list)
+    layer_list = traverse(layers_tree,
+                          params_key='params',
+                          children_key='children',
+                          name_key='name',
+                          accumulator=[])
+    if extended:
+        # The layers whose <params_chainmap> contains the field 'filters' are
+        # replicated with different names.
+        return format_layer_list(expand_layer_list(layer_list))
+    else:
+        return format_layer_list(layer_list)
 
 
 def format_layer_list(layer_list):
@@ -297,13 +304,7 @@ def expand_connections(network):
     """
     # Non expanded layers dict, used to read layer names and parameters before
     # layer name modifications/layer expansion
-    layers = format_layer_list(
-        traverse(
-            network['layers'],
-            params_key='params',
-            children_key='children',
-            name_key='name',
-            accumulator=[]))
+    layers = get_Layers(network['layers'], extended=False)
 
     network.update(
         {'connections': flatten(
