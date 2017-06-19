@@ -20,7 +20,7 @@ if __name__ == '__main__':
     network['layers'] = chaintree([params['layers'], default['layers']])
     net = get_Network(network)
     print('network fetched')
-    # pprint.pprint(net)
+    pprint.pprint(net)
 
     recs = open(os.path.join(script_path,
                              '../../nets/default_visnet_recorders.yaml'), 'r')
@@ -29,6 +29,6 @@ if __name__ == '__main__':
     (mm, sd) = get_recorders(recorders['populations'],
                              net['non_expanded_layers'])
     print('Recorders fetched')
-    # pprint.pprint(mm)
+    pprint.pprint(mm)
     # pprint.pprint(sd)
     print('success')
