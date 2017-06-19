@@ -4,7 +4,7 @@
 # Neuron Models
 ################
 
-neurons:
+neuron_models:
     ht_neuron:
         nest_model: ht_neuron # base NEST neuron model name
         params:
@@ -70,7 +70,7 @@ neurons:
 ### ### Synapse Models ### ###
 ### ### ### ### ### ### ###
 
-synapses:
+synapse_models:
     ht_synapse:
         nest_model: ht_synapse # base NEST synapse model name
         params: {}
@@ -125,7 +125,7 @@ layers:
                     name: input_layer # Actual layer names combine the base layer names with the different filters
                     params:
                         elements:
-                            - model: input_exc
+                            - population: input_exc
                               type: excitatory
                               ratio: 1
         l1_area:
@@ -138,10 +138,10 @@ layers:
                     name: l1
                     params:
                         elements:
-                            - model: l1_exc
+                            - population: l1_exc
                               type: excitatory
                               ratio: 1
-                            - model: l1_inh
+                            - population: l1_inh
                               type: inhibitory
                               ratio: 1
         l2_area:
@@ -154,10 +154,10 @@ layers:
                     name: l2
                     params:
                         elements:
-                            - model: l2_exc
+                            - population: l2_exc
                               type: excitatory
                               ratio: 1
-                            - model: l2_inh
+                            - population: l2_inh
                               type: inhibitory
                               ratio: 1
         l3_area:
@@ -170,10 +170,10 @@ layers:
                     name: l3
                     params:
                         elements:
-                            - model: l3_exc
+                            - population: l3_exc
                               type: excitatory
                               ratio: 1
-                            - model: l3_inh
+                            - population: l3_inh
                               type: inhibitory
                               ratio: 1
 
@@ -259,16 +259,16 @@ connections:
 
     # excitatory on l1 for each v1 population
     - source_layer: input_layer
-      source_model: input_exc
+      source_population: input_exc
       target_layer: l1
-      target_model: l1_exc
+      target_population: l1_exc
       connection: input_connection
       params: {}
 
     - source_layer: input_layer
-      source_model: input_exc
+      source_population: input_exc
       target_layer: l1
-      target_model: l1_inh
+      target_population: l1_inh
       connection: input_connection
       params: {}
 
@@ -277,44 +277,44 @@ connections:
 
     # l1 excitatory horizontal
     - source_layer: l1
-      source_model: l1_exc
+      source_population: l1_exc
       target_layer: l1
-      target_model: l1_exc
+      target_population: l1_exc
       connection: horizontal_exc
       params: {}
 
     - source_layer: l1
-      source_model: l1_exc
+      source_population: l1_exc
       target_layer: l1
-      target_model: l1_inh
+      target_population: l1_inh
       connection: horizontal_exc
       params: {}
 
     # l1 inhibitory horizontal
     - source_layer: l1
-      source_model: l1_inh
+      source_population: l1_inh
       target_layer: l1
-      target_model: l1_exc
+      target_population: l1_exc
       connection: horizontal_inh
       params: {}
     - source_layer: l1
-      source_model: l1_inh
+      source_population: l1_inh
       target_layer: l1
-      target_model: l1_inh
+      target_population: l1_inh
       connection: horizontal_inh
       params: {}
 
     # l1 excitatory FF
     - source_layer: l1
-      source_model: l1_exc
+      source_population: l1_exc
       target_layer: l2
-      target_model: l2_exc
+      target_population: l2_exc
       connection: FF_exc
       params: {}
     - source_layer: l1
-      source_model: l1_exc
+      source_population: l1_exc
       target_layer: l2
-      target_model: l2_inh
+      target_population: l2_inh
       connection: FF_exc
       params: {}
 
@@ -323,46 +323,46 @@ connections:
 
     # l2 excitatory horizontal
     - source_layer: l2
-      source_model: l2_exc
+      source_population: l2_exc
       target_layer: l2
-      target_model: l2_exc
+      target_population: l2_exc
       connection: horizontal_exc
       params: {}
 
     - source_layer: l2
-      source_model: l2_exc
+      source_population: l2_exc
       target_layer: l2
-      target_model: l2_inh
+      target_population: l2_inh
       connection: horizontal_exc
       params: {}
 
     # l2 inhibitory horizontal
     - source_layer: l2
-      source_model: l2_inh
+      source_population: l2_inh
       target_layer: l2
-      target_model: l2_exc
+      target_population: l2_exc
       connection: horizontal_inh
       params: {}
 
     - source_layer: l2
-      source_model: l2_inh
+      source_population: l2_inh
       target_layer: l2
-      target_model: l2_inh
+      target_population: l2_inh
       connection: horizontal_inh
       params: {}
 
     # l2 excitatory FF
     - source_layer: l2
-      source_model: l2_exc
+      source_population: l2_exc
       target_layer: l3
-      target_model: l3_exc
+      target_population: l3_exc
       connection: FF_exc
       params: {}
 
     - source_layer: l2
-      source_model: l2_exc
+      source_population: l2_exc
       target_layer: l3
-      target_model: l3_inh
+      target_population: l3_inh
       connection: FF_exc
       params: {}
 
@@ -371,30 +371,30 @@ connections:
 
     # l3 excitatory horizontal
     - source_layer: l3
-      source_model: l3_exc
+      source_population: l3_exc
       target_layer: l3
-      target_model: l3_exc
+      target_population: l3_exc
       connection: horizontal_exc
       params: {}
 
     - source_layer: l3
-      source_model: l3_exc
+      source_population: l3_exc
       target_layer: l3
-      target_model: l3_inh
+      target_population: l3_inh
       connection: horizontal_exc
       params: {}
 
     # l3 inhibitory horizontal
     - source_layer: l3
-      source_model: l3_inh
+      source_population: l3_inh
       target_layer: l3
-      target_model: l3_exc
+      target_population: l3_exc
       connection: horizontal_inh
       params: {}
 
     - source_layer: l3
-      source_model: l3_inh
+      source_population: l3_inh
       target_layer: l3
-      target_model: l3_inh
+      target_population: l3_inh
       connection: horizontal_inh
       params: {}

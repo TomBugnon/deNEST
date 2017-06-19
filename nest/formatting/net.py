@@ -1,7 +1,6 @@
 import itertools
-
-import pprint
 import os
+import pprint
 from collections import ChainMap
 
 # import nest
@@ -13,14 +12,14 @@ import yaml
 def get_Network(network):
     '''
     Returns:
-        - dict: {'neurons':<neurons>,
-                 'synapses':<synapses>,
+        - dict:'neuron_models':<neuron_models>,
+                 'synapse_models':<synapse_models>,
                  'layers':<layers>,
                  'connections':<connections>,
                  'areas':<areas>} where:
-            - <neurons> is list of tuples each of the form:
+            - <neuron_models> is list of tuples each of the form:
                 (<base_nest_model>,<model_name>,<params_chainmap>)
-            - <synapses> is list of tuples each of the form:
+            - <synapse_models> is list of tuples each of the form:
                 (<base_nest_model>,<model_name>,<params_chainmap>)
             - <layers> is a dictionary of the form:
                 {<layer_name>: {'params': <params_chainmap>
@@ -37,8 +36,8 @@ def get_Network(network):
     '''
     layers = get_Layers(network['layers'])
     return {
-        'neurons': get_Models(network['neurons']),
-        'synapses': get_Models(network['synapses']),
+        'neuron_models': get_Models(network['neuron_models']),
+        'synapse_models': get_Models(network['synapse_models']),
         'layers': layers,
         'connections': get_Connections(network),
         'areas': get_Areas(layers)
@@ -152,7 +151,7 @@ def get_layer_elements(layer_params):
 
     # Build up element list
     for pop in layer_elements:
-        # Number of neurons in layer
+        # Number of populations in layer
         if pop['type'] == 'inhibitory':
             number = pop['ratio']
         elif pop['type'] == 'excitatory':
@@ -161,7 +160,7 @@ def get_layer_elements(layer_params):
             else:
                 number = (pop['ratio'] * number_inh
                           * layer_params['exc_inh_ratio'])
-        elements_list += [pop['model'], number]
+        elements_list += [pop['population'], number]
 
     return elements_list
 
@@ -214,8 +213,8 @@ def get_conn_params(conn, connection_models, layers):
     # Weight scaling
     p['weights'] = scale_conn_weights(p['weights'],
                                       source_params['weight_gain'])
-    p['sources'] = {'model': conn['source_model']}
-    p['targets'] = {'model': conn['target_model']}
+    p['sources'] = {'population': conn['source_population']}
+    p['targets'] = {'population': conn['target_population']}
 
     return p
 
@@ -552,14 +551,14 @@ if __name__ == '__main__':
     script_path = os.path.dirname(__file__)
 
     df = open(os.path.join(script_path,
-                           '../nets/default_visnet.yaml'), 'r')
+                           '../../nets/default_visnet.yaml'), 'r')
     nf = open(os.path.join(script_path,
-                           '../nets/default_visnet_modifs.yaml'), 'r')
+                           '../../nets/default_visnet_modifs.yaml'), 'r')
     default = yaml.load(df)
     params = yaml.load(nf)
 
     network = default
     network['layers'] = chaintree([params['layers'], default['layers']])
     net = get_Network(network)
-    # pprint.pprint(net)
+    pprint.pprint(net)
     print('success')
