@@ -1,12 +1,5 @@
 import itertools
-import os
-import pprint
 from collections import ChainMap
-
-# import nest
-import numpy as np
-
-import yaml
 
 
 def get_Network(network):
@@ -15,7 +8,7 @@ def get_Network(network):
         - dict:'neuron_models':<neuron_models>,
                  'synapse_models':<synapse_models>,
                  'layers':<layers>,
-                 'non_extended_layers': <non_extended_layers>,
+                 'non_expanded_layers': <non_expanded_layers>,
                  'connections':<connections>,
                  'areas':<areas>} where:
             - <neuron_models> is list of tuples each of the form:
@@ -29,7 +22,7 @@ def get_Network(network):
                  - 'params' contains all the parameters related to this layer,
                  - 'nest_params' contains the nest_formatted parameters
                     used to create the layer,
-            - <non_extended_layers> is similar to layers but without layer
+            - <non_expanded_layers> is similar to layers but without layer
                 duplication for different filters.
             - <connections> is a list of tuples each of the form:
                 (<source_layer>, <target_layer>, <params_chainmap>)
@@ -37,15 +30,24 @@ def get_Network(network):
                 {<area_name>: <list_of_layers>} where <list_of_layers> is the
                 list of all layers of the network within a given area
     '''
-    layers = get_Layers(network['layers'], extended=True)
+    layers = get_Layers(network['layers'], expanded=True)
     return {
         'neuron_models': get_Models(network['neuron_models']),
         'synapse_models': get_Models(network['synapse_models']),
         'layers': layers,
+        'non_expanded_layers': get_Layers(network['layers'], expanded=False),
         'connections': get_Connections(network),
         'areas': get_Areas(layers),
-        'non_extended_layers': get_Layers(network['layers'], extended=False)
     }
+
+
+def updateDicts(dict1, dict2):
+    assert(isinstance(dict1, dict))
+    assert(isinstance(dict2, dict))
+
+    tmp = dict1.copy()
+    tmp.update(dict2)
+    return tmp
 
 
 def combine_networks(networks_list, children_key='children'):
@@ -76,9 +78,9 @@ def get_Models(model_tree):
     ])
 
 
-def get_Layers(layers_tree, extended=True):
+def get_Layers(layers_tree, expanded=True):
     """ Generates from a tree a flat dictionnary describing the
-    layers-leaf of <layers_tree>. If <extended>=True, returns the extended tree
+    layers-leaf of <layers_tree>. If <expanded>=True, returns the expanded tree
     after taking in account the replication of layers for different filters,
     otherwise don't replicate layers whatsoever.
 
@@ -101,7 +103,7 @@ def get_Layers(layers_tree, extended=True):
                           children_key='children',
                           name_key='name',
                           accumulator=[])
-    if extended:
+    if expanded:
         # The layers whose <params_chainmap> contains the field 'filters' are
         # replicated with different names.
         return format_layer_list(expand_layer_list(layer_list))
@@ -283,7 +285,7 @@ def expand_layer_list(layer_list):
     for (layer_name, params_chainmap) in layer_list:
         if 'filters' in params_chainmap.keys():
             expanded_list += [(ext_layer_name, params_chainmap)
-                              for ext_layer_name in get_extended_names(
+                              for ext_layer_name in get_expanded_names(
                                   layer_name, params_chainmap['filters'])]
         else:
             expanded_list += [(layer_name, params_chainmap)]
@@ -300,11 +302,11 @@ def expand_connections(network):
     'scale_input_weights' is True, the newly created connections' weights are
     divided by n.
     The output is a dictionary similar to network except that the 'connections'
-    subdictionary has been extended.
+    subdictionary has been expanded.
     """
     # Non expanded layers dict, used to read layer names and parameters before
     # layer name modifications/layer expansion
-    layers = get_Layers(network['layers'], extended=False)
+    layers = get_Layers(network['layers'], expanded=False)
 
     network.update(
         {'connections': flatten(
@@ -319,16 +321,17 @@ def expand_connections(network):
 def duplicate_connection(conn, connection_models, layers_dict):
     """ From a single connection dictionary, returns a list of duplicated
     connection dictionaries with different input layer names if the input layer
-    should be extended.
+    should be expanded.
     """
 
     source = conn['source_layer']
     layer_params = layers_dict[source]['params']
 
     if 'filters' in layer_params.keys():
-        exp_source_names = get_extended_names(source, layer_params['filters'])
+        exp_source_names = get_expanded_names(source, layer_params['filters'])
         if layer_params['scale_input_weights']:
-            conn['params']['weights'] = (base_conn_weight(conn, network)
+            conn['params']['weights'] = (base_conn_weight(conn,
+                                                          connection_models)
                                          / len(exp_source_names))
         return [
             copy_dict(conn, {'source_layer': exp_source_name})
@@ -338,9 +341,9 @@ def duplicate_connection(conn, connection_models, layers_dict):
         return [conn]
 
 
-def base_conn_weight(conn, network):
+def base_conn_weight(conn, connection_models):
     """ Returns the base weight of the connection model <conn> derives from"""
-    return network['connection_models'][conn['connection']]['weights']
+    return connection_models[conn['connection']]['weights']
 
 
 def copy_dict(source_dict, diffs):
@@ -351,7 +354,7 @@ def copy_dict(source_dict, diffs):
     return result
 
 
-def get_extended_names(base_layer_name, filters):
+def get_expanded_names(base_layer_name, filters):
     '''
     Args:
         - <base_layer_name> (str)
@@ -545,21 +548,3 @@ def traverse(tree, params_key='params', children_key='children',
                              name_key=name_key,
                              accumulator=acc)
                     for name, child in tree[children_key].items()])
-
-
-if __name__ == '__main__':
-
-    script_path = os.path.dirname(__file__)
-
-    df = open(os.path.join(script_path,
-                           '../../nets/default_visnet.yaml'), 'r')
-    nf = open(os.path.join(script_path,
-                           '../../nets/default_visnet_modifs.yaml'), 'r')
-    default = yaml.load(df)
-    params = yaml.load(nf)
-
-    network = default
-    network['layers'] = chaintree([params['layers'], default['layers']])
-    net = get_Network(network)
-    pprint.pprint(net)
-    print('success')
