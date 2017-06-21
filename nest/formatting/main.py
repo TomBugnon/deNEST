@@ -3,7 +3,6 @@ import pprint
 
 import yaml
 from net import chaintree, get_Network
-from recorders import get_recorders
 
 if __name__ == '__main__':
 
@@ -22,20 +21,14 @@ if __name__ == '__main__':
     params = yaml.load(nf)
     recorders = yaml.load(recs)
     nestp = yaml.load(df_nest)
-    import ipdb; ipdb.set_trace()
-
     raw_net = chaintree([params, recorders, default, nestp])
     net = get_Network(raw_net['children'])
 
-    import ipdb; ipdb.set_trace()
-
     from init_nest import *
-
     init_Kernel(raw_net['params'])
     create_Neurons(net['neuron_models'])
     create_Synapses(net['synapse_models'])
     create_Layers(net['layers'])
     create_Connections(net['connections'], net['layers'])
     connect_Recorders(net['populations'], net['layers'])
-    print('SUCCEEEESS')
-    import ipdb; ipdb.set_trace()
+    print('Network fully initialized in NEST.')

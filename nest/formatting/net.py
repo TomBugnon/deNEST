@@ -545,3 +545,93 @@ def traverse(tree, params_key='params', children_key='children',
                              name_key=name_key,
                              accumulator=acc)
                     for name, child in tree[children_key].items()])
+
+
+def get_multimeter(pop_params):
+    """ Return a dictionaries:
+        {'record_pop': <bool>,
+         'rec_params': <rec_params>}
+    where <bool> indicates whether the population should be recorder and
+    <rec_params> is a nest-readable dictionary describing the multimeter.
+    """
+    return {'record_pop': pop_params['record_multimeter'],
+            'rec_params': {'record_from': pop_params['mm_record_from'],
+                           'record_to': pop_params['mm_record_to'],
+                           'interval': pop_params['mm_interval'],
+                           'withtime': pop_params['mm_withtime'],
+                           'withgid': pop_params['mm_withgid']}}
+
+
+def get_spike_detector(pop_params):
+    """ Return a dictionaries:
+        {'record_pop': <bool>,
+         'rec_params': <rec_params>}
+    where <bool> indicates whether the population should be recorder and
+    <rec_params> is a nest-readable dictionary describing the multimeter.
+    """
+    return {'record_pop': pop_params['record_spike_detector'],
+            'rec_params': {'withtime': pop_params['sd_withtime'],
+                           'withgid': pop_params['sd_withgid']}}
+
+
+def expand_populations(pop_list, non_expanded_layers):
+    """ Duplicates with different names the tuples in pop_list if their layer
+    has a 'filter' key.
+
+    Args:
+        - <pop_list>: list of tuples of the form (<pop_name>, <pop_params>) for
+            population. <pop_params> contains eg the non-expanded layer name.
+        - <non_expanded_layers>: non name-expanded formatted flat
+            dictionary (from get_Network())
+    Returns:
+        (list) of tuples duplicated with the same structure as pop_list but in
+            which params['layer'] has been updated with the extended names.
+    """
+    expanded_list = []
+    for (pop_name, pop_params) in pop_list:
+        layer_name = pop_params['layer']
+        layer_params = non_expanded_layers[layer_name]['params']
+        if 'filters' in layer_params.keys():
+            expanded_list += [(pop_name, ChainMap({'layer': ext_layer_name},
+                                                  pop_params))
+                              for ext_layer_name
+                              in get_expanded_names(layer_name,
+                                                    layer_params['filters'])]
+        else:
+            expanded_list += [(pop_name, pop_params)]
+
+    return expanded_list
+
+
+def get_Populations(pop_tree, non_expanded_layers):
+    """ Return nest-readable multimeters and spike detectors information.
+    Args:
+        - <pop_tree> (dict): Tree in which the recorders are defined. Leaves
+            are populations.
+        - <non_expanded_layers> (dict): Non name-expanded formatted flat
+            dictionary (from get_Network()) used to expand the population tree.
+
+    Returns:
+        - [<pop>,] (list of dictionaries): <pop> is of the form:
+                {'layer': <layer_name>,
+                 'population': <pop_name>,
+                 'mm': <multimeter_params>,
+                 'sd': <spike_detectors_params>}
+            where <multimeter_params> and <sd_params> are dictionaries of the
+            form: {'record_pop': <bool>,
+                   'rec_params': <nest_readable_dict>} describing the type of
+            the multimeter or the spike_detector that would be connected to
+            that specific population, and whether the population should be
+            recorded.
+    """
+    return [{'layer': pop_params['layer'],
+             'population': pop_name,
+             'mm': get_multimeter(pop_params),
+             'sd': get_spike_detector(pop_params)}
+            for (pop_name, pop_params)
+            in expand_populations(traverse(pop_tree,
+                                           params_key='params',
+                                           children_key='children',
+                                           name_key='name',
+                                           accumulator=[]),
+                                  non_expanded_layers)]
