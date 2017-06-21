@@ -38,6 +38,7 @@ def get_Network(network):
         'non_expanded_layers': get_Layers(network['layers'], expanded=False),
         'connections': get_Connections(network),
         'areas': get_Areas(layers),
+        'populations': get_Populations(network['populations'], get_Layers(network['layers'], expanded=False))
     }
 
 
@@ -132,7 +133,7 @@ def format_nest_layer_params(layer_params):
     nest_p = {}
     nest_p['rows'] = layer_params['size']
     nest_p['columns'] = layer_params['size']
-    nest_p['extent'] = layer_params['visSize']
+    nest_p['extent'] = [layer_params['visSize'], layer_params['visSize']]
     nest_p['edge_wrap'] = layer_params['edge_wrap']
     nest_p['elements'] = get_layer_elements(layer_params)
 
@@ -222,8 +223,8 @@ def get_conn_params(conn, connection_models, layers):
     # Weight scaling
     p['weights'] = scale_conn_weights(p['weights'],
                                       source_params['weight_gain'])
-    p['sources'] = {'population': conn['source_population']}
-    p['targets'] = {'population': conn['target_population']}
+    p['sources'] = {'model': conn['source_population']}
+    p['targets'] = {'model': conn['target_population']}
 
     return p
 
@@ -414,10 +415,6 @@ def chaintree(tree_list, children_key='children'):
                 dictionary, or if there is only one value.
         if <key> is children_key:
             - the recursively chained subtrees.
-
-    NB: This function should be applied on eg params['layers'] directly or
-        modified to act recursively on multiple keys (eg 'layers' and
-        'children')
     """
     chained_tree = {}
 
@@ -431,7 +428,7 @@ def chaintree(tree_list, children_key='children'):
                          for (key, values) in key_value_tups})
 
     # Recursively combine children if there are any.
-    # <children> is a list of (<child_key>, <list_of_child_subtrees>
+    # <children_tups> is a list of (<child_key>, <list_of_child_subtrees>
     children_tups = all_key_values([tree[children_key]
                                     for tree in tree_list
                                     if (children_key in tree

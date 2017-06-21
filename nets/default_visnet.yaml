@@ -1,400 +1,392 @@
-## YAML file describing the neuron models and the general architecture of a network
 
-################
-# Neuron Models
-################
+params: {} # NEST kernel parameters
+children: # Network and recorders
 
-neuron_models:
-    ht_neuron:
-        nest_model: ht_neuron # base NEST neuron model name
+    # Neuron Models
+
+    neuron_models:
+        ht_neuron:
+            nest_model: ht_neuron # base NEST neuron model name
+            params:
+                g_peak_NaP: 0.5
+                g_peak_h: 0.0
+                g_peak_T: 0.0
+                g_peak_KNa: 0.5
+                g_KL: 1.0
+                E_rev_NaP: 55.0
+                g_peak_AMPA: 0.1
+                g_peak_NMDA: 0.15
+                g_peak_GABA_A: 0.33
+                g_peak_GABA_B: 0.0132
+                # old NEST NMDA parameters:
+                instant_unblock_NMDA: true
+                S_act_NMDA: 0.4
+                V_act_NMDA: !!python/float -58.0
+            children:
+                cortical_excitatory:
+                    # name: cortical_excitatory
+                    params:
+                        theta_eq: !!python/float -51.0
+                        tau_theta: 2.0
+                        tau_spike: 1.75
+                        tau_m: 16.0
+                    children: # Neuron models
+                        l1_exc:
+                            name: l1_exc
+                            params: {}
+                        l2_exc:
+                            name: l2_exc
+                            params: {}
+                        l3_exc:
+                            name: l3_exc
+                            params: {}
+                cortical_inhibitory:
+                    # name: cortical_inhibitory
+                    params:
+                        theta_eq: !!python/float -53.0
+                        tau_theta: 1.0
+                        tau_spike: 0.5
+                        tau_m: 8.0
+                    children: # Neuron models
+                        l1_inh:
+                            name: l1_inh
+                            params: {}
+                        l2_inh:
+                            name: l2_inh
+                            params: {}
+                        l3_inh:
+                            name: l3_inh
+                            params: {}
+        poisson_generator:
+            nest_model: poisson_generator  # base NEST neuron model name
+            params: {}
+            children:
+                input_exc:
+                    name: input_exc
+                    params: {}
+
+    # Neuron Models
+
+    synapse_models:
+        # NB: - 'format_synapse_params()' needs modification if any parameters are
+        #            added here
+        #     - If you define a 'receptor_type' field you need a 'target_neuron'
+        #            field as well.
+        ht_synapse:
+            nest_model: ht_synapse # base NEST synapse model name
+            params:
+                target_neuron: ht_neuron
+            children:
+                AMPA_syn:
+                    name: AMPA_syn
+                    params:
+                        receptor_type: AMPA
+                NMDA_syn:
+                    name: NMDA_syn
+                    params:
+                        receptor_type: NMDA
+                GABA_A_syn:
+                    name: GABA_A_syn
+                    params:
+                        receptor_type: GABA_A
+                GABA_B_syn:
+                    name: GABA_B_syn
+                    params:
+                        receptor_type: GABA_B
+        static_synapse:
+            nest_model: static_synapse
+            params: {}
+            children:
+                input_synapse:
+                    name: input_synapse
+                    params: {}
+
+    # Layers
+
+    layers:
         params:
-            g_peak_NaP: 0.5
-            g_peak_h: 0.0
-            g_peak_T: 0.0
-            g_peak_KNa: 0.5
-            g_KL: 1.0
-            E_rev_NaP: 55.0
-            g_peak_AMPA: 0.1
-            g_peak_NMDA: 0.075 * 0.2
-            g_peak_GABA_A: 0.33
-            g_peak_GABA_B: 0.0132
-            # old NEST NMDA parameters:
-            instant_unblock_NMDA: true
-            S_act_NMDA: 1/2.5
-            V_act_NMDA: -58
-        children:
-            cortical_excitatory:
-                # name: cortical_excitatory
+            edge_wrap: true
+            visSize: 8.0
+            exc_inh_ratio: 2
+            weight_gain: 0.66
+            rf_scale_factor: 1.0
+            maskfactor: 1.0
+            input_area_name: input_area
+            scale_input_weights: true
+        children: # areas
+            input_area:
                 params:
-                    theta_eq: -51.0
-                    tau_theta: 2.0
-                    tau_spike: 1.75
-                    tau_m: 16.0
-                children: # Neuron models
-                    l1_exc:
-                        name: l1_exc
-                        params: {}
-                    l2_exc:
-                        name: l2_exc
-                        params: {}
-                    l3_exc:
-                        name: l3_exc
-                        params: {}
-            cortical_inhibitory:
-                # name: cortical_inhibitory
+                    area: input_area
+                    size: 256
+                    rf_scale_factor: 1.0
+                children: #layers
+                    input_layer:
+                        name: input_layer # Actual layer names combine the base layer names with the different filters
+                        params:
+                            elements:
+                                - population: input_exc
+                                  type: excitatory
+                                  ratio: 1
+            l1_area:
                 params:
-                    theta_eq: -53.0
-                    tau_theta: 1.0
-                    tau_spike: 0.5
-                    tau_m: 8.0
-                children: # Neuron models
-                    l1_inh:
-                        name: l1_inh
-                        params: {}
-                    l2_inh:
-                        name: l2_inh
-                        params: {}
-                    l3_inh:
-                        name: l3_inh
-                        params: {}
-    poisson:
-        nest_model: poisson # base NEST neuron model name
-        params: {}
-        children:
-            input_exc:
-                name: input_exc
-                params: {}
-
-
-### ### ### ### ### ### ###
-### ### Synapse Models ### ###
-### ### ### ### ### ### ###
-
-synapse_models:
-    ht_synapse:
-        nest_model: ht_synapse # base NEST synapse model name
-        params: {}
-        children:
-            AMPA_syn:
-                name: AMPA_syn
+                    #area: l1_area
+                    size: 128
+                    rf_scale_factor: 1.0
+                children: #layers
+                    l1:
+                        name: l1
+                        params:
+                            elements:
+                                - population: l1_exc
+                                  type: excitatory
+                                  ratio: 1
+                                - population: l1_inh
+                                  type: inhibitory
+                                  ratio: 1
+            l2_area:
                 params:
-                    receptor_type: AMPA
-            NMDA_syn:
-                name: NMDA_syn
+                    #area: l2_area
+                    size: 128
+                    rf_scale_factor: 1.0
+                children: #layers
+                    l2:
+                        name: l2
+                        params:
+                            elements:
+                                - population: l2_exc
+                                  type: excitatory
+                                  ratio: 1
+                                - population: l2_inh
+                                  type: inhibitory
+                                  ratio: 1
+            l3_area:
                 params:
-                    receptor_type: NMDA
-            GABA_A_syn:
-                name: GABA_A_syn
-                params:
-                    receptor_type: GABA_A
-            GABA_B_syn:
-                name: GABA_B_syn
-                params:
-                    receptor_type: GABA_B
-    static_synapse:
-        nest_model: static_synapse
-        params: {}
-        children:
-            input_synapse:
-                name: input_synapse
-                params: {}
+                    #area: l3_area
+                    size: 128
+                    rf_scale_factor: 1.0
+                children: #layers
+                    l3:
+                        name: l3
+                        params:
+                            elements:
+                                - population: l3_exc
+                                  type: excitatory
+                                  ratio: 1
+                                - population: l3_inh
+                                  type: inhibitory
+                                  ratio: 1
 
-### ### ### ### ### ### ###
-### ### Layers ### ###
-### ### ### ### ### ### ###
+    # Connection models
 
+    connection_models:
 
-layers:
-    params:
-        edge_wrap: true
-        visSize: 8.0
-        exc_inh_ratio: 2
-        weight_gain: 0.66
-        rf_scale_factor: 1
-        maskfactor: 1
-        input_area_name: input_area
-        scale_input_weights: true
-    children: # areas
-        input_area:
-            params:
-                area: input_area
-                size: 256
-                rf_scale_factor: 1
-            children: #layers
-                input_layer:
-                    name: input_layer # Actual layer names combine the base layer names with the different filters
-                    params:
-                        elements:
-                            - population: input_exc
-                              type: excitatory
-                              ratio: 1
-        l1_area:
-            params:
-                #area: l1_area
-                size: 128
-                rf_scale_factor: 1
-            children: #layers
-                l1:
-                    name: l1
-                    params:
-                        elements:
-                            - population: l1_exc
-                              type: excitatory
-                              ratio: 1
-                            - population: l1_inh
-                              type: inhibitory
-                              ratio: 1
-        l2_area:
-            params:
-                #area: l2_area
-                size: 128
-                rf_scale_factor: 1
-            children: #layers
-                l2:
-                    name: l2
-                    params:
-                        elements:
-                            - population: l2_exc
-                              type: excitatory
-                              ratio: 1
-                            - population: l2_inh
-                              type: inhibitory
-                              ratio: 1
-        l3_area:
-            params:
-                #area: l3_area
-                size: 128
-                rf_scale_factor: 1
-            children: #layers
-                l3:
-                    name: l3
-                    params:
-                        elements:
-                            - population: l3_exc
-                              type: excitatory
-                              ratio: 1
-                            - population: l3_inh
-                              type: inhibitory
-                              ratio: 1
+        horizontal_exc:
+            connection_type: divergent
+            synapse_model: AMPA_syn
+            mask:
+                circular:
+                    radius: 12.0 # ... * dpcP during init
+            kernel:
+                gaussian:
+                    p_center: 0.05
+                    sigma: 7.5 # ... * dpcP during init
+            weights: 1.0 # ... * weight gain during init
+            delays:
+                uniform:
+                    min: 1.75
+                    max: 2.25
+            allow_autapses: false
+            allow_multapses: false
 
+        horizontal_inh:
+            connection_type: divergent
+            synapse_model: GABA_A_syn
+            mask:
+                circular:
+                    radius: 7.0 # ... * dpcP during init
+            kernel:
+                gaussian:
+                    p_center: 0.25 # TODO: much stronger than excitatory -> check
+                    sigma: 7.5 # ... * dpcP during init
+            weights: 1.0 # ... * weight gain during init
+            delays:
+                uniform:
+                    min: 1.75
+                    max: 2.25
+            allow_autapses: false
+            allow_multapses: false
 
+        FF_exc:
+            connection_type: convergent
+            synapse_model: AMPA_syn
+            mask:
+                circular:
+                    radius: 12.0 # ... * dpcP during init
+            kernel: 0.8
+            weights: 1.0 # ... * weight gain during init
+            delays:
+                uniform:
+                    min: 1.75
+                    max: 2.25
+            allow_autapses: false
+            allow_multapses: false
 
-### ### ### ### ### ### ###
-### ### Connections ### ###
-### ### ### ### ### ### ###
+        input_connection:
+            connection_type: convergent
+            synapse_model: static_synapse
+            mask:
+                circular:
+                    radius: 12.0 # ... * dpcP during init
+            kernel: 0.8
+            weights: 1.0 # ... * weight gain during init
+                # possibly divided by number of input layers.
+            delays:
+                uniform:
+                    min: 1.75
+                    max: 2.25
+            allow_autapses: false
+            allow_multapses: false
 
-connection_models:
+    # Population to population connections
 
-    horizontal_exc:
-        connection_type: divergent
-        synapse_model: AMPA_syn
-        mask:
-            circular:
-                radius: 12 # ... * dpcP during init
-        kernel:
-            gaussian:
-                p_center: 0.05
-                sigma: 7.5 # ... * dpcP during init
-        weights: 1.0 # ... * weight gain during init
-        delays:
-            uniform:
-                min: 1.75
-                max: 2.25
-        allow_autapses: false
-        allow_multapses: false
+    connections:
 
-    horizontal_inh:
-        connection_type: divergent
-        synapse_model: GABA_A_syn
-        mask:
-            circular:
-                radius: 7 # ... * dpcP during init
-        kernel:
-            gaussian:
-                p_center: 0.25 # TODO: much stronger than excitatory -> check
-                sigma: 7.5 # ... * dpcP during init
-        weights: 1.0 # ... * weight gain during init
-        delays:
-            uniform:
-                min: 1.75
-                max: 2.25
-        allow_autapses: false
-        allow_multapses: false
+        ### source area: input area ###
 
-    FF_exc:
-        connection_type: convergent
-        synapse_model: AMPA_syn
-        mask:
-            circular:
-                radius: 12 # ... * dpcP during init
-        kernel: 0.8
-        weights: 1.0 # ... * weight gain during init
-        delays:
-            uniform:
-                min: 1.75
-                max: 2.25
-        allow_autapses: false
-        allow_multapses: false
-
-    input_connection:
-        connection_type: convergent
-        synapse_model: static_synapse
-        mask:
-            circular:
-                radius: 12 # ... * dpcP during init
-        kernel: 0.8
-        weights: 1.0 # ... * weight gain during init
-            # possibly divided by number of input layers.
-        delays:
-            uniform:
-                min: 1.75
-                max: 2.25
-        allow_autapses: false
-        allow_multapses: false
+        # excitatory on l1 for each v1 population
+        - source_layer: input_layer
+          source_population: input_exc
+          target_layer: l1
+          target_population: l1_exc
+          connection: input_connection
+          params: {}
+        - source_layer: input_layer
+          source_population: input_exc
+          target_layer: l1
+          target_population: l1_inh
+          connection: input_connection
+          params: {}
 
 
-connections:
+        ### source area: l1 ###
 
-    ### input area ###
+        # l1 excitatory horizontal
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l1
+          target_population: l1_exc
+          connection: horizontal_exc
+          params: {}
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l1
+          target_population: l1_inh
+          connection: horizontal_exc
+          params: {}
 
-    # excitatory on l1 for each v1 population
-    - source_layer: input_layer
-      source_population: input_exc
-      target_layer: l1
-      target_population: l1_exc
-      connection: input_connection
-      params: {}
+        # l1 inhibitory horizontal
+        - source_layer: l1
+          source_population: l1_inh
+          target_layer: l1
+          target_population: l1_exc
+          connection: horizontal_inh
+          params: {}
+        - source_layer: l1
+          source_population: l1_inh
+          target_layer: l1
+          target_population: l1_inh
+          connection: horizontal_inh
+          params: {}
 
-    - source_layer: input_layer
-      source_population: input_exc
-      target_layer: l1
-      target_population: l1_inh
-      connection: input_connection
-      params: {}
-
-
-    ### l1 ###
-
-    # l1 excitatory horizontal
-    - source_layer: l1
-      source_population: l1_exc
-      target_layer: l1
-      target_population: l1_exc
-      connection: horizontal_exc
-      params: {}
-
-    - source_layer: l1
-      source_population: l1_exc
-      target_layer: l1
-      target_population: l1_inh
-      connection: horizontal_exc
-      params: {}
-
-    # l1 inhibitory horizontal
-    - source_layer: l1
-      source_population: l1_inh
-      target_layer: l1
-      target_population: l1_exc
-      connection: horizontal_inh
-      params: {}
-    - source_layer: l1
-      source_population: l1_inh
-      target_layer: l1
-      target_population: l1_inh
-      connection: horizontal_inh
-      params: {}
-
-    # l1 excitatory FF
-    - source_layer: l1
-      source_population: l1_exc
-      target_layer: l2
-      target_population: l2_exc
-      connection: FF_exc
-      params: {}
-    - source_layer: l1
-      source_population: l1_exc
-      target_layer: l2
-      target_population: l2_inh
-      connection: FF_exc
-      params: {}
+        # l1 excitatory FF
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l2
+          target_population: l2_exc
+          connection: FF_exc
+          params: {}
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l2
+          target_population: l2_inh
+          connection: FF_exc
+          params: {}
 
 
-    ### l2 ###
+        ### source area: l2 ###
 
-    # l2 excitatory horizontal
-    - source_layer: l2
-      source_population: l2_exc
-      target_layer: l2
-      target_population: l2_exc
-      connection: horizontal_exc
-      params: {}
+        # l2 excitatory horizontal
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l2
+          target_population: l2_exc
+          connection: horizontal_exc
+          params: {}
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l2
+          target_population: l2_inh
+          connection: horizontal_exc
+          params: {}
 
-    - source_layer: l2
-      source_population: l2_exc
-      target_layer: l2
-      target_population: l2_inh
-      connection: horizontal_exc
-      params: {}
+        # l2 inhibitory horizontal
+        - source_layer: l2
+          source_population: l2_inh
+          target_layer: l2
+          target_population: l2_exc
+          connection: horizontal_inh
+          params: {}
+        - source_layer: l2
+          source_population: l2_inh
+          target_layer: l2
+          target_population: l2_inh
+          connection: horizontal_inh
+          params: {}
 
-    # l2 inhibitory horizontal
-    - source_layer: l2
-      source_population: l2_inh
-      target_layer: l2
-      target_population: l2_exc
-      connection: horizontal_inh
-      params: {}
+        # l2 excitatory FF
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l3
+          target_population: l3_exc
+          connection: FF_exc
+          params: {}
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l3
+          target_population: l3_inh
+          connection: FF_exc
+          params: {}
 
-    - source_layer: l2
-      source_population: l2_inh
-      target_layer: l2
-      target_population: l2_inh
-      connection: horizontal_inh
-      params: {}
+        ### source area: l3 ###
 
-    # l2 excitatory FF
-    - source_layer: l2
-      source_population: l2_exc
-      target_layer: l3
-      target_population: l3_exc
-      connection: FF_exc
-      params: {}
+        # l3 excitatory horizontal
+        - source_layer: l3
+          source_population: l3_exc
+          target_layer: l3
+          target_population: l3_exc
+          connection: horizontal_exc
+          params: {}
+        - source_layer: l3
+          source_population: l3_exc
+          target_layer: l3
+          target_population: l3_inh
+          connection: horizontal_exc
+          params: {}
 
-    - source_layer: l2
-      source_population: l2_exc
-      target_layer: l3
-      target_population: l3_inh
-      connection: FF_exc
-      params: {}
+        # l3 inhibitory horizontal
+        - source_layer: l3
+          source_population: l3_inh
+          target_layer: l3
+          target_population: l3_exc
+          connection: horizontal_inh
+          params: {}
+        - source_layer: l3
+          source_population: l3_inh
+          target_layer: l3
+          target_population: l3_inh
+          connection: horizontal_inh
+          params: {}
 
+    # Populations / recorders
 
-    ### l3 ###
-
-    # l3 excitatory horizontal
-    - source_layer: l3
-      source_population: l3_exc
-      target_layer: l3
-      target_population: l3_exc
-      connection: horizontal_exc
-      params: {}
-
-    - source_layer: l3
-      source_population: l3_exc
-      target_layer: l3
-      target_population: l3_inh
-      connection: horizontal_exc
-      params: {}
-
-    # l3 inhibitory horizontal
-    - source_layer: l3
-      source_population: l3_inh
-      target_layer: l3
-      target_population: l3_exc
-      connection: horizontal_inh
-      params: {}
-
-    - source_layer: l3
-      source_population: l3_inh
-      target_layer: l3
-      target_population: l3_inh
-      connection: horizontal_inh
-      params: {}
+    populations: {}

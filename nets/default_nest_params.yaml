@@ -1,0 +1,12 @@
+params: # NEST kernel parameters
+        local_num_threads: 20
+        resolution: 1.0
+        seed: 94
+        print_time: True
+children: # Network and recorders
+    neuron_models: {}
+    synapse_models: {}
+    layers: {}
+    connection_models: {}
+    # connections: {} Don't uncomment
+    populations: {}

@@ -1,5 +1,0 @@
-local_num_threads: 20
-resolution: 1
-rng_seed: 94
-grng_seed: 94
-print_time: True
