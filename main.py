@@ -22,14 +22,14 @@ def load_yaml(*args):
 if __name__ == '__main__':
 
     # Which simulation should be run.
-    full_sim_params = './sim_params/full_sim/default_sim.yaml'
+    full_sim_file = './sim_params/full_sim/default_sim.yaml'
 
     # load and merge all the simulation parameters
-    full_sim = load_sim(full_sim_params)
+    full_sim_params = load_sim(full_sim_file)
 
     # Get relevant parts of the full simulation tree
-    net = full_sim['children']['network']['children']
-    sim = full_sim['children']['sim_params']['children']
+    net_raw = full_sim_params['children']['network']['children']
+    sim = full_sim_params['children']['sim_params']['children']
 
-    net = get_Network(net)
+    net = get_Network(net_raw)
     net = init_Network(net, sim)
