@@ -418,8 +418,12 @@ def chaintree(tree_list, children_key='children'):
     """
     chained_tree = {}
 
+    # Remove empty stuff from the list
+    tree_list = [tree for tree in tree_list if bool(tree)]
     if len(tree_list) == 1:
         return tree_list[0]
+    if len(tree_list) == 0:
+        return {}
 
     # Combine horizontally the values in all trees under each key except
     # <children_key>

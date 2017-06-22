@@ -4,30 +4,48 @@ import nest
 import nest.topology as tp
 import numpy as np
 
-
-def initialize_network():
-    return
+from tqdm import *  # Loop progress bar.
 
 
-def init_Kernel(nest_params):
+def init_Network(net, sim):
+
+    print('Initialize kernel.')
+    init_Kernel(sim['kernel_params'])
+    print('Create network:')
+    print('- Create neurons.')
+    create_Neurons(net['neuron_models'])
+    print('- Create synapses')
+    create_Synapses(net['synapse_models'])
+    print('- Create layers')
+    create_Layers(net['layers'])
+    print('- Create connections.')
+    create_Connections(net['connections'], net['layers'])
+    print('- Connect recorders.')
+    connect_Recorders(net['populations'], net['layers'])
+    print('Network has been successfully initialized.')
+    return net
+
+
+def init_Kernel(kernel_params):
     nest.ResetKernel()
-    nest.SetKernelStatus({'local_num_threads': nest_params['local_num_threads'],
-                          'resolution': float(nest_params['resolution'])})
-
-    msd = nest_params['seed']
+    nest.SetKernelStatus(
+        {'local_num_threads': kernel_params['local_num_threads'],
+         'resolution': float(kernel_params['resolution'])})
+    msd = kernel_params['seed']
     N_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
     pyrngs = [np.random.RandomState(s) for s in range(msd, msd + N_vp)]
     nest.SetKernelStatus({'grng_seed': msd + N_vp})
     nest.SetKernelStatus({'rng_seeds': range(msd + N_vp + 1,
                                              msd + 2 * N_vp + 1)})
-    nest.SetStatus([0], {'print_time': nest_params['print_time']})
+    nest.SetStatus([0], {'print_time': kernel_params['print_time']})
     nest.ResetNetwork()
     return
 
 
 def create_Neurons(neuron_models):
-    print('Create neurons...')
-    for (base_nest_model, model_name, params_chainmap) in neuron_models:
+    for (base_nest_model,
+         model_name,
+         params_chainmap) in tqdm(neuron_models):
         nest.CopyModel(base_nest_model, model_name, dict(params_chainmap))
     return
     print('Done.')
@@ -38,13 +56,15 @@ def create_Synapses(synapse_models):
     string to create a synapse model. This index needs to be found through nest
     in the defaults of the target neuron.
     """
-    print('Create synapses...')
-    for (base_nest_model, model_name, params_chainmap) in synapse_models:
+    for (base_nest_model,
+         model_name,
+         params_chainmap) in tqdm(synapse_models):
         nest.CopyModel(base_nest_model,
                        model_name,
                        dict(format_synapse_params(params_chainmap)))
     return
     print('Done.')
+
 
 def format_synapse_params(syn_params):
 
@@ -63,8 +83,7 @@ def create_Layers(layers):
     """Create layers and record the nest gid of the layer under the 'gid' key
     of each layer's dictionary. Layers is a flat dictionary of dictionaries.
     """
-    print('Create layers...')
-    for layer_name, layer_dict in layers.items():
+    for layer_name, layer_dict in tqdm(layers.items()):
         gid = tp.CreateLayer(dict(layer_dict['nest_params']))
         layers[layer_name].update({'gid': gid})
     return
@@ -74,12 +93,12 @@ def create_Layers(layers):
 def create_Connections(connections, layers):
 
     assert ('gid' in layers[list(layers)[0]]), 'Please create the layers first'
-    print('Create connections...')
-    for (source_layer, target_layer, conn_params) in connections:
+    for (source_layer,
+         target_layer,
+         conn_params) in tqdm(connections):
         tp.ConnectLayers(layers[source_layer]['gid'],
                          layers[target_layer]['gid'],
                          dict(conn_params))
-    print('Done.')
     return
 
 
@@ -104,11 +123,10 @@ def connect_Recorders(pop_list, layers):
                         'rec_params': {<nest_multimeter_params>},
             NB: if <bool>==False, 'gid' is set to False.
     """
-    print('Connect recorders')
-    [connect_rec(pop, recorder_type, layers)
-     for pop in pop_list
-     for recorder_type in ["multimeter", "spike_detector"]]
-    print('Done.')
+
+    for pop in tqdm(pop_list):  # No progress bar within a list comprehension
+        [connect_rec(pop, recorder_type, layers)
+         for recorder_type in ["multimeter", "spike_detector"]]
     return pop_list
 
 
@@ -136,5 +154,4 @@ def connect_rec(pop, recorder_type, layers):
         pop[rec_key]['gid'] = gid
     else:
         pop[rec_key]['gid'] = False
-    print('.', end='')
     return

@@ -1,0 +1,1 @@
+# 2D np.array of the size of the network's input area if this file encodes a static input, 3D array otherwise. # The temporal length of the input is defined in the 'session' yaml
