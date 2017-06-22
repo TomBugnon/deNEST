@@ -35,7 +35,6 @@ def get_Network(network):
         'neuron_models': get_Models(network['neuron_models']),
         'synapse_models': get_Models(network['synapse_models']),
         'layers': layers,
-        'non_expanded_layers': get_Layers(network['layers'], expanded=False),
         'connections': get_Connections(network),
         'areas': get_Areas(layers),
         'populations': get_Populations(network['populations'], get_Layers(network['layers'], expanded=False))
@@ -99,17 +98,27 @@ def get_Layers(layers_tree, expanded=True):
                 used to create the layer,
     """
     # List of tuples of the form (<layer_name>, <params_chainmap>).
-    layer_list = traverse(layers_tree,
-                          params_key='params',
-                          children_key='children',
-                          name_key='name',
-                          accumulator=[])
+    layer_list = save_base_name(traverse(layers_tree,
+                                         params_key='params',
+                                         children_key='children',
+                                         name_key='name',
+                                         accumulator=[]))
+
     if expanded:
         # The layers whose <params_chainmap> contains the field 'filters' are
         # replicated with different names.
         return format_layer_list(expand_layer_list(layer_list))
     else:
         return format_layer_list(layer_list)
+
+
+def save_base_name(layer_list):
+    """ Add the pre-extension layer name to the 'base_name' field of the
+    params_chainmap. <layer_list> is a list of tuples of the form:
+        (<layer_name>, <params_chainmap>).
+    """
+    return [(name, params_chainmap.new_child({'base_name': name}))
+            for (name, params_chainmap) in layer_list]
 
 
 def format_layer_list(layer_list):
@@ -121,7 +130,7 @@ def format_layer_list(layer_list):
 
     return {
         layer_name: {
-            'params': params,
+            'params': params.new_child({'layer_name': layer_name}),
             'nest_params': format_nest_layer_params(params)
         }
         for (layer_name, params) in layer_list
@@ -193,12 +202,14 @@ def get_Connections(network):
     <params_chainmap>) where each tuple describes a connection after taking in
     account possible duplication of input layers.
     """
-    network = expand_connections(network)
-    layers = get_Layers(network['layers'])
 
-    return [(conn['source_layer'], conn['target_layer'], get_conn_params(
-        conn, network['connection_models'], layers))
-        for conn in network['connections']]
+    network = expand_connections(network)
+    layers = get_Layers(network['layers'], expanded=True)
+
+    return [(conn['source_layer'],
+             conn['target_layer'],
+             get_conn_params(conn, network['connection_models'], layers))
+            for conn in network['connections']]
 
 
 def get_conn_params(conn, connection_models, layers):
@@ -206,11 +217,9 @@ def get_conn_params(conn, connection_models, layers):
     source_params = layers[conn['source_layer']]['params']
     target_params = layers[conn['target_layer']]['params']
 
-    # Possibly update connection models
-    if conn['params']:
-        p = ChainMap(conn['params'], connection_models[conn['connection']])
-    else:
-        p = connection_models[conn['connection']]
+    # Update connection models with the specific connection params (possibly
+    # empty).
+    p = ChainMap(conn['params'], connection_models[conn['connection']])
 
     # RF scaling
     # TODO: maskfactor?
@@ -301,7 +310,7 @@ def expand_connections(network):
     has a 'filters' entry (in the formatted layer flat dictionary) is replicated
     n times with different names. If the network level parameter
     'scale_input_weights' is True, the newly created connections' weights are
-    divided by n.
+    divided by n. Being lower in the tree, these updated weights will precede.
     The output is a dictionary similar to network except that the 'connections'
     subdictionary has been expanded.
     """
@@ -449,9 +458,13 @@ def chaintree(tree_list, children_key='children'):
 
 def combine_values(values):
     """ Return either the ChainMap of the list <values> if all its elements are
-    mappings, or the first element of the list.
+    mappings, or the first element of the list. First remove empty stuff from
+    the list. Return an empty dict is the list is empty.
     """
-    if len(values) > 1 and all([isinstance(x, dict) for x in values]):
+    values = [v for v in values if v]
+    if len(values) == 0:
+        return {}
+    elif len(values) > 1 and all([isinstance(x, dict) for x in values]):
         return ChainMap(*values)
     else:
         return(values[0])
