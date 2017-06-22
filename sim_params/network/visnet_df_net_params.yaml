@@ -1,8 +1,6 @@
-params: {}
 children:
     sim_params: {}
     network:
-        params: {}
         children:
 
             neuron_models: {}
@@ -58,5 +56,5 @@ children:
                             rf_scale_factor: 1
 
             connection_models: {}
-            connections: {} #Don't uncomment
+            connections: {}
             populations: {}

@@ -1,7 +1,5 @@
-params: {}
-children: # Network and recorders
+children:
     sim_params:
-        params: {}
         children:
             kernel_params:
                 local_num_threads: 20
@@ -10,7 +8,6 @@ children: # Network and recorders
                 print_time: True
             session_params: {}
     network:
-        params: {}
         children:
             neuron_models: {}
             synapse_models: {}

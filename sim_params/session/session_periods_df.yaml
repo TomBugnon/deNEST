@@ -1,8 +1,6 @@
 # Define type (learning/static), duration and input (static, movie) of all the periods of a simulation session.
-params: {}
 children:
     sim_params:
-        params: {}
         children:
             kernel_params: {}
 
@@ -49,9 +47,10 @@ children:
                         # network
                         dynamic_synapses: True
 
-                    period2: {}
+                    period3: {}
+
+
     network:
-        params: {}
         children:
             neuron_models: {}
             synapse_models: {}

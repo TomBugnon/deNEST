@@ -1,4 +1,4 @@
-# paths relative to __main__.py
+# paths relative to __main__.py. First always prevails during chaining.
 - ./sim_params/network/visnet_df_net_params.yaml
 - ./sim_params/network/visnet_df_rec.yaml
 - ./sim_params/network/visnet_df_base.yaml

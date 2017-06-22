@@ -393,7 +393,7 @@ def get_extension_suffixes(filters):
         suffixes.append([filters['suffixes'][dim] + str(i + 1)
                          for i in range(filters['dimensions'][dim])])
     return (['_' + s for s in combine_strings(suffixes)]
-            if suffixes else '')
+            if suffixes else [''])
 
 
 def combine_strings(s):

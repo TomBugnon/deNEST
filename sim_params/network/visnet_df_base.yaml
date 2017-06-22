@@ -1,8 +1,6 @@
-params: {}
 children:
     sim_params: {}
     network:
-        params: {}
         children:
 
             # Neuron Models

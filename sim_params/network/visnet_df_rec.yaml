@@ -1,19 +1,16 @@
-params: {}
 children:
     sim_params:
-        params: {}
         children:
             kernel_params: {}
             session_params: {}
     network:
-        params: {}
         children: # Network and recorders
 
             neuron_models: {}
             synapse_models: {}
             layers: {}
             connection_models: {}
-            # connections: {}
+            connections: {}
 
             # Populations / recorders
 
