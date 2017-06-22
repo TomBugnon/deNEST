@@ -22,7 +22,7 @@ children:
                     input_area:
                         params:
                             area: input_area
-                            size: 256
+                            size: 128
                             rf_scale_factor: 1
                             filters:
                                 # There is one input layer for each filters.
@@ -42,7 +42,7 @@ children:
                     l1_area:
                         params:
                             area: l1_area
-                            size: 250
+                            size: 128
                             rf_scale_factor: 1
                     l2_area:
                         params:

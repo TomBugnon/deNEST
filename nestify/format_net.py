@@ -1,3 +1,4 @@
+import copy as cp
 import itertools
 from collections import ChainMap
 
@@ -37,7 +38,7 @@ def get_Network(network):
         'layers': layers,
         'connections': get_Connections(network),
         'areas': get_Areas(layers),
-        'populations': get_Populations(network['populations'], get_Layers(network['layers'], expanded=False))
+        'populations': get_Populations(network),
     }
 
 
@@ -199,8 +200,8 @@ def get_Connections(network):
     """Return connections.
 
     Returns a list of tuples each of the form: (<source_layer>, <target_layer>,
-    <params_chainmap>) where each tuple describes a connection after taking in
-    account possible duplication of input layers.
+    <nest-readable_params_chainmap>) where each tuple describes a connection
+    after taking in account possible duplication of input layers.
     """
 
     network = expand_connections(network)
@@ -219,52 +220,54 @@ def get_conn_params(conn, connection_models, layers):
 
     # Update connection models with the specific connection params (possibly
     # empty).
-    p = ChainMap(conn['params'], connection_models[conn['connection']])
+    conn_p = ChainMap(conn['params'],
+                      connection_models[conn['connection']])
 
-    # RF scaling
+    # RF and weight scaling:
     # TODO: maskfactor?
     # TODO: btw error in ht files: secondary horizontal intralaminar mixes dcpS
     # and dcpP
+
     rf_factor = (target_params['rf_scale_factor'] * source_params['visSize'] /
                  (source_params['size'] - 1))
-    p['mask'] = scale_conn_mask(p['mask'], rf_factor)
-    p['kernel'] = scale_conn_kernel(p['kernel'], rf_factor)
-    # Weight scaling
-    p['weights'] = scale_conn_weights(p['weights'],
-                                      source_params['weight_gain'])
-    p['sources'] = {'model': conn['source_population']}
-    p['targets'] = {'model': conn['target_population']}
-
-    return p
+    return conn_p.new_child(
+        {'sources': {'model': conn['source_population']},
+         'targets': {'model': conn['target_population']},
+         'mask': scaled_conn_mask(conn_p['mask'], rf_factor),
+         'kernel': scaled_conn_kernel(conn_p['kernel'], rf_factor),
+         'weights': scaled_conn_weights(conn_p['weights'],
+                                        source_params['weight_gain'])})
 
 
-def scale_conn_mask(mask_dict, scale_factor):
+def scaled_conn_mask(mask_dict, scale_factor):
 
     keys = list(mask_dict.keys())
     assert len(keys) <= 1, 'Wrong formatting of connection mask'
+    mask_dict_copy = cp.deepcopy(mask_dict)
 
     if keys[0] == 'circular':
-        mask_dict['circular']['radius'] *= scale_factor
+        mask_dict_copy['circular']['radius'] *= scale_factor
     elif keys[0] == 'rectangular':
-        mask_dict['rectangular'] = {
+        mask_dict_copy['rectangular'] = {
             key: [scale_factor * scalar for scalar in scalar_list]
             for key, scalar_list in mask_dict['rectangular'].items()
         }
 
-    return mask_dict
+    return mask_dict_copy
 
 
-def scale_conn_kernel(kernel, scale_factor):
+def scaled_conn_kernel(kernel, scale_factor):
     if isinstance(kernel, (float, int)):
-        pass
+        return kernel
     elif isinstance(kernel, (dict)) and 'gaussian' in kernel.keys():
-        kernel['gaussian']['sigma'] *= scale_factor
+        kernel_copy = cp.deepcopy(kernel)
+        kernel_copy['gaussian']['sigma'] *= scale_factor
     else:
         raise Exception('Wrong formatting of connection kernel')
-    return kernel
+    return kernel_copy
 
 
-def scale_conn_weights(weights, scale_factor):
+def scaled_conn_weights(weights, scale_factor):
     return (weights * scale_factor)
 
 
@@ -344,7 +347,7 @@ def duplicate_connection(conn, connection_models, layers_dict):
                                                           connection_models)
                                          / len(exp_source_names))
         return [
-            copy_dict(conn, {'source_layer': exp_source_name})
+            deepcopy_dict(conn, {'source_layer': exp_source_name})
             for exp_source_name in exp_source_names
         ]
     else:
@@ -356,10 +359,10 @@ def base_conn_weight(conn, connection_models):
     return connection_models[conn['connection']]['weights']
 
 
-def copy_dict(source_dict, diffs):
+def deepcopy_dict(source_dict, diffs):
     """Returns a copy of source_dict, updated with the new key-value
        pairs in diffs."""
-    result = dict(source_dict)  # Shallow copy !
+    result = cp.deepcopy(source_dict)  # Shallow copy !
     result.update(diffs)
     return result
 
@@ -620,13 +623,10 @@ def expand_populations(pop_list, non_expanded_layers):
     return expanded_list
 
 
-def get_Populations(pop_tree, non_expanded_layers):
+def get_Populations(network):
     """ Return nest-readable multimeters and spike detectors information.
     Args:
-        - <pop_tree> (dict): Tree in which the recorders are defined. Leaves
-            are populations.
-        - <non_expanded_layers> (dict): Non name-expanded formatted flat
-            dictionary (from get_Network()) used to expand the population tree.
+        - <network> (dict): non-formatted network tree
 
     Returns:
         - [<pop>,] (list of dictionaries): <pop> is of the form:
@@ -641,6 +641,9 @@ def get_Populations(pop_tree, non_expanded_layers):
             that specific population, and whether the population should be
             recorded.
     """
+    pop_tree = network['populations']
+    non_expanded_layers = get_Layers(network['layers'], expanded=False)
+
     return [{'layer': pop_params['layer'],
              'population': pop_name,
              'mm': get_multimeter(pop_params),

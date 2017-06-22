@@ -15,8 +15,8 @@ def load_sim(full_sim_params):
 
 
 def load_yaml(*args):
-    f = open(os.path.join(*args), 'r')
-    return yaml.load(f)
+    with open(os.path.join(*args), 'r') as f:
+        return yaml.load(f)
 
 
 if __name__ == '__main__':
@@ -30,6 +30,7 @@ if __name__ == '__main__':
     # Get relevant parts of the full simulation tree
     net_raw = full_sim_params['children']['network']['children']
     sim = full_sim_params['children']['sim_params']['children']
+    import ipdb; ipdb.set_trace()
 
     net = get_Network(net_raw)
     net = init_Network(net, sim)

@@ -223,6 +223,10 @@ children:
                     mask:
                         circular:
                             radius: 12.0 # ... * dpcP during init
+                        # mask:
+                        #     rectangular:
+                        #         lower_left: [float, float]
+                        #         upper_right: [-float, -float]
                     kernel: 0.8
                     weights: 1.0 # ... * weight gain during init
                     delays:
