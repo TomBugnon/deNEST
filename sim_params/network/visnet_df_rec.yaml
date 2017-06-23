@@ -1,10 +1,10 @@
 children:
-    sim_params:
-        children:
-            kernel_params: {}
-            session_params: {}
+
+    kernel: {}
+    sessions: {}
+
     network:
-        children: # Network and recorders
+        children:
 
             neuron_models: {}
             synapse_models: {}
@@ -12,9 +12,7 @@ children:
             connection_models: {}
             connections: {}
 
-            # Populations / recorders
-
-            populations:
+            populations: # recorders
                 params:
                     record_multimeter: True
                     mm_interval: 1.0
@@ -29,7 +27,6 @@ children:
                     input_layer:
                         params:
                             layer: input_layer
-                            record_multimeter: True
                             mm_record_from: ['rate']
                             record_spike_detector: False
                         children:

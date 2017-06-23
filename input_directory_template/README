@@ -1,0 +1,38 @@
+An input directory has the following structure:
+
+
+├── raw_inputs_all
+   	├── movie_1										<- size N*N*N*Nframes
+   	├── movie_2
+	├── movie_3
+	...
+
+├── preprocessed_inputs_all
+   └── res_128x128_filters_sf3o3s2 					<- specific preprocessing pipeline
+		── stimset_metadata.yaml					<- Common metadata of the preprocessed input movies
+	   	├── input_movie_1							<- size Nnet*Nnet*Nfilters*Nframes
+	   	├── input_movie_2
+		├── input_movie_3
+	...
+
+
+├── raw_inputs_sets
+    └── stimset1_raw
+        ├── movie_1									<- symlink to raw_inputs_all/movie_1
+        └── movie_2
+
+
+├── preprocessed_inputs_sets
+│   └── stimset1_prepro_res_128x128_filters_sf3o3s2
+│       ├── input_movie_1							< symlink to preprocessed_inputs_all/input_movie_1
+│       ├── input_movie_2
+│       └── stimset_metadata.yaml					<- same metadata as in preprocessed_inputs_all
+	...
+
+
+└── session_stims									<- specific sequences of input movies
+	└── 'stimset1_prepro_res_128x128_filters_
+			sf3o3s2___50picks'						<- pseudorandom list of file paths pertaining to a given
+														preprocessed stimulus set.
+													   A session points to one of those files.
+													   path names are relative to $INPUTDIR

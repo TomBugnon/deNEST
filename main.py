@@ -28,8 +28,8 @@ if __name__ == '__main__':
     full_sim_params = load_sim(full_sim_file)
 
     # Get relevant parts of the full simulation tree
-    net_raw = full_sim_params['children']['network']['children']
-    sim = full_sim_params['children']['sim_params']['children']
+    net_tree = full_sim_params['children']['network']['children']
+    kernel = full_sim_params['children']['kernel']
 
-    net = get_Network(net_raw)
-    net = init_Network(net, sim)
+    net = get_Network(net_tree)
+    net = init_Network(net, kernel)

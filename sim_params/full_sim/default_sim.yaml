@@ -2,5 +2,5 @@
 - ./sim_params/network/visnet_df_net_params.yaml
 - ./sim_params/network/visnet_df_rec.yaml
 - ./sim_params/network/visnet_df_base.yaml
-- ./sim_params/session/session_periods_df.yaml
+- ./sim_params/sessions/sessions_df.yaml
 - ./sim_params/kernel/kernel_params.yaml
