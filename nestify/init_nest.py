@@ -67,10 +67,13 @@ def create_Synapses(synapse_models):
 
 def format_synapse_params(syn_params):
 
-    assert(not syn_params or len(syn_params.keys()) == 2)
+    assert not syn_params or len(syn_params.keys()) == 2, \
+        ("""If you define 'receptor_type' for a synapse, I also expect
+        target_neuron""")
     formatted = {}
 
     if 'receptor_type' in syn_params.keys():
+
         tgt_type = syn_params['target_neuron']
         receptors = nest.GetDefaults(tgt_type)['receptor_types']
         formatted['receptor_type'] = receptors[syn_params['receptor_type']]
@@ -141,8 +144,7 @@ def connect_rec(pop, recorder_type, layers):
     rec_key = ('mm' if recorder_type == "multimeter" else 'sd')
 
     if pop[rec_key]['record_pop']:
-        # import ipdb; ipdb.set_trace()
-
+        
         gid = nest.Create(recorder_type, params=pop[rec_key]['rec_params'])
         layer_gid = layers[pop['layer']]['gid']
         tgts = [nd for nd in nest.GetLeaves(layer_gid)[0]

@@ -100,7 +100,10 @@ children:
                     children:
                         input_synapse:
                             name: input_synapse
-                            params: {}
+                            params:
+                                target_neuron: ht_neuron
+                                receptor_type: AMPA
+
 
             # Layers
 
@@ -118,7 +121,7 @@ children:
                     input_area:
                         params:
                             area: input_area
-                            size: 256
+                            size: 20
                             rf_scale_factor: 1.0
                         children: #layers
                             input_layer:
@@ -131,7 +134,7 @@ children:
                     l1_area:
                         params:
                             #area: l1_area
-                            size: 128
+                            size: 10
                             rf_scale_factor: 1.0
                         children: #layers
                             l1:
@@ -147,7 +150,7 @@ children:
                     l2_area:
                         params:
                             #area: l2_area
-                            size: 128
+                            size: 10
                             rf_scale_factor: 1.0
                         children: #layers
                             l2:
@@ -163,7 +166,7 @@ children:
                     l3_area:
                         params:
                             #area: l3_area
-                            size: 128
+                            size: 10
                             rf_scale_factor: 1.0
                         children: #layers
                             l3:
@@ -238,7 +241,7 @@ children:
 
                 input_connection:
                     connection_type: convergent
-                    synapse_model: static_synapse
+                    synapse_model: input_synapse
                     mask:
                         circular:
                             radius: 12.0 # ... * dpcP during init
