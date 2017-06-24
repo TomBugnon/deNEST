@@ -3,16 +3,16 @@ from collections import ChainMap
 import nest
 import nest.topology as tp
 import numpy as np
-
 from tqdm import *  # Loop progress bar.
 
 
-def init_Network(net, sim):
+def init_Network(net, kernel_params):
 
     print('Initialize kernel.')
-    init_Kernel(sim['kernel_params'])
+    kernel = init_Kernel(kernel_params)
 
     print('Create network:')
+    nest.ResetNetwork()
     create_Neurons(net['neuron_models'])
     create_Synapses(net['synapse_models'])
     create_Layers(net['layers'])
@@ -20,7 +20,7 @@ def init_Network(net, sim):
     connect_Recorders(net['populations'], net['layers'])
     print('Network has been successfully initialized.')
 
-    return net
+    return (net, kernel)
 
 
 def init_Kernel(kernel_params):
@@ -35,8 +35,7 @@ def init_Kernel(kernel_params):
     nest.SetKernelStatus({'rng_seeds': range(msd + N_vp + 1,
                                              msd + 2 * N_vp + 1)})
     nest.SetStatus([0], {'print_time': kernel_params['print_time']})
-    nest.ResetNetwork()
-    return
+    return nest.GetStatus([0])
 
 
 def create_Neurons(neuron_models):
@@ -144,7 +143,7 @@ def connect_rec(pop, recorder_type, layers):
     rec_key = ('mm' if recorder_type == "multimeter" else 'sd')
 
     if pop[rec_key]['record_pop']:
-        
+
         gid = nest.Create(recorder_type, params=pop[rec_key]['rec_params'])
         layer_gid = layers[pop['layer']]['gid']
         tgts = [nd for nd in nest.GetLeaves(layer_gid)[0]
