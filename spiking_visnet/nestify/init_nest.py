@@ -7,7 +7,7 @@ from collections import ChainMap
 import nest
 import nest.topology as tp
 import numpy as np
-from tqdm import *  # Loop progress bar.
+from tqdm import tqdm
 
 
 def init_network(net, kernel_params):
