@@ -29,8 +29,8 @@ from docopt import docopt
 import yaml
 
 from .utils.structures import chaintree
-from .nestify.format_net import get_Network
-from .nestify.init_nest import init_Network
+from .nestify.format_net import get_network
+from .nestify.init_nest import init_network
 
 
 def load_yaml(*args):
@@ -54,8 +54,8 @@ def main(args):
     net_tree = params['children']['network']['children']
     kernel_params = params['children']['kernel']
 
-    net = get_Network(net_tree)
-    net, kernel_init = init_Network(net, kernel_params)
+    net = get_network(net_tree)
+    net, kernel_init = init_network(net, kernel_params)
     return
 
 

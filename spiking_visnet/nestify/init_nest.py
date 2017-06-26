@@ -10,24 +10,24 @@ import numpy as np
 from tqdm import *  # Loop progress bar.
 
 
-def init_Network(net, kernel_params):
+def init_network(net, kernel_params):
 
     print('Initialize kernel.')
-    kernel = init_Kernel(kernel_params)
+    kernel = init_kernel(kernel_params)
 
     print('Create network:')
     nest.ResetNetwork()
-    create_Neurons(net['neuron_models'])
-    create_Synapses(net['synapse_models'])
-    create_Layers(net['layers'])
-    create_Connections(net['connections'], net['layers'])
-    connect_Recorders(net['populations'], net['layers'])
+    create_neurons(net['neuron_models'])
+    create_synapses(net['synapse_models'])
+    create_layers(net['layers'])
+    create_connections(net['connections'], net['layers'])
+    connect_recorders(net['populations'], net['layers'])
     print('Network has been successfully initialized.')
 
     return (net, kernel)
 
 
-def init_Kernel(kernel_params):
+def init_kernel(kernel_params):
     nest.ResetKernel()
     nest.SetKernelStatus(
         {'local_num_threads': kernel_params['local_num_threads'],
@@ -42,7 +42,7 @@ def init_Kernel(kernel_params):
     return nest.GetStatus([0])
 
 
-def create_Neurons(neuron_models):
+def create_neurons(neuron_models):
     for (base_nest_model,
          model_name,
          params_chainmap) in tqdm(neuron_models,
@@ -52,7 +52,7 @@ def create_Neurons(neuron_models):
     print('Done.')
 
 
-def create_Synapses(synapse_models):
+def create_synapses(synapse_models):
     """ NEST expects an 'receptor_type' index rather than a 'receptor_type'
     string to create a synapse model. This index needs to be found through nest
     in the defaults of the target neuron.
@@ -84,7 +84,7 @@ def format_synapse_params(syn_params):
     return formatted
 
 
-def create_Layers(layers):
+def create_layers(layers):
     """Create layers and record the nest gid of the layer under the 'gid' key
     of each layer's dictionary. Layers is a flat dictionary of dictionaries.
     """
@@ -96,7 +96,7 @@ def create_Layers(layers):
     print('Done')
 
 
-def create_Connections(connections, layers):
+def create_connections(connections, layers):
 
     assert ('gid' in layers[list(layers)[0]]), 'Please create the layers first'
     for (source_layer,
@@ -109,7 +109,7 @@ def create_Connections(connections, layers):
     return
 
 
-def connect_Recorders(pop_list, layers):
+def connect_recorders(pop_list, layers):
     """ Connect the recorder and the populations and modify in place the list of
     population directory to save the recorders' nest gid.
 

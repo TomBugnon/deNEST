@@ -9,7 +9,7 @@ from ..utils import filter_suffixes as filt
 from ..utils import structures as struct
 
 
-def get_Network(network):
+def get_network(network):
     '''
     Returns:
         - dict:'neuron_models':<neuron_models>,
@@ -37,18 +37,18 @@ def get_Network(network):
                 {<area_name>: <list_of_layers>} where <list_of_layers> is the
                 list of all layers of the network within a given area
     '''
-    layers = get_Layers(network['layers'], expanded=True)
+    layers = get_layers(network['layers'], expanded=True)
     return {
-        'neuron_models': get_Models(network['neuron_models']),
-        'synapse_models': get_Models(network['synapse_models']),
+        'neuron_models': get_models(network['neuron_models']),
+        'synapse_models': get_models(network['synapse_models']),
         'layers': layers,
-        'connections': get_Connections(network),
-        'areas': get_Areas(layers),
-        'populations': get_Populations(network),
+        'connections': get_connections(network),
+        'areas': get_areas(layers),
+        'populations': get_populations(network),
     }
 
 
-def get_Models(model_tree):
+def get_models(model_tree):
     """ Returns the leaf models in a model dictionary.
 
     Returns a lists of tuples  of the form: (<base_nest_model, <model_name>,
@@ -69,7 +69,7 @@ def get_Models(model_tree):
     ])
 
 
-def get_Layers(layers_tree, expanded=True):
+def get_layers(layers_tree, expanded=True):
     """ Generates from a tree a flat dictionnary describing the
     layers-leaf of <layers_tree>. If <expanded>=True, returns the expanded tree
     after taking in account the replication of layers for different filters,
@@ -175,7 +175,7 @@ def get_layer_elements(layer_params):
     return elements_list
 
 
-def get_Areas(layer_dict):
+def get_areas(layer_dict):
     """Create an area dictionary from the layer dictionary.
 
     Invert the layer dictionary by reading the 'params':'area' subkey of each
@@ -186,7 +186,7 @@ def get_Areas(layer_dict):
                               inversion_key='area')
 
 
-def get_Connections(network):
+def get_connections(network):
     """Return connections.
 
     Returns a list of tuples each of the form: (<source_layer>, <target_layer>,
@@ -195,7 +195,7 @@ def get_Connections(network):
     """
 
     network = expand_connections(network)
-    layers = get_Layers(network['layers'], expanded=True)
+    layers = get_layers(network['layers'], expanded=True)
 
     return [(conn['source_layer'],
              conn['target_layer'],
@@ -305,7 +305,7 @@ def expand_connections(network):
     """
     # Non expanded layers dict, used to read layer names and parameters before
     # layer name modifications/layer expansion
-    layers = get_Layers(network['layers'], expanded=False)
+    layers = get_layers(network['layers'], expanded=False)
 
     network.update(
         {'connections': struct.flatten(
@@ -403,7 +403,7 @@ def expand_populations(pop_list, non_expanded_layers):
     return expanded_list
 
 
-def get_Populations(network):
+def get_populations(network):
     """ Return nest-readable multimeters and spike detectors information.
     Args:
         - <network> (dict): non-formatted network tree
@@ -422,7 +422,7 @@ def get_Populations(network):
             recorded.
     """
     pop_tree = network['populations']
-    non_expanded_layers = get_Layers(network['layers'], expanded=False)
+    non_expanded_layers = get_layers(network['layers'], expanded=False)
 
     return [{'layer': pop_params['layer'],
              'population': pop_name,
