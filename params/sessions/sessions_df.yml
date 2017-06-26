@@ -1,34 +1,34 @@
 children:
 
-    kernel: {}
-    network: {}
+  kernel: {}
+  network: {}
 
-    simulation:
-        sessions_order: ['warmup', 'training', 'warmup', 'testing']
-    sessions:
+  simulation:
+    sessions_order: ['warmup', 'training', 'warmup', 'testing']
+  sessions:
+    params:
+      time_per_frame: 20
+      save_recorders: True
+      dynamic_synapses: False
+      shuffle_time: False
+      time_shuffling_params: {}
+      shuffle_in_space: False
+      space_shuffling_params: {}
+      reset_network: False
+    children:
+      warmup:
+        name: warmup
         params:
-            time_per_frame: 20
-            save_recorders: True
-            dynamic_synapses: False
-            shuffle_time: False
-            time_shuffling_params: {}
-            shuffle_in_space: False
-            space_shuffling_params: {}
-            reset_network: False
-        children:
-            warmup:
-                name: warmup
-                params:
-                    session_stims: 'noise'
-                    save_recorders: False
-                    dynamic_synapses: False
-                    reset_network: True #NB: might reset stdp synapses in future release of NEST!
-            training:
-                name: training
-                params:
-                    session_stims: 'stimset1_prepro_res_128x128_filters_o2__50picks'
-                    dynamic_synapses: True
-            testing:
-                params:
-                    session_stims: 'stimset1_prepro_res_128x128_filters_o2__50picks'
-                    dynamic_synapses: True
+          session_stims: 'noise'
+          save_recorders: False
+          dynamic_synapses: False
+          reset_network: True #NB: might reset stdp synapses in future release of NEST!
+      training:
+        name: training
+        params:
+          session_stims: 'stimset1_prepro_res_128x128_filters_o2__50picks'
+          dynamic_synapses: True
+      testing:
+        params:
+          session_stims: 'stimset1_prepro_res_128x128_filters_o2__50picks'
+          dynamic_synapses: True
