@@ -21,16 +21,16 @@ Options:
 
 __version__ = '0.0.0'
 
-from os.path import join, dirname, abspath
 import pprint
 import sys
+from os.path import abspath, dirname, join
 
-from docopt import docopt
 import yaml
+from docopt import docopt
 
-from .utils.structures import chaintree
 from .nestify.format_net import get_network
 from .nestify.init_nest import init_network
+from .utils.structures import chaintree
 
 
 def load_yaml(*args):
