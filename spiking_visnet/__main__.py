@@ -51,11 +51,11 @@ def main(args):
     params = load_params(args['<param_file.yml>'])
 
     # Get relevant parts of the full simulation tree
-    net_tree = params['children']['network']['children']
+    network_params = params['children']['network']['children']
     kernel_params = params['children']['kernel']
 
-    net = get_network(net_tree)
-    net, kernel_init = init_network(net, kernel_params)
+    network = get_network(network_params)
+    network, kernel_init = init_network(network, kernel_params)
     return
 
 
