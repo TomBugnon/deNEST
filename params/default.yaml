@@ -1,7 +1,0 @@
-# Earlier param files take precedence over later ones if there are duplicate
-# parameters.
-- ./network/visnet_df_net_params.yaml
-- ./network/visnet_df_rec.yaml
-- ./network/visnet_df_base.yaml
-- ./sessions/sessions_df.yaml
-- ./kernel/kernel_params.yaml

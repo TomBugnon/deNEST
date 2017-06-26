@@ -1,3 +1,0 @@
-To run:
- `python -m spiking_visnet.main` from the parent dir of the repo, or 
-`from spiking_visnet.main import run; run()` from python if the parent of the repo is in your path
