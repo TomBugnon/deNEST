@@ -1,8 +1,8 @@
 import copy as cp
 from collections import ChainMap
 
-from ..misc_helpers import filter_suffixes as filt
-from ..misc_helpers import structures as struct
+from ..utils import filter_suffixes as filt
+from ..utils import structures as struct
 
 
 def get_Network(network):

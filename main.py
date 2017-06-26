@@ -3,13 +3,12 @@ import pprint
 
 import yaml
 
-from .misc_helpers.structures import chaintree
-from .nestify.format_net import get_Network
-from .nestify.init_nest import init_Network
+from spiking_visnet.utils.structures import chaintree
+from spiking_visnet.nestify.format_net import get_Network
+from spiking_visnet.nestify.init_nest import init_Network
 
 
 def load_sim(full_sim_params):
-
     base_path = os.path.dirname(__file__)
     simtrees = [load_yaml(base_path, simtree_path)
                 for simtree_path in load_yaml(base_path, full_sim_params)]
