@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# utils/filter_suffixes.py
+
 import itertools
 from collections import ChainMap
 

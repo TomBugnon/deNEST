@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# utils/structures.py
+
 import copy as cp
 from collections import ChainMap
 

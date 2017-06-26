@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# nestify/format_net.py
+
 import copy as cp
 from collections import ChainMap
 

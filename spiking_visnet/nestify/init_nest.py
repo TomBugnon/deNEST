@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# nestify/init_nest.py
+
 from collections import ChainMap
 
 import nest

@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# nestify/init_spike_times.py
+
 import nest
 
 
