@@ -12,11 +12,11 @@ Usage:
     spiking_visnet -v | --version
 
 Arguments:
-    <param_file.yml>         File comtaining simulation parameters
+    <param_file.yml>  File comtaining simulation parameters
 
 Options:
-    -h --help                  Show this
-    -v --version               Show version
+    -h --help         Show this
+    -v --version      Show version
 """
 
 import sys
