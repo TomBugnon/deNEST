@@ -33,9 +33,7 @@ def init(path):
     kernel_params = params['children']['kernel']
 
     network = _get_network(network_params)
-    network, kernel_status = _init_network(network, kernel_params)
-
-    print(f'Kernel status: {kernel_status}')
+    _init_network(network, kernel_params)
 
     return network
 

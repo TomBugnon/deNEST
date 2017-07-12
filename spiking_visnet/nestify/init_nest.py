@@ -11,11 +11,9 @@ from tqdm import tqdm
 
 
 def init_network(net, kernel_params):
-
     print('Initializing kernel...')
-    kernel_status = init_kernel(kernel_params)
-
-    print('Creating network...')
+    init_kernel(kernel_params)
+    print('Initializing network...')
     nest.ResetNetwork()
     create_neurons(net['neuron_models'])
     create_synapses(net['synapse_models'])
@@ -23,8 +21,6 @@ def init_network(net, kernel_params):
     create_connections(net['connections'], net['layers'])
     connect_recorders(net['populations'], net['layers'])
     print('Network has been successfully initialized.')
-
-    return (net, kernel_status)
 
 
 def init_kernel(kernel_params):
