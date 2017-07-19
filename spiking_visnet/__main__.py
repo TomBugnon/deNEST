@@ -7,12 +7,13 @@ Spiking VisNet
 ~~~~~~~~~~~~~~
 
 Usage:
-    spiking_visnet <param_file.yml>
-    spiking_visnet -h | --help
-    spiking_visnet -v | --version
+    python -m spiking_visnet <param_file.yml> <time>
+    python -m spiking_visnet -h | --help
+    python -m spiking_visnet -v | --version
 
 Arguments:
-    <param_file.yml>  File comtaining simulation parameters
+    <param_file.yml>  File containing simulation parameters
+    <time>            Length of simulation in milliseconds
 
 Options:
     -h --help         Show this
@@ -28,7 +29,10 @@ from .__about__ import __version__
 
 
 if __name__ == '__main__':
+    # Construct a new argument list to allow docopt's parser to work with the
+    # `python -m spiking_visnet` calling pattern.
+    argv = ['-m', 'spiking_visnet'] + sys.argv[1:]
     # Get command-line args from docopt.
-    sys.argv[0] = 'spiking_visnet'
-    args = docopt(__doc__, version=__version__)
-    run(args['<param_file.yml>'])
+    arguments = docopt(__doc__, argv=argv, version=__version__)
+    # Run it!
+    run(arguments['<param_file.yml>'], arguments['<time>'])

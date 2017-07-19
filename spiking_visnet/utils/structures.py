@@ -4,6 +4,7 @@
 
 import copy as cp
 from collections import ChainMap
+from collections.abc import Mapping
 
 
 def chaintree(tree_list, children_key='children'):
@@ -167,3 +168,11 @@ def traverse(tree, params_key='params', children_key='children',
                              name_key=name_key,
                              accumulator=acc)
                     for name, child in tree[children_key].items()])
+
+def dictify(obj):
+    '''Recursively convert generic mappings to dictionaries.'''
+    if isinstance(obj, Mapping):
+        return {key: dictify(value) for key, value in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [dictify(elt) for elt in obj]
+    return obj

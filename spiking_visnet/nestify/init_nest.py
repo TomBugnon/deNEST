@@ -11,11 +11,9 @@ from tqdm import tqdm
 
 
 def init_network(net, kernel_params):
-
     print('Initializing kernel...')
-    kernel_status = init_kernel(kernel_params)
-
-    print('Creating network...')
+    init_kernel(kernel_params)
+    print('Initializing network...')
     nest.ResetNetwork()
     create_neurons(net['neuron_models'])
     create_synapses(net['synapse_models'])
@@ -23,8 +21,6 @@ def init_network(net, kernel_params):
     create_connections(net['connections'], net['layers'])
     connect_recorders(net['populations'], net['layers'])
     print('Network has been successfully initialized.')
-
-    return (net, kernel_status)
 
 
 def init_kernel(kernel_params):
@@ -35,11 +31,11 @@ def init_kernel(kernel_params):
     msd = kernel_params['seed']
     N_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
     pyrngs = [np.random.RandomState(s) for s in range(msd, msd + N_vp)]
-    nest.SetKernelStatus({'grng_seed': msd + N_vp})
-    nest.SetKernelStatus({'rng_seeds': range(msd + N_vp + 1,
-                                             msd + 2 * N_vp + 1)})
-    nest.SetStatus([0], {'print_time': kernel_params['print_time']})
-    return nest.GetStatus([0])
+    nest.SetKernelStatus({
+        'grng_seed': msd + N_vp,
+        'rng_seeds': range(msd + N_vp + 1, msd + 2 * N_vp + 1),
+        'print_time': kernel_params['print_time'],
+    })
 
 
 def create_neurons(neuron_models):
@@ -93,7 +89,6 @@ def create_layers(layers):
         gid = tp.CreateLayer(dict(layer_dict['nest_params']))
         layers[layer_name].update({'gid': gid})
     return
-    print('Done')
 
 
 def create_connections(connections, layers):
