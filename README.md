@@ -16,5 +16,5 @@ nest.Simulate(1000)
 To run directly from the command line:
 
 ```bash
-  python -m spiking_visnet <param_file.yml> <time in ms>
+  python -m spiking_visnet <param_file.yml> <time_in_ms>
 ```
