@@ -1,0 +1,32 @@
+# TODO
+
+preprocessing_params: # yaml file used to preprocess the raw stimulus set
+  downsample: bool
+  contrast_normalize: bool
+  contrast_normalization_params: ...
+
+metadata:
+  nfiles: 2
+
+  # each file is
+  resolution: [128, 128]
+  nfilters: 2
+  nframes: 8 # number of frames (same for all input movies)
+
+  # Filters of the network used to filter the raw files
+  filters:
+    # There is one input layer for each filter.
+    # The filters are defined along the following dimensions.
+    dimensions:
+      spatial_frequencies: 1
+      orientations: 2
+      signs: 1
+    suffixes:
+      # The name of the layer corresponding to a given combination of layer
+      # dimensions is eg: base_layer_name_sf1o3s2.
+      # If there is only one filter value along a given dimension, this
+      # dimension is omitted in the prefix: eg base_layer_name_o3s2
+      spatial_frequencies: sf
+      orientations: o
+      signs: s
+  filter_order: []
