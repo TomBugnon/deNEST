@@ -5,8 +5,8 @@
 import yaml
 from os.path import abspath, dirname, join
 
-from .nestify.format_net import get_network as _get_network
-from .nestify.init_nest import init_network as _init_network
+from .network import Network
+
 from .utils.structures import chaintree as _chaintree
 
 
@@ -25,27 +25,36 @@ def load_params(path):
 
 
 def init(path):
+    import nest
+    from .nestify.init_nest import init_network
+
     # Load parameters
     params = load_params(path)
-    '''Initialize the network in the NEST kernel.'''
     # Get relevant parts of the full simulation tree
     network_params = params['children']['network']['children']
     kernel_params = params['children']['kernel']
 
-    network = _get_network(network_params)
-    _init_network(network, kernel_params)
+    # Build the network object
+    network = Network(network_params)
+
+    # Initialize the network in the NEST kernel
+    init_network(network, kernel_params)
 
     return network
 
 
-def simulate(network):
-    print('Simulating...', end='', flush=True)
-    print('done.')
+# TODO: finish
+def simulate(t):
+    import nest
+    print(f'Simulating for {t} ms... ', flush=True)
+    nest.Simulate(t)
+    print('...done.')
 
 
-def run(path):
+# TODO: finish
+def run(path, t):
     print(f'Running: `{path}`...', flush=True)
     # Initialize network
     network = init(path)
     # Simulate
-    simulate(network)
+    simulate(t)
