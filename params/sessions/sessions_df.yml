@@ -29,6 +29,7 @@ children:
           session_stims: 'stimset1_prepro_res_128x128_filters_o2__50picks'
           dynamic_synapses: True
       testing:
+        name: testing
         params:
           session_stims: 'stimset1_prepro_res_128x128_filters_o2__50picks'
           dynamic_synapses: True

@@ -6,6 +6,7 @@ import yaml
 from os.path import abspath, dirname, join
 
 from .network import Network
+from .simulation import Simulation
 
 from .utils.structures import chaintree as _chaintree
 
@@ -24,12 +25,9 @@ def load_params(path):
     return _chaintree(params)
 
 
-def init(path):
-    import nest
+def init(params):
     from .nestify.init_nest import init_network
 
-    # Load parameters
-    params = load_params(path)
     # Get relevant parts of the full simulation tree
     network_params = params['children']['network']['children']
     kernel_params = params['children']['kernel']
@@ -43,18 +41,20 @@ def init(path):
     return network
 
 
-# TODO: finish
-def simulate(t):
-    import nest
-    print(f'Simulating for {t} ms... ', flush=True)
-    nest.Simulate(t)
-    print('...done.')
+# TODO: define Session and Simulation classes
+def simulate(params):
+    simulation = Simulation(params)
+    print(f'Simulating', flush=True)
+    simulation.run()
+    print('...done simulating.')
 
 
-# TODO: finish
-def run(path, t):
+def run(path):
     print(f'Running: `{path}`...', flush=True)
+    # Load parameters
+    params = load_params(path)
     # Initialize network
-    network = init(path)
+    network = init(params)
     # Simulate
-    simulate(t)
+    simulate(params)
+    print('...All done.')
