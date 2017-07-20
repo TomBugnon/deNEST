@@ -50,11 +50,10 @@ def simulate(params):
 
 
 def run(path):
-    print(f'Running: `{path}`...', flush=True)
-    # Load parameters
+    print(f'Loading parameters: `{path}`... ', end='', flush=True)
     params = load_params(path)
+    print('done.', flush=True)
     # Initialize network
     network = init(params)
     # Simulate
     simulate(params)
-    print('...All done.')
