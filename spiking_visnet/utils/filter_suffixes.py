@@ -18,6 +18,10 @@ def get_expanded_names(base_layer_name, filters):
     ]
 
 
+def get_summary_string(filters):
+    return get_extension_suffixes(filters)[-1]
+
+
 def get_extension_suffixes(filters):
     """Returns a list of suffixes that will be appended to the input layer names
     to describe which combination of filter dimensions each layer corresponds

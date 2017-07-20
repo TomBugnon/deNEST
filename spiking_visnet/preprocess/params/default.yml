@@ -1,0 +1,5 @@
+preprocessing: ['downsample', 'normalize', 'filter'] # pipeline
+# below, parameters for each of the preprocessing steps
+downsample: {}
+normalize: {}
+filter: {}

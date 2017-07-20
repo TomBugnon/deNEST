@@ -13,16 +13,17 @@ from .simulation import Simulation
 from .utils.structures import chaintree as _chaintree
 
 
-def _load_yaml(*args):
+def load_yaml(*args):
     with open(_join(*args), 'rt') as f:
         return yaml.load(f)
 
 
 def load_params(path):
+    # import ipdb; ipdb.set_trace()
     directory = _dirname(_abspath(path))
     params = [
-        _load_yaml(directory, relative_path)
-        for relative_path in _load_yaml(path)
+        load_yaml(directory, relative_path)
+        for relative_path in load_yaml(path)
     ]
     return _chaintree(params)
 
