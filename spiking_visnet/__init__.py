@@ -28,18 +28,16 @@ def load_params(path):
 
 
 def init(params):
+    print('Initializing network...')
     from .nestify.init_nest import init_network
-
     # Get relevant parts of the full simulation tree
     network_params = params['children']['network']['children']
     kernel_params = params['children']['kernel']
-
     # Build the network object
     network = Network(network_params)
-
     # Initialize the network in the NEST kernel
     init_network(network, kernel_params)
-
+    print('...done initializing network.')
     return network
 
 
