@@ -13,7 +13,6 @@ def init_spike_times(movie, network):
     spike_times = generate_spike_times(movie, network)
     for (gid, times) in spike_times:
         nest.SetStatus(gid, {'spike_times': spike_times})
-
     return
 
 

@@ -19,11 +19,20 @@ class Network(collections.UserDict):
         super().__init__(get_network(params))
         # import pprint; pprint.pprint(self)
 
-    # TODO
-    def filters(self):
-        input_layer = self['areas']['input_area'][0]
-        return self['layers'][input_layer]['params']['filters']
+    def input_layer(self):
+        # Returns (name, nest_params, params) for an arbitrary input layer
+        name = self['areas']['input_area'][0]
+        return (name,
+                self['layers'][name]['nest_params'],
+                self['layers'][name]['params'])
 
-    # TODO
+    def filters(self):
+        """ Returns the 'filters' dictionary for an arbitrary input layer, or -1
+        if there is no filter
+        """
+        (_, _, params) = self.input_layer()
+        return params.get('filters', -1)
+
     def input_res(self):
-        return (1, 1)
+        (_, nest_params, _) = self.input_layer()
+        return (nest_params['columns'], nest_params['rows'])

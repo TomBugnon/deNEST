@@ -11,7 +11,3 @@ def downsample(input_movie, preprocessing_params, network):
 def get_string(_, network):
     (xdim, ydim) = network.input_res()
     return ('res_' + str(xdim) + 'x' + str(ydim) + '_')
-
-
-def get_dimension(network):
-    return
