@@ -3,7 +3,9 @@
 # __init__.py
 
 import yaml
-from os.path import abspath, dirname, join
+from os.path import abspath as _abspath
+from os.path import dirname as _dirname
+from os.path import join as _join
 
 from .network import Network
 from .simulation import Simulation
@@ -12,12 +14,12 @@ from .utils.structures import chaintree as _chaintree
 
 
 def _load_yaml(*args):
-    with open(join(*args), 'rt') as f:
+    with open(_join(*args), 'rt') as f:
         return yaml.load(f)
 
 
 def load_params(path):
-    directory = dirname(abspath(path))
+    directory = _dirname(_abspath(path))
     params = [
         _load_yaml(directory, relative_path)
         for relative_path in _load_yaml(path)
