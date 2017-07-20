@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 # session.py
 
-
 import collections
 
-# TODO: finish
 
+# TODO: finish
 class Session(collections.UserDict):
+    """Represents a sequence of stimuli."""
 
     def __init__(self, session_params):
         print('create Session')

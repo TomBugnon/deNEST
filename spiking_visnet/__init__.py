@@ -43,10 +43,10 @@ def init(params):
 
 # TODO: define Session and Simulation classes
 def simulate(params):
-    simulation = Simulation(params)
-    print(f'Simulating', flush=True)
-    simulation.run()
-    print('...done simulating.')
+    simulation_params = params['children']['simulation']
+    print(f'Simulating...', flush=True)
+    Simulation(simulation_params).run()
+    print('...finished simulation.', flush=True)
 
 
 def run(path):

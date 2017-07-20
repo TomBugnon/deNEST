@@ -1,21 +1,23 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# simulation.py
+
 from .session import Session
 from .utils.structures import traverse
 
 
-class Simulation():
+class Simulation:
+    """Represents a series of sessions."""
 
     def __init__(self, params):
-        simulation_tree = params['children']['simulation']
-        sessions_tree = params['children']['sessions']
-        self.sessions_order = simulation_tree['sessions_order']
+        self.order = params['order']
         self.sessions = {
-            session_name: Session(session_params)
-            for (session_name, session_params)
-            in traverse(sessions_tree)
+            name: Session(session_params)
+            for name, session_params in traverse(params['sessions'])
         }
 
-
     def run(self):
-        for session in self.sessions_order:
-            print(f'Run session `{session}`:')
-            self.sessions[session].run()
+        """Run each of the sessions in order."""
+        for name in self.order:
+            print(f'Running session `{name}`...')
+            self.sessions[name].run()
