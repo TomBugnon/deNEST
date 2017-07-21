@@ -9,6 +9,7 @@ import numpy as np
 from tqdm import tqdm
 
 from . import downsample, filt, normalize
+from ..utils.structures import mkdir_ifnot
 
 PREPROCESS_MAPPING = {
     'downsample': downsample.downsample,
@@ -28,8 +29,7 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
     prepro_dir = join(input_dir, 'preprocessed_input', prepro_subdir_str)
 
     # Make dir
-    if not isdir(prepro_dir):
-        os.mkdir(prepro_dir)
+    mkdir_ifnot(prepro_dir)
 
     # Get files to be processed
     all_raw_files = [f for f in os.listdir(raw_dir)
@@ -81,8 +81,7 @@ def create_set(input_dir, setname, prepro_subdir_str, prepro_dir):
                           preprocessed_set_name(setname, prepro_subdir_str))
 
     # Create prepro_set dir
-    if not isdir(prepro_set_dir):
-        os.mkdir(prepro_set_dir)
+    mkdir_ifnot(prepro_set_dir)
 
     # Create simlinks to files if they don't already exist
 
