@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # generate_inputs.py
 
+"""Generate and save movies (3D nparrays) by moving a stimulus across frames."""
+
 from math import ceil
 from os.path import join
 
@@ -11,29 +13,27 @@ from .system import mkdir_ifnot
 
 
 def vertical_cross(vsize=9, hsize=9, width=3):
-    """ Returns vsize * hsize np.array containing a centered cross of width."""
-
-    a = np.zeros((vsize, hsize))
+    """Return vsize * hsize np.array containing a centered cross of width."""
+    array = np.zeros((vsize, hsize))
     v_c, h_c = int(vsize / 2), int(hsize / 2)
     half_w = int((width - 1) / 2)
 
-    a[:, h_c - half_w: h_c + half_w + 1] = 1
-    a[v_c - half_w: v_c + half_w + 1, :] = 1
+    array[:, h_c - half_w: h_c + half_w + 1] = 1
+    array[v_c - half_w: v_c + half_w + 1, :] = 1
 
-    return a
+    return array
 
 
 def vertical_tee(vsize=9, hsize=9, width=3):
-    """ Returns vsize * hsize np.array containing a centered T of width."""
-
-    a = np.zeros((vsize, hsize))
+    """Return vsize * hsize np.array containing a centered T of width."""
+    array = np.zeros((vsize, hsize))
     h_c = int(hsize / 2)
     half_w = int((width - 1) / 2)
 
-    a[:, h_c - half_w: h_c + half_w + 1] = 1
-    a[0: width, :] = 1
+    array[:, h_c - half_w: h_c + half_w + 1] = 1
+    array[0: width, :] = 1
 
-    return a
+    return array
 
 
 FUN_MAP = {
@@ -43,41 +43,59 @@ FUN_MAP = {
 
 
 def create_movie(raw_input_dir, res, t, stim_type, path_type='default',
-                 vsize=9, hsize=9, width=3, save=True):
+                 vsize=9, hsize=9, width=3, save=False):
+    """Create, possibly save, and return a movie (3D np-array).
 
+    Args:
+        - raw_input_dir (str): path to the `raw_input` subdirectory of the
+            USER's input directory
+        - res (tuple): Dimension of each frame.
+        - t (int): Number of frames.
+        - stim_type (str): Type of the moving stimulus. Defines which function
+            is called (see FUN_MAP)
+        - path_type (str): Defines the type of path the stimulus 'takes' across
+            frames of the movie
+        - vsize (int): vertical size (first dimension) of the stimulus
+        - hsize (int): horizontal size (second dimension) of the stimulus
+        - width (int): width of the stimulus
+        - save (bool): If true, saves the created movie in INPUT_DIR/raw_inputs
+    """
     stim = FUN_MAP[stim_type](vsize, hsize, width)
     path = generate_path(res, t, path_type)
-    mv = generate_movie(res, stim, path)
+    movie = generate_movie(res, stim, path)
 
-    # save
-    savestr = generate_movie_str(stim_type, path_type, res, t, vsize, hsize,
-                                 width)
-    mkdir_ifnot(raw_input_dir)
-    np.save(join(raw_input_dir, savestr), mv)
-    return mv
+    if save:
+        savestr = generate_movie_str(stim_type, path_type, res, t, vsize, hsize,
+                                     width)
+        mkdir_ifnot(raw_input_dir)
+        np.save(join(raw_input_dir, savestr), movie)
+
+    return movie
 
 
 def generate_movie_str(stim_type, path_type, res, t, vsize, hsize, width):
+    """Generate the filename under which a movie is saved."""
     return (stim_type + '_path=' + path_type + '_res=(' + str(res[0]) + ',' +
             str(res[1]) + ')_t=' + str(t) + '_vsize=' + str(vsize) + '_hsize=' +
             str(hsize) + '_width=' + str(width))
 
 
 def generate_path(res, t, path_type='default'):
-    """ Generate a path of the center of the stimulus. The default is a top to
-    bottom x left to right path such that after t timesteps the stimulus is at
-    the bottom right of the array.
+    """Generate a path across frames of the top-left corner of the stimulus.
+
+    The default is a (left to right) x (top to bottom) path such that after t
+    timesteps the stimulus is at the bottom right of the array.
 
     Args:
-        - res (2-tuple): Dimension (x,y) of the image the path is generated for.
-        - t (int): Number of time steps
+        - res (tuple): Dimension of each frame.
+        - t (int): Number of time steps/frames
         - path_type (str): 'default' -> left to right, top to bottom.
 
     Returns:
-        - (t-list of tuples): [ (x_center(t), y_center(t), ...] for each
-            timestep
-    """
+        (list): List of tuples defining the position of the top-left corner of
+            the stimulus at each time-step. [ (x_topleft(t), y_topleft(t), ...]
 
+    """
     N = np.prod(res)
 
     if path_type == 'default':
@@ -93,54 +111,73 @@ def generate_path(res, t, path_type='default'):
 
 
 def takespread(sequence, num):
+    """Return `num` elements of the list `sequence` that are evenly spread."""
     length = float(len(sequence))
     for i in range(num):
         yield sequence[int(ceil(i * length / num))]
 
 
 def evenly_spread_indices(N, num):
-    """ Returns evenly spread indices for a list a size N"""
+    """Return evenly spread indices for a list a size N.
+
+    Used to define default path.
+    """
     return list(takespread(range(N), num))
 
 
 def find_in_np(nparray, value):
-    ''' Returns the coordinate tuple of the first encounter of value in array.
-    '''
+    """Return the coordinate tuple of the first find of value in array."""
     return tuple(zip(*np.where(nparray == value)))[0]
 
 
 def generate_movie(res, stim, path):
+    """Create a movie from a stimulus and a path.
 
+    Each frame (time t) is defined by inserting the array `stim` at the position
+    defined by path(t) in an array of zeros of size `res`
+    """
     tdim = len(path)
     a = np.zeros((res[0], res[1], tdim))
     for t in range(tdim):
-        a[:, :, t] = warped_addition(np.zeros((res)),
-                                     stim,
-                                     path[t])
-
+        a[:, :, t] = wrapped_addition(np.zeros((res)),
+                                      stim,
+                                      path[t])
     return a
 
 
-def warped_addition(abig, asmall, center):
-    """ Add two arrays of different size, provided the 'abig' coordinate of the
-    top left of <asmall>. <abig> is considered as wrapped.
-    eg:
-        - abig = np.zeros(4,4), asmall = ones(3,3), center = (0,0)
-            returns [[1, 1, 1, 0],
-                     [1, 1, 1, 0],
-                     [1, 1, 1, 0],
-                     [0, 0, 0, 0]]
-        - abig = np.zeros(4,4), asmall = ones(3,3), center = (1,2)
-            returns [[0, 0, 0, 0],
-                     [1, 0, 1, 1],
-                     [1, 0, 1, 1],
-                     [1, 0, 1, 1]]
+def wrapped_addition(abig, asmall, pos):
+    """Add a smaller array to a larger one with wrapping.
+
+    Because the two arrays have different size, the coordinates of the top-left
+    of the small array are given by `pos`.
 
     Args:
-        - abig, asmall (np.array)
-        - center (2-tuple)
+        abig (np.ndarray): 'big' array
+        asmall (np.ndarray): 'small' array
+        pos (tuple): coordinate of the 'big array' at which we place the 'small'
+            array to perform the addition
+
+    Examples:
+        >>> abig = np.zeros(4,4)
+        >>> asmall = ones(3,3)
+        >>> center = (0,0)
+        >>> wrapped_addition(abig, asmall, pos)
+        [[1, 1, 1, 0],
+         [1, 1, 1, 0],
+         [1, 1, 1, 0],
+         [0, 0, 0, 0]]
+        >>> abig = np.zeros(4,4)
+        >>> asmall = ones(3,3)
+        >>> pos = (1,2)
+        >>> wrapped_addition(abig, asmall, pos)
+        [[0, 0, 0, 0],
+         [1, 0, 1, 1],
+         [1, 0, 1, 1],
+         [1, 0, 1, 1]]
+
     Returns:
-        - (np.array) of same dim as abig.
+        np.array: of same dim as abig.
+
     """
     vdim_b, hdim_b = np.shape(abig)
     vdim_s, hdim_s = np.shape(asmall)
@@ -152,7 +189,7 @@ def warped_addition(abig, asmall, center):
         print('asmall should have smaller dimensionality than abig.')
 
     # Roll the array so that it is properly aligned with abig
-    a = np.roll(a, center[0], axis=0)
-    a = np.roll(a, center[1], axis=1)
+    a = np.roll(a, pos[0], axis=0)
+    a = np.roll(a, pos[1], axis=1)
 
     return abig + a

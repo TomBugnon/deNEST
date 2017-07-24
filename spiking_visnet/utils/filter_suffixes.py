@@ -3,15 +3,18 @@
 # utils/filter_suffixes.py
 
 import itertools
-from collections import ChainMap
 
 
 def get_expanded_names(base_layer_name, filters):
-    '''
+    """Generate list of expanded layer names.
+
     Args:
-        - <base_layer_name> (str)
-        - <filters> (dict)
-    '''
+        - <base_layer_name> (str): Original layer name
+        - <filters> (dict): Filter dictionary
+
+    Returns:
+        (list): list of expanded names.
+    """
 
     return [
         base_layer_name + suffix for suffix in get_extension_suffixes(filters)
@@ -19,11 +22,14 @@ def get_expanded_names(base_layer_name, filters):
 
 
 def get_summary_string(filters):
+    """Return a string summarizing the number of filters in each dimension."""
     return get_extension_suffixes(filters)[-1]
 
 
 def get_extension_suffixes(filters):
-    """Returns a list of suffixes that will be appended to the input layer names
+    """Generate suffixes from the filter dictionary.
+
+    Return a list of suffixes that will be appended to the input layer names
     to describe which combination of filter dimensions each layer corresponds
     to.
     - All potential suffixes start with an underscore.
@@ -43,13 +49,14 @@ def get_extension_suffixes(filters):
 
 
 def combine_strings(s):
-    """ Returns a list of the combination of strings in s.
+    """Return a list of the combinations of strings in s.
 
     Args:
         - <s>: List of lists of strings, eg [['a1','a2'], ['b1','b2','b3'],...]
     Returns:
-        <list>: List of the combinations (sets) of strings from the different
+        (list): List of the combinations (sets) of strings from the different
             sublists, with one string from each sublist, eg
-                ['a1b1', 'a1b2', 'a1b3', 'a2b1',...]
+                ['a1b1', 'a1b2', 'a1b3', 'a2b1',...].
+
     """
     return [''.join(tup) for tup in list(itertools.product(*s))]

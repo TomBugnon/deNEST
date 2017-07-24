@@ -5,8 +5,6 @@
 import itertools
 import time
 
-import matplotlib.animation as animation
-import matplotlib.pyplot as plt
 import numpy as np
 from bokeh import palettes
 from bokeh.io import output_notebook, push_notebook, show
@@ -17,30 +15,35 @@ PALETTE = palettes.Inferno256
 
 
 def show_im(im):
+    """Use pyplot to show a numpy image."""
     import matplotlib.pyplot as plt
     plt.imshow(im)
     plt.show()
 
 
 def init():
+    """Initialize bokeh figure with jupyter notebook."""
     p = figure(tools=TOOLS)
     output_notebook()
     return p
 
 
 def color(a):
+    """TODO."""
     return [PALETTE[max(min(int(i), 255), 0)] for i in a]
 
 
 def animate(plot, movie, fps=5, t=0, T=None, size=1):
-    """ Plot the frames t to T of movie in an animated bokeh plot.
+    """Plot the frames t to T of movie in an animated bokeh plot.
 
     Args:
         - plot (bokeh Figure)
         - movie (np.array): (vdim * hdim * time)
         - fps: frames per second
         - t: index of the first frame
-        - T: index of the last frame (default: number of frames in movie)"""
+        - T: index of the last frame (default: number of frames in movie).
+
+    """
     vdim, hdim, tdim = np.shape(movie)
     N = vdim * hdim
 

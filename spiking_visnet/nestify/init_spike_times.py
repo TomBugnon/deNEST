@@ -6,10 +6,7 @@ import nest
 
 
 def init_spike_times(movie, network):
-    """ Communicates to the kernel the spike times for all input neurons during
-    the forecoming period.
-    """
-
+    """Set in NEST the spike times for all input neurons during next period."""
     spike_times = generate_spike_times(movie, network)
     for (gid, times) in spike_times:
         nest.SetStatus(gid, {'spike_times': spike_times})
@@ -17,10 +14,11 @@ def init_spike_times(movie, network):
 
 
 def generate_spike_times(session_params, network):
-    """ Return for each input neuron some spike times drawn from a poisson
+    """Generate spike times.
+
+    Return for each input neuron some spike times drawn from a poisson
     distribution of instantaneous rate defined by the value corresponding to
     that neuron/timestep in the session's full stimulus.
-
 
     Args:
         - <session_params>: entry of the formatted 'session' tree.
@@ -33,8 +31,8 @@ def generate_spike_times(session_params, network):
             - <gid> is a singleton tuple
             - <spike_times> is a list of spike times (in ms, from the start of
                 the simulation run) for the neuron defined by <gid>.
-    """
 
+    """
     return
 
 

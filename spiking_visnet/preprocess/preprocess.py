@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # preprocess.py
 
+"""Preprocess all raw movies with a given pipeline."""
+
 import os
 from os.path import exists, isdir, isfile, join
 
@@ -21,7 +23,15 @@ METADATA_FILENAME = 'metadata.yml'
 
 
 def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
+    """Preprocess all raw movies and create the corresponding sets.
 
+    Args:
+        - <input_dir> (str): Path to USER's input directory.
+        - <prepro_subdir_str> (str): String describing preprocessing pipeline.
+        - <network> (Network): Network this preprocessing is effected for.
+        - <prepro_params> (dict): Preprocessing parameter tree.
+
+    """
     # Preprocess files
 
     # Get dirs
@@ -55,11 +65,13 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
 
 
 def update_sets(input_dir, prepro_subdir_str, prepro_dir):
-    """ For all the input subsets in raw_input_sets, use symlinks to create the
+    """Create preprocessed input sets.
+
+    For all the input subsets in raw_input_sets, use symlinks to create the
     equivalent preprocessed subset for the pipeling described by
     <prepro_subdir_str>.
-    """
 
+    """
     print('Update sets')
     setdir = join(input_dir, 'raw_input_sets')
 
@@ -75,7 +87,7 @@ def update_sets(input_dir, prepro_subdir_str, prepro_dir):
 
 
 def create_set(input_dir, setname, prepro_subdir_str, prepro_dir):
-
+    """Create a given preprocessed input subset from a raw input set."""
     raw_set_dir = join(input_dir, 'raw_input_sets', setname)
     prepro_set_dir = join(input_dir, 'preprocessed_input_sets',
                           preprocessed_set_name(setname, prepro_subdir_str))
@@ -100,15 +112,18 @@ def create_set(input_dir, setname, prepro_subdir_str, prepro_dir):
 
 
 def preprocessed_set_name(raw_set_name, prepro_subdir_str):
+    """Create string describing a preprocessed input set."""
     return raw_set_name + '_' + prepro_subdir_str
 
 
 def is_input_file(dirpath, filename):
+    """Discriminate between input files and metadata files."""
     return (isfile(join(dirpath, filename))
             and not filename == METADATA_FILENAME)
 
 
 def preprocess(movie, network, prepro_params):
+    """Apply preprocessing pipeline to a movie."""
     for step in prepro_params['preprocessing']:
         movie = PREPROCESS_MAPPING[step](movie, prepro_params, network)
     return movie
@@ -116,5 +131,5 @@ def preprocess(movie, network, prepro_params):
 
 # TODO
 def create_metadata(savedir, preprocessing_params, network):
-
+    """Create metadata file describing full pipeline."""
     open(join(savedir, METADATA_FILENAME), 'a').close()

@@ -10,6 +10,7 @@ class Simulation:
     """Represents a series of sessions."""
 
     def __init__(self, params):
+        """Initialize."""
         self.order = params['order']
         self.sessions = {
             name: Session(session_params)

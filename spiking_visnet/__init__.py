@@ -14,12 +14,13 @@ from .utils.structures import chaintree as _chaintree
 
 
 def load_yaml(*args):
+    """Load yaml file from joined (os.path.join) arguments."""
     with open(_join(*args), 'rt') as f:
         return yaml.load(f)
 
 
 def load_params(path):
-    # import ipdb; ipdb.set_trace()
+    """Return the full parameter tree described by the file at path."""
     directory = _dirname(_abspath(path))
     params = [
         load_yaml(directory, relative_path)
@@ -29,6 +30,7 @@ def load_params(path):
 
 
 def init(params):
+    """Initialize NEST network from the full parameter tree."""
     print('Initializing network...')
     # Get relevant parts of the full simulation tree
     network_params = params['children']['network']['children']
@@ -42,6 +44,7 @@ def init(params):
 
 
 def simulate(params):
+    """Simulate all sessions described in parameter tree."""
     simulation_params = params['children']['simulation']
     print(f'Simulating...', flush=True)
     Simulation(simulation_params).run()
@@ -49,6 +52,7 @@ def simulate(params):
 
 
 def run(path):
+    """Run all."""
     print(f'Loading parameters: `{path}`... ', end='', flush=True)
     params = load_params(path)
     print('done.', flush=True)

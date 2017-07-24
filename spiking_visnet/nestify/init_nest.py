@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # nestify/init_nest.py
 
+"""Initialize NEST kernel and network."""
+
 from collections import ChainMap
 
 import nest
@@ -10,20 +12,28 @@ import numpy as np
 from tqdm import tqdm
 
 
-def init_nest(net, kernel_params):
+def init_nest(network, kernel_params):
+    """Initialize NEST kernel and network.
+
+    Args:
+        - network (Network): Modified in place with GIDs.
+        - kernel_params (dict): Kernel parameters (from full parameter tree).
+
+    """
     print('Initializing kernel...')
     init_kernel(kernel_params)
     print('Initializing network...')
     nest.ResetNetwork()
-    create_neurons(net['neuron_models'])
-    create_synapses(net['synapse_models'])
-    create_layers(net['layers'])
-    create_connections(net['connections'], net['layers'])
-    connect_recorders(net['populations'], net['layers'])
+    create_neurons(network['neuron_models'])
+    create_synapses(network['synapse_models'])
+    create_layers(network['layers'])
+    create_connections(network['connections'], network['layers'])
+    connect_recorders(network['populations'], network['layers'])
     print('Network has been successfully initialized.')
 
 
 def init_kernel(kernel_params):
+    """Initialize NEST kernel."""
     nest.ResetKernel()
     nest.SetKernelStatus(
         {'local_num_threads': kernel_params['local_num_threads'],
@@ -39,6 +49,7 @@ def init_kernel(kernel_params):
 
 
 def create_neurons(neuron_models):
+    """Create neuron models in NEST."""
     for (base_nest_model,
          model_name,
          params_chainmap) in tqdm(neuron_models,
@@ -49,9 +60,12 @@ def create_neurons(neuron_models):
 
 
 def create_synapses(synapse_models):
-    """ NEST expects an 'receptor_type' index rather than a 'receptor_type'
+    """Create synapse models in NEST.
+
+    NB: NEST expects an 'receptor_type' index rather than a 'receptor_type'
     string to create a synapse model. This index needs to be found through nest
     in the defaults of the target neuron.
+
     """
     for (base_nest_model,
          model_name,
@@ -65,7 +79,7 @@ def create_synapses(synapse_models):
 
 
 def format_synapse_params(syn_params):
-
+    """Format synapse parameters in a NEST readable dictionary."""
     assert not syn_params or len(syn_params.keys()) == 2, \
         ("""If you define 'receptor_type' for a synapse, I also expect
         target_neuron""")
@@ -81,8 +95,13 @@ def format_synapse_params(syn_params):
 
 
 def create_layers(layers):
-    """Create layers and record the nest gid of the layer under the 'gid' key
-    of each layer's dictionary. Layers is a flat dictionary of dictionaries.
+    """Create layers and record GIDs.
+
+    The nest GID of each layer is saved under the 'gid' key
+    of each layer's dictionary.
+
+    Args:
+        <layers> (dict): Flat dictionary of dictionaries.
     """
     for layer_name, layer_dict in tqdm(layers.items(),
                                        desc='Create layers: '):
@@ -92,7 +111,7 @@ def create_layers(layers):
 
 
 def create_connections(connections, layers):
-
+    """Create NEST connections."""
     assert ('gid' in layers[list(layers)[0]]), 'Please create the layers first'
     for (source_layer,
          target_layer,
@@ -105,11 +124,13 @@ def create_connections(connections, layers):
 
 
 def connect_recorders(pop_list, layers):
-    """ Connect the recorder and the populations and modify in place the list of
-    population directory to save the recorders' nest gid.
+    """Connect the recorder to the populations.
+
+    Modifies in place the list of population directory to save the recorders'
+    nest gid.
 
     Args:
-        - <pop_list> (list of dicts): Each dictionary is of the form:
+        - <pop_list> (list): List of dict, each of the form:
                 {'layer': <layer_name>,
                  'population': <pop_name>,
                  'mm': {'record_pop': <bool>,
@@ -117,15 +138,15 @@ def connect_recorders(pop_list, layers):
                  'sd': {'record_pop': <bool>,
                         'rec_params': {<nest_multimeter_params>}}
      Return:
-        - (list of dicts): modified list of dictionaries, updated with the key
-          'gid' and its value for each recorder.
+        - (list): modified list of dictionaries, updated with the key 'gid' and
+            its value for each recorder.
             eg:
                  'mm': {'gid': <value>,
                         'record_pop': <bool>,
                         'rec_params': {<nest_multimeter_params>},
             NB: if <bool>==False, 'gid' is set to False.
-    """
 
+    """
     for pop in tqdm(pop_list,
                     desc='Connect recorders: '):
         [connect_rec(pop, recorder_type, layers)
@@ -134,11 +155,13 @@ def connect_recorders(pop_list, layers):
 
 
 def connect_rec(pop, recorder_type, layers):
-    """ Possibly connect the multimeter or spike_detector on the population
+    """Possibly connect a recorder to a given population.
+
+    Possibly connect the multimeter or spike_detector on the population
     described by pop and modify in place the pop dictionary with the gid
     of the recorder or False if no recorder has been connected.
-    """
 
+    """
     rec_key = ('mm' if recorder_type == "multimeter" else 'sd')
 
     if pop[rec_key]['record_pop']:

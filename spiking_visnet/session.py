@@ -10,9 +10,11 @@ class Session(collections.UserDict):
     """Represents a sequence of stimuli."""
 
     def __init__(self, session_params):
+        """Initialize."""
         print('create Session')
         super().__init__(session_params)
 
     def run(self):
+        """Run."""
         print("I'm a session and I am running!")
         return

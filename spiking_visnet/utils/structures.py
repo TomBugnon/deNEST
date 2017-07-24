@@ -8,7 +8,7 @@ from collections.abc import Mapping
 
 
 def chaintree(tree_list, children_key='children'):
-    """ Recursively combine the trees in <tree_list> using ChainMaps.
+    """Recursively combine the trees in <tree_list> using ChainMaps.
 
     If there is only one tree in tree_list, return it.
     Otherwise, return a tree of which each node with path <path> has:
@@ -55,9 +55,13 @@ def chaintree(tree_list, children_key='children'):
 
 
 def combine_values(values):
-    """ Return either the ChainMap of the list <values> if all its elements are
-    mappings, or the first element of the list. First remove empty stuff from
-    the list. Return an empty dict is the list is empty.
+    """Combine a list of elements.
+
+    - First remove empty stuff from the list.
+    - Return an empty dict is the list is empty.
+    - Return either the ChainMap of the list <values> if all its elements are
+    mappings, or the first element of the list otherwise.
+
     """
     values = [v for v in values if v]
     if len(values) == 0:
@@ -69,7 +73,9 @@ def combine_values(values):
 
 
 def all_key_values(dict_list, omit_keys=[]):
-    """ Return a list of tuples (<key>, <value_list>) for each unique key in
+    """Combine entries across a list of dictionaries.
+
+    Return a list of tuples (<key>, <value_list>) for each unique key in
     the dictionaries of dict_list, omitting the keys in <omit_keys>.
     <value_list> is the list of values under a given key in each of the
     dictionaries, scanned from left to right.
@@ -82,19 +88,23 @@ def all_key_values(dict_list, omit_keys=[]):
 
 
 def invert_dict(d, inversion_key):
-    """ Inverts a dictionary of the form {<name>:{<inversion_key>:<value>, ...}}
+    """Invert a dictionary.
+
+    Inverts a dictionary of the form {<name>:{<inversion_key>:<value>, ...}}
     into a dictionary of the form: {<value>:<name_list>} where <name_list> is
     a list of the keys <name> of which <value> is the inversion_key value.
 
-    Example:
-        a = {'key1':{'inversion_key': value1,
-                     'other_key': x1},
-             'key2':{'inversion_key': value1,
-                          'other_key': x2}
-             'key3':{'inversion_key': value2,
-                          'other_key': x1}
-        invert_dict(a) = {'value1':['key1', 'key2'],
-                          'value2':[key3]}
+    Examples:
+        >>> a = {'key1':{'inversion_key': value1,
+                         'other_key1': x1},
+                 'key2':{'inversion_key': value1,
+                         'other_key1': x2}
+                 'key3':{'inversion_key': value2,
+                          'other_key2': x1}
+        >>> invert_dict(a)
+        {'value1':['key1', 'key2'],
+         'value2':[key3]}
+
     """
     return {value: [key for (key, entry) in d.items()
                     if entry[inversion_key] == value]
@@ -103,22 +113,20 @@ def invert_dict(d, inversion_key):
 
 
 def deepcopy_dict(source_dict, diffs):
-    """Returns a copy of source_dict, updated with the new key-value
-       pairs in diffs."""
+    """Return a deep copy of <source_dict> updated with <diffs>."""
     result = cp.deepcopy(source_dict)
     result.update(diffs)
     return result
 
 
-def distribute_to_tuple(tuple_list, value, position=0):
-    """ Inserts <value> at the position <position> of each tuple in <tuple_list>
-    """
-    return [tuple(insert_in_list(list(tup), value, position))
+def distribute_to_tuple(tuple_list, value, pos=0):
+    """Insert <value> at the position <pos> of each tuple in <tuple_list>."""
+    return [tuple(insert_in_list(list(tup), value, pos))
             for tup in tuple_list]
 
 
 def insert_in_list(l, value, position=0):
-    """ Insert value at specific position of list and returns updated list."""
+    """Insert value at specific position of list and returns updated list."""
     l.insert(position, value)
     return l
 
@@ -129,6 +137,13 @@ def flatten(l):
     If <l> is a list of lists, return the list of items in the sublists.
     If some elements of <l> are not lists, don't iterate on them. Therefore
     flatten(l) == l if l is eg a list of tuples.
+
+    Examples:
+        >>> flatten([[1,2],[3,4]])
+        [1,2,3,4]
+        >>> flatten(['notlist', ['li', 'st'])
+        ['notlist', 'li', 'st']
+
     """
     gen = (x if isinstance(x, list) else [x] for x in l)
     return [item for sublist in gen for item in sublist]
@@ -136,9 +151,11 @@ def flatten(l):
 
 def traverse(tree, params_key='params', children_key='children',
              name_key='name', accumulator=[]):
-    """Recursively traverses a tree and returns, for each leaf, the value of its
-    <name_key> key and a ChainMap containing the ordered contents of the
-    'params_key' field (if existing) in each of the parent nodes.
+    """Recursively traverse a tree.
+
+    For each leaf, return the value of its <name_key> key and a ChainMap
+    containing the ordered contents of the 'params_key' field (if existing) in
+    each of the parent nodes.
 
     Args:
         params_key (str): Lookup parameters with this key.
@@ -147,11 +164,13 @@ def traverse(tree, params_key='params', children_key='children',
         children_key (str): Children of a node are list of trees under this key
         name_key (str): When reaching a leaf, its name is under the key
             name_key.
+
     Returns:
-        list: list of tuples of the form (<leaf_name>, <params_chainmap>) where
-            params_chainmap represents the ordered parameters collected in the
-            parent nodes and leaf_name is the value of the 'name' key of each
-            leaf
+        (list): list of tuples of the form (<leaf_name>, <params_chainmap>)
+            where params_chainmap represents the ordered parameters collected in
+            the parent nodes and leaf_name is the value of the 'name' key of
+            each leaf
+
     """
     acc = list(accumulator)  # Avoid accumulation on parallel paths
 
@@ -169,8 +188,9 @@ def traverse(tree, params_key='params', children_key='children',
                              accumulator=acc)
                     for name, child in tree[children_key].items()])
 
+
 def dictify(obj):
-    '''Recursively convert generic mappings to dictionaries.'''
+    """Recursively convert generic mappings to dictionaries."""
     if isinstance(obj, Mapping):
         return {key: dictify(value) for key, value in obj.items()}
     if isinstance(obj, (list, tuple)):
