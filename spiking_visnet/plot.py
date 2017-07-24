@@ -32,7 +32,7 @@ def color(a):
     return [PALETTE[max(min(int(i), 255), 0)] for i in a]
 
 
-def animate(plot, movie, fps=5, t=0, T=0):
+def animate(plot, movie, fps=5, t=0, T=None, size=1):
     """ Plot the frames t to T of movie in an animated bokeh plot.
 
     Args:
@@ -41,16 +41,11 @@ def animate(plot, movie, fps=5, t=0, T=0):
         - fps: frames per second
         - t: index of the first frame
         - T: index of the last frame (default: number of frames in movie)"""
-
     vdim, hdim, tdim = np.shape(movie)
     N = vdim * hdim
 
-    # Default T:
-    if not T:
+    if T is None:
         T = tdim
-
-    # Target of the plot (notebook)
-    target = show(plot, notebook_handle=True)
 
     # Format movie in N*T instead of vdim*hdim*T (why, bokeh? why?)
     mv_1d = np.reshape(movie, (N, T))
@@ -62,10 +57,14 @@ def animate(plot, movie, fps=5, t=0, T=0):
     color_mv_1d = [color(mv_1d[:, t]) for t in range(T)]
 
     # Initialize plot
-    r = plot.square(positions[::1, 1],  # NB mathematical coordinate, not numpy
+    r = plot.circle(positions[::1, 1],  # NB mathematical coordinate, not numpy
                     positions[::-1, 0],
                     fill_color=np.reshape(movie[:, :, t], (N,)),
-                    size=12, color='white')
+                    radius=0.5,
+                    color='white')
+
+    # Target of the plot (notebook)
+    target = show(plot, notebook_handle=True)
 
     while t < T:
         plot.title.text = f'frame # = {t}'
