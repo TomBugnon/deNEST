@@ -8,7 +8,6 @@ import time
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
-
 from bokeh import palettes
 from bokeh.io import output_notebook, push_notebook, show
 from bokeh.plotting import figure
@@ -54,16 +53,16 @@ def animate(plot, movie, fps=5, t=0, T=0):
     target = show(plot, notebook_handle=True)
 
     # Format movie in N*T instead of vdim*hdim*T (why, bokeh? why?)
-    mv_1d = np.reshape(movie, (N,T))
+    mv_1d = np.reshape(movie, (N, T))
     # Scale by length of palette (I don't understand what I'm doing)
     mv_1d = mv_1d * len(PALETTE)
     # V, H positions for each of the pixels in the '1D image'
     positions = np.array(list(itertools.product(range(vdim), range(hdim))))
-    #Convert values to colors
+    # Convert values to colors
     color_mv_1d = [color(mv_1d[:, t]) for t in range(T)]
 
     # Initialize plot
-    r = plot.square(positions[::1, 1], #NB mathematical coordinate, not numpy
+    r = plot.square(positions[::1, 1],  # NB mathematical coordinate, not numpy
                     positions[::-1, 0],
                     fill_color=np.reshape(movie[:, :, t], (N,)),
                     size=12, color='white')

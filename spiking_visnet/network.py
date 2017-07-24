@@ -8,6 +8,7 @@ import collections
 import pprint
 
 from .nestify.format_net import get_network
+from .nestify.init_nest import init_nest
 from .utils.structures import dictify
 
 # TODO: move functionality from nestify/format_net to this class
@@ -17,7 +18,11 @@ class Network(collections.UserDict):
 
     def __init__(self, params):
         super().__init__(get_network(params))
-        # import pprint; pprint.pprint(self)
+
+    def init_nest(self, kernel_params):
+        """ init_network updates in place the network dictionaries to add the
+        gid's of the created nest objects """
+        init_nest(self, kernel_params)
 
     def input_layer(self):
         # Returns (name, nest_params, params) for an arbitrary input layer

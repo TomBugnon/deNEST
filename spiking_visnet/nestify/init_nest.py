@@ -10,7 +10,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-def init_network(net, kernel_params):
+def init_nest(net, kernel_params):
     print('Initializing kernel...')
     init_kernel(kernel_params)
     print('Initializing network...')
