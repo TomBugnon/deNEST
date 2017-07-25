@@ -29,7 +29,7 @@ def load_params(path):
     return _chaintree(params)
 
 
-def init(params):
+def init(params, path):
     """Initialize NEST network from the full parameter tree."""
     print('Initializing network...')
     # Get relevant parts of the full simulation tree
@@ -37,6 +37,8 @@ def init(params):
     kernel_params = params['children']['kernel']
     # Build the network object
     network = Network(network_params)
+    # Get the saving subdirectory. sim outputs are in SAVE_DIR/save_subdir_str
+    network.get_save_subdir_str(params, path)
     # Initialize kernel + network in NEST and add the GIDs in network.
     network.init_nest(kernel_params)
     print('...done initializing network.')
@@ -57,6 +59,6 @@ def run(path):
     params = load_params(path)
     print('done.', flush=True)
     # Initialize kernel and network
-    network = init(params)
+    network = init(params, path)
     # Simulate
     simulate(params)

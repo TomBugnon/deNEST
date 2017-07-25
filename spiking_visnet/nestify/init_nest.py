@@ -4,12 +4,12 @@
 
 """Initialize NEST kernel and network."""
 
-from collections import ChainMap
-
 import nest
 import nest.topology as tp
 import numpy as np
 from tqdm import tqdm
+from os.path import join
+from ..utils.system import mkdir_ifnot
 
 
 def init_nest(network, kernel_params):
@@ -46,6 +46,21 @@ def init_kernel(kernel_params):
         'rng_seeds': range(msd + N_vp + 1, msd + 2 * N_vp + 1),
         'print_time': kernel_params['print_time'],
     })
+
+
+def set_nest_savedir(nest_tmp_savedir):
+    """Tell kernel where to save raw recorder data.
+
+    NEST will save the raw recorder activity in <simulation_savedir>/tmp
+
+    Args:
+        - <simulation_savedir> (str): Absolute path to the directory in which
+            all simulation parameters and formatted recorder activity will be
+            saved.
+
+    """
+    mkdir_ifnot(nest_tmp_savedir)
+    nest.SetKernelStatus({"data_path": nest_tmp_savedir})
 
 
 def create_neurons(neuron_models):
@@ -160,6 +175,9 @@ def connect_rec(pop, recorder_type, layers):
     Possibly connect the multimeter or spike_detector on the population
     described by pop and modify in place the pop dictionary with the gid
     of the recorder or False if no recorder has been connected.
+
+    A single recorder is not connected to a layer or a population, but rather
+    connected to all the units of a given population within a given layer.
 
     """
     rec_key = ('mm' if recorder_type == "multimeter" else 'sd')

@@ -17,10 +17,12 @@ children:
           record_multimeter: True
           mm_interval: 1.0
           mm_record_from: ['V_m']
-          mm_record_to: ['memory']
+          mm_record_to: ['file']
           mm_withgid: True
           mm_withtime: True
           record_spike_detector: True
+          sd_interval: 1.0
+          sd_record_to: ['file']
           sd_withgid: True
           sd_withtime: True
         children:

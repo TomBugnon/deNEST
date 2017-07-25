@@ -481,6 +481,7 @@ def expand_populations(pop_list, non_expanded_layers):
         (list): list of tuples duplicated with the same structure as pop_list
             but in which params['layer'] has been updated with the extended
             names.
+
     """
     expanded_list = []
     for (pop_name, pop_params) in pop_list:
