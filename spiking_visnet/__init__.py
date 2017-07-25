@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 # __init__.py
 
-import yaml
 from os.path import abspath as _abspath
 from os.path import dirname as _dirname
 from os.path import join as _join
 
+import yaml
+
 from .network import Network
 from .simulation import Simulation
-
 from .utils.structures import chaintree as _chaintree
 
 
@@ -39,8 +39,13 @@ def init(params, path):
     network = Network(network_params)
     # Get the saving subdirectory. sim outputs are in SAVE_DIR/save_subdir_str
     network.get_save_subdir_str(params, path)
-    # Initialize kernel + network in NEST and add the GIDs in network.
+    # Initialize kernel + network in NEST
     network.init_nest(kernel_params)
+    # Get the bi-directional GID-location mappings for each population.
+    network.get_gid_location_mappings()
+    import ipdb
+    ipdb.set_trace()
+
     print('...done initializing network.')
     return network
 

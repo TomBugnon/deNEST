@@ -6,13 +6,12 @@
 
 import collections
 
+from tqdm import tqdm
+
 from .nestify.format_net import get_network
-from .nestify.init_nest import init_nest, set_nest_savedir
-
-from .save import generate_save_subdir_str
-
-from user_config import SAVE_DIR
-from os.path import join
+from .nestify.init_nest import (gid_location_mapping, init_nest,
+                                set_nest_savedir)
+from .save import generate_save_subdir_str, get_NEST_tmp_savedir
 
 # TODO: move functionality from nestify/format_net to this class
 
@@ -61,3 +60,35 @@ class Network(collections.UserDict):
         """Return the resolution of the network's input layers."""
         (_, nest_params, _) = self.input_layer()
         return (nest_params['columns'], nest_params['rows'])
+
+    def get_gid_location_mappings(self):
+        """Create a self.location attribute with the location/GID mappings.
+
+        Creates a self.location attribute containing a tree such that:
+            self.gid_coo[<layer_name>][<population_name>] = <gid_coo_dict>
+        where:
+            <gid_coo_dict> is a dictionary of the form:
+                    {'gid': <gid_by_location_array>,
+                     'location': <location_by_gid_mapping>}
+        Finally:
+        - <gid_by_location_array> (np-array) is a (nrows, ncols)-array of the
+            same dimension as the layer. It is an array of lists (possibly
+            singletons) as there can be multiple units of that population at
+            each location.
+        - <location_by_gid_mapping> (dict) is dictionary of which keys are
+            GIDs (int) and entries are (row, col) location (tuple of int)
+
+        """
+        self.locations = {}
+        for pop_dict in tqdm(self['populations'],
+                             desc='Create GID/location mappings'):
+
+            lay_name, pop_name = pop_dict['layer'], pop_dict['population']
+            layer_gid = self['layers'][lay_name]['gid']
+
+            # Create self.location[lay_name] dictionary if it doesn't exist.
+            if lay_name not in self.locations:
+                self.locations[lay_name] = {}
+
+            self.locations[lay_name][pop_name] = gid_location_mapping(layer_gid,
+                                                                      pop_name)

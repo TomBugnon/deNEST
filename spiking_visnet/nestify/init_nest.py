@@ -4,11 +4,13 @@
 
 """Initialize NEST kernel and network."""
 
+import itertools
+
 import nest
 import nest.topology as tp
 import numpy as np
 from tqdm import tqdm
-from os.path import join
+
 from ..utils.system import mkdir_ifnot
 
 
@@ -16,7 +18,8 @@ def init_nest(network, kernel_params):
     """Initialize NEST kernel and network.
 
     Args:
-        - network (Network): Modified in place with GIDs.
+        - network (Network): Modified in place with GIDs and unit positions in
+            layer for each population.
         - kernel_params (dict): Kernel parameters (from full parameter tree).
 
     """
@@ -46,6 +49,54 @@ def init_kernel(kernel_params):
         'rng_seeds': range(msd + N_vp + 1, msd + 2 * N_vp + 1),
         'print_time': kernel_params['print_time'],
     })
+
+
+def gid_location_mapping(layer_gid, population_name):
+    """Create the mapping between population units' GID and layer location.
+
+    Args:
+        - <layer_gid> (tuple): Singleton tuple of int containing the GID of the
+            considered layer.
+        - <population_name> (str): Name of the considered layer's population.
+
+    Returns:
+        (dict): Dictionary of the form
+                    {'gid': <gid_by_location_array>,
+                     'location': <location_by_gid_mapping>}
+            where:
+                - <gid_by_location_array> (np-array) is a (nrows, ncols)-array
+                    of the same dimension as the layer. It is an array of
+                    lists (possibly singletons) as there can be multiple units
+                    of that population at each location.
+                - <location_by_gid_mapping> (dict) is dictionary of which keys
+                    are GIDs (int) and entries are (row, col) location (tuple
+                    of int)
+
+    """
+    # Get layer resolution
+    layer_topo = nest.GetStatus(layer_gid, 'topology')[0]
+    nrows, ncols = layer_topo['rows'], layer_topo['columns']
+
+    # Initialize bi-directional mapping dictionary.
+    gid_loc_map = {'gid': np.empty((nrows, ncols), dtype=list),
+                   'location': {}}
+
+    # Iterate on all locations of the grid-based layer.
+    for (i, j) in itertools.product(range(nrows), range(ncols)):
+
+        # Get list of GIDs of all population units at that location
+        location_units = [
+            nd for nd in tp.GetElement(layer_gid,
+                                       locations=(i, j))
+            if nest.GetStatus((nd,), 'model')[0] == population_name
+        ]
+
+        # Update array of gids
+        gid_loc_map['gid'][i, j] = location_units
+        # Update mapping of locations
+        gid_loc_map['location'].update({gid: (i, j)
+                                        for gid in location_units})
+    return gid_loc_map
 
 
 def set_nest_savedir(nest_tmp_savedir):
