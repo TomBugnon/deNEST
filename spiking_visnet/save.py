@@ -5,7 +5,7 @@
 
 """Save and load movies, networks, activity and simulation parameters."""
 
-from os.path import join, splitext
+from os.path import join, splitext, basename
 
 import nest
 
@@ -24,6 +24,7 @@ def generate_save_subdir_str(full_params_tree, param_file_path):
             SAVE_DIR/subdir_str
 
     """
-    param_file = splitext(param_file_path)[0]
+    # For now, use only the filename without extension of the parameter file.
+    param_file = splitext(basename(param_file_path))[0]
     subdir_str = param_file
     return subdir_str
