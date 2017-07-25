@@ -85,7 +85,7 @@ def get_models(model_tree):
                             name_key='name',
                             accumulator=[]),
             model_dict['nest_model'],
-            position=0)
+            pos=0)
         for key, model_dict in model_tree.items()
     ])
 
