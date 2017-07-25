@@ -4,5 +4,7 @@ If you write in user_config.py, please add it to your global .gitignore
 (not the project's .gitignore)
 """
 
-INPUT_DIR = './input'
-SAVE_DIR = './save_dir'
+import os.path
+
+INPUT_DIR = os.path.abspath('input')
+SAVE_DIR = os.path.abspath('SAVE_DIR')

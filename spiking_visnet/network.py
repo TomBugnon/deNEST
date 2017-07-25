@@ -11,7 +11,7 @@ from .nestify.init_nest import init_nest, set_nest_savedir
 
 from .save import generate_save_subdir_str
 
-from ..user_config import SAVEDIR
+from user_config import SAVE_DIR
 from os.path import join
 
 # TODO: move functionality from nestify/format_net to this class

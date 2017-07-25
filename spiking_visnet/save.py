@@ -9,7 +9,7 @@ from os.path import join, splitext
 
 import nest
 
-from ..user_config import SAVE_DIR
+from user_config import SAVE_DIR
 from .utils.system import mkdir_ifnot
 
 
