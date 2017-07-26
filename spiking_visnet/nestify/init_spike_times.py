@@ -36,7 +36,6 @@ def generate_spike_times(session_params, network):
     return
 
 
-
 """
         <movie> (dict): dict containing the preprocessed movie and its
             meta-parameters.

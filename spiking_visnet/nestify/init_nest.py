@@ -102,10 +102,10 @@ def gid_location_mapping(layer_gid, population_name):
 def set_nest_savedir(nest_tmp_savedir):
     """Tell kernel where to save raw recorder data.
 
-    NEST will save the raw recorder activity in <simulation_savedir>/tmp
+    NEST will save the raw recorder activity in < simulation_savedir > /tmp
 
     Args:
-        - <simulation_savedir> (str): Absolute path to the directory in which
+        - < simulation_savedir > (str): Absolute path to the directory in which
             all simulation parameters and formatted recorder activity will be
             saved.
 
@@ -167,7 +167,7 @@ def create_layers(layers):
     of each layer's dictionary.
 
     Args:
-        <layers> (dict): Flat dictionary of dictionaries.
+        <layers > (dict): Flat dictionary of dictionaries.
     """
     for layer_name, layer_dict in tqdm(layers.items(),
                                        desc='Create layers: '):
@@ -196,21 +196,21 @@ def connect_recorders(pop_list, layers):
     nest gid.
 
     Args:
-        - <pop_list> (list): List of dict, each of the form:
-                {'layer': <layer_name>,
-                 'population': <pop_name>,
-                 'mm': {'record_pop': <bool>,
-                        'rec_params': {<nest_multimeter_params>},
-                 'sd': {'record_pop': <bool>,
-                        'rec_params': {<nest_multimeter_params>}}
+        - < pop_list > (list): List of dict, each of the form:
+                {'layer': < layer_name >,
+                 'population': < pop_name >,
+                 'mm': {'record_pop': < bool >,
+                        'rec_params': { < nest_multimeter_params > },
+                 'sd': {'record_pop': < bool >,
+                        'rec_params': { < nest_multimeter_params > }}
      Return:
         - (list): modified list of dictionaries, updated with the key 'gid' and
             its value for each recorder.
             eg:
-                 'mm': {'gid': <value>,
-                        'record_pop': <bool>,
-                        'rec_params': {<nest_multimeter_params>},
-            NB: if <bool>==False, 'gid' is set to False.
+                 'mm': {'gid': < value >,
+                        'record_pop': < bool >,
+                        'rec_params': { < nest_multimeter_params > },
+            NB: if < bool > == False, 'gid' is set to False.
 
     """
     for pop in tqdm(pop_list,
