@@ -465,7 +465,8 @@ def get_spike_detector(pop_params):
 
     """
     return {'record_pop': pop_params['record_spike_detector'],
-            'rec_params': {'withtime': pop_params['sd_withtime'],
+            'rec_params': {'record_to': pop_params['sd_record_to'],
+                           'withtime': pop_params['sd_withtime'],
                            'withgid': pop_params['sd_withgid']}}
 
 
