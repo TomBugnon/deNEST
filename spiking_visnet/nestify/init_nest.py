@@ -40,7 +40,8 @@ def init_kernel(kernel_params):
     nest.ResetKernel()
     nest.SetKernelStatus(
         {'local_num_threads': kernel_params['local_num_threads'],
-         'resolution': float(kernel_params['resolution'])})
+         'resolution': float(kernel_params['resolution']),
+         'overwrite_files': kernel_params['overwrite_files']})
     msd = kernel_params['seed']
     N_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
     pyrngs = [np.random.RandomState(s) for s in range(msd, msd + N_vp)]
