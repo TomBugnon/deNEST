@@ -4,6 +4,8 @@
 
 import collections
 
+import nest
+
 
 # TODO: finish
 class Session(collections.UserDict):
@@ -17,4 +19,5 @@ class Session(collections.UserDict):
     def run(self):
         """Run."""
         print("I'm a session and I am running!")
+        nest.Simulate(10.)
         return
