@@ -58,7 +58,8 @@ children:
                   params: {}
         poisson_generator:
           nest_model: poisson_generator
-          params: {}
+          params:
+              rate: 200.
           children:  # Neuron models
             input_exc:
               name: input_exc
@@ -176,6 +177,7 @@ children:
               max: 2.25
           allow_autapses: false
           allow_multapses: false
+          allow_oversized_mask: true
 
         horizontal_inh:
           connection_type: divergent
@@ -194,6 +196,7 @@ children:
               max: 2.25
           allow_autapses: false
           allow_multapses: false
+          allow_oversized_mask: true
 
         FF_exc:
           connection_type: convergent
@@ -213,6 +216,7 @@ children:
               max: 2.25
           allow_autapses: false
           allow_multapses: false
+          allow_oversized_mask: true
 
         input_connection:
           connection_type: convergent
@@ -229,6 +233,7 @@ children:
               max: 2.25
           allow_autapses: false
           allow_multapses: false
+          allow_oversized_mask: true
 
       connections:
 

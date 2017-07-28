@@ -21,7 +21,6 @@ children:
           mm_withgid: True
           mm_withtime: True
           record_spike_detector: True
-          sd_interval: 1.0
           sd_record_to: ['file']
           sd_withgid: True
           sd_withtime: True
@@ -30,7 +29,6 @@ children:
             params:
               layer: input_layer
               mm_record_from: ['rate']
-              record_spike_detector: False
             children:
               input_exc:
                 name: input_exc
