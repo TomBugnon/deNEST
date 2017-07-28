@@ -97,9 +97,9 @@ def get_layers(layers_tree, expanded=True):
         - <layers_tree> (dict): Tree that will be traversed to gather all
             parameters of each layer-leaf. The thus gathered parameters are
             then formatted to produce nest-readable parameter dictionaries.
-        - <expanded> (bool): If true, returns the expanded tree after taking in
-            account the replication of layers for different filters, otherwise
-            don't replicate layers whatsoever.
+        - <expanded> (bool): If true, returns the exgitpanded tree after taking
+            in account the replication of layers for different filters,
+            otherwise don't replicate layers whatsoever.
 
     Returns:
         - (dict): Dictionary of the form:
