@@ -168,8 +168,8 @@ def format_layer_list(layer_list):
 def format_nest_layer_params(layer_params):
     """Generate a nest-formatted parameter dict from a layer parameter dict."""
     nest_p = {}
-    nest_p['rows'] = layer_params['size']
-    nest_p['columns'] = layer_params['size']
+    nest_p['rows'] = layer_params['nrows']
+    nest_p['columns'] = layer_params['ncols']
     nest_p['extent'] = [layer_params['visSize'], layer_params['visSize']]
     nest_p['edge_wrap'] = layer_params['edge_wrap']
     nest_p['elements'] = get_layer_elements(layer_params)
@@ -277,8 +277,9 @@ def get_conn_params(conn, connection_models, layers):
     # TODO: btw error in ht files: secondary horizontal intralaminar mixes dcpS
     # and dcpP
 
+    source_size = max(source_params['nrows'], source_params['ncols'])
     rf_factor = (target_params['rf_scale_factor'] * source_params['visSize'] /
-                 (source_params['size'] - 1))
+                 (source_size - 1))
     return conn_p.new_child(
         {'sources': {'model': conn['source_population']},
          'targets': {'model': conn['target_population']},

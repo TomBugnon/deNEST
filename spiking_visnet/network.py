@@ -76,7 +76,7 @@ class Network(collections.UserDict):
     def input_res(self):
         """Return the resolution of the network's input layers."""
         (_, nest_params, _) = self.input_layer()
-        return (nest_params['columns'], nest_params['rows'])
+        return (nest_params['rows'], nest_params['columns'])
 
     def get_gid_location_mappings(self):
         """Create a self.location attribute with the location/GID mappings.

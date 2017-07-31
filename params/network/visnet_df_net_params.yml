@@ -24,12 +24,12 @@ children:
           maskfactor: 1
           input_area_name: input_area
           scale_input_weights: true
-          size: 20
+          nrows: 20
+          ncols: 20
         children: # areas
           input_area:
             params:
               area: input_area
-            #   size: 128
               rf_scale_factor: 1
               filters:
                 # There is one input layer for each filters.
@@ -49,15 +49,12 @@ children:
           l1_area:
             params:
               area: l1_area
-            #   size: 128
               rf_scale_factor: 1
           l2_area:
             params:
               area: l2_area
-            #   size: 128
               rf_scale_factor: 1
           l3_area:
             params:
               area: l3_area
-            #   size: 100
               rf_scale_factor: 1

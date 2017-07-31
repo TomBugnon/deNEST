@@ -55,6 +55,9 @@ def init_kernel(kernel_params):
 def gid_location_mapping(layer_gid, population_name):
     """Create the mapping between population units' GID and layer location.
 
+    NB: NEST treats locations and positions strangely. Use the mapping created
+    below and not NEST functions to avoid errors.
+
     Args:
         - <layer_gid> (tuple): Singleton tuple of int containing the GID of the
             considered layer.
@@ -81,22 +84,20 @@ def gid_location_mapping(layer_gid, population_name):
     # Initialize bi-directional mapping dictionary.
     gid_loc_map = {'gid': np.empty((nrows, ncols), dtype=list),
                    'location': {}}
-
     # Iterate on all locations of the grid-based layer.
     for (i, j) in itertools.product(range(nrows), range(ncols)):
-
         # Get list of GIDs of all population units at that location
         location_units = [
             nd for nd in tp.GetElement(layer_gid,
-                                       locations=(i, j))
+                                       locations=(j, i))  # NB: Nest cols/rows
             if nest.GetStatus((nd,), 'model')[0] == population_name
         ]
-
         # Update array of gids
         gid_loc_map['gid'][i, j] = location_units
         # Update mapping of locations
         gid_loc_map['location'].update({gid: (i, j)
                                         for gid in location_units})
+
     return gid_loc_map
 
 
