@@ -23,9 +23,13 @@ STIM_LAYER_SUFFIX = '_stimulator'
 class Network(collections.UserDict):
     """Network class."""
 
-    def __init__(self, network_params):
+    def __init__(self, network_params, params_path):
         """Initialize object from parameter tree."""
         super().__init__(get_network(network_params))
+        # Introduce parrot layers between input stimulators and neurons
+        self.introduce_parrot_layers()
+        # Get the saving subdirectory. Output dir is SAVE_DIR/save_subdir_str.
+        self.get_save_subdir_str(network_params, params_path)
 
     def get_save_subdir_str(self, full_params_tree, param_file_path):
         """Record the subdirectory string for this network/simulation."""
@@ -39,11 +43,15 @@ class Network(collections.UserDict):
         object.
         Provides the NEST kernel with the absolute path to the temporary
         directory where it will save the recorders.
+        Add to the network object the mappings between layer location and GID.
+
         """
         init_nest(self, kernel_params)
         # Tell NEST kernel where to save all the recorders.
         tmp_save_dir = get_NEST_tmp_savedir(self)
         set_nest_savedir(tmp_save_dir)
+        # Get the bi-directional GID-location mappings for each population.
+        self.get_gid_location_mappings()
 
     def input_layer(self):
         """Return (name, nest_params, params) for an arbitrary input layer."""
