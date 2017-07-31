@@ -11,10 +11,10 @@ import scipy.misc
 def downsample(input_movie, preprocessing_params, network):
     """Downsample input_movie to fit with network's input resolution."""
     xdim, ydim = network.input_res()
-    tdim = np.size(input_movie, axis=2)
-    output_movie = np.zeros((xdim, ydim, tdim))
+    tdim = np.size(input_movie, axis=0)
+    output_movie = np.zeros((tdim, xdim, ydim))
     for t in range(tdim):
-        output_movie[:, :, t] = scipy.misc.imresize(input_movie[:, :, t],
+        output_movie[t, :, :] = scipy.misc.imresize(input_movie[t, :, :],
                                                     (xdim, ydim))
     return output_movie
 

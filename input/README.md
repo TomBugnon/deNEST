@@ -5,7 +5,7 @@ An input directory has the following structure:
 input
 │
 ├── raw_input
-│   ├── movie_1   ← size: N(movie_x)* N(movie_y) * N(movie_frames)
+│   ├── movie_1   ← size: N(movie_frames)*N(movie_x)* N(movie_y)
 │   ├── movie_2
 │   ├── movie_3
 │   ⋮
@@ -13,7 +13,7 @@ input
 ├── preprocessed_input                            ← all preprocessed input movies. Preprocessing is specific to a given network and typically includes downsampling, contrast normalization and filtering.
 │   ├── res_128x128_contrastnorm_filters_sf3o3s2  ← name of specific preprocessing pipeline.
 │   │   ├── metadata.yaml                         ← metadata common to all preprocessed input movies and defining the preprocessing pipeline.
-│   │   ├── movie_1                               ← size: N(net_x) × N(net_y) × N(filters) × N(frames)
+│   │   ├── movie_1                               ← size: N(frames) x N(filters) x N(net_x) × N(net_y)
 │   │   ├── movie_2
 │   │   ├── movie_3
 │   │   ⋮

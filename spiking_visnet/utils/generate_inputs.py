@@ -59,6 +59,10 @@ def create_movie(raw_input_dir, res, t, stim_type, path_type='default',
         - hsize (int): horizontal size (second dimension) of the stimulus
         - width (int): width of the stimulus
         - save (bool): If true, saves the created movie in INPUT_DIR/raw_inputs
+
+    Returns:
+        (np-array): (nframes*nrows*ncols)-numpy array
+
     """
     stim = FUN_MAP[stim_type](vsize, hsize, width)
     path = generate_path(res, t, path_type)
@@ -137,9 +141,9 @@ def generate_movie(res, stim, path):
     defined by path(t) in an array of zeros of size `res`
     """
     tdim = len(path)
-    a = np.zeros((res[0], res[1], tdim))
+    a = np.zeros((tdim, res[0], res[1]))
     for t in range(tdim):
-        a[:, :, t] = wrapped_addition(np.zeros((res)),
+        a[t, :, :] = wrapped_addition(np.zeros((res)),
                                       stim,
                                       path[t])
     return a

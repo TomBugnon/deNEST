@@ -116,7 +116,7 @@ def save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir):
     population_list = network['populations']
     gid_location_mappings = network.locations
 
-    # For (nrow * ncol * n_timesteps)-nparray initialization
+    # For (ntimesteps * nrow * ncol)-nparray initialization
     n_timesteps = int(nest.GetKernelStatus('time')
                       / nest.GetKernelStatus('resolution'))
 
@@ -128,7 +128,7 @@ def save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir):
         sd = pop_dict['sd']
         location_by_gid = gid_location_mappings[layer][pop]['location']
 
-        # For layer size for (nrow * ncol * total_time)-nparray initialization
+        # For layer size for (total_time * nrow * ncol)-nparray initialization
         layer_params = network['layers'][layer]['nest_params']
         (nrow, ncol) = layer_params['rows'], layer_params['columns']
 
@@ -150,7 +150,7 @@ def save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir):
                                                 time,
                                                 activity,
                                                 location_by_gid,
-                                                dim=(ncol, nrow, n_timesteps))
+                                                dim=(n_timesteps, nrow, ncol))
                 filename = pop_string + variable
                 save_as_sparse(join(sim_savedir, filename),
                                activity_array)
@@ -163,7 +163,7 @@ def save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir):
             activity_array = format_sd_data(gid,
                                             time,
                                             location_by_gid,
-                                            dim=(ncol, nrow, n_timesteps))
+                                            dim=(n_timesteps, nrow, ncol))
             filename = pop_string + 'spikes'
 
             save_as_sparse(join(sim_savedir, filename),
@@ -238,6 +238,9 @@ def load_and_combine(recorder_files_list):
         (np.array): Array of which columns are the files' columns and rows are
             the events recorded in the union of all files. If all the files are
             empty or there is no filename, returns an array with 0 rows.
+            Array np-loaded in each text file is enforced to have two
+            dimensions. If no data is found at all, returns an array with zero
+            rows.
 
     """
     file_data_list = [np.loadtxt(filepath, dtype=float, ndmin=2)

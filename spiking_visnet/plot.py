@@ -38,31 +38,33 @@ def animate(plot, movie, fps=5, t=0, T=None, size=1):
 
     Args:
         - plot (bokeh Figure)
-        - movie (np.array): (vdim * hdim * time)
+        - movie (np.array): (time * nrows * ncols)
         - fps: frames per second
         - t: index of the first frame
         - T: index of the last frame (default: number of frames in movie).
 
     """
-    vdim, hdim, tdim = np.shape(movie)
-    N = vdim * hdim
+    nframes, nrows, ncols = np.shape(movie)
+    print(np.shape(movie))
+    N = nrows * ncols
 
     if T is None:
-        T = tdim
+        T = nframes
 
-    # Format movie in N*T instead of vdim*hdim*T (why, bokeh? why?)
-    mv_1d = np.reshape(movie, (N, T))
-    # Scale by length of palette (I don't understand what I'm doing)
+    # Format movie in N*T instead of T*nrows*ncols
+    mv_1d = np.reshape(movie, (T, N))
+    print(mv_1d.shape)
+    # Scale by length of palette
     mv_1d = mv_1d * len(PALETTE)
-    # V, H positions for each of the pixels in the '1D image'
-    positions = np.array(list(itertools.product(range(vdim), range(hdim))))
+    # row, col positions for each of the pixels in the '1D image'
+    positions = np.array(list(itertools.product(range(nrows), range(ncols))))
     # Convert values to colors
-    color_mv_1d = [color(mv_1d[:, t]) for t in range(T)]
+    color_mv_1d = [color(mv_1d[t, :]) for t in range(T)]
 
     # Initialize plot
     r = plot.circle(positions[::1, 1],  # NB mathematical coordinate, not numpy
                     positions[::-1, 0],
-                    fill_color=np.reshape(movie[:, :, t], (N,)),
+                    fill_color=np.reshape(movie[t, :, :], (N,)),
                     radius=0.5,
                     color='white')
 
