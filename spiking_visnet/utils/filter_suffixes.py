@@ -17,8 +17,8 @@ def get_expanded_names(base_layer_name, filters):
 
     Returns:
         (list): list of expanded names.
-    """
 
+    """
     return [
         base_layer_name + suffix for suffix in get_extension_suffixes(filters)
     ]
