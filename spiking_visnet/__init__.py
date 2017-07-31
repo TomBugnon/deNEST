@@ -9,6 +9,7 @@ from os.path import join as _join
 import yaml
 
 from .network import Network
+from .save import save_all
 from .simulation import Simulation
 from .utils.structures import chaintree as _chaintree
 
@@ -66,3 +67,5 @@ def run(path):
     network = init(params, path)
     # Simulate
     simulate(params)
+    # Save
+    save_all(network, params)

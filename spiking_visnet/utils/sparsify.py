@@ -7,12 +7,13 @@
 
 
 import numpy as np
+from scipy import sparse
 
 
 # TODO:
-def save_as_sparse(path, array):
+def save_as_sparse(path, nparray):
     """Save 3D or 4D nparrays as scipy sparse array in <path>."""
-    pass
+    np.save(path, nparray)
 
 
 # TODO:
@@ -22,4 +23,4 @@ def load_as_numpy(path):
     Path can point towards either a numpy file or a 'scipy' file saved using
     save_as_sparse().
     """
-    pass
+    return np.load(path)

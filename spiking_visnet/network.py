@@ -42,7 +42,7 @@ class Network(collections.UserDict):
         """
         init_nest(self, kernel_params)
         # Tell NEST kernel where to save all the recorders.
-        tmp_save_dir = join(SAVE_DIR, self.save_subdir_str, 'tmp')
+        tmp_save_dir = get_NEST_tmp_savedir(self)
         set_nest_savedir(tmp_save_dir)
 
     def input_layer(self):
@@ -137,6 +137,11 @@ class Network(collections.UserDict):
                      input_layer_name,
                      one_to_one_connection())
                 )
+
+    # TODO
+    def save(self, path):
+        """Save object."""
+        pass
 
 
 def change_input_elementname(elem_list, new_name):
