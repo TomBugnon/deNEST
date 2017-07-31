@@ -28,10 +28,10 @@ children:
           input_layer:
             params:
               layer: input_layer
-              mm_record_from: ['rate']
+              record_multimeter: False
             children:
-              input_exc:
-                name: input_exc
+              parrot_neuron:
+                name: parrot_neuron
                 params: {}
           l1:
             params:

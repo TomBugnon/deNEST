@@ -103,11 +103,13 @@ children:
                 receptor_type: AMPA
 
       layers:
-        params: {}
+        params:
+            with_parrot: False
         children: # areas
           input_area:
             params:
               area: input_area
+              with_parrot: True
             children: # layers
               input_layer:
                 name: input_layer # Actual layer name might change
@@ -241,13 +243,13 @@ children:
 
         # excitatory on l1 for each input population
         - source_layer: input_layer
-          source_population: input_exc
+          source_population: parrot_neuron
           target_layer: l1
           target_population: l1_exc
           connection: input_connection
           params: {}
         - source_layer: input_layer
-          source_population: input_exc
+          source_population: parrot_neuron
           target_layer: l1
           target_population: l1_inh
           connection: input_connection

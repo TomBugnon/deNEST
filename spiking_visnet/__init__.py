@@ -37,15 +37,14 @@ def init(params, path):
     kernel_params = params['children']['kernel']
     # Build the network object
     network = Network(network_params)
+    # Introduce parrot layers between input stimulators and neurons
+    network.introduce_parrot_layers()
     # Get the saving subdirectory. sim outputs are in SAVE_DIR/save_subdir_str
     network.get_save_subdir_str(params, path)
     # Initialize kernel + network in NEST
     network.init_nest(kernel_params)
     # Get the bi-directional GID-location mappings for each population.
     network.get_gid_location_mappings()
-    import ipdb
-    ipdb.set_trace()
-
     print('...done initializing network.')
     return network
 

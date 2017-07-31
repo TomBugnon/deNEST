@@ -112,7 +112,7 @@ def invert_dict(d, inversion_key):
                               for _, entry in d.items()])}
 
 
-def deepcopy_dict(source_dict, diffs):
+def deepcopy_dict(source_dict, diffs={}):
     """Return a deep copy of <source_dict> updated with <diffs>."""
     result = cp.deepcopy(source_dict)
     result.update(diffs)

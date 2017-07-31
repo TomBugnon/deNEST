@@ -12,6 +12,10 @@ from .nestify.format_net import get_network
 from .nestify.init_nest import (gid_location_mapping, init_nest,
                                 set_nest_savedir)
 from .save import generate_save_subdir_str, get_NEST_tmp_savedir
+from .utils.structures import deepcopy_dict
+
+STIM_LAYER_SUFFIX = '_stimulator'
+
 
 # TODO: move functionality from nestify/format_net to this class
 
@@ -97,3 +101,66 @@ class Network(collections.UserDict):
 
             self.locations[lay_name][pop_name] = gid_location_mapping(layer_gid,
                                                                       pop_name)
+
+    def introduce_parrot_layers(self):
+        """Introduce layers of parrot neurons between stim devices and neurons.
+
+        For each input layer that should use parrot neurons:
+            - duplicate the input layer dictionary under a different layer name
+                (stim_layer_name = base_input_layer_name + STIM_LAYER_SUFFIX)
+            - Modify the original layer dictionary to replace the elements with
+                parrot_neuron.
+                (parrot_layer_name = base_input_layer_name)
+            - Add one-to-one topological connections to the network's
+                connections list to connect each stimulator input layer to its
+                associated parrot input layer.
+
+        """
+        for input_layer_name in self['areas'][self.input_area_name()]:
+
+            old_entry = self['layers'][input_layer_name]
+            if old_entry['params']['with_parrot']:
+
+                # Duplicate layer entry
+                copy_entry = deepcopy_dict(old_entry)
+                # Change old entry to parrot elements
+                elem_list = old_entry['nest_params']['elements']
+                parrot_elem_list = change_input_elementname(elem_list,
+                                                            'parrot_neuron')
+                old_entry['nest_params']['elements'] = parrot_elem_list
+                # Create new 'stimulation device' layer
+                stim_layer_name = input_layer_name + STIM_LAYER_SUFFIX
+                self['layers'][stim_layer_name] = copy_entry
+                # Connect the 'stim' layer to the parrot layer
+                self['connections'].append(
+                    (stim_layer_name,
+                     input_layer_name,
+                     one_to_one_connection())
+                )
+
+
+def change_input_elementname(elem_list, new_name):
+    """Change all element names (strings) in list to <new_name>."""
+    assert(len(elem_list) == 2), 'Input layers should not be composite.'
+    return [new_name if isinstance(elem, str) else elem
+            for elem in elem_list]
+
+
+def one_to_one_connection(synapse_model='static_synapse'):
+    """Return a connection dictionary used to connect 2 layers one-to-one.
+
+    Similarly to the other layers, we use the nest.topology module for
+    connecting layers, rather than nest.Connect. In order to assure that the
+    connections are one-to-one, we set the number of connections by unit to
+    one, and the radius of the mask to an infinitesimal value.
+
+    NB: The returned dictionary can be used only to connect non-composite layers
+    of equal size.
+
+    """
+    MASK_RADIUS = 0.0001
+    return {"connection_type": "divergent",
+            "mask": {"circular": {"radius": MASK_RADIUS}},
+            'number_of_connections': 1,
+            "synapse_model": synapse_model
+            }
