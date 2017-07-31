@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 # nestify/init_spike_times.py
 
+
+"""Set the spike timings of input layers from stimuli."""
+
 import nest
 
 

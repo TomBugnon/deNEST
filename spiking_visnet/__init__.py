@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # __init__.py
 
+"""Run full simulation."""
+
 from os.path import abspath as _abspath
 from os.path import dirname as _dirname
 from os.path import join as _join

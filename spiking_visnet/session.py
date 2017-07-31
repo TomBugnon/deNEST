@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # session.py
 
+
+"""Represent a sequence of stimuli."""
+
+
 import collections
 
 import nest

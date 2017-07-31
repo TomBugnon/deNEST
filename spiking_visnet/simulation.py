@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # simulation.py
 
+
+"""Represent a series of sessions."""
+
+
 from .session import Session
 from .utils.structures import traverse
 

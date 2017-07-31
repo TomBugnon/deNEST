@@ -3,6 +3,8 @@
 # downsample.py
 
 
+"""Downsample movie frames to network's resolution."""
+
 import numpy as np
 import scipy.misc
 

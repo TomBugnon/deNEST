@@ -3,6 +3,8 @@
 # system.py
 
 
+"""System utility functions."""
+
 from os import makedirs
 from os.path import isdir
 

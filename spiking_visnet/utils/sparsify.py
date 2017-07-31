@@ -3,7 +3,7 @@
 # sparsify.py
 
 
-"""Compress, save and load 3D and 4D np arrays"""
+"""Compress, save and load 3D and 4D np arrays."""
 
 
 import numpy as np

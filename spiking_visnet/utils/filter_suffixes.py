@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 # utils/filter_suffixes.py
 
+
+"""Map between filter descriptions and input layer names."""
+
 import itertools
 
 

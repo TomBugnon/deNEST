@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # utils/structures.py
 
+
+"""Tree, dictionary and list utility functions."""
+
+
 import copy as cp
 from collections import ChainMap
 from collections.abc import Mapping
