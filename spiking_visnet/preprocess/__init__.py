@@ -22,7 +22,7 @@ def run(args):
     # Load preprocessing parameters
     prepro_params = _load_yaml(args['<preprocessing_params>'])
 
-    _preprocess_all(args['<input_dir>'],
+    _preprocess_all(args['--input'],
                     _preprocessing_subdir(prepro_params, network),
                     network,
                     prepro_params)

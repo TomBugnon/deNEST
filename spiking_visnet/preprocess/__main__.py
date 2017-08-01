@@ -4,23 +4,28 @@
 
 
 """
-preprocessing
+preprocessing.
+
 ~~~~~~~~~~~~~~
 
 Usage:
-    python -m spiking_visnet.preprocess -i <input_dir> -p <preprocessing_params> -n <network_params>
+    python -m spiking_visnet.preprocess -p <preprocessing_params> -n <sim_params> [-i <input_dir>]
     python -m spiking_visnet.preprocess -h | --help
 
 Arguments:
-    <param_file.yml>  File comtaining simulation parameters
+    <preprocessing_params>  Relative path to preprocessing parameter yaml file
+    <sim_params>            Relative path to full simulation parameter file
 
 Options:
-    -h --help         Show this
+    -i --input=<input_dir>  Input directory. If not specified, uses INPUT_DIR from config.
+    -h --help               Show this
 """
 
 import sys
 
 from docopt import docopt
+
+from user_config import INPUT_DIR
 
 from . import run
 
@@ -30,4 +35,7 @@ if __name__ == '__main__':
     argv = ['-m', 'spiking_visnet.preprocess'] + sys.argv[1:]
     # Get command-line args from docopt.
     arguments = docopt(__doc__, argv=argv)
+    if not arguments['--input']:
+        arguments['--input'] = INPUT_DIR
+
     run(arguments)
