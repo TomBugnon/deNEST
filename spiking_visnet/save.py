@@ -29,6 +29,12 @@ def save_as_yaml(path, tree):
         yaml.dump(tree, f, default_flow_style=False)
 
 
+def load_yaml(*args):
+    """Load yaml file from joined (os.path.join) arguments."""
+    with open(join(*args), 'rt') as f:
+        return yaml.load(f)
+
+
 def save_all(network, full_params_tree):
     """Save all network and simulation information.
 

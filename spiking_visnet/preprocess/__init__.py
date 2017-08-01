@@ -5,16 +5,10 @@
 """Preprocess all raw stimuli."""
 
 from .. import load_params as _load_params
-from .. import load_yaml as _load_yaml
 from ..network import Network as _Network
+from ..save import load_yaml as _load_yaml
 from .preprocess import preprocess_all as _preprocess_all
 from .utils import preprocessing_subdir as _preprocessing_subdir
-
-INPUT_SUBDIRS = {'raw_input': 'raw_input',
-                 'preprocessed_input': 'preprocessed_input',
-                 'raw_input_sets': 'raw_input_sets',
-                 'preprocessed_input_sets': 'preprocessed_input_sets',
-                 'stimuli': 'stimuli'}
 
 
 def run(args):

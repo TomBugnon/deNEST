@@ -10,16 +10,16 @@ from os.path import exists, isdir, isfile, join
 import numpy as np
 from tqdm import tqdm
 
-from . import INPUT_SUBDIRS, downsample, filt, normalize
-from ..utils.structures import mkdir_ifnot
+from user_config import INPUT_SUBDIRS, METADATA_FILENAME
+
+from . import downsample, filt, normalize
+from ..utils.system import mkdir_ifnot
 
 PREPROCESS_MAPPING = {
     'downsample': downsample.downsample,
     'filter': filt.filter,
     'normalize': normalize.normalize
 }
-
-METADATA_FILENAME = 'metadata.yml'
 
 
 def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):

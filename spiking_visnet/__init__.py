@@ -6,20 +6,11 @@
 
 from os.path import abspath as _abspath
 from os.path import dirname as _dirname
-from os.path import join as _join
-
-import yaml
 
 from .network import Network
-from .save import save_all
+from .save import load_yaml, save_all
 from .simulation import Simulation
 from .utils.structures import chaintree as _chaintree
-
-
-def load_yaml(*args):
-    """Load yaml file from joined (os.path.join) arguments."""
-    with open(_join(*args), 'rt') as f:
-        return yaml.load(f)
 
 
 def load_params(path):
