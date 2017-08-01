@@ -3,10 +3,13 @@
 # normalize.py
 
 
+import numpy as np
+
+
 # TODO
 def normalize(input_movie, preprocessing_params, network):
     """Normalize movie contrast."""
-    return input_movie
+    return input_movie / np.max(input_movie)
 
 
 def get_string(*_):
