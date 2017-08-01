@@ -74,7 +74,7 @@ def update_sets(input_dir, prepro_subdir_str, prepro_dir):
 
     """
     print('Update sets')
-    setdir = join(input_dir, INPUT_SUBDIRS['raw_input'])
+    setdir = join(input_dir, INPUT_SUBDIRS['raw_input_sets'])
 
     all_setnames = [setname for setname in os.listdir(setdir)
                     if isdir(join(setdir, setname))]
