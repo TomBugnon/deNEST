@@ -122,6 +122,8 @@ class Network(collections.UserDict):
             - Add one-to-one topological connections to the network's
                 connections list to connect each stimulator input layer to its
                 associated parrot input layer.
+            - Add the populations for the new layers in network['populations']
+                (without recorders).
 
         """
         for input_layer_name in self['areas'][self.input_area_name()]:
@@ -144,6 +146,14 @@ class Network(collections.UserDict):
                     (stim_layer_name,
                      input_layer_name,
                      one_to_one_connection())
+                )
+                # Add the population
+                stimulator_population_name = elem_list[0]  # TODO: function
+                self['populations'].append(
+                    {'layer': stim_layer_name,
+                     'population': stimulator_population_name,
+                     'mm': {'record_pop': False},
+                     'sd': {'record_pop': False}}
                 )
 
     # TODO
