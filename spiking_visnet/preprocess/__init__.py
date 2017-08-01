@@ -14,9 +14,10 @@ from .utils import preprocessing_subdir as _preprocessing_subdir
 def run(args):
     """Run preprocessing."""
     # Load network
-    params = _load_params(args['<network_params>'])
-    network_params = params['children']['network']['children']
-    network = _Network(network_params)
+    params_path = args['<sim_params>']
+    full_params_tree = _load_params(params_path)
+    network_params = full_params_tree['children']['network']['children']
+    network = _Network(network_params, params_path)
 
     # Load preprocessing parameters
     prepro_params = _load_yaml(args['<preprocessing_params>'])
