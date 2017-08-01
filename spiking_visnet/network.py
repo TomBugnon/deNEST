@@ -55,7 +55,7 @@ class Network(collections.UserDict):
 
     def input_layer(self):
         """Return (name, nest_params, params) for an arbitrary input layer."""
-        input_layer_name = self['areas'][self.input_area_name][0]
+        input_layer_name = self['areas'][self.input_area_name()][0]
         return (input_layer_name,
                 self['layers'][input_layer_name]['nest_params'],
                 self['layers'][input_layer_name]['params'])
