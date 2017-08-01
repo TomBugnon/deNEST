@@ -6,7 +6,7 @@
 """Save and load movies, networks, activity and simulation parameters."""
 
 from os import stat
-from os.path import basename, isfile, join, splitext
+from os.path import basename, exists, isfile, join, splitext
 
 import nest
 import numpy as np
@@ -30,9 +30,16 @@ def save_as_yaml(path, tree):
 
 
 def load_yaml(*args):
-    """Load yaml file from joined (os.path.join) arguments."""
-    with open(join(*args), 'rt') as f:
-        return yaml.load(f)
+    """Load yaml file from joined (os.path.join) arguments.
+
+    Return empty list if the file doesn't exist.
+    """
+    file = join(*args)
+    if exists(file):
+        with open(join(*args), 'rt') as f:
+            return yaml.load(f)
+    else:
+        return []
 
 
 def save_all(network, full_params_tree):
