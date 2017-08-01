@@ -35,10 +35,13 @@ input
 │   ⋮
 │
 └── stimuli   ← stimuli sequences ready to be given to the network
-    ├── seq_1_set_1_res_128x128_contrastnorm_filters_sf3o3s2
+    ├── set_name: seq_1_set_1_res_128x128_contrastnorm_filters_sf3o3s2
     │      ↖
     ⋮       Pseudorandom list of file paths pertaining to a given preprocessed
             stimulus set (subset of all stimuli). Each entry defines an ordered
             sequence of stimuli, all drawn from the same given stimulus set, and
-            corresponds to a “session”. Paths are relative to `input_dir`.
+            corresponds to a “session”.
+            Each entry is a yaml file containing keys:
+                - set_name (str) <- subdirectory in `input_dir`/'preprocessed_input_sets'.
+                - sequence (list) <- list of filenames in the set directory.
 ```
