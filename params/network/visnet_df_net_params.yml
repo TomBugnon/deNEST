@@ -15,7 +15,7 @@ children:
       # Large scale layer parameters
       layers:
         params:
-          ret_rate: 200
+          max_input_rate: 200
           edge_wrap: true
           visSize: 8.0
           exc_inh_ratio: 2
