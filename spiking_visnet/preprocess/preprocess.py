@@ -10,7 +10,7 @@ from os.path import exists, isdir, isfile, join
 import numpy as np
 from tqdm import tqdm
 
-from . import downsample, filt, normalize
+from . import INPUT_SUBDIRS, downsample, filt, normalize
 from ..utils.structures import mkdir_ifnot
 
 PREPROCESS_MAPPING = {
@@ -35,8 +35,9 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
     # Preprocess files
 
     # Get dirs
-    raw_dir = join(input_dir, 'raw_input')
-    prepro_dir = join(input_dir, 'preprocessed_input', prepro_subdir_str)
+    raw_dir = join(input_dir, INPUT_SUBDIRS['raw_input'])
+    prepro_dir = join(input_dir, INPUT_SUBDIRS['preprocessed_input'],
+                      prepro_subdir_str)
 
     # Make dir
     mkdir_ifnot(prepro_dir)
@@ -73,7 +74,7 @@ def update_sets(input_dir, prepro_subdir_str, prepro_dir):
 
     """
     print('Update sets')
-    setdir = join(input_dir, 'raw_input_sets')
+    setdir = join(input_dir, INPUT_SUBDIRS['raw_input'])
 
     all_setnames = [setname for setname in os.listdir(setdir)
                     if isdir(join(setdir, setname))]
@@ -88,8 +89,8 @@ def update_sets(input_dir, prepro_subdir_str, prepro_dir):
 
 def create_set(input_dir, setname, prepro_subdir_str, prepro_dir):
     """Create a given preprocessed input subset from a raw input set."""
-    raw_set_dir = join(input_dir, 'raw_input_sets', setname)
-    prepro_set_dir = join(input_dir, 'preprocessed_input_sets',
+    raw_set_dir = join(input_dir, INPUT_SUBDIRS['raw_input_sets'], setname)
+    prepro_set_dir = join(input_dir, INPUT_SUBDIRS['preprocessed_input_sets'],
                           preprocessed_set_name(setname, prepro_subdir_str))
 
     # Create prepro_set dir
