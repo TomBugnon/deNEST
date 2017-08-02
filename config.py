@@ -14,3 +14,4 @@ INPUT_SUBDIRS = {'raw_input': 'raw_input',
                  'preprocessed_input_sets': 'preprocessed_input_sets',
                  'stimuli': 'stimuli'}
 METADATA_FILENAME = 'metadata.yml'
+PYTHON_SEED = 94

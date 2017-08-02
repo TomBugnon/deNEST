@@ -21,13 +21,16 @@ Options:
     -h --help               Show this
 """
 
+import random
 import sys
 
+from config import PYTHON_SEED
 from docopt import docopt
-
 from user_config import INPUT_DIR
 
 from . import run
+
+random.seed(PYTHON_SEED)
 
 if __name__ == '__main__':
     # Construct a new argument list to allow docopt's parser to work with the
