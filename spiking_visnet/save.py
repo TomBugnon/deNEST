@@ -12,6 +12,7 @@ import nest
 import numpy as np
 import yaml
 
+from tqdm import tqdm
 from user_config import SAVE_DIR
 
 from .utils.format_recorders import format_mm_data, format_sd_data
@@ -133,7 +134,8 @@ def save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir):
     n_timesteps = int(nest.GetKernelStatus('time')
                       / nest.GetKernelStatus('resolution'))
 
-    for pop_dict in population_list:
+    for pop_dict in tqdm(population_list,
+                         desc='--> Format recorder data'):
 
         layer = pop_dict['layer']
         pop = pop_dict['population']
