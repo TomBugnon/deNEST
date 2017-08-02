@@ -10,6 +10,7 @@ import itertools
 import time
 
 import numpy as np
+
 from bokeh import palettes
 from bokeh.io import output_notebook, push_notebook, show
 from bokeh.plotting import figure
@@ -57,7 +58,6 @@ def animate(plot, movie, fps=5, t=0, T=None, size=1):
 
     # Format movie in N*T instead of T*nrows*ncols
     mv_1d = np.reshape(movie, (T, N))
-    print(mv_1d.shape)
     # Scale by length of palette
     mv_1d = mv_1d * len(PALETTE)
     # row, col positions for each of the pixels in the '1D image'
