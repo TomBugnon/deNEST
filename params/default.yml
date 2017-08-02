@@ -5,3 +5,4 @@
 - ./network/visnet_df_base.yml
 - ./sessions/sessions_df.yml
 - ./kernel/kernel_params.yml
+- ./simulation/simulation_params.yml

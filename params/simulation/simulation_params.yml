@@ -1,0 +1,8 @@
+children:
+
+    sessions: {}
+    network: {}
+    kernel: {}
+
+    simulation:
+        delete_tmp_dir: True
