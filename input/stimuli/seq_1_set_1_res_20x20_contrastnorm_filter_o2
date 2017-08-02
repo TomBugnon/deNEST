@@ -4,5 +4,5 @@
 set_name: set_1_res_20x20_contrastnorm_filter_o2
 sequence:
     - vertical_cross_path=default_res=(20,20)_t=50_vsize=9_hsize=9_width=3.npy
-    - vertical_cross_path=default_res=(20,20)_t=50_vsize=9_hsize=9_width=3.npy
+    - vertical_tee_path=default_res=(20,20)_t=50_vsize=9_hsize=9_width=3.npy
 # ...
