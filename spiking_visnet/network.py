@@ -156,7 +156,51 @@ class Network(collections.UserDict):
                      'sd': {'record_pop': False}}
                 )
 
-    # TODO
+    def input_stim_layers(self):
+        """Return a list of the stimulator input layers.
+
+        Returns:
+            (list): List of strings of the form eg:
+                - 'input_layer_o2', or
+                - 'input_layer_o2'+STIM_LAYER_SUFFIX if the layer has parrot
+                    neurons
+
+        """
+        return [layer_name + STIM_LAYER_SUFFIX if self.has_parrots(layer_name)
+                else layer_name
+                for layer_name in self.input_layers()]
+
+    def has_parrots(self, layer_name):
+        """Return the layer params' 'with_parrot' entry."""
+        return self['layers'][layer_name]['params'].get('with_parrot', False)
+
+    def input_layers(self):
+        """Return the list of input layer names (without STIM_LAYER_SUFFIX)."""
+        return self['areas'][self.input_area_name()]
+
+    def populations(self, layer_name):
+        """Return the list of populations in a layer."""
+        return [elem for elem in (self['layers'][layer_name]
+                                  ['nest_params']['elements'])
+                if isinstance(elem, str)]
+
+    def stimulator_type(self, population_name):
+        """Return the type of stimulator in an input layer.
+
+        The type of stimulator is either the name of the base nest model used
+        to define the population, or the population name itself.
+
+        Returns:
+            (str): 'poisson_generator' or 'spike_generator'.
+
+        """
+        nest_models = [nest_model
+                       for (nest_model, network_model, _)
+                       in self['neuron_models']
+                       if network_model == population_name]
+        return nest_models[0] if nest_models else population_name
+
+        # TODO
     def save(self, path):
         """Save object."""
         pass

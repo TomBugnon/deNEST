@@ -37,11 +37,12 @@ def init(params, path):
     return network
 
 
-def simulate(params):
+def simulate(params, network):
     """Simulate all sessions described in parameter tree."""
     simulation_params = params['children']['simulation']
     print(f'Simulating...', flush=True)
-    Simulation(simulation_params).run()
+    simulation = Simulation(simulation_params)
+    simulation.run(network)
     print('...finished simulation.', flush=True)
 
 
@@ -53,6 +54,6 @@ def run(path):
     # Initialize kernel and network
     network = init(params, path)
     # Simulate
-    simulate(params)
+    simulate(params, network)
     # Save
     save_all(network, params)

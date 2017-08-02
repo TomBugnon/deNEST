@@ -4,6 +4,7 @@ children:
     sessions:
       params:
         time_per_frame: 20
+        max_session_sim_time: !!python/float inf
         save_recorders: True
         dynamic_synapses: False
         shuffle_time: False
