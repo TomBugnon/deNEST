@@ -12,9 +12,9 @@ params = spiking_visnet.load_params('params/default.yml')
 # Initializes the network in NEST's kernel with the given parameter file
 network = spiking_visnet.init(params)
 # Create a simulation object (a series of sessions)
-simulation = spiking_visnet.Simulation(params)
+simulation = spiking_visnet.Simulation(params, network)
 # Runs all the sessions
-simulation.run()
+simulation.run(run)
 # Et voilà !
 ```
 
