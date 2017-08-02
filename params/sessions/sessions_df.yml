@@ -1,9 +1,9 @@
 children:
   simulation:
-    order: ['warmup', 'training', 'warmup', 'testing']
+    order: ['warmup'] #, 'training', 'warmup', 'testing']
     sessions:
       params:
-        time_per_frame: 20
+        time_per_frame: 5
         max_session_sim_time: !!python/float inf
         save_recorders: True
         dynamic_synapses: False
@@ -16,18 +16,18 @@ children:
         warmup:
           name: warmup
           params:
-            session_stims: 'noise'
+            session_stims: 'seq_1_set_1_res_20x20_contrastnorm_filter_o2'
             save_recorders: False
             dynamic_synapses: False
             # NOTE: Might reset STDP synapses in a future release of NEST!
-            reset_network: True 
+            reset_network: True
         training:
           name: training
           params:
-            session_stims: 'stimset1_prepro_res_128x128_filters_o2__50picks'
+            session_stims: 'seq_1_set_1_res_20x20_contrastnorm_filter_o2'
             dynamic_synapses: True
         testing:
           name: testing
           params:
-            session_stims: 'stimset1_prepro_res_128x128_filters_o2__50picks'
+            session_stims: 'seq_1_set_1_res_20x20_contrastnorm_filter_o2'
             dynamic_synapses: True
