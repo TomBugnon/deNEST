@@ -57,9 +57,8 @@ children:
                   name: l3_inh
                   params: {}
         poisson_generator:
-          nest_model: poisson_generator
-          params:
-              rate: 200.
+          nest_model: spike_generator
+          params: {}
           children:  # Neuron models
             input_exc:
               name: input_exc
