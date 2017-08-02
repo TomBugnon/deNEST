@@ -8,8 +8,8 @@ import os
 from os.path import exists, isdir, isfile, join
 
 import numpy as np
-from tqdm import tqdm
 
+from tqdm import tqdm
 from user_config import INPUT_SUBDIRS, METADATA_FILENAME
 
 from . import downsample, filt, normalize
@@ -83,11 +83,10 @@ def update_sets(input_dir, prepro_subdir_str, prepro_dir):
     for setname in all_setnames:
         create_set(input_dir,
                    setname,
-                   prepro_subdir_str,
-                   prepro_dir)
+                   prepro_subdir_str)
 
 
-def create_set(input_dir, setname, prepro_subdir_str, prepro_dir):
+def create_set(input_dir, setname, prepro_subdir_str):
     """Create a given preprocessed input subset from a raw input set."""
     raw_set_dir = join(input_dir, INPUT_SUBDIRS['raw_input_sets'], setname)
     prepro_set_dir = join(input_dir, INPUT_SUBDIRS['preprocessed_input_sets'],
@@ -97,18 +96,20 @@ def create_set(input_dir, setname, prepro_subdir_str, prepro_dir):
     mkdir_ifnot(prepro_set_dir)
 
     # Create simlinks to files if they don't already exist
-
+    # Symlinks need to be relative
     for f in [f for f in os.listdir(raw_set_dir)
               if not f == METADATA_FILENAME
               and not exists(join(prepro_set_dir, f))]:
         print(f)
-        os.symlink(join(prepro_dir, f),
+        os.symlink(join('..', '..', INPUT_SUBDIRS['preprocessed_input'],
+                        prepro_subdir_str, f),
                    join(prepro_set_dir, f))
 
     # Copy preprocessing metadata into set directory
     # print(exists(join(prepro_set_dir, METADATA_FILENAME)))
     if not isfile(join(prepro_set_dir, METADATA_FILENAME)):
-        os.symlink(join(prepro_dir, METADATA_FILENAME),
+        os.symlink(join('..', '..', INPUT_SUBDIRS['preprocessed_input'],
+                        prepro_subdir_str, METADATA_FILENAME),
                    join(prepro_set_dir, METADATA_FILENAME))
 
 
