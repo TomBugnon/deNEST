@@ -95,11 +95,16 @@ def load_session_stim(session_stims_filename):
                              stimuli_params['set_name'],
                              filename)
                         for filename in stimuli_params['sequence']]
+
     movie_list = [load_as_numpy(filepath)
                   for filepath in full_movie_paths
                   if exists(filepath) and not (stat(filepath).st_size == 0)]
+
+    # Check that we loaded something
+    assert(movie_list), "Could not load stimuli"
     # Check that all movies have same number of dimensions.
-    assert(len(set([np.ndim(movie) for movie in movie_list])) == 1)
+    assert(len(set([np.ndim(movie) for movie in movie_list])) == 1,
+           'Not all loaded movies have same dimensions')
 
     # Load metadata
     metadata = load_yaml(stimuli_params['set_name'], METADATA_FILENAME)
