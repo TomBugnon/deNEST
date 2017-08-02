@@ -7,6 +7,7 @@
 
 from os import stat
 from os.path import basename, exists, isfile, join, splitext
+from shutil import rmtree
 
 import nest
 import numpy as np
@@ -76,6 +77,9 @@ def save_all(network, full_params_tree):
     # Save recorders
     print('Save recorders.')
     save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir)
+    # Delete temporary recorder dir
+    if full_params_tree['children']['simulation']['delete_tmp_dir']:
+        rmtree(recorder_tmp_savedir)
 
     # TODO: Save simulation data
     print('Save simulation metadata.')
@@ -226,8 +230,6 @@ def gather_raw_data(rec_gid, recorder_tmp_savedir=None, variable='V_m',
                           for filename
                           in nest.GetStatus(rec_gid, 'filenames')[0]]
         data = load_and_combine(recorder_files)
-        # import ipdb
-        # ipdb.set_trace()
 
         time = data[:, 1]
         sender_gid = data[:, 0]
