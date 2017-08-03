@@ -1,28 +1,42 @@
 # Preprocessing of raw input movies
 
-To run from the command line,
+## To run from the command line:
 
 ```
-python3 -m spiking_visnet.preprocess -i <input_dir> -p <preprocessing_params> -n <network_params>
+python3 -m spiking_visnet.preprocess [-i <input_dir>] -p <preprocessing_params> -n <simulation_params>
 ```
 
-where:
+### Args:
 
-- `<input_dir>` : the (relative or absolute) path to the directory in which all
- 	the movie inputs are saved. input_dir should at least contain the subdirectory *raw_input*.
+- `<input_dir>` :  Path to the directory in which all the movie inputs are saved.
+    input_dir should at least contain the subdirectory *raw_input*.  
+    -> __Default from config file__
 
-- `<preprocessing_params>`: path to the yml file containing the preprocessing parameters. eg: _preprocess/params/default.yml_
-- `<network_params>`: path to the file containing the parameters defining a network. eg: _params/default.yml_
+- `<preprocessing_params>`: path to the yml file containing the preprocessing parameters.  
+    -> eg: __'preprocess/params/default.yml'__
 
-This command will preprocess all the movies in the subdirectory:
-*`<input_dir>`/raw_input* and add their preprocessed version to the subdirectory
-*`input_dir`/preprocessed_input/`<preprocessing_dir>`*, where `<preprocessing_dir>` is a string depending on the preprocessing parameters.
+- `<network_params>`: path to the simulation parameter file containing then network.    
+    Used to obtain the set of filters applied to the raw input, and the resolution to which it is downsampled.  
+    -> eg: __'params/default.yml'__
 
-If *`input_dir`/preprocessed_input/`<preprocessing_dir>`* already exists, the preprocessing is only done on the movies that haven't been processed already.
+### Effects
+- Preprocess all the movies in *`input_dir/raw_input`*  
+  Save in *`<input_dir>/preprocessed_input/<preprocessing_subdir>`*,  
+  Where `<preprocessing_subdir>` is a string describing the preprocessing pipeline.
 
-Finally, if some input sets are defined in *`input_dir`/raw_input_sets*, the corresponding sets are definied in *`input_dir`/preprocessed_input_sets*
+  If *`<input_dir>/preprocessed_input/<preprocessing_dir>`* already exists, the preprocessing is only done on the movies that haven't been processed already.
 
-Example:
+- If some input sets are defined in *`<input_dir>/raw_input_sets`*, the corresponding sets are created in *`<input_dir>/preprocessed_input_sets`*
+
+- Finally, creates a default stimulus yaml file for this preprocessing pipeline in *`<input_dir>/stimuli`* that
+    defines the input during a session.
+
+
+### Usage example:
 ```
-python3 -m spiking_visnet.preprocess -i /Users/Tom/temp/input_dir -p spiking_visnet/preprocess/params/default.yml -n params/default.yml
+python3 -m spiking_visnet.preprocess -i input_dir spiking_visnet/preprocess/params/default.yml -n params/default.yml
 ```
+
+##### Before running the network:
+
+Make sure that the session parameters of the simulation point to a stimulus file compatible with the network dimensions.
