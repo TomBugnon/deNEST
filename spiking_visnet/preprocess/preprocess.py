@@ -8,11 +8,12 @@ import os
 from os.path import exists, isdir, isfile, join
 
 import numpy as np
-
 from tqdm import tqdm
+
 from user_config import INPUT_SUBDIRS, METADATA_FILENAME
 
 from . import downsample, filt, normalize
+from ..save import save_as_yaml
 from ..utils.system import mkdir_ifnot
 
 PREPROCESS_MAPPING = {
@@ -39,7 +40,7 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
     prepro_dir = join(input_dir, INPUT_SUBDIRS['preprocessed_input'],
                       prepro_subdir_str)
 
-    # Make dir
+    # Make preprocessed_input dir for this pipeline
     mkdir_ifnot(prepro_dir)
 
     # Get files to be processed
@@ -49,6 +50,7 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
                         if is_input_file(prepro_dir, f)]
     todo_files = [f for f in all_raw_files if f not in all_prepro_files]
 
+    # Preprocess and save each file
     for f in tqdm(todo_files,
                   desc=('Preprocess ' + str(len(todo_files)) + ' files')):
 
@@ -56,13 +58,58 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
         np.save(join(prepro_dir, f),
                 preprocess(movie, network, prepro_params))
 
-    # Create metadata file
+    # Create metadata file for this preprocessing pipeline
     create_metadata(prepro_dir, prepro_params, network)
 
-    # Create file sets for the new preprocessing pipeline
+    # Create file sets for this preprocessing pipeline
     update_sets(input_dir, prepro_subdir_str, prepro_dir)
 
+    # Create a default stimulus file for this preprocessing pipeline
+    create_default_stim_yaml(input_dir, prepro_subdir_str)
+
     print('... done.')
+
+
+def create_default_stim_yaml(input_dir, prepro_subdir_str):
+    """Creates a default stimulus yaml for the new preprocessing pipeline.
+
+    The created default stimulus yaml points towards the newly preprocessed set
+    named DEFAULT_SET (= 'set_1'). The stimulus sequence is the list of unique
+    files in the default set.
+    The file created by this function in <input_dir>/stimuli has name:
+        DEFAULT_STIM_NAME+DEFAULT_SET+<prepro_subdir_str>+'.yml'
+    and is of the form:
+    "
+    - set_name: <DEFAULT_SET> + 'prepro_subdir_str'
+    - sequence:
+        - filename1
+        - filename2
+        ...
+    "
+
+    """
+    DEFAULT_SET = 'set_df'
+    DEFAULT_STIM_NAME = 'stim_df'
+
+    default_stim_filename = (DEFAULT_STIM_NAME + '_' + DEFAULT_SET + '_'
+                             + prepro_subdir_str + '.yml')
+    default_stim_path = join(input_dir,
+                             INPUT_SUBDIRS['stimuli'],
+                             default_stim_filename)
+
+    default_set_name = (DEFAULT_SET + '_' + prepro_subdir_str)
+    default_set_path = join(input_dir,
+                            INPUT_SUBDIRS['preprocessed_input_sets'],
+                            default_set_name)
+
+    set_filenames = [f for f in os.listdir(default_set_path)
+                     if not f == METADATA_FILENAME]
+
+    save_as_yaml(default_stim_path,
+                 {
+                     'sequence': set_filenames,
+                     'set_name': default_set_name
+                 })
 
 
 def update_sets(input_dir, prepro_subdir_str, prepro_dir):

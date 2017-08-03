@@ -1,0 +1,4 @@
+sequence:
+- vertical_cross_path=default_res=(128,128)_t=50_vsize=9_hsize=9_width=3.npy
+- vertical_tee_path=default_res=(128,128)_t=50_vsize=9_hsize=9_width=3.npy
+set_name: set_df_res_100x100_contrastnorm_filter_o2

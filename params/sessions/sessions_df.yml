@@ -16,8 +16,7 @@ children:
         warmup:
           name: warmup
           params:
-            session_stims: 'seq_1_set_1_res_100x100_contrastnorm_filter_o2.yaml'
-            # session_stims: 'seq_1_set_1_res_20x20_contrastnorm_filter_o2.yaml'
+            session_stims: 'stim_df_set_df_res_100x100_contrastnorm_filter_o2.yml'
             save_recorders: False
             dynamic_synapses: False
             # NOTE: Might reset STDP synapses in a future release of NEST!
