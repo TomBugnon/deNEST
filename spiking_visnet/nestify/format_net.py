@@ -261,7 +261,8 @@ def get_conn_params(conn, connection_models, layers):
         - layers (dict): Expanded and formatted (flat) layer dictionnary.
 
     Return:
-        (dict): NEST readable parameter dictionary for a given connection.
+        (ChainMap): Chainmap describing a given connection. The dictionary given
+            to nest to describe the connection is dict(ChainMap).
 
     """
     source_params = layers[conn['source_layer']]['params']
