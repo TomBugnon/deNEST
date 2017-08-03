@@ -26,6 +26,7 @@ children:
           scale_input_weights: true
           nrows: 100
           ncols: 100
+          scale_kernels_masks: false
         children: # areas
           input_area:
             params:

@@ -279,8 +279,11 @@ def get_conn_params(conn, connection_models, layers):
     # and dcpP
 
     source_size = max(source_params['nrows'], source_params['ncols'])
-    rf_factor = (target_params['rf_scale_factor'] * source_params['visSize'] /
-                 (source_size - 1))
+    if not target_params['scale_kernels_masks']:
+        rf_factor = 1
+    else:
+        rf_factor = (target_params['rf_scale_factor']
+                     * source_params['visSize'] / (source_size - 1))
     return conn_p.new_child(
         {'sources': {'model': conn['source_population']},
          'targets': {'model': conn['target_population']},
