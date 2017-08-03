@@ -1,0 +1,8 @@
+#	-> N random filename picks from a given preprocessed stimulus set, defining
+# the stimulus sequence that is presented to the network during a session.
+
+set_name: set_1_res_100x100_contrastnorm_filter_o2
+sequence:
+    - vertical_cross_path=default_res=(128,128)_t=50_vsize=9_hsize=9_width=3.npy
+    - vertical_tee_path=default_res=(128,128)_t=50_vsize=9_hsize=9_width=3.npy
+# ...

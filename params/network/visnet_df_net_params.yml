@@ -24,8 +24,8 @@ children:
           maskfactor: 1
           input_area_name: input_area
           scale_input_weights: true
-          nrows: 20
-          ncols: 20
+          nrows: 100
+          ncols: 100
         children: # areas
           input_area:
             params:
