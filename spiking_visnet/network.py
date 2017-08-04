@@ -23,32 +23,36 @@ STIM_LAYER_SUFFIX = '_stimulator'
 class Network(collections.UserDict):
     """Network class."""
 
-    def __init__(self, network_params, params_path):
+    def __init__(self, network_params, sim_params):
         """Initialize object from parameter tree."""
         super().__init__(get_network(network_params))
         # Introduce parrot layers between input stimulators and neurons
         self.introduce_parrot_layers()
         # Get the saving subdirectory. Output dir is SAVE_DIR/save_subdir_str.
-        self.get_save_subdir_str(network_params, params_path)
+        self.get_save_subdir_str(network_params, sim_params)
 
     def get_save_subdir_str(self, full_params_tree, param_file_path):
         """Record the subdirectory string for this network/simulation."""
         self.save_subdir_str = generate_save_subdir_str(full_params_tree,
                                                         param_file_path)
 
-    def init_nest(self, kernel_params):
+    def init_nest(self, kernel_params, sim_params):
         """Initialize NEST kernel and network.
 
         The GIDs of the created NEST objects are added in place to the Network
         object.
-        Provides the NEST kernel with the absolute path to the temporary
-        directory where it will save the recorders.
+        Provides the NEST kernel with the path to the temporary directory where
+        it will save the recorders.
         Add to the network object the mappings between layer location and GID.
 
+        Args:
+            <params>: Full parameter tree.
+
         """
+        # Initialize NEST
         init_nest(self, kernel_params)
         # Tell NEST kernel where to save all the recorders.
-        tmp_save_dir = get_NEST_tmp_savedir(self)
+        tmp_save_dir = get_NEST_tmp_savedir(self, sim_params)
         set_nest_savedir(tmp_save_dir)
         # Get the bi-directional GID-location mappings for each population.
         self.get_gid_location_mappings()

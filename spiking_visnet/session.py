@@ -29,7 +29,7 @@ class Session(collections.UserDict):
         print('create Session')
         super().__init__(session_params)
 
-    def initialize(self, network, default_sim_time=20.):
+    def initialize(self, params, network, default_sim_time=20.):
         """Initialize session.
 
         1- Reset Network
@@ -46,8 +46,7 @@ class Session(collections.UserDict):
 
         # Set input.
         curr_time = nest.GetKernelStatus('time')
-        full_stim, stim_metadata = load_session_stim(self['session_stims'])
-
+        full_stim, stim_metadata = self.load_session_stim()
         stimulator_type = set_stimulators_state(network,
                                                 full_stim,
                                                 self,
@@ -62,28 +61,50 @@ class Session(collections.UserDict):
 
         return min(sim_time, self['max_session_sim_time'])
 
-    def run(self, network, default_simulation_time=0.):
+    def run(self, params, network, default_simulation_time=0.):
         """Initialize and run session."""
         print("Initialize session")
-        sim_time = self.initialize(network)
+        sim_time = self.initialize(params, network)
         print(f"Run `{sim_time}`ms")
         nest.Simulate(sim_time)
 
+    def load_session_stim(self):
+        """Load the stimulus for the session.
 
-def load_session_stim(session_stims_filename):
-    """Load and concatenate a sequence of movie stimuli.
+        If there is a user-specified input path in the session parameters
+        ('user_input' key) pointing to  a numpy array, load and return it.
+        Otherwise, load from the yaml file in the INPUT_DIR/stimuli
+        subdirectory ('session_stims').
 
-    Load only files that exist and are of non-null size. Concatenate along the
-    first dimension (time).
+        Return:
+        (tuple): (< stim > , < stim_metadata > ) where:
+            <stim > (np - array): (T * nfilters * nrows * ncols) array.
+            <stim_metadata > (dict or None):
+                None if stimulus is loaded directly from a numpy array.
+                Metadata of the preprocessing pipeline (used to map input layers
+                and filter dimensions) otherwise.
+
+        """
+        if self.get('user_input', False):
+            return (load_as_numpy(self['user_input']), None)
+        else:
+            return load_stim_yaml(self['session_stims'])
+
+
+def load_stim_yaml(session_stims_filename):
+    """Load and concatenate a sequence of movie stimuli from a 'stim' yaml file.
+
+    Load only files that exist and are of non - null size. Concatenate along the
+    first dimension(time).
 
     Args:
-        - <session_stims_path> (str): value of the 'session_stims' entry in the
-            session parameters. Filename in INPUT_DIR/stimuli directory.
+        <session_stims_filename > (str): value of the 'session_stims' entry in
+            the session parameters. Filename in INPUT_DIR / stimuli directory.
 
     Return:
-        - (tuple): (<stim>, <stim_metadata>) where:
-            <stim> (np-array): (T * nfilters * nrows * ncols) array.
-            <stim_metadata> (dict): Metadata from preprocessing pipeline. Used
+        (tuple): (< stim > , < stim_metadata > ) where:
+            <stim > (np - array): (T * nfilters * nrows * ncols) array.
+            <stim_metadata > (dict): Metadata from preprocessing pipeline. Used
                 to map input layers and filter dimensions.
     """
     # Load all existing non-empty movies

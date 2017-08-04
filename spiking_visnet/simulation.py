@@ -15,14 +15,19 @@ class Simulation:
 
     def __init__(self, params):
         """Initialize."""
-        self.order = params['order']
+        self.order = params['sessions_order']
         self.sessions = {
             name: Session(session_params)
-            for name, session_params in traverse(params['sessions'])
+            for name, session_params in traverse(params)
         }
 
-    def run(self, network):
-        """Run each of the sessions in order."""
+    def run(self, params, network):
+        """Run each of the sessions in order.
+
+        If <user_input> is specified, each session will use that stimulus and
+        not their 'session_stims' parameter.
+
+        """
         for name in self.order:
             print(f'Running session `{name}`...')
-            self.sessions[name].run(network)
+            self.sessions[name].run(params, network)

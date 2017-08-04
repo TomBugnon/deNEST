@@ -18,6 +18,7 @@ from user_config import SAVE_DIR
 
 from .utils.format_recorders import format_mm_data, format_sd_data
 from .utils.sparsify import save_as_sparse
+from .utils.system import mkdir_ifnot
 
 FULL_PARAMS_TREE_STR = 'params.yaml'
 NETWORK_STR = 'network.yaml'
@@ -56,14 +57,20 @@ def save_all(network, full_params_tree):
         information)
 
     Args:
-        - <network> (Network): The nest-initialized network.
-        - <full_params_tree> (dict): Original full parameter tree defining the
-            network and the simulation.
+        <network> (Network): The nest-initialized network.
+        <sim_params> (dict): 'simulation' subtree of the full parameter tree.
+            Used to recover saving parameters.
+        <user_savedir> (str): If specified, path where all the results are
+            saved. Otherwise, save everything in a subdirectory of config's
+            SAVE_DIR.
 
     """
 
+    # Get relevant part of the full param tree.
+    sim_params = full_params_tree['children']['simulation']
+
     # Get target directories for formatting.
-    sim_savedir = get_simulation_savedir(network)
+    sim_savedir = get_simulation_savedir(network, sim_params)
     # Create if not already done
     mkdir_ifnot(sim_savedir)
 
@@ -81,8 +88,8 @@ def save_all(network, full_params_tree):
     print('Save recorders.')
     save_formatted_recorders(network, sim_savedir)
     # Delete temporary recorder dir
-    if full_params_tree['children']['simulation']['delete_tmp_dir']:
-        rmtree(get_NEST_tmp_savedir(network, user_savedir=user_savedir))
+    if sim_params['delete_tmp_dir']:
+        rmtree(get_NEST_tmp_savedir(network, sim_params))
 
     # TODO: Save simulation data
     print('Save simulation metadata.')
@@ -94,28 +101,38 @@ def save_simulation():
     pass
 
 
-def generate_save_subdir_str(full_params_tree, param_file_path):
+def generate_save_subdir_str(network_params, sim_params):
     """Create and return relative path to the simulation saving directory.
 
     Returns:
-        (str): The full path to the simulation saving directory  will be
-            SAVE_DIR/subdir_str
+        (str): If not specified manually by USER, the full path to the
+            simulation saving directory  will be SAVE_DIR/subdir_str
 
     """
-    # For now, use only the filename without extension of the parameter file.
-    param_file = splitext(basename(param_file_path))[0]
+    # For now, use only the filename without extension of the full parameter
+    # file.
+    param_file = splitext(basename(sim_params['param_file_path']))[0]
     subdir_str = param_file
     return subdir_str
 
 
-def get_simulation_savedir(network):
-    """Return absolute path to directory in which we save formatted sim data."""
-    return join(SAVE_DIR, network.save_subdir_str)
+def get_simulation_savedir(network, sim_params):
+    """Return absolute path to directory in which we save formatted sim data.
+
+    Either defined by user ('user_savedir' key in sim_params) or an
+    automatically generated subdirectory of SAVE_DIR."""
+    if not sim_params.get('user_savedir', None):
+        return join(SAVE_DIR, network.save_subdir_str)
+    else:
+        return sim_params['user_savedir']
 
 
-def get_NEST_tmp_savedir(network):
-    """Return absolute path to directory in which NEST saves recorder data."""
-    return join(SAVE_DIR, network.save_subdir_str, 'tmp')
+def get_NEST_tmp_savedir(network, sim_params):
+    """Return absolute path to directory in which NEST saves recorder data.
+
+    Nest saves in the 'tmp' subdirectory of the simulation saving directory."""
+    return join(get_simulation_savedir(network, sim_params),
+                'tmp')
 
 
 def save_formatted_recorders(network, sim_savedir):

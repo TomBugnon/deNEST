@@ -56,7 +56,7 @@ def set_stimulators_state(network, full_stim, session_params, stim_metadata,
                                  desc="Set input layers' activity"):
 
         # 3D array describing the movie shown to a single layer.
-        filt_index = filter_index(input_stim_layer, stim_metadata)
+        filt_index = filter_index(input_stim_layer, stim_metadata=stim_metadata)
         layer_movie = shuffled_stim[:, filt_index, :, :]
 
         # Get layer's population name and stimulator type.

@@ -6,6 +6,16 @@
 
 
 # TODO
-def filter_index(input_layer_name, preprocessing_metadata):
-    """Return the index of the filter associated to an input layer."""
-    return 0
+def filter_index(input_layer_name, stim_metadata=None):
+    """Return the index of the filter associated to an input layer.
+
+    If no preprocessing metadata is provided, return 0 (all input layers see
+    the same image.)
+    Otherwise, obtain the filter index from the preprocessing metadata.
+
+    """
+    if not stim_metadata:
+        return 0
+    else:
+        # TODO
+        return 0
