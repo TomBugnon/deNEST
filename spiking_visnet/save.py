@@ -12,8 +12,8 @@ from shutil import rmtree
 import nest
 import numpy as np
 import yaml
-
 from tqdm import tqdm
+
 from user_config import SAVE_DIR
 
 from .utils.format_recorders import format_mm_data, format_sd_data
@@ -61,9 +61,12 @@ def save_all(network, full_params_tree):
             network and the simulation.
 
     """
-    # Get source and target directories for formatting
+
+    # Get target directories for formatting.
     sim_savedir = get_simulation_savedir(network)
-    recorder_tmp_savedir = get_NEST_tmp_savedir(network)
+    # Create if not already done
+    mkdir_ifnot(sim_savedir)
+
     print(f'Save everything in {sim_savedir}')
 
     # Save full params
@@ -76,10 +79,10 @@ def save_all(network, full_params_tree):
 
     # Save recorders
     print('Save recorders.')
-    save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir)
+    save_formatted_recorders(network, sim_savedir)
     # Delete temporary recorder dir
     if full_params_tree['children']['simulation']['delete_tmp_dir']:
-        rmtree(recorder_tmp_savedir)
+        rmtree(get_NEST_tmp_savedir(network, user_savedir=user_savedir))
 
     # TODO: Save simulation data
     print('Save simulation metadata.')
@@ -115,7 +118,7 @@ def get_NEST_tmp_savedir(network):
     return join(SAVE_DIR, network.save_subdir_str, 'tmp')
 
 
-def save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir):
+def save_formatted_recorders(network, sim_savedir):
     """Format all networks' recorder data.
 
     The format of the filenames in the saving directory for each population and
@@ -161,7 +164,6 @@ def save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir):
             for variable in [str(var) for var in recorded_variables]:
 
                 time, gid, activity = gather_raw_data(mm['gid'],
-                                                      recorder_tmp_savedir,
                                                       variable,
                                                       recorder_type='multimeter'
                                                       )
@@ -176,7 +178,6 @@ def save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir):
 
         if sd['gid']:
             time, gid = gather_raw_data(sd['gid'],
-                                        recorder_tmp_savedir,
                                         recorder_type='spike_detector')
 
             activity_array = format_sd_data(gid,
@@ -189,16 +190,11 @@ def save_formatted_recorders(network, recorder_tmp_savedir, sim_savedir):
                            activity_array)
 
 
-def gather_raw_data(rec_gid, recorder_tmp_savedir=None, variable='V_m',
-                    recorder_type=None):
+def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
     """Return non-formatted activity of a given variable saved by the recorder.
 
     Args:
         - <rec_gid> (tuple): Recorder's NEST GID. Singleton tuple of int.
-        - <recorder_tmp_savedir> (str): Absolute path to directory in which NEST
-            possibly wrote the recorders' data.
-            Used only if 'record_to' key of the recorder has entry ['file'] (and
-            not ['memory'])
         - <variable> (str): Variable recorded that we return. Used only for
             multimeters.
         - <recorder_type> (str): 'multimeter' or 'spike_detector'
@@ -226,11 +222,9 @@ def gather_raw_data(rec_gid, recorder_tmp_savedir=None, variable='V_m',
 
     elif 'file' in record_to:
 
-        recorder_files = [join(recorder_tmp_savedir, filename)
-                          for filename
-                          in nest.GetStatus(rec_gid, 'filenames')[0]]
-        data = load_and_combine(recorder_files)
+        recorder_files = nest.GetStatus(rec_gid, 'filenames')[0]
 
+        data = load_and_combine(recorder_files)
         time = data[:, 1]
         sender_gid = data[:, 0]
 
