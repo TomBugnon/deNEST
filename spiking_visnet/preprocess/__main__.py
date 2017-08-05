@@ -24,8 +24,9 @@ Options:
 import random
 import sys
 
-from config import PYTHON_SEED
 from docopt import docopt
+
+from config import PYTHON_SEED
 from user_config import INPUT_DIR
 
 from . import run

@@ -10,7 +10,6 @@ import itertools
 import time
 
 import numpy as np
-
 from bokeh import palettes
 from bokeh.io import output_notebook, push_notebook, show
 from bokeh.plotting import figure

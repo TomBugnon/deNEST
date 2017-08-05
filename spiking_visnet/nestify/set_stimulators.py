@@ -9,7 +9,6 @@ from itertools import chain, repeat
 
 import nest
 import numpy as np
-
 from tqdm import tqdm
 
 from ..utils.filters_layers import filter_index
