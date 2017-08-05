@@ -7,30 +7,44 @@ Spiking VisNet
 ~~~~~~~~~~~~~~
 
 Usage:
-    python -m spiking_visnet <param_file.yml> [-i <input>] [-s <savedir>]
+    python -m spiking_visnet <param_file.yml> [options]
     python -m spiking_visnet -h | --help
     python -m spiking_visnet -v | --version
 
 Arguments:
-    <param_file.yml>  File containing simulation parameters
+    <param_file.yml>  YAML file containing simulation parameters.
 
 Options:
-    -s <savedir> --savedir <savedir>    Directory in which simulation results will be saved. Overwrites config file default if specified.
-    -i <input> --input <input>    Path to a stimulus np-array to show to the network during all sessions. Overwrites session parameter's 'session_stims' if specified.
-    -h --help                           Show this
-    -v --version                        Show version
+    -o --output=PATH  Directory in which simulation results will be saved.
+                      Overrides <param_file.yml>.
+    -i --input=PATH   Path to a stimuli array to present to the network during
+                      each session. Overrides <param_file.yml>.
+    -h --help         Show this.
+    -v --version      Show version.
 """
 
+import operator
 import random
 import sys
+from collections import defaultdict
+from functools import partial, reduce
+
+from docopt import docopt
 
 from config import PYTHON_SEED
-from docopt import docopt
 
 from . import run
 from .__about__ import __version__
+from .params import Params
 
 random.seed(PYTHON_SEED)
+
+# Maps CLI options to their corresponding path in the parameter tree.
+_CLI_ARG_MAP = {
+    '<param_file.yml>': ('children', 'simulation', 'param_file_path'),
+    '--input': ('children', 'sessions', 'params', 'user_input'),
+    '--output': ('children', 'simulation', 'user_savedir'),
+}
 
 if __name__ == '__main__':
     # Construct a new argument list to allow docopt's parser to work with the
@@ -38,5 +52,9 @@ if __name__ == '__main__':
     argv = ['-m', 'spiking_visnet'] + sys.argv[1:]
     # Get command-line args from docopt.
     arguments = docopt(__doc__, argv=argv, version=__version__)
+    # Get parameter overrides from the CLI options.
+    overrides = Params({_CLI_ARG_MAP[key]: value
+                        for key, value in arguments.items()
+                        if key in _CLI_ARG_MAP})
     # Run it!
-    run(arguments['<param_file.yml>'], cli_args=arguments)
+    run(arguments['<param_file.yml>'], overrides=overrides)

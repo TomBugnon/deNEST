@@ -11,37 +11,33 @@ from .network import Network
 from .save import load_yaml, save_all
 from .simulation import Simulation
 from .utils.structures import chaintree as _chaintree
+from .params import Params
 
 
-def load_params(path, cli_args={}):
-    """Return the full parameter tree described by the file at path.
+def load_params(path, overrides=None):
+    """Load a parameter file, optionally overriding some values.
 
-    - Add the path to the full params tree to the simulation parameters.
-    - Possibly incorporate in the tree the command line arguments provided by
-    user."""
+    Args:
+        path (str): The filepath to load.
+
+    Keyword Args:
+        overrides (dict): A dictionary containing parameters that will take
+            precedence over those in the file.
+
+    Returns:
+        Params: the loaded parameters with overrides applied.
+    """
     directory = _dirname(_abspath(path))
-    params_tree = _chaintree([
-        load_yaml(directory, relative_path)
-        for relative_path in load_yaml(path)
-    ])
-
-    # Add path to sim params
-    params_tree['children']['simulation']['param_file_path'] = path
-
-    return incorporate_user_args(params_tree,
-                                 user_input=cli_args.get('--input', None),
-                                 user_savedir=cli_args.get('--savedir', None))
+    trees = [load_yaml(directory, relative_path)
+             for relative_path in load_yaml(path)]
+    if overrides:
+        trees.append(overrides)
+    return Params(_chaintree(trees))
 
 
 def incorporate_user_args(params_tree, user_input=None, user_savedir=None):
     """Incorporate user cli arguments at proper locations in full params tree.
     """
-    if user_input:
-        (params_tree['children']
-         ['sessions']['params']['user_input']) = user_input
-    if user_savedir:
-        (params_tree['children']
-         ['simulation']['user_savedir']) = user_savedir
     return params_tree
 
 
@@ -68,10 +64,10 @@ def simulate(network, params, user_input=None):
     print('...finished simulation.', flush=True)
 
 
-def run(path, cli_args=None):
+def run(path, overrides=None):
     """Run all."""
     print(f'Loading parameters: `{path}`... ', end='', flush=True)
-    params = load_params(path, cli_args=cli_args)
+    params = load_params(path, overrides=overrides)
     print('done.', flush=True)
     # Initialize kernel and network
     network = init(params)
