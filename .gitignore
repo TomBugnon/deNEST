@@ -6,5 +6,5 @@ __pycache__
 
 test.py
 testdir
-input/*
-save_dir/*
+input
+output
