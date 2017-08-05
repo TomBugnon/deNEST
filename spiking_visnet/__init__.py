@@ -35,12 +35,6 @@ def load_params(path, overrides=None):
     return Params(_chaintree(trees))
 
 
-def incorporate_user_args(params_tree, user_input=None, user_savedir=None):
-    """Incorporate user cli arguments at proper locations in full params tree.
-    """
-    return params_tree
-
-
 def init(params):
     """Initialize NEST network from the full parameter tree."""
     print('Initializing network...')
