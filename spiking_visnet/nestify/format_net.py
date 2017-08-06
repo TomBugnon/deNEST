@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # nestify/format_net.py
 
-"""Format NEST friendly network from the raw network tree."""
+"""Convert network parameters to a NEST-readable representation."""
 
 import copy as cp
 from collections import ChainMap
@@ -11,27 +11,22 @@ from ..utils import filter_suffixes as filt
 from ..utils import structures as struct
 
 
-def get_network(raw_network_tree):
-    """Format the raw network parameter tree.
+def get_network(params):
+    """Transform Net parameters into a form suitable for passing to NEST.
 
     Returns:
-        - (dict): Dictionary of the form
-
-                {'neuron_models':<neuron_models>,
-                 'synapse_models':<synapse_models>,
-                 'layers':<layers>,
-                 'non_expanded_layers': <non_expanded_layers>,
-                 'connections':<connections>,
-                 'areas':<areas>},
-
-                 where:
-
+        dict: Dictionary of the form
+                {'neuron_models': <neuron_models>,
+                'synapse_models': <synapse_models>,
+                'layers': <layers>,
+                'non_expanded_layers': <non_expanded_layers>,
+                'connections': <connections>,
+                'areas': <areas>},
+            where:
             - <neuron_models> is list of tuples each of the form:
-                (<base_nest_model>,<model_name>,<params_chainmap>)
-
+                (<base_nest_model>, <model_name>, <params_chainmap>)
             - <synapse_models> is list of tuples each of the form:
-                (<base_nest_model>,<model_name>,<params_chainmap>)
-
+                (<base_nest_model>, <model_name>, <params_chainmap>)
             - <layers> is a dictionary of the form
                 {<layer_name>: {'params': <params_chainmap>
                                 'nest_params': <nest_params_chainmap>}
@@ -39,76 +34,70 @@ def get_network(raw_network_tree):
                  - 'params' contains all the parameters related to this layer,
                  - 'nest_params' contains the nest_formatted parameters
                     used to create the layer,
-
             - <non_expanded_layers> is similar to layers but without layer
-                duplication for different filters.
-
+                duplication for different filters,
             - <connections> is a list of tuples each of the form:
                 (<source_layer>, <target_layer>, <params_chainmap>)
-
             - <areas> is a dictionary of the form:
-                {<area_name>: <list_of_layers>} where <list_of_layers> is the
-                list of all layers of the network within a given area
-
+                {<area_name>: <list_of_layers>},
+                where
+                - <list_of_layers> is the list of all layers of the network
+                  within a given area
     """
-    layers = get_layers(raw_network_tree['layers'], expanded=True)
+    layers = get_layers(params['layers'], expanded=True)
     return {
-        'neuron_models': get_models(raw_network_tree['neuron_models']),
-        'synapse_models': get_models(raw_network_tree['synapse_models']),
+        'neuron_models': get_models(params['neuron_models']),
+        'synapse_models': get_models(params['synapse_models']),
         'layers': layers,
-        'connections': get_connections(raw_network_tree),
+        'connections': get_connections(params),
         'areas': get_areas(layers),
-        'populations': get_populations(raw_network_tree),
+        'populations': get_populations(params),
     }
 
 
-def get_models(model_tree):
+def get_models(models):
     """Return the leaf models in a model dictionary.
 
     Args:
-        - <model_tree>: Parameter tree for models. Should contain at depth 0
-            under the key `nest_model` the name of the base nest model in the
-            tree inherits of.
+        models (Params): Parameter for models. Should contain at depth 0 under
+        the key `nest_model` the name of the base nest model in the tree
+        inherits of.
 
     Returns:
-        (list): List of tuples  of the form:
-            (<base_nest_model, <model_name>, <params_chainmap)
-            where each tuple describes a model that will be used in
-            the network.
-
+        list: List of tuples  of the form:
+                (<base_nest_model, <model_name>, <params_chainmap)
+            where each tuple describes a model that will be used in the
+            network.
     """
     return struct.flatten([
         struct.distribute_to_tuple(
-            struct.traverse(model_dict,
+            struct.traverse(model,
                             params_key='params',
                             children_key='children',
                             name_key='name',
                             accumulator=[]),
-            model_dict['nest_model'],
+            model['nest_model'],
             pos=0)
-        for key, model_dict in model_tree.items()
+        for key, model in models.items()
     ])
 
 
 def get_layers(layers_tree, expanded=True):
-    """Generate from a tree a flat dictionnary describing the layers.
+    """Generate a flat dictionary describing the layers.
 
     Args:
-        - <layers_tree> (dict): Tree that will be traversed to gather all
-            parameters of each layer-leaf. The thus gathered parameters are
-            then formatted to produce nest-readable parameter dictionaries.
-        - <expanded> (bool): If true, returns the exgitpanded tree after taking
-            in account the replication of layers for different filters,
-            otherwise don't replicate layers whatsoever.
+        layers_tree (dict): Tree that will be traversed to gather all
+            parameters of each layer-leaf. The gathered parameters are then
+            formatted to produce NEST-readable parameter dictionaries.
+        expanded (bool): If True, returns the expanded tree after taking into
+            account the replication of layers for different filters, otherwise
+            don't replicate layers whatsoever.
 
     Returns:
-        - (dict): Dictionary of the form:
-
+        dict: Dictionary of the form:
             {<layer_name>: {'params': <params_chainmap>
                             'nest_params': <nest_params_chainmap>}
-
              where
-
              - 'params' contains all the parameters related to this layer,
              - 'nest_params' contains the nest_formatted parameters
                 used to create the layer.
@@ -120,23 +109,21 @@ def get_layers(layers_tree, expanded=True):
                                                 children_key='children',
                                                 name_key='name',
                                                 accumulator=[]))
-
     if expanded:
         # The layers whose <params_chainmap> contains the field 'filters' are
         # replicated with different names.
         return format_layer_list(expand_layer_list(layer_list))
-    else:
-        return format_layer_list(layer_list)
+    return format_layer_list(layer_list)
 
 
 def save_base_name(layer_list):
     """Save input layer name before extension.
 
-    Add the pre-extension layer name to the 'base_name' field of the
-    parameters chainmap of each layer.
+    Add the pre-extension layer name to the 'base_name' key of the
+    parameters for each layer.
 
     Args:
-        - <layer_list> (list): list of tuples of the form:
+        layer_list (list): List of tuples of the form
             (<layer_name>, <params_chainmap>).
     """
     return [(name, params_chainmap.new_child({'base_name': name}))
@@ -147,14 +134,13 @@ def format_layer_list(layer_list):
     """Generate a layer dictionary from a layer list.
 
     Args:
-        - <layer_list> (list): list of the form
+        layer_list (list): List of the form
             [(<layer_name>, <params_chainmap>), ...]
 
     Returns:
-        (dict): Dictionary of the form
-            {<layer_name>: {'params': <params_chainmap>,
-                            'nest_params': <nest_params_chainmap>}
-
+        dict: Dictionary of the form
+                {<layer_name>: {'params': <params_chainmap>,
+                                'nest_params': <nest_params_chainmap>}
     """
     return {
         layer_name: {
@@ -167,25 +153,23 @@ def format_layer_list(layer_list):
 
 def format_nest_layer_params(layer_params):
     """Generate a nest-formatted parameter dict from a layer parameter dict."""
-    nest_p = {}
-    nest_p['rows'] = layer_params['nrows']
-    nest_p['columns'] = layer_params['ncols']
-    nest_p['extent'] = [layer_params['visSize'], layer_params['visSize']]
-    nest_p['edge_wrap'] = layer_params['edge_wrap']
-    nest_p['elements'] = get_layer_elements(layer_params)
-
-    return nest_p
+    return {
+        'rows': layer_params['nrows'],
+        'columns': layer_params['ncols'],
+        'extent': [layer_params['visSize'], layer_params['visSize']],
+        'edge_wrap': layer_params['edge_wrap'],
+        'elements': get_layer_elements(layer_params),
+    }
 
 
 def get_layer_elements(layer_params):
     """Format for nest the list of elements of a layer.
 
     Returns:
-        (dict): Dictionary of the form:
+        dict: Dictionary of the form:
                 {'elements': <elements_list>}
-            where <elements_list> is eg of the form:
-                ['L23_exc', 2, 'L23_inh', 1, 'L4_exc' , 2, ...]}
-
+            where <elements_list> is of the form:
+                ['L23_exc', 2, 'L23_inh', 1, 'L4_exc' , 2, ...]
     """
     layer_elements = layer_params['elements']
     elements_list = []
@@ -220,80 +204,80 @@ def get_layer_elements(layer_params):
 def get_areas(layer_dict):
     """Create an area dictionary from the layer dictionary.
 
-    Invert the layer dictionary by reading the ['params']['area'] subkey of each
-    layer to create an area dictionary.
+    Invert the layer dictionary by reading the ['params']['area'] subkey of
+    each layer to create an area dictionary.
     """
-    return struct.invert_dict({layer: layer_params['params']
-                               for (layer, layer_params) in layer_dict.items()},
-                              inversion_key='area')
+    return struct.invert_dict(
+        {layer: layer_params['params']
+         for (layer, layer_params) in layer_dict.items()},
+        inversion_key='area'
+    )
 
 
-def get_connections(raw_network_tree):
+def get_connections(network):
     """Return the formatted connections of the network.
 
     Args:
-        - <raw_network_tree>: Raw network tree (from the full param tree)
+        network (Params): Network parameters.
 
     Returns:
-        (list) : list of tuples each of the form:
-            (<source_layer>, <target_layer>, <nest-readable_params_chainmap>)
-            where each tuple describes a connection after taking in account
+        list: list of tuples of the form:
+                (<source_layer>, <target_layer>, <nest_connection>)
+            where each tuple describes a connection after taking into account
             possible duplication of input layers.
-
     """
-    exp_network_tree = expand_connections(raw_network_tree)
-    exp_layers = get_layers(exp_network_tree['layers'], expanded=True)
+    expanded_network = expand_connections(network)
+    expanded_layers = get_layers(expanded_network['layers'], expanded=True)
 
-    return [(conn['source_layer'],
-             conn['target_layer'],
-             get_conn_params(conn,
-                             exp_network_tree['connection_models'],
-                             exp_layers))
-            for conn in exp_network_tree['connections']]
+    return [(connection['source_layer'],
+             connection['target_layer'],
+             get_connection_params(connection,
+                                   expanded_network['connection_models'],
+                                   expanded_layers))
+            for connection in expanded_network['connections']]
 
 
-def get_conn_params(conn, connection_models, layers):
-    """Generate nest readable connection parameters.
+def get_connection_params(connection, models, layers):
+    """Return NEST-readable connection parameters.
 
     Args:
-        - conn (dict): Specific connection dictionary.
-        - connection_models (dict): Models of connections
-        - layers (dict): Expanded and formatted (flat) layer dictionnary.
+        connection (dict): Connection parameters.
+        models (dict): Models of connections.
+        layers (dict): Expanded and formatted (flat) layer dictionary.
 
     Return:
-        (ChainMap): Chainmap describing a given connection. The dictionary given
-            to nest to describe the connection is dict(ChainMap).
+        ChainMap: Chainmap describing a given connection. The dictionary given
+            to NEST to describe the connection is ``dict(ChainMap)``.
 
     """
-    source_params = layers[conn['source_layer']]['params']
-    target_params = layers[conn['target_layer']]['params']
+    source_params = layers[connection['source_layer']]['params']
+    target_params = layers[connection['target_layer']]['params']
 
     # Update connection models with the specific connection params (possibly
     # empty).
-    conn_p = ChainMap(conn['params'],
-                      connection_models[conn['connection']])
-
-    # RF and weight scaling:
-    # TODO: maskfactor?
-    # TODO: btw error in ht files: secondary horizontal intralaminar mixes dcpS
-    # and dcpP
+    params = ChainMap(connection['params'], models[connection['connection']])
 
     source_size = max(source_params['nrows'], source_params['ncols'])
+
+    # TODO: RF and weight scaling:
+    # - maskfactor?
+    # - btw error in ht files: secondary horizontal intralaminar mixes dcpS and
+    #   dcpP
     if not target_params['scale_kernels_masks']:
         rf_factor = 1
     else:
         rf_factor = (target_params['rf_scale_factor']
                      * source_params['visSize'] / (source_size - 1))
-    return conn_p.new_child(
-        {'sources': {'model': conn['source_population']},
-         'targets': {'model': conn['target_population']},
-         'mask': scaled_conn_mask(conn_p['mask'], rf_factor),
-         'kernel': scaled_conn_kernel(conn_p['kernel'], rf_factor),
-         'weights': scaled_conn_weights(conn_p['weights'],
-                                        source_params['weight_gain'])})
+    return params.new_child(
+        {'sources': {'model': connection['source_population']},
+         'targets': {'model': connection['target_population']},
+         'mask': scaled_mask(params['mask'], rf_factor),
+         'kernel': scaled_kernel(params['kernel'], rf_factor),
+         'weights': scaled_weights(params['weights'],
+                                   source_params['weight_gain'])})
 
 
-def scaled_conn_mask(mask_dict, scale_factor):
+def scaled_mask(mask_dict, scale_factor):
     """Scale the size of a connection mask by `scale_factor`."""
     keys = list(mask_dict.keys())
     assert len(keys) <= 1, 'Wrong formatting of connection mask'
@@ -310,7 +294,7 @@ def scaled_conn_mask(mask_dict, scale_factor):
     return mask_dict_copy
 
 
-def scaled_conn_kernel(kernel, scale_factor):
+def scaled_kernel(kernel, scale_factor):
     """Scale the size of a connection kernel by `scale_factor`."""
     if isinstance(kernel, (float, int)):
         return kernel
@@ -322,9 +306,9 @@ def scaled_conn_kernel(kernel, scale_factor):
     return kernel_copy
 
 
-def scaled_conn_weights(weights, scale_factor):
+def scaled_weights(weights, scale_factor):
     """Multiply connection weights by `scale_factor."""
-    return (weights * scale_factor)
+    return weights * scale_factor
 
 
 # def get_area_layer_params(area, params):
@@ -342,14 +326,12 @@ def expand_layer_list(layer_list):
     """Duplicate with different names the layer tuples for different filters.
 
     Args:
-        - <layer_list>: List of tuples each of the form
+        layer_list: List of tuples each of the form
             (<layer_name>, <params_chainmap>)
 
     Returns:
-        (list): List with the same format for which tuples have been duplicated
-            with different <layer_name> if <params_chainmap> has a `filters`
-            key.
-
+        list: List with the same format for which tuples have been duplicated
+        with different <layer_name> if <params_chainmap> has a `filters` key.
     """
     expanded_list = []
     for (layer_name, params_chainmap) in layer_list:
@@ -365,11 +347,11 @@ def expand_layer_list(layer_list):
     return expanded_list
 
 
-def expand_connections(raw_network_tree):
+def expand_connections(network):
     """Account for the duplication of input layers with different filters.
 
-    Modifify the 'connections' subdictionary of <raw_network_tree> to account
-    for the duplication of input layers with different filters. Each connection
+    Modifify the 'connections' subdictionary of <params> to account for the
+    duplication of input layers with different filters. Each connection
     dictionary in network['connections'] of which the source layer has a
     'filters' entry (in the formatted layer flat dictionary) is replicated n
     times with different names.
@@ -379,51 +361,48 @@ def expand_connections(raw_network_tree):
     these updated weights will precede.
 
     Args:
-        - <raw_network_tree>: Original tree defining the network (from the full
-            params tree).
+        network (Params): The network parameters.
 
     Returns:
-        - (dict): Dictionary similar to <raw_network_tree> except that the
-            'connections' subdictionary has been expanded.
+        Params: The network parameters with the 'connections' subtree expanded.
 
     """
     # Non expanded layers dict, used to read layer names and parameters before
     # layer name modifications/layer expansion
-    layers = get_layers(raw_network_tree['layers'], expanded=False)
+    layers = get_layers(network['layers'], expanded=False)
 
-    raw_network_tree.update(
+    network.update(
         {'connections': struct.flatten(
-            [duplicate_connection(conn,
-                                  raw_network_tree['connection_models'],
+            [duplicate_connection(connection,
+                                  network['connection_models'],
                                   layers)
-             for conn in raw_network_tree['connections']])})
+             for connection in network['connections']])})
 
-    return raw_network_tree
+    return network
 
 
-def duplicate_connection(conn, connection_models, layers_dict):
+def duplicate_connection(connection, models, layers):
     """Possibly duplicate connections with different names.
 
     From a single connection dictionary, returns a list of duplicated
     connection dictionaries with different input layer names if the input layer
     should be expanded.
     """
-    source = conn['source_layer']
-    layer_params = layers_dict[source]['params']
+    source = connection['source_layer']
+    layer_params = layers[source]['params']
 
     if 'filters' in layer_params.keys():
         exp_source_names = filt.get_expanded_names(source,
                                                    layer_params['filters'])
         if layer_params['scale_input_weights']:
-            conn['params']['weights'] = (base_conn_weight(conn,
-                                                          connection_models)
-                                         / len(exp_source_names))
+            connection['params']['weights'] = (
+                base_conn_weight(connection, models) / len(exp_source_names))
         return [
-            struct.deepcopy_dict(conn, {'source_layer': exp_source_name})
+            struct.deepcopy_dict(connection, {'source_layer': exp_source_name})
             for exp_source_name in exp_source_names
         ]
     else:
-        return [conn]
+        return [connection]
 
 
 def base_conn_weight(conn, connection_models):
@@ -432,17 +411,17 @@ def base_conn_weight(conn, connection_models):
 
 
 def get_multimeter(pop_params):
-    """Create a 'multimeter' dictionary from a population parameter dict.
+    """Create a 'multimeter' dictionary from population parameters.
 
     Args:
-        - <pop_params> (dict): parameter dictionary of a single population.
+        pop_params (dict): Parameters for a single population.
 
     Return:
-        (dict) : Dictionary of the form
-            {'record_pop': <bool>,
-             'rec_params': <rec_params>}
-            where <bool> indicates whether the population should be recorder and
-            <rec_params> is a nest-readable dictionary describing the
+        dict: Dictionary of the form
+                {'record_pop': <bool>,
+                'rec_params': <rec_params>}
+            where <bool> indicates whether the population should be recorder
+            and <rec_params> is a nest-readable dictionary describing the
             multimeter connected to that population.
 
     """
@@ -455,10 +434,10 @@ def get_multimeter(pop_params):
 
 
 def get_spike_detector(pop_params):
-    """Create a 'spike_detector' dictionary from a population parameter dict.
+    """Create a 'spike_detector' dictionary population parameters.
 
     Args:
-        - <pop_params> (dict): parameter dictionary of a single population.
+        pop_params (dict): Parameters for a single population.
 
     Return:
         (dict) : Dictionary of the form
@@ -479,14 +458,13 @@ def expand_populations(pop_list, non_expanded_layers):
     """Expand the list of populations to account for multiple filters.
 
     Args:
-        - <pop_list>: list of tuples of the form (<pop_name>, <pop_params>) for
-            population. <pop_params> contains eg the non-expanded layer name.
-        - <non_expanded_layers>: non name-expanded formatted flat
-            dictionary (from get_Network())
+        pop_list (list[tuple]): List of tuples of the form (<pop_name>, <pop_params>) for
+            population. <pop_params> contains e.g. the non-expanded layer name.
+        non_expanded_layers (dict): non name-expanded formatted flat dictionary
+            (from ``get_network``)
     Returns:
-        (list): list of tuples duplicated with the same structure as pop_list
-            but in which params['layer'] has been updated with the extended
-            names.
+        list: List of tuples duplicated with the same structure as pop_list but
+        in which params['layer'] has been updated with the extended names.
 
     """
     expanded_list = []
@@ -506,29 +484,29 @@ def expand_populations(pop_list, non_expanded_layers):
     return expanded_list
 
 
-def get_populations(raw_network_tree):
+def get_populations(network):
     """Return nest-readable multimeters and spike detectors information.
 
     Args:
-        - <raw_network_tree> (dict): Original tree defining the network (from
-            the full params tree).
+        network (Params): Network parameters.
 
     Returns:
-        - (list): List of dictionaries each of the form
+        list[dict]: List of dictionaries each of the form:
                 {'layer': <layer_name>,
                  'population': <pop_name>,
                  'mm': <multimeter_params>,
-                 'sd': <spike_detectors_params>}
+                 'sd': <spike_detectors_params>},
             where <multimeter_params> and <sd_params> are dictionaries of the
-            form: {'record_pop': <bool>,
-                   'rec_params': <nest_readable_dict>} describing the type of
-            the multimeter or the spike_detector that would be connected to
-            that specific population, and whether the population should be
-            recorded.
+            form:
+                {'record_pop': <bool>,
+                 'rec_params': <nest_readable_dict>},
+            describing the type of the multimeter or the spike_detector that
+            would be connected to that specific population, and whether the
+            population should be recorded.
 
     """
-    pop_tree = raw_network_tree['populations']
-    non_expanded_layers = get_layers(raw_network_tree['layers'], expanded=False)
+    pop_tree = network['populations']
+    non_expanded_layers = get_layers(network['layers'], expanded=False)
 
     return [{'layer': pop_params['layer'],
              'population': pop_name,
