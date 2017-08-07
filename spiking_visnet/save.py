@@ -142,6 +142,9 @@ def save_formatted_recorders(network, sim_savedir):
         (<layer_name> + STRING_SEPARATOR + <population_name> + STRING_SEPARATOR
         + <variable_name>)
 
+    NB: As for now, multiple units of the same population at a given location
+    are not distinguished between.
+
     Args:
         network (Network object)
         sim_savedir (str): path to directory in which we will save all the

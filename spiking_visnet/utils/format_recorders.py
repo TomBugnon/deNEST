@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 # format_recorders.py
 
+# TODO: Pick one element per location only!
+"""Format NEST recorders activity in (time*row*col) numpy arrays.
 
-"""Format NEST recorders activity in (time*row*col) numpy arrays."""
+NB: If multiple recorded units are at the same location, they are not
+distinguished."""
 
 import numpy as np
 
