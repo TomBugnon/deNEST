@@ -285,7 +285,8 @@ def get_connection_params(connection, models, layers):
 
     # Update connection models with the specific connection params (possibly
     # empty).
-    params = ChainMap(connection['params'], models[connection['connection']])
+    params = ChainMap(connection['nest_params'],
+                      models[connection['connection']])
 
     source_size = max(source_params['nrows'], source_params['ncols'])
 
