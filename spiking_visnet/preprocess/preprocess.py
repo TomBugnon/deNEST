@@ -27,10 +27,10 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
     """Preprocess all raw movies and create the corresponding sets.
 
     Args:
-        - <input_dir> (str): Path to USER's input directory.
-        - <prepro_subdir_str> (str): String describing preprocessing pipeline.
-        - <network> (Network): Network this preprocessing is effected for.
-        - <prepro_params> (dict): Preprocessing parameter tree.
+        input_dir (str): Path to USER's input directory.
+        prepro_subdir_str (str): String describing preprocessing pipeline.
+        network (Network): Network this preprocessing is effected for.
+        prepro_params (dict): Preprocessing parameter tree.
 
     """
     # Preprocess files

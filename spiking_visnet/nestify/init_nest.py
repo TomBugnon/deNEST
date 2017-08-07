@@ -18,9 +18,9 @@ def init_nest(network, kernel_params):
     """Initialize NEST kernel and network.
 
     Args:
-        - network (Network): Modified in place with GIDs and unit positions in
+        network (Network): Modified in place with GIDs and unit positions in
             layer for each population.
-        - kernel_params (dict): Kernel parameters (from full parameter tree).
+        kernel_params (dict): Kernel parameters (from full parameter tree).
 
     """
     print('Initializing kernel...')
@@ -59,12 +59,12 @@ def gid_location_mapping(layer_gid, population_name):
     below and not NEST functions to avoid errors.
 
     Args:
-        - <layer_gid> (tuple): Singleton tuple of int containing the GID of the
+        layer_gid (tuple): Singleton tuple of int containing the GID of the
             considered layer.
-        - <population_name> (str): Name of the considered layer's population.
+        population_name (str): Name of the considered layer's population.
 
     Returns:
-        (dict): Dictionary of the form
+        dict: Dictionary of the form
                     {'gid': <gid_by_location_array>,
                      'location': <location_by_gid_mapping>}
             where:
@@ -107,7 +107,7 @@ def set_nest_savedir(nest_tmp_savedir):
     NEST will save the raw recorder activity in < simulation_savedir > /tmp
 
     Args:
-        - < simulation_savedir > (str): Absolute path to the directory in which
+        simulation_savedir (str): Absolute path to the directory in which
             all simulation parameters and formatted recorder activity will be
             saved.
 
@@ -169,7 +169,7 @@ def create_layers(layers):
     of each layer's dictionary.
 
     Args:
-        <layers > (dict): Flat dictionary of dictionaries.
+        layers (dict): Flat dictionary of dictionaries.
     """
     for layer_name, layer_dict in tqdm(layers.items(),
                                        desc='Create layers: '):

@@ -13,8 +13,8 @@ Usage:
     python -m spiking_visnet.preprocess -h | --help
 
 Arguments:
-    <preprocessing_params>  Relative path to preprocessing parameter yaml file
-    <sim_params>            Relative path to full simulation parameter file
+    preprocessing_params  Relative path to preprocessing parameter yaml file
+    sim_params            Relative path to full simulation parameter file
 
 Options:
     -i --input=<input_dir>  Input directory. If not specified, uses INPUT_DIR from config.

@@ -21,15 +21,16 @@ def get_network(params):
                 'layers': <layers>,
                 'non_expanded_layers': <non_expanded_layers>,
                 'connections': <connections>,
-                'areas': <areas>},
+                'areas': <areas>,
+                'populations': <populations>},
             where:
             - <neuron_models> is list of tuples each of the form:
-                (<base_nest_model>, <model_name>, <params_chainmap>)
+                    (<base_nest_model>, <model_name>, <params_chainmap>)
             - <synapse_models> is list of tuples each of the form:
-                (<base_nest_model>, <model_name>, <params_chainmap>)
+                    (<base_nest_model>, <model_name>, <params_chainmap>)
             - <layers> is a dictionary of the form
-                {<layer_name>: {'params': <params_chainmap>
-                                'nest_params': <nest_params_chainmap>}
+                    {<layer_name>: {'params': <params_chainmap>
+                                    'nest_params': <nest_params_chainmap>}
                  where
                  - 'params' contains all the parameters related to this layer,
                  - 'nest_params' contains the nest_formatted parameters
@@ -39,10 +40,16 @@ def get_network(params):
             - <connections> is a list of tuples each of the form:
                 (<source_layer>, <target_layer>, <params_chainmap>)
             - <areas> is a dictionary of the form:
-                {<area_name>: <list_of_layers>},
+                    {<area_name>: <list_of_layers>},
                 where
                 - <list_of_layers> is the list of all layers of the network
                   within a given area
+            - <populations> is a list of dictionaries each of the form:
+                    {'layer': <layer_name>,
+                     'population': <population_name>,
+                     'mm': <multimeter_params>,
+                     'sd': <spike_detectors_params>}
+
     """
     layers = get_layers(params['layers'], expanded=True)
     return {

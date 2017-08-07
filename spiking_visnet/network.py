@@ -46,7 +46,7 @@ class Network(collections.UserDict):
         Add to the network object the mappings between layer location and GID.
 
         Args:
-            <params>: Full parameter tree.
+            params: Full parameter tree.
 
         """
         # Initialize NEST
@@ -164,7 +164,7 @@ class Network(collections.UserDict):
         """Return a list of the stimulator input layers.
 
         Returns:
-            (list): List of strings of the form eg:
+            list: List of strings of the form eg:
                 - 'input_layer_o2', or
                 - 'input_layer_o2'+STIM_LAYER_SUFFIX if the layer has parrot
                     neurons
@@ -195,7 +195,7 @@ class Network(collections.UserDict):
         to define the population, or the population name itself.
 
         Returns:
-            (str): 'poisson_generator' or 'spike_generator'.
+            str: 'poisson_generator' or 'spike_generator'.
 
         """
         nest_models = [nest_model

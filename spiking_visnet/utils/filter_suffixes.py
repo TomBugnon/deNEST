@@ -12,11 +12,11 @@ def get_expanded_names(base_layer_name, filters):
     """Generate list of expanded layer names.
 
     Args:
-        - <base_layer_name> (str): Original layer name
-        - <filters> (dict): Filter dictionary
+        base_layer_name (str): Original layer name
+        filters (dict): Filter dictionary
 
     Returns:
-        (list): list of expanded names.
+        list: list of expanded names.
 
     """
     return [
@@ -41,6 +41,7 @@ def get_extension_suffixes(filters):
       containing an empty string.
     - If there is eg: 2 spatial frequencies, 2 orientations, 1 sign, returns
     - ['_sf1o1', '_sf1o2', '_sf2o1', '_sf2o2']
+
     """
     suffixes = []
     for dim in [d for d in filters['dimensions']
@@ -55,9 +56,9 @@ def combine_strings(s):
     """Return a list of the combinations of strings in s.
 
     Args:
-        - <s>: List of lists of strings, eg [['a1','a2'], ['b1','b2','b3'],...]
+        s: List of lists of strings, eg [['a1','a2'], ['b1','b2','b3'],...]
     Returns:
-        (list): List of the combinations (sets) of strings from the different
+        list: List of the combinations (sets) of strings from the different
             sublists, with one string from each sublist, eg
                 ['a1b1', 'a1b2', 'a1b3', 'a2b1',...].
 

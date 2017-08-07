@@ -57,10 +57,10 @@ def save_all(network, full_params_tree):
         information)
 
     Args:
-        <network> (Network): The nest-initialized network.
-        <sim_params> (dict): 'simulation' subtree of the full parameter tree.
+        network (Network): The nest-initialized network.
+        sim_params (dict): 'simulation' subtree of the full parameter tree.
             Used to recover saving parameters.
-        <user_savedir> (str): If specified, path where all the results are
+        user_savedir (str): If specified, path where all the results are
             saved. Otherwise, save everything in a subdirectory of config's
             SAVE_DIR.
 
@@ -105,7 +105,7 @@ def generate_save_subdir_str(network_params, sim_params):
     """Create and return relative path to the simulation saving directory.
 
     Returns:
-        (str): If not specified manually by USER, the full path to the
+        str: If not specified manually by USER, the full path to the
             simulation saving directory  will be SAVE_DIR/subdir_str
 
     """
@@ -144,10 +144,8 @@ def save_formatted_recorders(network, sim_savedir):
         + <variable_name>)
 
     Args:
-        - network (Network object)
-        - recorder_tmp_savedir (str): path to directory in which NEST saved all
-            the non-formatted recorder data
-        - sim_savedir (str): path to directory in which we will save all the
+        network (Network object)
+        sim_savedir (str): path to directory in which we will save all the
             formatted recorder data
 
     """
@@ -211,13 +209,13 @@ def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
     """Return non-formatted activity of a given variable saved by the recorder.
 
     Args:
-        - <rec_gid> (tuple): Recorder's NEST GID. Singleton tuple of int.
-        - <variable> (str): Variable recorded that we return. Used only for
+        rec_gid (tuple): Recorder's NEST GID. Singleton tuple of int.
+        variable (str): Variable recorded that we return. Used only for
             multimeters.
-        - <recorder_type> (str): 'multimeter' or 'spike_detector'
+        recorder_type (str): 'multimeter' or 'spike_detector'
 
     Returns:
-        (tuple): Tuple of 1d np.arrays of the form
+        tuple: Tuple of 1d np.arrays of the form
             - (<time>, <sender_gid>, <activity>) for a multimeter, where
                 activity is that of the variable < variable >.
             - (<time>, <sender_gid>) for a spike detector.
@@ -259,7 +257,7 @@ def load_and_combine(recorder_files_list):
     """Load the recorder data from files.
 
     Args:
-        - <recorder_files_list> (list): List of absolute paths to the files in
+        recorder_files_list (list): List of absolute paths to the files in
             which NEST saved a single recorder's activity.
 
     Returns:

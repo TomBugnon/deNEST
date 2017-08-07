@@ -47,21 +47,21 @@ def create_movie(raw_input_dir, res, t, stim_type, path_type='default',
     """Create, possibly save, and return a movie (3D np-array).
 
     Args:
-        - raw_input_dir (str): path to the `raw_input` subdirectory of the
+        raw_input_dir (str): path to the `raw_input` subdirectory of the
             USER's input directory
-        - res (tuple): Dimension of each frame.
-        - t (int): Number of frames.
-        - stim_type (str): Type of the moving stimulus. Defines which function
+        res (tuple): Dimension of each frame.
+        t (int): Number of frames.
+        stim_type (str): Type of the moving stimulus. Defines which function
             is called (see FUN_MAP)
-        - path_type (str): Defines the type of path the stimulus 'takes' across
+        path_type (str): Defines the type of path the stimulus 'takes' across
             frames of the movie
-        - vsize (int): vertical size (first dimension) of the stimulus
-        - hsize (int): horizontal size (second dimension) of the stimulus
-        - width (int): width of the stimulus
-        - save (bool): If true, saves the created movie in INPUT_DIR/raw_inputs
+        vsize (int): vertical size (first dimension) of the stimulus
+        hsize (int): horizontal size (second dimension) of the stimulus
+        width (int): width of the stimulus
+        save (bool): If true, saves the created movie in INPUT_DIR/raw_inputs
 
     Returns:
-        (np-array): (nframes*nrows*ncols)-numpy array
+        np-array: (nframes*nrows*ncols)-numpy array
 
     """
     stim = FUN_MAP[stim_type](vsize, hsize, width)
@@ -91,12 +91,12 @@ def generate_path(res, t, path_type='default'):
     timesteps the stimulus is at the bottom right of the array.
 
     Args:
-        - res (tuple): Dimension of each frame.
-        - t (int): Number of time steps/frames
-        - path_type (str): 'default' -> left to right, top to bottom.
+        res (tuple): Dimension of each frame.
+        t (int): Number of time steps/frames
+        path_type (str): 'default' -> left to right, top to bottom.
 
     Returns:
-        (list): List of tuples defining the position of the top-left corner of
+        list: List of tuples defining the position of the top-left corner of
             the stimulus at each time-step. [ (x_topleft(t), y_topleft(t), ...]
 
     """

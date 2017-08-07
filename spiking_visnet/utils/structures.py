@@ -79,10 +79,14 @@ def combine_values(values):
 def all_key_values(dict_list, omit_keys=[]):
     """Combine entries across a list of dictionaries.
 
-    Return a list of tuples (<key>, <value_list>) for each unique key in
-    the dictionaries of dict_list, omitting the keys in <omit_keys>.
-    <value_list> is the list of values under a given key in each of the
-    dictionaries, scanned from left to right.
+    Returns:
+        list: list of tuples each of the form:
+                (<key>, <value_list>)
+            for each unique key in the dictionaries of dict_list, omitting the
+            keys in <omit_keys>.
+            <value_list> is the list of values under a given key in each of the
+            dictionaries, scanned from left to right.
+
     """
     all_keys = (set(flatten([list(d.keys())
                              for d in dict_list]))
@@ -170,7 +174,7 @@ def traverse(tree, params_key='params', children_key='children',
             name_key.
 
     Returns:
-        (list): list of tuples of the form (<leaf_name>, <params_chainmap>)
+        list: list of tuples of the form (<leaf_name>, <params_chainmap>)
             where params_chainmap represents the ordered parameters collected in
             the parent nodes and leaf_name is the value of the 'name' key of
             each leaf

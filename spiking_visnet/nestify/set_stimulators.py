@@ -27,20 +27,21 @@ def set_stimulators_state(network, full_stim, session_params, stim_metadata,
             which frame is shown to the network.
 
     Args:
-        - <network> (Network object)
-        - <full_stim> (np.array): (nframes * nfilters * nrows * ncols) numpy
+        network (Network object)
+        full_stim (np.array): (nframes * nfilters * nrows * ncols) numpy
             array
-        - <session_params> (dict): parameters of the session
-        - <stim_metadata> (dict): metadata of the input preprocessing (used to
+        session_params (dict): parameters of the session
+        stim_metadata (dict): metadata of the input preprocessing (used to
             map between filter and input layer).
-        - <start_time> (float): Current time of the NEST kernel. Used to set the
+        start_time (float): Current time of the NEST kernel. Used to set the
             spike times in the future.
 
     Returns:
-        - (str): Type of stimulator. Used to set simulation time.
-            - 'poisson_generator' (default)
+        str: Type of stimulator. Used to set simulation time. Either:
+            - 'poisson_generator' (default), or
             - 'spike_generator' if there is at least one layer of spike
                 generators
+
     """
     # Initialize Output
     stimulator_type = None
@@ -135,14 +136,14 @@ def draw_spike_times(inst_rates, start_time=0., distribution='poisson'):
     """Draw spike times from a list of instantaneous rates.
 
     Args:
-        - <inst_rates> (list): List of rates (float values, expressed in Hz) for
+        inst_rates (list): List of rates (float values, expressed in Hz) for
             each timestep.
-        - <start_time> (float): Reference for the spike times (in ms)
-        - <distribution> (str): Distribution from which the probability of
+        start_time (float): Reference for the spike times (in ms)
+        distribution (str): Distribution from which the probability of
             events are drawn.
 
-    Return:
-        (list): List of floats containing the times (in ms) at which a spike has
+    Returns:
+        list: List of floats containing the times (in ms) at which a spike has
             been drawn.
             - The occurence or not of a spike is decided by the instantaneous
                 rate and the distribution.
@@ -170,8 +171,8 @@ def draw_poisson(rate, dt=0.001):
     during an interval.
 
     Args:
-        - <rate>: instantaneous rate (in Hz)
-        - <dt>: length of the interval (default 1ms = 0.001s as the rate is in
+        rate: instantaneous rate (in Hz)
+        dt: length of the interval (default 1ms = 0.001s as the rate is in
             Hertz)
 
     """
