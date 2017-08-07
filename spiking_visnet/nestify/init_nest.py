@@ -181,13 +181,11 @@ def create_layers(layers):
 def create_connections(connections, layers):
     """Create NEST connections."""
     assert ('gid' in layers[list(layers)[0]]), 'Please create the layers first'
-    for (source_layer,
-         target_layer,
-         conn_params) in tqdm(connections,
-                              desc='Create connections: '):
-        tp.ConnectLayers(layers[source_layer]['gid'],
-                         layers[target_layer]['gid'],
-                         dict(conn_params))
+    for connection in tqdm(connections,
+                           desc='Create connections: '):
+        tp.ConnectLayers(layers[connection['source_layer']]['gid'],
+                         layers[connection['target_layer']]['gid'],
+                         dict(connection['nest_params']))
     return
 
 

@@ -31,14 +31,24 @@ def get_network(params):
             - <layers> is a dictionary of the form
                     {<layer_name>: {'params': <params_chainmap>
                                     'nest_params': <nest_params_chainmap>}
-                 where
+                where
                  - 'params' contains all the parameters related to this layer,
                  - 'nest_params' contains the nest_formatted parameters
                     used to create the layer,
             - <non_expanded_layers> is similar to layers but without layer
                 duplication for different filters,
-            - <connections> is a list of tuples each of the form:
-                (<source_layer>, <target_layer>, <params_chainmap>)
+            - <connections> is a list of dictionaries each of the form:
+                    {'source_layer': <source_layer_name>,
+                     'target_layer': <target_layer_name>,
+                     'source_population': <source_population_name>,
+                     'target_population': <target_population_name>,
+                     'params': <connection_params>,
+                     'nest_params': <nest_connection_params>}
+                where
+                - <nest_params> is the nest-readable dictionary describing the
+                    connection,
+                - <connection_params> contains all the parameters for the
+                    connection.
             - <areas> is a dictionary of the form:
                     {<area_name>: <list_of_layers>},
                 where
@@ -228,6 +238,19 @@ def get_connections(network):
         network (Params): Network parameters.
 
     Returns:
+        list: List of dictionaries each describing a single
+            population-to-population connection and of the form:
+                    {'source_layer': <source_layer_name>,
+                     'target_layer': <target_layer_name>,
+                     'source_population': <source_population_name>,
+                     'target_population': <target_population_name>,
+                     'params': <connection_params>,
+                     'nest_params': <nest_connection_params>}
+                where
+                - <nest_params> is the nest-readable dictionary describing the
+                    connection,
+                - <connection_params> contains all the parameters for the
+                    connection.
         list: list of tuples of the form:
                 (<source_layer>, <target_layer>, <nest_connection>)
             where each tuple describes a connection after taking into account
@@ -236,12 +259,20 @@ def get_connections(network):
     expanded_network = expand_connections(network)
     expanded_layers = get_layers(expanded_network['layers'], expanded=True)
 
-    return [(connection['source_layer'],
-             connection['target_layer'],
-             get_connection_params(connection,
-                                   expanded_network['connection_models'],
-                                   expanded_layers))
-            for connection in expanded_network['connections']]
+    all_connections = []
+    for connection in expanded_network['connections']:
+        nest_params = get_connection_params(connection,
+                                            expanded_network['connection_models'],
+                                            expanded_layers)
+        all_connections.append(
+            {'source_layer': connection['source_layer'],
+             'target_layer': connection['target_layer'],
+             'source_population': connection['source_population'],
+             'target_population': connection['target_population'],
+             'nest_params': nest_params,
+             'params': ChainMap(connection['params'], nest_params)}
+        )
+    return all_connections
 
 
 def get_connection_params(connection, models, layers):

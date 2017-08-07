@@ -248,12 +248,14 @@ children:
           target_population: l1_exc
           connection: input_connection
           params: {}
+          nest_params: {}
         - source_layer: input_layer
           source_population: parrot_neuron
           target_layer: l1
           target_population: l1_inh
           connection: input_connection
           params: {}
+          nest_params: {}
 
 
         ### source area: l1 ###
@@ -265,12 +267,14 @@ children:
           target_population: l1_exc
           connection: horizontal_exc
           params: {}
+          nest_params: {}
         - source_layer: l1
           source_population: l1_exc
           target_layer: l1
           target_population: l1_inh
           connection: horizontal_exc
           params: {}
+          nest_params: {}
 
         # l1 inhibitory horizontal
         - source_layer: l1
@@ -279,12 +283,14 @@ children:
           target_population: l1_exc
           connection: horizontal_inh
           params: {}
+          nest_params: {}
         - source_layer: l1
           source_population: l1_inh
           target_layer: l1
           target_population: l1_inh
           connection: horizontal_inh
           params: {}
+          nest_params: {}
 
         # l1 excitatory FF
         - source_layer: l1
@@ -293,12 +299,14 @@ children:
           target_population: l2_exc
           connection: FF_exc
           params: {}
+          nest_params: {}
         - source_layer: l1
           source_population: l1_exc
           target_layer: l2
           target_population: l2_inh
           connection: FF_exc
           params: {}
+          nest_params: {}
 
 
         ### source area: l2 ###
@@ -310,12 +318,14 @@ children:
           target_population: l2_exc
           connection: horizontal_exc
           params: {}
+          nest_params: {}
         - source_layer: l2
           source_population: l2_exc
           target_layer: l2
           target_population: l2_inh
           connection: horizontal_exc
           params: {}
+          nest_params: {}
 
         # l2 inhibitory horizontal
         - source_layer: l2
@@ -324,12 +334,14 @@ children:
           target_population: l2_exc
           connection: horizontal_inh
           params: {}
+          nest_params: {}
         - source_layer: l2
           source_population: l2_inh
           target_layer: l2
           target_population: l2_inh
           connection: horizontal_inh
           params: {}
+          nest_params: {}
 
         # l2 excitatory FF
         - source_layer: l2
@@ -338,12 +350,14 @@ children:
           target_population: l3_exc
           connection: FF_exc
           params: {}
+          nest_params: {}
         - source_layer: l2
           source_population: l2_exc
           target_layer: l3
           target_population: l3_inh
           connection: FF_exc
           params: {}
+          nest_params: {}
 
         ### source area: l3 ###
 
@@ -354,12 +368,14 @@ children:
           target_population: l3_exc
           connection: horizontal_exc
           params: {}
+          nest_params: {}
         - source_layer: l3
           source_population: l3_exc
           target_layer: l3
           target_population: l3_inh
           connection: horizontal_exc
           params: {}
+          nest_params: {}
 
         # l3 inhibitory horizontal
         - source_layer: l3
@@ -368,11 +384,13 @@ children:
           target_population: l3_exc
           connection: horizontal_inh
           params: {}
+          nest_params: {}
         - source_layer: l3
           source_population: l3_inh
           target_layer: l3
           target_population: l3_inh
           connection: horizontal_inh
           params: {}
+          nest_params: {}
 
       populations: {}

@@ -145,19 +145,24 @@ class Network(collections.UserDict):
                 # Create new 'stimulation device' layer
                 stim_layer_name = input_layer_name + STIM_LAYER_SUFFIX
                 self['layers'][stim_layer_name] = copy_entry
-                # Connect the 'stim' layer to the parrot layer
-                self['connections'].append(
-                    (stim_layer_name,
-                     input_layer_name,
-                     one_to_one_connection())
-                )
-                # Add the population
+
+                # Add the stimulator population
                 stimulator_population_name = elem_list[0]  # TODO: function
                 self['populations'].append(
                     {'layer': stim_layer_name,
                      'population': stimulator_population_name,
                      'mm': {'record_pop': False},
                      'sd': {'record_pop': False}}
+                )
+
+                # Connect the 'stim' layer to the parrot layer
+                self['connections'].append(
+                    {'source_layer': stim_layer_name,
+                     'target_layer': input_layer_name,
+                     'source_population': stimulator_population_name,
+                     'target_population': 'parrot_neuron',
+                     'nest_params': one_to_one_connection(),
+                     'params': one_to_one_connection()}
                 )
 
     def input_stim_layers(self):
