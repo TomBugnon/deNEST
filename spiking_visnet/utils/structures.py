@@ -157,40 +157,40 @@ def flatten(l):
     return [item for sublist in gen for item in sublist]
 
 
-def traverse(tree, params_key='params', children_key='children',
+def traverse(tree, data_key='params', children_key='children',
              name_key='name', accumulator=[]):
-    """Recursively traverse a tree.
+    """Return the leaf nodes of a tree, accumulating data from ancestors.
 
-    For each leaf, return the value of its <name_key> key and a ChainMap
-    containing the ordered contents of the 'params_key' field (if existing) in
+    For each leaf, return the value of its ``name_key`` key and a ChainMap
+    containing the ordered contents of the ``data_key`` field (if it exists) in
     each of the parent nodes.
 
     Args:
-        params_key (str): Lookup parameters with this key.
+        data_key (str): Look up data with this key.
         accumulator (ChainMap): Append the newly accumulated parameters to
             this ChainMap. Used for recursion.
-        children_key (str): Children of a node are list of trees under this key
+        children_key (str): The nodes children are a list of trees under this
+            key.
         name_key (str): When reaching a leaf, its name is under the key
             name_key.
 
     Returns:
-        list: list of tuples of the form (<leaf_name>, <params_chainmap>)
-            where params_chainmap represents the ordered parameters collected in
-            the parent nodes and leaf_name is the value of the 'name' key of
-            each leaf
-
+        list: list of tuples of the form (<leaf_name>, <params_chainmap>) where
+        params_chainmap represents the ordered parameters collected in the
+        parent nodes and leaf_name is the value of the 'name' key of each leaf.
     """
-    acc = list(accumulator)  # Avoid accumulation on parallel paths
+    # Avoid accumulation on parallel paths
+    acc = list(accumulator)
 
     # Get the current params if the key exists and its value is not None
-    if params_key in tree and tree[params_key]:
-        acc.append(tree[params_key])
+    if data_key in tree and tree[data_key]:
+        acc.append(tree[data_key])
     # Base case: leaf
     if not tree.get(children_key, False):
         return (tree['name'], ChainMap(*acc[::-1]))
     # Recursive case: not leaf.
     return flatten([traverse(child,
-                             params_key=params_key,
+                             data_key=data_key,
                              children_key=children_key,
                              name_key=name_key,
                              accumulator=acc)
