@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # simulation.py
 
-"""Represent a series of sessions."""
+"""Provides the ``Simulation`` class."""
 
 from .session import Session
 from .utils.structures import traverse
