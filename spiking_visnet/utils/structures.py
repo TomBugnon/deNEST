@@ -158,7 +158,7 @@ def flatten(l):
 
 
 def traverse(tree, data_key='params', children_key='children',
-             name_key='name', accumulator=[]):
+             name_key='name', accumulator=None):
     """Return the leaf nodes of a tree, accumulating data from ancestors.
 
     For each leaf, return the value of its ``name_key`` key and a ChainMap
@@ -179,6 +179,9 @@ def traverse(tree, data_key='params', children_key='children',
         params_chainmap represents the ordered parameters collected in the
         parent nodes and leaf_name is the value of the 'name' key of each leaf.
     """
+    if accumulator is None:
+        accumulator = list()
+
     # Avoid accumulation on parallel paths
     acc = list(accumulator)
 
