@@ -4,16 +4,18 @@
 
 """Represent a series of sessions."""
 
-
 from .session import Session
 from .utils.structures import traverse
 
 
 class Simulation:
-    """Represents running a network.
+    """Represents a simulation.
 
-    This includes building the network from a set of parameters, running it
-    with a series of sessions, and saving output.
+    Handles building the network, running it with a series of sessions, and
+    saving output.
+
+    Args:
+        params (dict-like): The VisNet parameters specifying the simulation.
     """
 
     def __init__(self, params):
@@ -25,12 +27,7 @@ class Simulation:
         }
 
     def run(self, params, network):
-        """Run each of the sessions in order.
-
-        If <user_input> is specified, each session will use that stimulus and
-        not their 'session_stims' parameter.
-
-        """
+        """Run each of the sessions in order."""
         for name in self.order:
             print(f'Running session `{name}`...')
             self.sessions[name].run(params, network)
