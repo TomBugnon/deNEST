@@ -175,29 +175,27 @@ def traverse(tree, data_key='params', children_key='children',
             name_key.
 
     Returns:
-        list: list of tuples of the form (<leaf_name>, <params_chainmap>) where
-        params_chainmap represents the ordered parameters collected in the
-        parent nodes and leaf_name is the value of the 'name' key of each leaf.
+        list: list of tuples of the form ``(<leaf_name>, <data_chainmap>)``
+        where ``leaf_name`` is the value of the ``name`` key of each leaf and
+        ``data_chainmap`` is a chainmap of the accumulated data from leaf to
+        root.
     """
     if accumulator is None:
         accumulator = list()
 
-    # Avoid accumulation on parallel paths
-    acc = list(accumulator)
-
-    # Get the current params if the key exists and its value is not None
-    if data_key in tree and tree[data_key]:
-        acc.append(tree[data_key])
+    # Get the current data if there is any
+    if tree.get(data_key, False):
+        accumulator.append(tree[data_key])
     # Base case: leaf
     if not tree.get(children_key, False):
-        return (tree['name'], ChainMap(*acc[::-1]))
-    # Recursive case: not leaf.
+        return (tree[name_key], ChainMap(*reversed(accumulator)))
+    # Recursive case: not a leaf
     return flatten([traverse(child,
                              data_key=data_key,
                              children_key=children_key,
                              name_key=name_key,
-                             accumulator=acc)
-                    for name, child in tree[children_key].items()])
+                             accumulator=accumulator)
+                    for child in tree[children_key].values()])
 
 
 def dictify(obj):
