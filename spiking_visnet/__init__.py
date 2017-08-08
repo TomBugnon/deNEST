@@ -28,7 +28,7 @@ def init(params):
     return network
 
 
-def simulate(network, params, user_input=None):
+def simulate(network, params):
     """Simulate all sessions described in parameter tree."""
     print(f'Simulating...', flush=True)
     simulation = Simulation(params['children']['sessions'])
