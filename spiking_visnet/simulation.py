@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # simulation.py
 
-
 """Represent a series of sessions."""
 
 
@@ -11,7 +10,11 @@ from .utils.structures import traverse
 
 
 class Simulation:
-    """Represents a series of sessions."""
+    """Represents running a network.
+
+    This includes building the network from a set of parameters, running it
+    with a series of sessions, and saving output.
+    """
 
     def __init__(self, params):
         """Initialize."""
