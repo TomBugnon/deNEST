@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# params.py
+# parameters.py
 
 """Provides the ``Params`` class."""
 
