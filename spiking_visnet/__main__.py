@@ -23,11 +23,8 @@ Options:
     -v --version      Show version.
 """
 
-import operator
 import random
 import sys
-from collections import defaultdict
-from functools import partial, reduce
 
 from docopt import docopt
 
@@ -35,7 +32,7 @@ from config import PYTHON_SEED
 
 from . import run
 from .__about__ import __version__
-from .params import Params
+from .parameters import Params
 
 random.seed(PYTHON_SEED)
 
@@ -46,7 +43,9 @@ _CLI_ARG_MAP = {
     '--output': ('children', 'simulation', 'user_savedir'),
 }
 
-if __name__ == '__main__':
+
+def main():
+    """Run Spiking VisNet from the command line."""
     # Construct a new argument list to allow docopt's parser to work with the
     # `python -m spiking_visnet` calling pattern.
     argv = ['-m', 'spiking_visnet'] + sys.argv[1:]
@@ -58,3 +57,7 @@ if __name__ == '__main__':
                         if key in _CLI_ARG_MAP})
     # Run it!
     run(arguments['<param_file.yml>'], overrides=overrides)
+
+
+if __name__ == '__main__':
+    main()
