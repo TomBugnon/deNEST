@@ -21,7 +21,10 @@ STIM_LAYER_SUFFIX = '_stimulator'
 
 
 class Network(collections.UserDict):
-    """Network class."""
+    """Represents a neural network.
+
+    Provides an interface to NEST and handles initialization of the NEST kernel.
+    """
 
     def __init__(self, network_params, sim_params):
         """Initialize object from parameter tree."""
@@ -47,7 +50,6 @@ class Network(collections.UserDict):
 
         Args:
             params: Full parameter tree.
-
         """
         # Initialize NEST
         init_nest(self, kernel_params)
