@@ -5,11 +5,10 @@
 """Generate and save movies (3D nparrays) by moving a stimulus across frames."""
 
 from math import ceil
+from os import makedirs
 from os.path import join
 
 import numpy as np
-
-from .system import mkdir_ifnot
 
 
 def vertical_cross(vsize=9, hsize=9, width=3):
@@ -71,7 +70,7 @@ def create_movie(raw_input_dir, res, t, stim_type, path_type='default',
     if save:
         savestr = generate_movie_str(stim_type, path_type, res, t, vsize, hsize,
                                      width)
-        mkdir_ifnot(raw_input_dir)
+        makedirs(raw_input_dir, exist_ok=True)
         np.save(join(raw_input_dir, savestr), movie)
 
     return movie

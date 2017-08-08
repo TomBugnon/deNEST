@@ -5,13 +5,12 @@
 """Initialize NEST kernel and network."""
 
 import itertools
+from os import makedirs
 
 import nest
 import nest.topology as tp
 import numpy as np
 from tqdm import tqdm
-
-from ..utils.system import mkdir_ifnot
 
 
 def init_nest(network, kernel_params):
@@ -112,7 +111,7 @@ def set_nest_savedir(nest_tmp_savedir):
             saved.
 
     """
-    mkdir_ifnot(nest_tmp_savedir)
+    makedirs(nest_tmp_savedir, exist_ok=True)
     nest.SetKernelStatus({"data_path": nest_tmp_savedir})
 
 

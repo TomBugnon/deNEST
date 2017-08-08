@@ -5,6 +5,7 @@
 """Preprocess all raw movies with a given pipeline."""
 
 import os
+from os import makedirs
 from os.path import exists, isdir, isfile, join
 
 import numpy as np
@@ -14,7 +15,6 @@ from user_config import INPUT_SUBDIRS, METADATA_FILENAME
 
 from . import downsample, filt, normalize
 from ..save import save_as_yaml
-from ..utils.system import mkdir_ifnot
 
 PREPROCESS_MAPPING = {
     'downsample': downsample.downsample,
@@ -41,7 +41,7 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
                       prepro_subdir_str)
 
     # Make preprocessed_input dir for this pipeline
-    mkdir_ifnot(prepro_dir)
+    makedirs(prepro_dir, exist_ok=True)
 
     # Get files to be processed
     all_raw_files = [f for f in os.listdir(raw_dir)

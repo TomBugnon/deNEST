@@ -5,7 +5,7 @@
 
 """Save and load movies, networks, activity and simulation parameters."""
 
-from os import stat
+from os import stat, makedirs
 from os.path import basename, exists, isfile, join, splitext
 from shutil import rmtree
 
@@ -18,7 +18,6 @@ from user_config import SAVE_DIR
 
 from .utils.format_recorders import format_mm_data, format_sd_data
 from .utils.sparsify import save_as_sparse
-from .utils.system import mkdir_ifnot
 
 FULL_PARAMS_TREE_STR = 'params.yaml'
 NETWORK_STR = 'network.yaml'
@@ -72,7 +71,7 @@ def save_all(network, full_params_tree):
     # Get target directories for formatting.
     sim_savedir = get_simulation_savedir(network, sim_params)
     # Create if not already done
-    mkdir_ifnot(sim_savedir)
+    makedirs(sim_savedir, exist_ok=True)
 
     print(f'Save everything in {sim_savedir}')
 
