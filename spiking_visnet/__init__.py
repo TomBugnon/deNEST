@@ -28,7 +28,12 @@ def init(params):
 
 
 def simulate(network, params):
-    """Simulate all sessions described in parameter tree."""
+    """Simulate a network.
+
+    Args:
+        network (Network): The network to simulate.
+        params (dict-like): The simulation parameters.
+    """
     print(f'Simulating...', flush=True)
     simulation = Simulation(params['children']['sessions'])
     simulation.run(params, network)
@@ -36,7 +41,15 @@ def simulate(network, params):
 
 
 def run(path, overrides=None):
-    """Run all."""
+    """Run the simulation described by the params at ``path``.
+
+    Args:
+        path (str): The filepath of a parameter file specifying the simulation.
+
+    Keyword Arguments:
+        overrides (dict-like): Any parameters that should override those from
+            the path.
+    """
     print(f'Loading parameters: `{path}`... ', end='', flush=True)
     params = load_params(path, overrides=overrides)
     print('done.', flush=True)
