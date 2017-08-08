@@ -88,11 +88,7 @@ def get_models(models):
     """
     return struct.flatten([
         struct.distribute_to_tuple(
-            struct.traverse(model,
-                            params_key='params',
-                            children_key='children',
-                            name_key='name',
-                            accumulator=[]),
+            struct.traverse(model),
             model['nest_model'],
             pos=0)
         for key, model in models.items()
@@ -121,11 +117,7 @@ def get_layers(layers_tree, expanded=True):
 
     """
     # List of tuples of the form (<layer_name>, <params_chainmap>).
-    layer_list = save_base_name(struct.traverse(layers_tree,
-                                                params_key='params',
-                                                children_key='children',
-                                                name_key='name',
-                                                accumulator=[]))
+    layer_list = save_base_name(struct.traverse(layers_tree))
     if expanded:
         # The layers whose <params_chainmap> contains the field 'filters' are
         # replicated with different names.
@@ -551,9 +543,5 @@ def get_populations(network):
              'mm': get_multimeter(pop_params),
              'sd': get_spike_detector(pop_params)}
             for (pop_name, pop_params)
-            in expand_populations(struct.traverse(pop_tree,
-                                                  params_key='params',
-                                                  children_key='children',
-                                                  name_key='name',
-                                                  accumulator=[]),
+            in expand_populations(struct.traverse(pop_tree),
                                   non_expanded_layers)]
