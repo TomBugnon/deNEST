@@ -6,3 +6,4 @@ docopt
 ipython
 scipy
 pillow
+watchdog
