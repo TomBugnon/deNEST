@@ -10,29 +10,7 @@ from os.path import dirname as _dirname
 from .network import Network
 from .save import load_yaml, save_all
 from .simulation import Simulation
-from .utils.structures import chaintree as _chaintree
-from .params import Params
-
-
-def load_params(path, overrides=None):
-    """Load a parameter file, optionally overriding some values.
-
-    Args:
-        path (str): The filepath to load.
-
-    Keyword Args:
-        overrides (dict): A dictionary containing parameters that will take
-            precedence over those in the file.
-
-    Returns:
-        Params: the loaded parameters with overrides applied.
-    """
-    directory = _dirname(_abspath(path))
-    trees = [load_yaml(directory, relative_path)
-             for relative_path in load_yaml(path)]
-    if overrides:
-        trees.append(overrides)
-    return Params(_chaintree(trees))
+from .parameters import Params, load_params
 
 
 def init(params):
