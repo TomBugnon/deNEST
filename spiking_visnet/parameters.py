@@ -9,7 +9,8 @@ import functools
 import operator
 from os.path import abspath as _abspath
 from os.path import dirname as _dirname
-from .save import load_yaml, save_all
+
+from .save import load_yaml
 from .utils.structures import chaintree
 
 
