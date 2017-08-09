@@ -182,7 +182,8 @@ def traverse(tree, data_key='params', children_key='children',
     """
     if accumulator is None:
         accumulator = list()
-
+    # Get our own accumulator (we need a separate object for each leaf)
+    accumulator = list(accumulator)
     # Get the current data if there is any
     if tree.get(data_key, False):
         accumulator.append(tree[data_key])
