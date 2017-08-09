@@ -63,25 +63,28 @@ def gid_location_mapping(layer_gid, population_name):
         population_name (str): Name of the considered layer's population.
 
     Returns:
-        dict: Dictionary of the form
-                    {'gid': <gid_by_location_array>,
-                     'location': <location_by_gid_mapping>}
+        dict: Dictionary of the form::
+                    ``{'gid': <gid_by_location_array>,
+                       'location': <location_by_gid_mapping>}``
             where:
-                - <gid_by_location_array> (np-array) is a (nrows, ncols)-array
-                    of the same dimension as the layer. It is an array of
-                    lists (possibly singletons) as there can be multiple units
-                    of that population at each location.
-                - <location_by_gid_mapping> (dict) is dictionary of which keys
-                    are GIDs (int) and entries are (row, col) location (tuple
-                    of int)
+            - <gid_by_location_array> (np-array) is a
+                (``nrows``, ``ncols``, ``nelems``)-array where:
+                - (``nrows``, ``ncols``) is the dimension of the layer
+                - ``nelems`` is the number of units of the considered population
+                    at each location.
+            - <location_by_gid_mapping> (dict) is dictionary of which keys
+                are GIDs (int) and entries are (row, col) location (tuple
+                of int)
 
     """
     # Get layer resolution
     layer_topo = nest.GetStatus(layer_gid, 'topology')[0]
     nrows, ncols = layer_topo['rows'], layer_topo['columns']
+    nelems = len([nd for nd in tp.GetElement(layer_gid, locations=(0, 0))
+                  if nest.GetStatus((nd,), 'model')[0] == population_name])
 
     # Initialize bi-directional mapping dictionary.
-    gid_loc_map = {'gid': np.empty((nrows, ncols), dtype=list),
+    gid_loc_map = {'gid': np.empty((nrows, ncols, nelems), dtype=list),
                    'location': {}}
     # Iterate on all locations of the grid-based layer.
     for (i, j) in itertools.product(range(nrows), range(ncols)):
@@ -92,7 +95,7 @@ def gid_location_mapping(layer_gid, population_name):
             if nest.GetStatus((nd,), 'model')[0] == population_name
         ]
         # Update array of gids
-        gid_loc_map['gid'][i, j] = location_units
+        gid_loc_map['gid'][i, j, :] = location_units
         # Update mapping of locations
         gid_loc_map['location'].update({gid: (i, j)
                                         for gid in location_units})

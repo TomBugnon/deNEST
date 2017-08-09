@@ -90,16 +90,18 @@ class Network(collections.UserDict):
         Creates a self.location attribute containing a tree such that:
             self.gid_coo[<layer_name>][<population_name>] = <gid_coo_dict>
         where:
-            <gid_coo_dict> is a dictionary of the form:
-                    {'gid': <gid_by_location_array>,
-                     'location': <location_by_gid_mapping>}
+            <gid_coo_dict> is a dictionary of the form::
+                    ``{'gid': <gid_by_location_array>,
+                       'location': <location_by_gid_mapping>}``
         Finally:
-        - <gid_by_location_array> (np-array) is a (nrows, ncols)-array of the
-            same dimension as the layer. It is an array of lists (possibly
-            singletons) as there can be multiple units of that population at
-            each location.
+        - <gid_by_location_array> (np-array) is a
+            (``nrows``, ``ncols``, ``nelems``)-array where:
+            - (``nrows``, ``ncols``) is the dimension of the layer
+            - ``nelems`` is the number of units of the considered population at
+                each location.
         - <location_by_gid_mapping> (dict) is dictionary of which keys are
-            GIDs (int) and entries are (row, col) location (tuple of int)
+            GIDs (int) and entries are (``row``, ``col``) location (tuple of
+            int)
 
         """
         self.locations = {}
