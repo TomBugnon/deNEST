@@ -140,7 +140,7 @@ def create_set(input_dir, setname, prepro_subdir_str):
                           preprocessed_set_name(setname, prepro_subdir_str))
 
     # Create prepro_set dir
-    mkdir_ifnot(prepro_set_dir)
+    makedirs(prepro_set_dir, exist_ok=True)
 
     # Create simlinks to files if they don't already exist
     # Symlinks need to be relative
