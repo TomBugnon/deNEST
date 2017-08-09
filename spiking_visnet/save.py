@@ -224,7 +224,7 @@ def get_synapses_values(network, connection, source_locs, target_locs,
             source_gid = synapse['source']
             row_source, col_source = source_locs['location'][source_gid]
             # Get values of interest for that synapse
-            synapse_values = [synapse[key] for in saving_keys]
+            synapse_values = [synapse[key] for key in saving_keys]
 
             # Fill array with synapses' values in each of the keys.
             all_synapses_all_values[row_target, col_target,
