@@ -23,7 +23,7 @@ from .utils.sparsify import save_as_sparse
 FULL_PARAMS_TREE_STR = 'params.yaml'
 NETWORK_STR = 'network.yaml'
 SIM_METADATA_STR = 'metadata.yaml'
-STRING_SEPARATOR = '-__-'
+STRING_SEPARATOR = '_'
 
 
 def save_as_yaml(path, tree):
