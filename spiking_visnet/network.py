@@ -31,7 +31,7 @@ class Network(collections.UserDict):
         super().__init__(get_network(network_params))
         # Introduce parrot layers between input stimulators and neurons
         self.introduce_parrot_layers()
-        # Get the saving subdirectory. Output dir is SAVE_DIR/save_subdir_str.
+        # Get the saving subdirectory. Output dir is OUTPUT_DIR/save_subdir_str.
         self.get_save_subdir_str(network_params, sim_params)
 
     def get_save_subdir_str(self, full_params_tree, param_file_path):
@@ -54,8 +54,8 @@ class Network(collections.UserDict):
         # Initialize NEST
         init_nest(self, kernel_params)
         # Tell NEST kernel where to save all the recorders.
-        tmp_save_dir = get_nest_tmp_savedir(self, sim_params)
-        set_nest_savedir(tmp_save_dir)
+        tmp_OUTPUT_DIR = get_nest_tmp_savedir(self, sim_params)
+        set_nest_savedir(tmp_OUTPUT_DIR)
         # Get the bi-directional GID-location mappings for each population.
         self.get_gid_location_mappings()
 

@@ -1,4 +1,4 @@
 from config import *
 
 # INPUT_DIR = '/Users/Tom/example/pathto/inputdir'
-# SAVE_DIR = '/Users/Tom/example/pathto/savedir'
+# OUTPUT_DIR = '/Users/Tom/example/pathto/outputdir'

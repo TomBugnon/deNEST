@@ -15,7 +15,7 @@ import numpy as np
 import yaml
 
 from tqdm import tqdm
-from user_config import SAVE_DIR
+from user_config import OUTPUT_DIR
 
 from .nestify.connections import get_filtered_synapses
 from .utils.format_recorders import format_mm_data, format_sd_data
@@ -63,7 +63,7 @@ def save_all(network, full_params_tree):
             Used to recover saving parameters.
         user_savedir (str): If specified, path where all the results are
             saved. Otherwise, save everything in a subdirectory of config's
-            SAVE_DIR.
+            OUTPUT_DIR.
 
     """
     # Get relevant part of the full param tree.
@@ -248,7 +248,7 @@ def generate_save_subdir_str(network_params, sim_params):
 
     Returns:
         str: If not specified manually by USER, the full path to the
-            simulation saving directory  will be SAVE_DIR / subdir_str
+            simulation saving directory  will be OUTPUT_DIR / subdir_str
 
     """
     # For now, use only the filename without extension of the full parameter
@@ -262,11 +262,11 @@ def get_simulation_savedir(network, sim_params):
     """Return absolute path to directory in which we save formatted sim data.
 
     Either defined by user('user_savedir' key in sim_params) or an
-    automatically generated subdirectory of SAVE_DIR.
+    automatically generated subdirectory of OUTPUT_DIR.
 
     """
     if not sim_params.get('user_savedir', None):
-        return join(SAVE_DIR, network.save_subdir_str)
+        return join(OUTPUT_DIR, network.save_subdir_str)
     return sim_params['user_savedir']
 
 
