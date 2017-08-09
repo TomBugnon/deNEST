@@ -5,7 +5,7 @@
 
 **1: Preprocess some stimuli**:  
 -> their dimension (resolution and
-    number of filters) should be compatible with the network you are going to run.
+    number of filters) should be compatible with (eg superior to that of) the network you are going to run.
 
 To preprocess: (see *spiking_visnet/preprocess/README.md*)
 
@@ -22,6 +22,7 @@ Manually modify the session parameter tree so that sessions use stimulus sequenc
 You can use the default stimulus sequence created during preprocessing:  
 eg: `session_stims: 'stim_df_set_df_res_100x100_contrastnorm_filter_o2.yml` in *sessions_df.yml*
 
+Alternatively, you can also specify the input that will be used for all sessions as a command line argument. In that case, you don't need to modify the session parameters file. 
 
 ### To run the simulation:
 
