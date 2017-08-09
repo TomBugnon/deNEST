@@ -247,14 +247,16 @@ children:
           target_layer: l1
           target_population: l1_exc
           connection: input_connection
-          params: {}
+          params:
+              save: ['weight']
           nest_params: {}
         - source_layer: input_layer
           source_population: parrot_neuron
           target_layer: l1
           target_population: l1_inh
           connection: input_connection
-          params: {}
+          params:
+              save: ['weight']
           nest_params: {}
 
 
