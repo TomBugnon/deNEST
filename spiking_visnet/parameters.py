@@ -51,6 +51,7 @@ def load_params(path, overrides=None):
 
     Returns:
         Params: the loaded parameters with overrides applied.
+
     """
     directory = _dirname(_abspath(path))
     trees = [load_yaml(directory, relative_path)

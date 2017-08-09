@@ -85,6 +85,7 @@ def get_models(models):
                 (<base_nest_model, <model_name>, <params_chainmap)
             where each tuple describes a model that will be used in the
             network.
+
     """
     return struct.flatten([
         struct.distribute_to_tuple(
@@ -150,6 +151,7 @@ def format_layer_list(layer_list):
         dict: Dictionary of the form
                 {<layer_name>: {'params': <params_chainmap>,
                                 'nest_params': <nest_params_chainmap>}
+
     """
     return {
         layer_name: {
@@ -179,6 +181,7 @@ def get_layer_elements(layer_params):
                 {'elements': <elements_list>}
             where <elements_list> is of the form:
                 ['L23_exc', 2, 'L23_inh', 1, 'L4_exc' , 2, ...]
+
     """
     layer_elements = layer_params['elements']
     elements_list = []
@@ -247,6 +250,7 @@ def get_connections(network):
                 (<source_layer>, <target_layer>, <nest_connection>)
             where each tuple describes a connection after taking into account
             possible duplication of input layers.
+
     """
     expanded_network = expand_connections(network)
     expanded_layers = get_layers(expanded_network['layers'], expanded=True)
@@ -342,17 +346,6 @@ def scaled_weights(weights, scale_factor):
     return weights * scale_factor
 
 
-# def get_area_layer_params(area, params):
-#     p = {}
-#
-#     p['rows'] = params['resolution']['size']['area']
-#     p['columns'] = params['resolution']['size']['area']
-#     p['extent'] = params['resolution']['visSize']
-#     p['edge_wrap'] = params['resolution']['edge_wrap']
-#
-#     return p
-
-
 def expand_layer_list(layer_list):
     """Duplicate with different names the layer tuples for different filters.
 
@@ -363,6 +356,7 @@ def expand_layer_list(layer_list):
     Returns:
         list: List with the same format for which tuples have been duplicated
         with different <layer_name> if <params_chainmap> has a `filters` key.
+
     """
     expanded_list = []
     for (layer_name, params_chainmap) in layer_list:

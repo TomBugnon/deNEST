@@ -87,8 +87,7 @@ class Session(collections.UserDict):
         """
         if self.get('user_input', False):
             return (load_as_numpy(self['user_input']), None)
-        else:
-            return load_stim_yaml(self['session_stims'])
+        return load_stim_yaml(self['session_stims'])
 
 
 def load_stim_yaml(session_stims_filename):
@@ -119,13 +118,13 @@ def load_stim_yaml(session_stims_filename):
 
     movie_list = [load_as_numpy(filepath)
                   for filepath in full_movie_paths
-                  if exists(filepath) and not (stat(filepath).st_size == 0)]
+                  if exists(filepath) and not stat(filepath).st_size == 0]
 
     # Check that we loaded something
     assert(movie_list), "Could not load stimuli"
     # Check that all movies have same number of dimensions.
-    assert(len(set([np.ndim(movie) for movie in movie_list])) == 1,
-           'Not all loaded movies have same dimensions')
+    assert(len(set([np.ndim(movie) for movie in movie_list])) == 1), \
+           'Not all loaded movies have same dimensions'
 
     # Load metadata
     metadata = load_yaml(stimuli_params['set_name'], METADATA_FILENAME)

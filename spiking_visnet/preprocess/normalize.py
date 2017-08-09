@@ -3,6 +3,8 @@
 # normalize.py
 
 
+"""Perform contrast-normalization of input image."""
+
 import numpy as np
 
 

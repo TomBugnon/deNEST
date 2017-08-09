@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 # __init__.py
 
-"""
-Spiking VisNet
-"""
+"""Spiking VisNet."""
 
 from .network import Network
 from .parameters import Params, load_params

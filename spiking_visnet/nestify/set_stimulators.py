@@ -113,7 +113,6 @@ def set_spike_times(network, movie, layer, population, start_time=0.,
     """TODO."""
     max_input_rate = network['layers'][layer]['params']['max_input_rate']
     gid_locs = network.locations[layer][population]
-    nframes, nrows, ncols = np.shape(movie)
 
     for gid, location in gid_locs['location'].items():
         # Rate of firing during each frame for a single unit
@@ -126,10 +125,9 @@ def set_spike_times(network, movie, layer, population, start_time=0.,
         # Times of spiking for that unit
         spike_times = draw_spike_times(inst_rates,
                                        start_time=start_time,
-                                       distribution='poisson')
+                                       distribution=distribution)
 
         nest.SetStatus((gid,), {'spike_times': spike_times})
-    pass
 
 
 def draw_spike_times(inst_rates, start_time=0., distribution='poisson'):
@@ -176,7 +174,7 @@ def draw_poisson(rate, dt=0.001):
             Hertz)
 
     """
-    return (np.random.poisson(float(rate * dt)) > 0)
+    return np.random.poisson(float(rate * dt)) > 0
 
 
 SPIKE_GENERATION_MAP = {'poisson': draw_poisson}

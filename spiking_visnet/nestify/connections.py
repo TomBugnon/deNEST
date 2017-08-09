@@ -27,7 +27,6 @@ def get_filtered_synapses(gid, ref='source', secondary_layer_gid=None,
             connection.
 
     """
-
     if not isinstance(secondary_layer_gid, int):
         Warning("""'secondary_layer_gid' argument should be an integer rather
                 than a sequence. Try using the first element""")

@@ -18,7 +18,7 @@ from ..save import save_as_yaml
 
 PREPROCESS_MAPPING = {
     'downsample': downsample.downsample,
-    'filter': filt.filter,
+    'filter': filt.filter_movie,
     'normalize': normalize.normalize
 }
 
@@ -51,11 +51,11 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
     todo_files = [f for f in all_raw_files if f not in all_prepro_files]
 
     # Preprocess and save each file
-    for f in tqdm(todo_files,
+    for filename in tqdm(todo_files,
                   desc=('Preprocess ' + str(len(todo_files)) + ' files')):
 
-        movie = np.load(join(raw_dir, f))
-        np.save(join(prepro_dir, f),
+        movie = np.load(join(raw_dir, filename))
+        np.save(join(prepro_dir, filename),
                 preprocess(movie, network, prepro_params))
 
     # Create metadata file for this preprocessing pipeline
@@ -71,7 +71,7 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
 
 
 def create_default_stim_yaml(input_dir, prepro_subdir_str):
-    """Creates a default stimulus yaml for the new preprocessing pipeline.
+    """Create a default stimulus yaml for the new preprocessing pipeline.
 
     The created default stimulus yaml points towards the newly preprocessed set
     named DEFAULT_SET (= 'set_1'). The stimulus sequence is the list of unique

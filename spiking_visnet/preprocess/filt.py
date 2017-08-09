@@ -11,7 +11,7 @@ from ..utils.filter_suffixes import get_summary_string
 # TODO
 
 
-def filter(input_movie, preprocessing_params, network):
+def filter_movie(input_movie, preprocessing_params, network):
     """Filter input_movie with set of filters described in network.
 
     Args:

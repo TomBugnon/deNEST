@@ -24,4 +24,4 @@ def downsample(input_movie, preprocessing_params, network):
 def get_string(_, network):
     """Return summary string of this preprocessing step."""
     (xdim, ydim) = network.input_res()
-    return ('res_' + str(xdim) + 'x' + str(ydim) + '_')
+    return 'res_' + str(xdim) + 'x' + str(ydim) + '_'

@@ -18,18 +18,18 @@ TOOLS = 'crosshair,pan,wheel_zoom,box_zoom,reset,tap,box_select,lasso_select'
 PALETTE = palettes.Inferno256
 
 
-def show_im(im):
+def show_im(image):
     """Use pyplot to show a numpy image."""
     import matplotlib.pyplot as plt
-    plt.imshow(im)
+    plt.imshow(image)
     plt.show()
 
 
 def init():
     """Initialize bokeh figure with jupyter notebook."""
-    p = figure(tools=TOOLS)
+    plot = figure(tools=TOOLS)
     output_notebook()
-    return p
+    return plot
 
 
 def color(a):

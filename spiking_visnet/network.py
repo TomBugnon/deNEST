@@ -11,7 +11,7 @@ from tqdm import tqdm
 from .nestify.format_net import get_network
 from .nestify.init_nest import (gid_location_mapping, init_nest,
                                 set_nest_savedir)
-from .save import generate_save_subdir_str, get_NEST_tmp_savedir
+from .save import generate_save_subdir_str, get_nest_tmp_savedir
 from .utils.structures import deepcopy_dict
 
 STIM_LAYER_SUFFIX = '_stimulator'
@@ -54,7 +54,7 @@ class Network(collections.UserDict):
         # Initialize NEST
         init_nest(self, kernel_params)
         # Tell NEST kernel where to save all the recorders.
-        tmp_save_dir = get_NEST_tmp_savedir(self, sim_params)
+        tmp_save_dir = get_nest_tmp_savedir(self, sim_params)
         set_nest_savedir(tmp_save_dir)
         # Get the bi-directional GID-location mappings for each population.
         self.get_gid_location_mappings()

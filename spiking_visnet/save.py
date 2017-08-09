@@ -13,8 +13,8 @@ from shutil import rmtree
 import nest
 import numpy as np
 import yaml
-from tqdm import tqdm
 
+from tqdm import tqdm
 from user_config import SAVE_DIR
 
 from .nestify.connections import get_filtered_synapses
@@ -66,7 +66,6 @@ def save_all(network, full_params_tree):
             SAVE_DIR.
 
     """
-
     # Get relevant part of the full param tree.
     sim_params = full_params_tree['children']['simulation']
 
@@ -90,7 +89,7 @@ def save_all(network, full_params_tree):
     save_formatted_recorders(network, sim_savedir)
     # Delete temporary recorder dir
     if sim_params['delete_tmp_dir']:
-        rmtree(get_NEST_tmp_savedir(network, sim_params))
+        rmtree(get_nest_tmp_savedir(network, sim_params))
 
     # Save synapses' parameters.
     save_synapses(network, sim_savedir)
@@ -126,7 +125,6 @@ def save_synapses(network, sim_savedir):
         base_connection_string = make_base_connection_string(connection)
 
         # Access source and target unit locations
-        source_lay = connection['source_layer']
         source_locs = locations[connection['source_layer']
                                 ][connection['source_population']]
         target_locs = locations[connection['target_layer']
@@ -191,7 +189,6 @@ def get_synapses_values(network, connection, source_locs, target_locs,
     source_lay = connection['source_layer']
     source_pop = connection['source_population']
     target_lay = connection['target_layer']
-    target_pop = connection['target_population']
     source_lay_gid = network['layers'][source_lay]['gid']
 
     # Get layers' resolution
@@ -234,6 +231,7 @@ def get_synapses_values(network, connection, source_locs, target_locs,
 
 
 def make_base_connection_string(connection):
+    """Generate string describing a population-to-population connection."""
     return ('synapses_from_' + connection['source_layer'] + STRING_SEPARATOR
             + connection['source_population'] + '_to_'
             + connection['target_layer'] + STRING_SEPARATOR
@@ -250,7 +248,7 @@ def generate_save_subdir_str(network_params, sim_params):
 
     Returns:
         str: If not specified manually by USER, the full path to the
-            simulation saving directory  will be SAVE_DIR/subdir_str
+            simulation saving directory  will be SAVE_DIR / subdir_str
 
     """
     # For now, use only the filename without extension of the full parameter
@@ -263,18 +261,20 @@ def generate_save_subdir_str(network_params, sim_params):
 def get_simulation_savedir(network, sim_params):
     """Return absolute path to directory in which we save formatted sim data.
 
-    Either defined by user ('user_savedir' key in sim_params) or an
-    automatically generated subdirectory of SAVE_DIR."""
+    Either defined by user('user_savedir' key in sim_params) or an
+    automatically generated subdirectory of SAVE_DIR.
+
+    """
     if not sim_params.get('user_savedir', None):
         return join(SAVE_DIR, network.save_subdir_str)
-    else:
-        return sim_params['user_savedir']
+    return sim_params['user_savedir']
 
 
-def get_NEST_tmp_savedir(network, sim_params):
+def get_nest_tmp_savedir(network, sim_params):
     """Return absolute path to directory in which NEST saves recorder data.
 
-    Nest saves in the 'tmp' subdirectory of the simulation saving directory."""
+    Nest saves in the 'tmp' subdirectory of the simulation saving directory.
+    """
     return join(get_simulation_savedir(network, sim_params),
                 'tmp')
 
@@ -283,16 +283,16 @@ def save_formatted_recorders(network, sim_savedir):
     """Format all networks' recorder data.
 
     The format of the filenames in the saving directory for each population and
-    each recorded variable (eg: 'V_m', 'spike', 'g_exc', ...) is:
-        (<layer_name> + STRING_SEPARATOR + <population_name> + STRING_SEPARATOR
-        + <variable_name>)
+    each recorded variable(eg: 'V_m', 'spike', 'g_exc', ...) is:
+        ( < layer_name > + STRING_SEPARATOR + <population_name > + STRING_SEPARATOR
+        + <variable_name > )
 
     NB: As for now, multiple units of the same population at a given location
     are not distinguished between.
 
     Args:
-        network (Network object)
-        sim_savedir (str): path to directory in which we will save all the
+        network(Network object)
+        sim_savedir(str): path to directory in which we will save all the
             formatted recorder data
 
     """
@@ -353,19 +353,19 @@ def save_formatted_recorders(network, sim_savedir):
 
 
 def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
-    """Return non-formatted activity of a given variable saved by the recorder.
+    """Return non - formatted activity of a given variable saved by the recorder.
 
     Args:
-        rec_gid (tuple): Recorder's NEST GID. Singleton tuple of int.
-        variable (str): Variable recorded that we return. Used only for
+        rec_gid(tuple): Recorder's NEST GID. Singleton tuple of int.
+        variable(str): Variable recorded that we return. Used only for
             multimeters.
-        recorder_type (str): 'multimeter' or 'spike_detector'
+        recorder_type(str): 'multimeter' or 'spike_detector'
 
     Returns:
         tuple: Tuple of 1d np.arrays of the form
-            - (<time>, <sender_gid>, <activity>) for a multimeter, where
-                activity is that of the variable < variable >.
-            - (<time>, <sender_gid>) for a spike detector.
+            - ( < time > , < sender_gid > , < activity > ) for a multimeter, where
+                activity is that of the variable < variable > .
+            - (< time > , < sender_gid > ) for a spike detector.
 
     """
     record_to = nest.GetStatus(rec_gid, 'record_to')[0]
@@ -404,23 +404,22 @@ def load_and_combine(recorder_files_list):
     """Load the recorder data from files.
 
     Args:
-        recorder_files_list (list): List of absolute paths to the files in
+        recorder_files_list(list): List of absolute paths to the files in
             which NEST saved a single recorder's activity.
 
     Returns:
         (np.array): Array of which columns are the files' columns and rows are
             the events recorded in the union of all files. If all the files are
             empty or there is no filename, returns an array with 0 rows.
-            Array np-loaded in each text file is enforced to have two
+            Array np - loaded in each text file is enforced to have two
             dimensions. If no data is found at all, returns an array with zero
             rows.
 
     """
     file_data_list = [np.loadtxt(filepath, dtype=float, ndmin=2)
                       for filepath in recorder_files_list
-                      if isfile(filepath) and not (stat(filepath).st_size == 0)]
+                      if isfile(filepath) and not stat(filepath).st_size == 0]
 
     if file_data_list:
         return np.concatenate(file_data_list, axis=0)
-    else:
-        return np.empty((0, 10))
+    return np.empty((0, 10))

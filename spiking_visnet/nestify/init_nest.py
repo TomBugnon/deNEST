@@ -126,7 +126,6 @@ def create_neurons(neuron_models):
                                   desc='Create neurons: '):
         nest.CopyModel(base_nest_model, model_name, dict(params_chainmap))
     return
-    print('Done.')
 
 
 def create_synapses(synapse_models):
@@ -145,7 +144,6 @@ def create_synapses(synapse_models):
                        model_name,
                        dict(format_synapse_params(params_chainmap)))
     return
-    print('Done.')
 
 
 def format_synapse_params(syn_params):
@@ -217,9 +215,8 @@ def connect_recorders(pop_list, layers):
     """
     for pop in tqdm(pop_list,
                     desc='Connect recorders: '):
-        [connect_rec(pop, recorder_type, layers)
-         for recorder_type in ["multimeter", "spike_detector"]]
-    return pop_list
+        for recorder_type in ["multimeter", "spike_detector"]:
+            connect_rec(pop, recorder_type, layers)
 
 
 def connect_rec(pop, recorder_type, layers):
