@@ -7,9 +7,9 @@ Spiking VisNet
 """
 
 from .network import Network
+from .parameters import Params, load_params
 from .save import load_yaml, save_all
 from .simulation import Simulation
-from .parameters import Params, load_params
 
 
 def init(params):

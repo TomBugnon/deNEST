@@ -5,7 +5,8 @@
 
 """Save and load movies, networks, activity and simulation parameters."""
 
-from os import stat, makedirs
+import itertools
+from os import makedirs, stat
 from os.path import basename, exists, isfile, join, splitext
 from shutil import rmtree
 
