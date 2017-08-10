@@ -126,6 +126,14 @@ class Params(Tree):
 
     DEFAULT_DATA_KEY = 'params'
 
+    def _all_data(self):
+        # Access underlying data dictionary to avoid infinite recursion
+        return dict(ChainMap(*[a.data for a in self.ancestors()]))
+
+    def __repr__(self):
+        return 'Params[{num_children}]({data})'.format(
+            num_children=len(self.c), data=self._all_data())
+
     def __missing__(self, key):
         """Traverse the tree upwards to find the value."""
         return self.p[key]
@@ -133,14 +141,6 @@ class Params(Tree):
     def __contains__(self, key):
         """Return whether key is in self or any ancestor."""
         return super().__contains__(key) or key in self.p
-
-    def __repr__(self):
-        return 'Params[{num_children}]({data})'.format(
-            num_children=len(self.c), data=self._all_data())
-
-    def _all_data(self):
-        # Access underlying data dictionary to avoid infinite recursion
-        return dict(ChainMap(*[a.data for a in self.ancestors()]))
 
     def __iter__(self):
         """Iterate over keys, including inherited ones.
