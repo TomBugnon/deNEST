@@ -5,7 +5,7 @@
 """Provide the ``Tree`` class."""
 
 # pylint: disable=attribute-defined-outside-init,no-member
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods,too-many-ancestors
 
 from collections import ChainMap, UserDict
 
@@ -132,7 +132,6 @@ class Params(Tree):
 
     def __contains__(self, key):
         """Return whether key is in self or any ancestor."""
-        # Traverse the tree upwards to find the key.
         return super().__contains__(key) or key in self.p
 
     def __repr__(self):
