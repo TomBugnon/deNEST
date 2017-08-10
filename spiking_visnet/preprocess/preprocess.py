@@ -5,6 +5,7 @@
 """Preprocess all raw movies with a given pipeline."""
 
 import os
+import warnings
 from os import makedirs
 from os.path import exists, isdir, isfile, join
 
@@ -62,7 +63,7 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
     create_metadata(prepro_dir, prepro_params, network)
 
     # Create file sets for this preprocessing pipeline
-    update_sets(input_dir, prepro_subdir_str, prepro_dir)
+    update_sets(input_dir, prepro_subdir_str)
 
     # Create a default stimulus file for this preprocessing pipeline
     create_default_stim_yaml(input_dir, prepro_subdir_str)
@@ -93,8 +94,8 @@ def create_default_stim_yaml(input_dir, prepro_subdir_str):
 
     default_stim_filename = (DEFAULT_STIM_NAME + '_' + DEFAULT_SET + '_'
                              + prepro_subdir_str + '.yml')
-    default_stim_path = join(input_dir,
-                             INPUT_SUBDIRS['stimuli'],
+    stim_dir_path = join(input_dir, INPUT_SUBDIRS['stimuli'])
+    default_stim_path = join(stim_dir_path,
                              default_stim_filename)
 
     default_set_name = (DEFAULT_SET + '_' + prepro_subdir_str)
@@ -102,17 +103,23 @@ def create_default_stim_yaml(input_dir, prepro_subdir_str):
                             INPUT_SUBDIRS['preprocessed_input_sets'],
                             default_set_name)
 
-    set_filenames = [f for f in os.listdir(default_set_path)
-                     if not f == METADATA_FILENAME]
+    # Check existence of a default set
+    if not isdir(default_set_path):
+        warnings.warn('No default set. Could not create default stimulus.')
+    # Create the default stimulus yaml
+    else:
+        set_filenames = [f for f in os.listdir(default_set_path)
+                         if not f == METADATA_FILENAME]
 
-    save_as_yaml(default_stim_path,
-                 {
-                     'sequence': set_filenames,
-                     'set_name': default_set_name
-                 })
+        makedirs(stim_dir_path, exist_ok=True)
+        save_as_yaml(default_stim_path,
+                     {
+                         'sequence': set_filenames,
+                         'set_name': default_set_name
+                     })
 
 
-def update_sets(input_dir, prepro_subdir_str, prepro_dir):
+def update_sets(input_dir, prepro_subdir_str):
     """Create preprocessed input sets.
 
     For all the input subsets in raw_input_sets, use symlinks to create the
