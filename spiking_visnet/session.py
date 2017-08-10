@@ -42,7 +42,8 @@ class Session(collections.UserDict):
             nest.ResetNetwork()
 
         # Change dynamic variables
-        toggle_dynamic_synapses(network, on_off=self['dynamic_synapses'])
+        toggle_dynamic_synapses(network,
+                                on_off=self.get('dynamic_synapses', 1))
 
         # Set input.
         curr_time = nest.GetKernelStatus('time')

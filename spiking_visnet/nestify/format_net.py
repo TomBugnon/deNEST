@@ -307,7 +307,7 @@ def get_connection_params(connection, models, layers):
     return params.new_child(
         {'sources': {'model': connection['source_population']},
          'targets': {'model': connection['target_population']},
-         'mask': scaled_mask(params['mask'], rf_factor),
+         'mask': scaled_mask(params.get('mask', {}), rf_factor),
          'kernel': scaled_kernel(params['kernel'], rf_factor),
          'weights': scaled_weights(params['weights'],
                                    source_params.get('weight_gain', 1))})
@@ -319,9 +319,9 @@ def scaled_mask(mask_dict, scale_factor):
     assert len(keys) <= 1, 'Wrong formatting of connection mask'
     mask_dict_copy = cp.deepcopy(mask_dict)
 
-    if keys[0] == 'circular':
+    if 'circular' in keys:
         mask_dict_copy['circular']['radius'] *= scale_factor
-    elif keys[0] == 'rectangular':
+    elif 'rectangular' in keys:
         mask_dict_copy['rectangular'] = {
             key: [scale_factor * scalar for scalar in scalar_list]
             for key, scalar_list in mask_dict['rectangular'].items()
