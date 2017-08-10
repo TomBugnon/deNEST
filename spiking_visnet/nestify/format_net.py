@@ -167,8 +167,9 @@ def format_nest_layer_params(layer_params):
     return {
         'rows': layer_params['nrows'],
         'columns': layer_params['ncols'],
-        'extent': [layer_params['visSize'], layer_params['visSize']],
-        'edge_wrap': layer_params['edge_wrap'],
+        'extent': [layer_params.get('visSize', float(layer_params['nrows'])),
+                   layer_params.get('visSize', float(layer_params['ncols']))],
+        'edge_wrap': layer_params.get('edge_wrap', True),
         'elements': get_layer_elements(layer_params),
     }
 
@@ -298,10 +299,10 @@ def get_connection_params(connection, models, layers):
     # - maskfactor?
     # - btw error in ht files: secondary horizontal intralaminar mixes dcpS and
     #   dcpP
-    if not target_params['scale_kernels_masks']:
+    if not target_params.get('scale_kernels_masks', False):
         rf_factor = 1
     else:
-        rf_factor = (target_params['rf_scale_factor']
+        rf_factor = (target_params.get('rf_scale_factor', 1)
                      * source_params['visSize'] / (source_size - 1))
     return params.new_child(
         {'sources': {'model': connection['source_population']},
@@ -309,7 +310,7 @@ def get_connection_params(connection, models, layers):
          'mask': scaled_mask(params['mask'], rf_factor),
          'kernel': scaled_kernel(params['kernel'], rf_factor),
          'weights': scaled_weights(params['weights'],
-                                   source_params['weight_gain'])})
+                                   source_params.get('weight_gain', 1))})
 
 
 def scaled_mask(mask_dict, scale_factor):
@@ -419,7 +420,7 @@ def duplicate_connection(connection, models, layers):
     if 'filters' in layer_params.keys():
         exp_source_names = filt.get_expanded_names(source,
                                                    layer_params['filters'])
-        if layer_params['scale_input_weights']:
+        if layer_params.get('scale_input_weights', True):
             connection['params']['weights'] = (
                 base_conn_weight(connection, models) / len(exp_source_names))
         return [
@@ -451,11 +452,11 @@ def get_multimeter(pop_params):
 
     """
     return {'record_pop': pop_params['record_multimeter'],
-            'rec_params': {'record_from': pop_params['mm_record_from'],
-                           'record_to': pop_params['mm_record_to'],
-                           'interval': pop_params['mm_interval'],
-                           'withtime': pop_params['mm_withtime'],
-                           'withgid': pop_params['mm_withgid']}}
+            'rec_params': {'record_from': pop_params.get('mm_record_from', 'V_m'),
+                           'record_to': pop_params.get('mm_record_to', 'file'),
+                           'interval': pop_params.get('mm_interval', 1.),
+                           'withtime': pop_params.get('mm_withtime', True),
+                           'withgid': pop_params.get('mm_withgid', True)}}
 
 
 def get_spike_detector(pop_params):
@@ -474,9 +475,9 @@ def get_spike_detector(pop_params):
 
     """
     return {'record_pop': pop_params['record_spike_detector'],
-            'rec_params': {'record_to': pop_params['sd_record_to'],
-                           'withtime': pop_params['sd_withtime'],
-                           'withgid': pop_params['sd_withgid']}}
+            'rec_params': {'record_to': pop_params.get('sd_record_to', 'file'),
+                           'withtime': pop_params.get('sd_withtime', True),
+                           'withgid': pop_params.get('sd_withgid', True)}}
 
 
 def expand_populations(pop_list, non_expanded_layers):
