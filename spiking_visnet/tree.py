@@ -37,7 +37,10 @@ class Tree(UserDict):
         if data_key is None:
             data_key = self.DEFAULT_DATA_KEY
         # Put data into self.
-        super().__init__(mapping.get(data_key, dict()))
+        try:
+            super().__init__(mapping.get(data_key, dict()))
+        except (AttributeError, TypeError):
+            raise ValueError(f'not a valid tree: {mapping}')
         # Default parent is an empty dictionary so dictionary-related errors
         # are raised when traversing upwards.
         self.p = dict()  # pylint: disable=invalid-name
