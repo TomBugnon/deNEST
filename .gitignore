@@ -3,9 +3,7 @@ __pycache__
 .venv
 **/*.pyc
 .ipynb_checkpoints
-
 test.py
 testdir
 input
 output
-output_dir
