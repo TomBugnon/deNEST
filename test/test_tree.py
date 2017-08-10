@@ -135,15 +135,15 @@ def trees():
     return [
         Params({DATA_KEY: {0: 0}}),
         Params({DATA_KEY: {0: 1, 1: 1},
-              0: {DATA_KEY: {0: 0}}}),
+                0: {DATA_KEY: {0: 0}}}),
         Params({DATA_KEY: {0: 0},
-              0: {DATA_KEY: {0: 1}},
-              1: {}}),
+                0: {DATA_KEY: {0: 1}},
+                1: {}}),
         Params({DATA_KEY: {0: 0, 2: 2},
-              1: {DATA_KEY: {0: 0}},
-              2: {}}),
+                1: {DATA_KEY: {0: 0}},
+                2: {}}),
         Params({DATA_KEY: {0: 0, 1: 2},
-              'hi': {}}),
+                'hi': {}}),
     ]
 
 
