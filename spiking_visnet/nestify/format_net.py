@@ -300,9 +300,9 @@ def get_connection_params(connection, models, layers):
     # - btw error in ht files: secondary horizontal intralaminar mixes dcpS and
     #   dcpP
     if not target_params.get('scale_kernels_masks', False):
-        rf_factor = 1
+        rf_factor = 1.
     else:
-        rf_factor = (target_params.get('rf_scale_factor', 1)
+        rf_factor = (target_params.get('rf_scale_factor', 1.)
                      * source_params['visSize'] / (source_size - 1))
     return params.new_child(
         {'sources': {'model': connection['source_population']},
@@ -333,7 +333,7 @@ def scaled_mask(mask_dict, scale_factor):
 def scaled_kernel(kernel, scale_factor):
     """Scale the size of a connection kernel by `scale_factor`."""
     if isinstance(kernel, (float, int)):
-        return kernel
+        return float(kernel)
     elif isinstance(kernel, (dict)) and 'gaussian' in kernel.keys():
         kernel_copy = cp.deepcopy(kernel)
         kernel_copy['gaussian']['sigma'] *= scale_factor
