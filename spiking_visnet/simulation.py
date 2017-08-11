@@ -30,4 +30,4 @@ class Simulation:
         """Run each of the sessions in order."""
         for name in self.order:
             print(f'Running session `{name}`...')
-            self.sessions[name].run(params, network)
+            self.sessions[name].run(network)

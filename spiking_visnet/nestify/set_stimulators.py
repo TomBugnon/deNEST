@@ -5,8 +5,6 @@
 
 """Set the spike timings of input layers from stimuli."""
 
-from itertools import chain, repeat
-
 import nest
 import numpy as np
 from tqdm import tqdm
@@ -14,50 +12,32 @@ from tqdm import tqdm
 from ..utils.filters_layers import filter_index
 
 
-def set_stimulators_state(network, full_stim, session_params, stim_metadata,
-                          start_time=0.):
+def set_stimulators_state(network, session, start_time=0.):
     """Set in NEST the spike times for all input neurons during next session.
 
-    1- Shuffle the (nframes * nfilters * nrows * ncols) array in space and time.
-    2- For each layer:
-        - if the stimulators are poisson generators, set their rate according
-            to the first frame of the movie_1
-        - if the stimulators are spike generators, set their spike times from
-            a poisson distribution of varying instantaneous rate depending on
-            which frame is shown to the network.
+    For each layer:
+    - if the stimulators are poisson generators, set their rate according
+        to the first frame of the full input movie (session.full_stim)
+    - if the stimulators are spike generators, set their spike times from
+        a poisson distribution of varying instantaneous rate given by the
+        session's full input movie (session.full_stim)
 
     Args:
-        network (Network object)
-        full_stim (np.array): (nframes * nfilters * nrows * ncols) numpy
-            array
-        session_params (dict): parameters of the session
-        stim_metadata (dict): metadata of the input preprocessing (used to
-            map between filter and input layer).
+        network (Network object): network
+        session (Session object): Session object. Contains the full stimulus
+            defining the instantaneous rates (by timestep)
         start_time (float): Current time of the NEST kernel. Used to set the
             spike times in the future.
 
-    Returns:
-        str: Type of stimulator. Used to set simulation time. Either:
-            - 'poisson_generator' (default), or
-            - 'spike_generator' if there is at least one layer of spike
-                generators
-
     """
-    # Initialize Output
-    stimulator_type = None
-
-    # Shuffle stimulus
-    shuffled_stim = shuffle_stim(full_stim, session_params)
-
     # Iterate on stimulation device layers.
     input_stim_layers = network.input_stim_layers()
-
     for input_stim_layer in tqdm(input_stim_layers,
                                  desc="Set input layers' activity"):
-
         # 3D array describing the movie shown to a single layer.
-        filt_index = filter_index(input_stim_layer, stim_metadata=stim_metadata)
-        layer_movie = shuffled_stim[:, filt_index, :, :]
+        filt_index = filter_index(input_stim_layer,
+                                  stim_metadata=session.stim_metadata)
+        layer_movie = session.full_stim[:, filt_index, :, :]
 
         # Get layer's population name and stimulator type.
         population_name = network.populations(input_stim_layer)[0]
@@ -70,24 +50,10 @@ def set_stimulators_state(network, full_stim, session_params, stim_metadata,
             set_poisson_rates(network, layer_image,
                               input_stim_layer, population_name)
 
-            if not stimulator_type == 'spike_generator':
-                stimulator_type = stim_type
-
         elif stim_type == 'spike_generator':
 
             set_spike_times(network, layer_movie, input_stim_layer,
-                            population_name, start_time,
-                            session_params['time_per_frame'])
-
-            stimulator_type = stim_type
-
-    return stimulator_type
-
-
-# TODO:
-def shuffle_stim(stim, session_params):
-    """Shuffle a (T*nframes*nrows*ncols) stimulus in space and time."""
-    return stim
+                            population_name, start_time)
 
 
 def set_poisson_rates(network, image, layer, population):
@@ -109,19 +75,15 @@ def set_poisson_rates(network, image, layer, population):
 
 # TODO
 def set_spike_times(network, movie, layer, population, start_time=0.,
-                    time_per_frame=1, distribution='poisson'):
-    """TODO."""
+                    distribution='poisson'):
+    """Draws spikes and set an input population state for a future session."""
     max_input_rate = network['layers'][layer]['params']['max_input_rate']
     gid_locs = network.locations[layer][population]
 
     for gid, location in gid_locs['location'].items():
         # Rate of firing during each frame for a single unit
-        frame_rates = movie[:, location[0], location[1]] * max_input_rate
+        inst_rates = movie[:, location[0], location[1]] * max_input_rate
 
-        # Instantaneous rate of firing (a frame lasts time_per_frame ms.)
-        inst_rates = list(chain.from_iterable(repeat(frame_rate,
-                                                     int(time_per_frame))
-                                              for frame_rate in frame_rates))
         # Times of spiking for that unit
         spike_times = draw_spike_times(inst_rates,
                                        start_time=start_time,
