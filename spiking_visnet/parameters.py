@@ -57,5 +57,5 @@ def load_params(path, overrides=None):
     trees = [load_yaml(directory, relative_path)
              for relative_path in load_yaml(path)]
     if overrides:
-        trees.append(overrides)
+        trees.insert(0, overrides)
     return Params(chaintree(trees))
