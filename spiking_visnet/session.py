@@ -8,7 +8,7 @@
 
 import collections
 from os import stat
-from os.path import exists, join
+from os.path import exists, isdir, isfile, join
 
 import nest
 import numpy as np
@@ -72,13 +72,16 @@ class Session(collections.UserDict):
     def load_session_stim(self):
         """Load the stimulus for the session.
 
-        If there is a user-specified input path in the session parameters
+        - If there is a user-specified input path in the session parameters
         ('user_input' key) pointing to  a numpy array, load and return it.
-        Otherwise, load from the yaml file in the INPUT_DIR/stimuli
-        subdirectory ('session_stims').
+        - if the user_specified path points to a directory, use it as the
+        INPUT_DIR in which to search for the session's stimuli yaml file
+        (`session_stims` key)
+        - Otherwise, load from the yaml file in the INPUT_DIR/stimuli
+        subdirectory (`session_stims` key).
 
         Return:
-        (tuple): (< stim > , < stim_metadata > ) where:
+        (tuple): (<stim> , <stim_metadata> ) where:
             <stim > (np - array): (T * nfilters * nrows * ncols) array.
             <stim_metadata > (dict or None):
                 None if stimulus is loaded directly from a numpy array.
@@ -86,20 +89,24 @@ class Session(collections.UserDict):
                 and filter dimensions) otherwise.
 
         """
-        if self.get('user_input', False):
+        user_input = self.get('user_input', False)
+        if user_input and isfile(user_input):
             return (load_as_numpy(self['user_input']), None)
-        return load_stim_yaml(self['session_stims'])
+        elif user_input and isdir(user_input):
+            input_dir = user_input
+        else:
+            input_dir = INPUT_DIR
+        return load_stim_yaml(input_dir, self['session_stims'])
 
 
-def load_stim_yaml(session_stims_filename):
+def load_stim_yaml(input_dir, session_stims_filename):
     """Load and concatenate a sequence of movie stimuli from a 'stim' yaml file.
 
     Load only files that exist and are of non - null size. Concatenate along the
     first dimension(time).
 
     Args:
-        <session_stims_filename > (str): value of the 'session_stims' entry in
-            the session parameters. Filename in INPUT_DIR / stimuli directory.
+        <session_stims_path> (str): Path to the session's stimulus file.
 
     Return:
         (tuple): (< stim > , < stim_metadata > ) where:
@@ -108,10 +115,10 @@ def load_stim_yaml(session_stims_filename):
                 to map input layers and filter dimensions.
     """
     # Load all existing non-empty movies
-    stimuli_params = load_yaml(INPUT_DIR,
-                               INPUT_SUBDIRS['stimuli'],
-                               session_stims_filename)
-    full_movie_paths = [join(INPUT_DIR,
+    stimuli_params = load_yaml(join(input_dir,
+                                    INPUT_SUBDIRS['stimuli'],
+                                    session_stims_filename))
+    full_movie_paths = [join(input_dir,
                              INPUT_SUBDIRS['preprocessed_input_sets'],
                              stimuli_params['set_name'],
                              filename)
