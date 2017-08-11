@@ -70,10 +70,9 @@ def combine_values(values):
     values = [v for v in values if v]
     if len(values) == 0:
         return {}
-    elif len(values) > 1 and all([isinstance(x, dict) for x in values]):
+    elif len(values) > 1 and all([isinstance(x, Mapping) for x in values]):
         return ChainMap(*values)
-    else:
-        return(values[0])
+    return(values[0])
 
 
 def all_key_values(dict_list, omit_keys=[]):
