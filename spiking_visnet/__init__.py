@@ -36,6 +36,7 @@ def simulate(network, params):
     simulation = Simulation(params['children']['sessions'])
     simulation.run(params, network)
     print('...finished simulation.', flush=True)
+    save_all(network, simulation, params)
 
 
 def run(path, overrides=None):
@@ -53,7 +54,5 @@ def run(path, overrides=None):
     print('done.', flush=True)
     # Initialize kernel and network
     network = init(params)
-    # Simulate
+    # Simulate and save.
     simulate(network, params)
-    # Save
-    save_all(network, params)
