@@ -91,6 +91,7 @@ def save_all(network, full_params_tree):
     if sim_params['delete_tmp_dir']:
         rmtree(get_nest_tmp_savedir(network, sim_params))
 
+    print('Save synapses.')
     # Save synapses' parameters.
     save_synapses(network, sim_savedir)
 
@@ -119,7 +120,8 @@ def save_synapses(network, sim_savedir):
     """
     locations = network.locations
 
-    for connection in network['connections']:
+    for connection in tqdm(network['connections'],
+                           desc='--> Format synapses data.'):
 
         # Connection string for saving filename
         base_connection_string = make_base_connection_string(connection)
