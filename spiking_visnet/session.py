@@ -16,8 +16,8 @@ from user_config import INPUT_DIR, INPUT_SUBDIRS, METADATA_FILENAME
 
 from .nestify.nest_modifs import toggle_dynamic_synapses
 from .nestify.set_stimulators import set_stimulators_state
-from .save import load_yaml
-from .utils.sparsify import load_as_numpy
+from .save import load_yaml, save_as_yaml
+from .utils.sparsify import load_as_numpy, save_as_sparse
 
 
 class Session(collections.UserDict):
@@ -35,6 +35,18 @@ class Session(collections.UserDict):
         # Simulation time depends on length of input movie.
         self.sim_time = min(np.size(self.full_stim, axis=0),
                             self['max_session_sim_time'])
+
+    def save_stim(self, save_dir, session_name):
+        """Save full stim (per timestep), labels (per timestep) and metadata."""
+        full_stim_filename = 'session_'+session_name+'_full_stim'
+        labels_filename = 'session_'+session_name+'_labels'
+        stim_metadata_filename = 'session_'+session_name+'_stim_metadata.yml'
+        save_as_sparse(join(save_dir, full_stim_filename),
+                       self.full_stim)
+        save_as_sparse(join(save_dir, labels_filename),
+                       self.labels)
+        save_as_yaml(join(save_dir, stim_metadata_filename),
+                     self.stim_metadata)
 
     def initialize(self, network):
         """Initialize session.

@@ -31,3 +31,8 @@ class Simulation:
         for name in self.order:
             print(f'Running session `{name}`...')
             self.sessions[name].run(network)
+
+    def save_sessions(self, save_dir):
+
+        for session_name, session in self.sessions.items():
+            session.save_stim(save_dir, session_name)

@@ -46,7 +46,7 @@ def load_yaml(*args):
         return []
 
 
-def save_all(network, full_params_tree):
+def save_all(network, simulation, full_params_tree):
     """Save all network and simulation information.
 
     - the full parameter tree use to define the network and the simulation,
@@ -56,15 +56,12 @@ def save_all(network, full_params_tree):
         (defined in network.populations).
     - The simulation information (containing eg: 'ms per timestep' and session
         information)
+    - The session stimuli ()
 
     Args:
         network (Network): The nest-initialized network.
-        sim_params (dict): 'simulation' subtree of the full parameter tree.
-            Used to recover saving parameters.
-        user_savedir (str): If specified, path where all the results are
-            saved. Otherwise, save everything in a subdirectory of config's
-            OUTPUT_DIR.
-
+        simulation (Simulation): Simulation object. Contains Sessions
+        full_params_tree (Params): Parameter object
     """
     # Get relevant part of the full param tree.
     sim_params = full_params_tree['children']['simulation']
@@ -98,6 +95,10 @@ def save_all(network, full_params_tree):
     # TODO: Save simulation data
     print('Save simulation metadata.')
     save_simulation()
+
+    # Save sessions stimuli
+    print('Save sessions stimuli')
+    simulation.save_sessions(sim_savedir)
 
 
 def save_synapses(network, sim_savedir):
