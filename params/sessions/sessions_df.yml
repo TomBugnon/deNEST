@@ -27,13 +27,13 @@ children:
           dynamic_synapses: False
           # NOTE: Might reset STDP synapses in a future release of NEST!
           reset_network: True
-      training:
-        name: training
-        params:
-          session_stims: ''
-          dynamic_synapses: True
-      testing:
-        name: testing
-        params:
-          session_stims: ''
-          dynamic_synapses: True
+    #   training:
+    #     name: training
+    #     params:
+    #       session_stims: ''
+    #       dynamic_synapses: True
+    #   testing:
+    #     name: testing
+    #     params:
+    #       session_stims: ''
+    #       dynamic_synapses: True
