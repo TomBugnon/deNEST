@@ -8,8 +8,4 @@ c2:
       params: {}
 c3:
   0: {}
-params:
-  p1: 0
-  0: 0
-  ? !!python/tuple [0, 0]
-  : 0
+params: {p1: 0, 0: 0, 1: 0}
