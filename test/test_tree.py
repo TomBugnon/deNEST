@@ -21,7 +21,7 @@ DATA_KEY = 'params'
 @pytest.fixture
 def x():
     return {
-        DATA_KEY: {'p1': 0, 0: 0, (0, 0): 0},
+        DATA_KEY: {'p1': 0, 0: 0, 1: 0},
         'c1': {
             DATA_KEY: {0: 1, 1: 1}
         },

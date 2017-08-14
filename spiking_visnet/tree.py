@@ -54,12 +54,32 @@ class Tree(UserDict):
         for child in self.c.values():
             child.p = self
 
+    def __repr__(self, data=None):
+        if data is None:
+            data = self.data
+        return '{cls}[{num_children}]({data})'.format(
+            cls=self.__class__.__name__, num_children=len(self.c), data=data)
+
     def __eq__(self, other):
         """Trees are equal when their data and children are equal.
 
         Note that parents can differ.
         """
         return self.data == other.data and self.c == other.c
+
+    def get_node(self, name):
+        """Traverse the tree downward to get a node.
+
+        If ``name`` is not iterable, returns just the child node of that name.
+        """
+        if isinstance(name, tuple) and name:
+            name, descendants = name[0], name[1:]
+            if descendants:
+                return self.get_node(name).get_node(descendants)
+        try:
+            return self.c[name]
+        except KeyError:
+            raise ValueError(f'no child named `{name}`')
 
     def ancestors(self):
         """Generate the ancestors of this node.
@@ -124,18 +144,17 @@ class Tree(UserDict):
             return cls(yaml.load(tree))
 
 
-class Params(Tree):
+class Scope(Tree):
     """A tree of dict-like nodes that inherit and override ancestors' data."""
-
-    DEFAULT_DATA_KEY = 'params'
+    # Append Tree docstring
+    __doc__ += '\n' + '\n'.join(Tree.__doc__.split('\n')[1:])
 
     def _all_data(self):
         # Access underlying data dictionary to avoid infinite recursion
         return dict(ChainMap(*[a.data for a in self.ancestors()]))
 
-    def __repr__(self):
-        return 'Params[{num_children}]({data})'.format(
-            num_children=len(self.c), data=self._all_data())
+    def __repr__(self):  # pylint: disable=signature-differs
+        return super().__repr__(data=self._all_data())
 
     def __missing__(self, key):
         """Traverse the tree upwards to find the value."""
@@ -153,6 +172,44 @@ class Params(Tree):
         yield from self._all_data().keys()
 
 
-# Complete the Params docstring with all but the first line of the Tree
-# docstring
-Params.__doc__ = '\n'.join([Params.__doc__] + Tree.__doc__.split('\n')[1:])
+class Params(Scope):
+    """A tree of parameters.
+
+    Supports traversal by access with tuples.
+    """
+    # Insert Tree docstring
+    __doc__ += '\n'.join(Tree.__doc__.split('\n')[1:])
+    # Append examples
+    __doc__ += """
+    Examples:
+        Accessing with a tuple traverses the tree; data is retreived from the
+        destination node with the last element of the tuple.
+
+        >>> parameters = Params(
+        ...     {'c1': {'c2': {'params': {'last_key': 'value'}}}}
+        ... )
+        >>> parameters[('c1', 'c2', 'last_key')]
+        'param_value'
+
+        Values can be set similarly:
+
+        >>> parameters = Params(
+        ...     {'c1': {'c2': {'params': {'last_key': 'value'}}}}
+        ... )
+        >>> parameters[('c1', 'c2', 'last_key')] = 'new_value'
+        >>> parameters[('c1', 'c2', 'last_key')]
+        'new_value'
+    """
+
+    DEFAULT_DATA_KEY = 'params'
+
+    def __getitem__(self, key):
+        if isinstance(key, tuple):
+            return self.get_node(key[:-1])[key[-1]]
+        return super().__getitem__(key)
+
+    def __setitem__(self, key, value):
+        if isinstance(key, tuple):
+            self[key[:-1]][key[-1]] = value
+        else:
+            super().__setitem__(key, value)
