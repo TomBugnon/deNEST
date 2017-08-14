@@ -106,7 +106,8 @@ class Session(collections.UserDict):
 
         # Trim the stimulus in case there is a maximum allowed simulation time
         # for the session
-        max_sim_time = int(self['max_session_sim_time'])
+        max_sim_time = int(min(np.size(shuffled_stim, axis=0),
+                               self['max_session_sim_time'])) 
         self.full_stim = shuffled_stim[:max_sim_time]
         self.labels = shuffled_labels[:max_sim_time]
 
