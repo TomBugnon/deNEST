@@ -32,9 +32,6 @@ class Session(collections.UserDict):
         self.labels = None
         self.stim_metadata = None
         self.load_full_session_stim()
-        # Simulation time depends on length of input movie.
-        self.sim_time = min(np.size(self.full_stim, axis=0),
-                            self['max_session_sim_time'])
 
     def save_stim(self, save_dir, session_name):
         """Save full stim (per timestep), labels (per timestep) and metadata."""
@@ -75,8 +72,9 @@ class Session(collections.UserDict):
         """Initialize and run session."""
         print("Initialize session")
         self.initialize(network)
-        print(f"Run `{self.sim_time}`ms")
-        nest.Simulate(self.sim_time)
+        sim_time = np.size(self.full_stim, axis=0)
+        print(f"Run `{sim_time}`ms")
+        nest.Simulate(float(sim_time))
 
 
     def load_full_session_stim(self):
@@ -101,9 +99,16 @@ class Session(collections.UserDict):
                                          self['time_per_frame'])
         full_stim_by_timestep = frames_to_time(full_stim_by_frame,
                                                self['time_per_frame'])
-        self.full_stim, self.labels = self.shuffle_stim(full_stim_by_timestep,
-                                                        timestep_labels)
 
+        # Shuffle stimulus in space and time
+        shuffled_stim, shuffled_labels = self.shuffle_stim(full_stim_by_timestep,
+                                                           timestep_labels)
+
+        # Trim the stimulus in case there is a maximum allowed simulation time
+        # for the session
+        max_sim_time = int(self['max_session_sim_time'])
+        self.full_stim = shuffled_stim[:max_sim_time]
+        self.labels = shuffled_labels[:max_sim_time]
 
 
     def load_session_stim(self):
