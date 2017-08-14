@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # parameters.py
 
-"""Provides the ``Params`` class."""
+"""Provides the ``AutoDict`` class."""
 
-import collections
+from collections import UserDict
 import functools
 import operator
 from os.path import abspath as _abspath
@@ -14,13 +14,10 @@ from .save import load_yaml
 from .utils.structures import chaintree
 
 
-class Params(collections.UserDict):
-    """Represent simulation parameters.
+class AutoDict(UserDict):
+    """A dictionary supporting deep access and modification with tuples.
 
-    Same as a dictionary, but:
-        - Allows getting and setting nested values with a tuple of keys
-        - Allows accessing keys that don't exist; the default value is another
-            ``Params`` instance
+    Intermediate dictionaries are created if necessary.
     """
 
     def __getitem__(self, key):
@@ -35,8 +32,8 @@ class Params(collections.UserDict):
             super().__setitem__(key, value)
 
     def __missing__(self, key):
-        self[key] = Params()
-        return self[key]
+        value = self[key] = type(self)()
+        return value
 
 
 def load_params(path, overrides=None):
@@ -50,7 +47,7 @@ def load_params(path, overrides=None):
             precedence over those in the file.
 
     Returns:
-        Params: the loaded parameters with overrides applied.
+        AutoDict: the loaded parameters with overrides applied.
 
     """
     directory = _dirname(_abspath(path))
@@ -58,4 +55,4 @@ def load_params(path, overrides=None):
              for relative_path in load_yaml(path)]
     if overrides:
         trees.insert(0, overrides)
-    return Params(chaintree(trees))
+    return AutoDict(chaintree(trees))
