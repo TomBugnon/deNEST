@@ -10,12 +10,19 @@ import itertools
 import time
 
 import numpy as np
+import pylab
 from bokeh import palettes
 from bokeh.io import output_notebook, push_notebook, show
 from bokeh.plotting import figure
 
 TOOLS = 'crosshair,pan,wheel_zoom,box_zoom,reset,tap,box_select,lasso_select'
 PALETTE = palettes.Inferno256
+
+
+def show_distribution(image):
+    """Show histogram of values in image."""
+    pylab.hist(image.flatten())
+    pylab.show()
 
 
 def show_im(image):
