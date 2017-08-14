@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# test_tree.py
+# test_parameters.py
 
-"""Test the ``Tree`` class."""
+"""Test the ``Params`` class."""
 
 # pylint: disable=missing-docstring,invalid-name,redefined-outer-name
 # pylint: disable=not-an-iterable
@@ -12,7 +12,7 @@ import os
 import yaml
 import pytest
 
-from spiking_visnet.tree import Params
+from spiking_visnet.parameters import Params
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
