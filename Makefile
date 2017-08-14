@@ -1,4 +1,5 @@
 src = spiking_visnet
+test = test
 
 IGNORE = '\033[0;30m'
 GOOD = '\033[0;32m'
@@ -13,10 +14,12 @@ watch: test
 	watchmedo shell-command \
 		--command='make test' \
 		--recursive --drop --ignore-directories \
-		--patterns="*.py" $(src)
+		--patterns="*.py" $(src) $(test)
 
 .PHONY: test
 test:
-	python -m spiking_visnet params/default.yml -i input.npy -o output
-	echo "$(IGNORE)"
-	colordiff params_old.yml output/params.yaml && echo "$(SUCCESS)" || echo "$(FAILURE)"
+	py.test test -v
+
+# python -m spiking_visnet params/default.yml -i input.npy -o output
+# echo "$(IGNORE)"
+# colordiff params_old.yml output/params.yaml && echo "$(SUCCESS)" || echo "$(FAILURE)"
