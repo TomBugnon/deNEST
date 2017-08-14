@@ -2,14 +2,22 @@
 # -*- coding: utf-8 -*-
 # tree.py
 
-"""Provide the ``Tree`` class."""
+"""Provide the ``Tree``, ``Scope``, and ``Params`` class."""
 
 # pylint: disable=attribute-defined-outside-init,no-member
 # pylint: disable=too-few-public-methods,too-many-ancestors
 
 from collections import ChainMap, UserDict
+from collections.abc import Mapping
+from pprint import pformat
 
 import yaml
+
+
+class InvalidTreeError(ValueError):
+    """Raised when a mapping is not a valid ``Tree``."""
+
+    pass
 
 
 class Tree(UserDict):
@@ -31,24 +39,23 @@ class Tree(UserDict):
 
     DEFAULT_DATA_KEY = 'data'
 
-    def __init__(self, mapping=None, data_key=None):
+    def __init__(self, mapping=None, data_key=None, validate=True):
+        self.data_key = data_key or self.DEFAULT_DATA_KEY
+        # Validate mapping.
         if mapping is None:
             mapping = dict()
-        if data_key is None:
-            data_key = self.DEFAULT_DATA_KEY
+        if validate:
+            mapping = self.validate(mapping)
         # Put data into self.
-        try:
-            super().__init__(mapping.get(data_key, dict()))
-        except (AttributeError, TypeError):
-            raise ValueError(f'not a valid tree: {mapping}')
+        super().__init__(mapping.get(self.data_key, dict()))
         # Default parent is an empty dictionary so dictionary-related errors
         # are raised when traversing upwards.
         self.p = dict()  # pylint: disable=invalid-name
         # Create named child nodes, if any.
         self.c = {  # pylint: disable=invalid-name
-            name: type(self)(child, data_key=data_key)
+            name: type(self)(child, data_key=self.data_key, validate=False)
             for name, child in mapping.items()
-            if name != data_key
+            if name != self.data_key
         }
         # Set the parent references on children.
         for child in self.c.values():
@@ -79,7 +86,7 @@ class Tree(UserDict):
         try:
             return self.c[name]
         except KeyError:
-            raise ValueError(f'no child named `{name}`')
+            raise KeyError(f'no child named `{name}`')
 
     def ancestors(self):
         """Generate the ancestors of this node.
@@ -142,6 +149,28 @@ class Tree(UserDict):
         """Load a YAML representation of a tree."""
         with open(path, 'rt') as tree:
             return cls(yaml.load(tree))
+
+    def validate(self, mapping, path=None):
+        """Check that a mapping is a valid ``Tree``."""
+        if path is None:
+            path = list()
+        if mapping:
+            self._validate(mapping, path)
+            for name, child in mapping.items():
+                # Validate data
+                if name == self.data_key:
+                    self._validate(child, path)
+                # Validate children
+                else:
+                    self.validate(child, path + [name])
+        return mapping
+
+    @staticmethod
+    def _validate(mapping, path):
+        if not isinstance(mapping, Mapping):
+            raise InvalidTreeError('invalid tree at {node}:\n{mapping}'.format(
+                node=f'node {path}' if path else 'root node',
+                mapping=pformat(mapping, indent=2)))
 
 
 class Scope(Tree):
