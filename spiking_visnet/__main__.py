@@ -33,6 +33,7 @@ from config import PYTHON_SEED
 from . import run
 from .__about__ import __version__
 from .parameters import AutoDict
+from .utils.structures import dictify
 
 random.seed(PYTHON_SEED)
 
@@ -52,9 +53,9 @@ def main():
     # Get command-line args from docopt.
     arguments = docopt(__doc__, argv=argv, version=__version__)
     # Get parameter overrides from the CLI options.
-    overrides = AutoDict({_CLI_ARG_MAP[key]: value
+    overrides = dictify(AutoDict({_CLI_ARG_MAP[key]: value
                          for key, value in arguments.items()
-                         if key in _CLI_ARG_MAP})
+                         if key in _CLI_ARG_MAP}))
     # Run it!
     run(arguments['<param_file.yml>'], overrides=overrides)
 
