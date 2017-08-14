@@ -4,10 +4,34 @@
 
 """Spiking VisNet."""
 
+import os
+
 from .network import Network
-from .parameters import load_params
+from .parameters import Params
 from .save import load_yaml, save_all
 from .simulation import Simulation
+
+__all__ = ['load_params', 'init', 'simulate', 'run']
+
+
+def load_params(path, overrides=None):
+    """Load a list of parameter files, optionally overriding some values.
+
+    Args:
+        path (str): The filepath to load.
+
+    Keyword Args:
+        overrides (dict): A dictionary containing parameters that will take
+            precedence over those in the file.
+
+    Returns:
+        Params: The loaded parameters with overrides applied.
+    """
+    directory = os.path.dirname(os.path.abspath(path))
+    return Params.merge(Params(overrides), *[
+        Params.load(directory, relative_path)
+        for relative_path in load_yaml(path)
+    ])
 
 
 def init(params):
