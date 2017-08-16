@@ -4,9 +4,9 @@
 
 """Provides the ``AutoDict`` class."""
 
-from collections import UserDict
 import functools
 import operator
+from collections import UserDict
 from os.path import abspath as _abspath
 from os.path import dirname as _dirname
 

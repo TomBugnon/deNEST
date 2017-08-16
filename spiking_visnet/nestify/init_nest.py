@@ -10,6 +10,7 @@ from os import makedirs
 import nest
 import nest.topology as tp
 import numpy as np
+
 from tqdm import tqdm
 
 
