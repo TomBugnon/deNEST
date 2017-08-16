@@ -93,7 +93,7 @@ children:
               params:
                 receptor_type: GABA_B
         static_synapse:
-          nest_model: static_synapse
+          nest_model: stdp_synapse
           params: {}
           children: # synapse models
             input_synapse:
