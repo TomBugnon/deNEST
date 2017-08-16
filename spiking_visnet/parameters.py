@@ -14,8 +14,6 @@ from pprint import pformat
 
 import yaml
 
-from .save import load_yaml
-
 
 class InvalidTreeError(ValueError):
     """Raised when a mapping is not a valid ``Tree``."""
