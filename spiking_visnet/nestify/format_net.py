@@ -302,6 +302,8 @@ def get_connection_params(connection, models, layers):
     if not target_params.get('scale_kernels_masks', False):
         rf_factor = 1.
     else:
+        # If we want to give the masks and kernel sizes in 'number of units', we
+        # have to scale as NEST # expects a mask in 'extent' of the layer.
         rf_factor = (target_params.get('rf_scale_factor', 1.)
                      * source_params['visSize'] / (source_size - 1))
     return params.new_child(
