@@ -226,8 +226,7 @@ class Params(Scope):
     # Append examples
     __doc__ += """
     Examples:
-        Accessing with a tuple traverses the tree; data is retreived from the
-        destination node with the last element of the tuple.
+        Accessing with a tuple traverses the tree:
 
         >>> parameters = Params(
         ...     {'c1': {'c2': {'params': {'last_key': 'value'}}}}
@@ -249,7 +248,7 @@ class Params(Scope):
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
-            return self.get_node(key[:-1])[key[-1]]
+            return self.get_node(key)
         return super().__getitem__(key)
 
     def __setitem__(self, key, value):
