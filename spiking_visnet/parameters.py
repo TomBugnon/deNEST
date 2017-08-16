@@ -107,6 +107,10 @@ class Tree(UserDict):
         """Generate the child nodes (in undefined order)."""
         yield from self.c.values()
 
+    def named_children(self):
+        """Generate the (name, node) pairs of children (in undefined order)."""
+        yield from self.c.items()
+
     @property
     def num_children(self):
         """The number of children."""
