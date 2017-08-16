@@ -126,6 +126,16 @@ class Tree(UserDict):
         for child in self.children():
             yield from child.leaves()
 
+    def named_leaves(self, _name=None):
+        """Generate the named and nodes of the leaves (in undefined order)."""
+        # Base case: leaf
+        if not self.c:
+            yield (_name, self)
+            return
+        # Recursive case: not a leaf
+        for name, child in self.named_children():
+            yield from child.named_leaves(_name=name)
+
     @classmethod
     def merge(cls, *trees):
         """Merge trees into a new tree. Earlier trees take precedence.
