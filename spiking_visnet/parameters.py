@@ -78,7 +78,7 @@ class Tree(UserDict):
     def get_node(self, name):
         """Traverse the tree downward to get a node.
 
-        If ``name`` is not iterable, returns just the child node of that name.
+        If ``name`` is not a tuple, returns just the child node of that name.
         """
         if isinstance(name, tuple) and name:
             name, descendants = name[0], name[1:]
