@@ -4,6 +4,7 @@
 
 """Generate and save movies (3D nparrays) by moving a stimulus across frames."""
 
+import math
 from math import ceil
 from os import makedirs
 from os.path import join
@@ -33,6 +34,17 @@ def vertical_tee(vsize=9, hsize=9, width=3):
     array[0: width, :] = 1
 
     return array
+
+def vertical_sinusoidal_grating(vsize=9, hsize=9, mean=0.5, amplitude=0.5, period=None):
+    """Return vertical sinusoidal input."""
+    if period is None:
+        period = hsize
+    array = np.zeros((vsize, hsize))
+    for col in range(hsize):
+        sin_variation = math.sin(2 * math.pi * col / period)
+        array[:, col] = max(0, mean + amplitude * sin_variation)
+    return array
+
 
 
 FUN_MAP = {
@@ -83,7 +95,7 @@ def generate_movie_str(stim_type, path_type, res, t, vsize, hsize, width):
             str(hsize) + '_width=' + str(width))
 
 
-def generate_path(res, t, path_type='default'):
+def generate_path(res, t=None, path_type='default'):
     """Generate a path across frames of the top-left corner of the stimulus.
 
     The default is a (left to right) x (top to bottom) path such that after t
@@ -99,16 +111,19 @@ def generate_path(res, t, path_type='default'):
             the stimulus at each time-step. [ (x_topleft(t), y_topleft(t), ...]
 
     """
-    N = np.prod(res)
+    nrows, ncols = res
+    Nelems = np.prod(res)
 
     if path_type == 'default':
-        a = np.zeros(N)
+        a = np.zeros(Nelems)
         # Distribute range(t) evenly in N*1-array
         a[evenly_spread_indices(N, t)] = np.arange(t) + 1
         # Reshape back to image size
         a = np.reshape(a, res)
         # Get coordinates
         return [find_in_np(a, i + 1) for i in range(t)]
+    elif path_type == 'top_left_to_top_right':
+        return [(0, col) for col in range(ncols)]
     else:
         raise Exception('No code')
 
