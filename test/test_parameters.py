@@ -81,6 +81,16 @@ def test_eq(t):
             Params({DATA_KEY: {0: 1}, 1: {}, 2: {}}))
 
 
+def test_iter(x, t):
+    assert set(t) == set(x[DATA_KEY])
+    assert (set(t.c['c2'].c['cc1'].c[0]) ==
+            set.union(*[
+                set(x[DATA_KEY]),
+                set(x['c2'][DATA_KEY]),
+                set(x['c2']['cc1'][0]),
+            ]) - set([DATA_KEY]))
+
+
 def test_getitem():
     t = Params({DATA_KEY: {0: 0, 1: 1}, 0: {DATA_KEY: {0: 1}}})
     c = t.c[0]
@@ -90,6 +100,13 @@ def test_getitem():
 
 def test_contains(t):
     assert 'p1' in t
+
+
+def test_get_node(t):
+    # Tuple
+    assert t.get_node(('c2', 'cc1')) == t.c['c2'].c['cc1']
+    # Name
+    assert t.get_node('c2') == t.c['c2']
 
 
 def test_ancestors(t):
@@ -102,24 +119,29 @@ def test_ancestors(t):
     ]
 
 
-def test_iter(x, t):
-    assert set(t) == set(x[DATA_KEY])
-    assert (set(t.c['c2'].c['cc1'].c[0]) ==
-            set.union(*[
-                set(x[DATA_KEY]),
-                set(x['c2'][DATA_KEY]),
-                set(x['c2']['cc1'][0]),
-            ]) - set([DATA_KEY]))
+def test_keys(t):
+    assert set(t.keys()) == set(['p1', 0, 1])
+
+
+def test_num_children(t):
+    assert t.num_children == 3
 
 
 def test_leaves(t):
-    leaves = list(t.leaves())
-    print(leaves)
     assert list(t.leaves()) == [
         Params({DATA_KEY: {0: 1, 1: 1}}),
         Params({}),
         Params({}),
         Params({}),
+    ]
+
+
+def test_named_leaves(t):
+    assert list(t.named_leaves()) == [
+        ('c1', Params({DATA_KEY: {0: 1, 1: 1}})),
+        (0, Params({})),
+        (0, Params({})),
+        (0, Params({})),
     ]
 
 
