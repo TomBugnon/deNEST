@@ -4,7 +4,24 @@
 
 """Gather and modify NEST and network parameters."""
 
+import nest
 
-def toggle_dynamic_synapses(network, on_off=False):
-    """Toggle between static and dynamic synapses for the whole network."""
-    pass
+
+def change_synapse_states(synapse_changes):
+    """Change synapse status by synapse models.
+
+    Args:
+        network (Network object): Initialized network
+        synapse_changes (list): List of dictionaries each of the form::
+                {synapse_model: <synapse_model>,
+                 params: {<key>: <value>,
+                          ...}}
+            where the params contains the parameters to set for all synapses of
+            a given model.
+
+    """
+    for changes in synapse_changes:
+        nest.SetStatus(
+            nest.GetConnections(synapse_model=changes['synapse_model']),
+            changes['params']
+            )

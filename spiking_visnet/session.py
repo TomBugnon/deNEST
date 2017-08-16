@@ -14,7 +14,7 @@ import numpy as np
 
 from user_config import INPUT_DIR, INPUT_SUBDIRS, METADATA_FILENAME
 
-from .nestify.nest_modifs import toggle_dynamic_synapses
+from .nestify.nest_modifs import change_synapse_states
 from .nestify.set_stimulators import set_stimulators_state
 from .save import load_yaml, save_as_yaml
 from .utils.sparsify import load_as_numpy, save_as_sparse
@@ -58,8 +58,7 @@ class Session(collections.UserDict):
             nest.ResetNetwork()
 
         # Change dynamic variables
-        toggle_dynamic_synapses(network,
-                                on_off=self.get('dynamic_synapses', 1))
+        change_synapse_states(self['synapse_changes'])
 
         # Set input spike times in the future.
         curr_time = nest.GetKernelStatus('time')
