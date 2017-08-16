@@ -28,7 +28,7 @@ def x():
         'c2': {
             DATA_KEY: {0: 1, 1: 1},
             0: {},
-            'cc1': {
+            'cc2': {
                 0: {
                     DATA_KEY: {}
                 }
@@ -83,34 +83,40 @@ def test_eq(t):
 
 def test_iter(x, t):
     assert set(t) == set(x[DATA_KEY])
-    assert (set(t.c['c2'].c['cc1'].c[0]) ==
+    assert (set(t.c['c2'].c['cc2'].c[0]) ==
             set.union(*[
                 set(x[DATA_KEY]),
                 set(x['c2'][DATA_KEY]),
-                set(x['c2']['cc1'][0]),
+                set(x['c2']['cc2'][0]),
             ]) - set([DATA_KEY]))
 
 
-def test_getitem():
-    t = Params({DATA_KEY: {0: 0, 1: 1}, 0: {DATA_KEY: {0: 1}}})
-    c = t.c[0]
-    assert c[0] == 1
-    assert c[1] == 1
+def test_missing(t):
+    child = t.c['c2'].c['cc2'].c[0]
+    assert child['p1'] == 0
 
 
 def test_contains(t):
     assert 'p1' in t
+    assert 'p1' in t.c['c2'].c['cc2']
 
 
 def test_get_node(t):
     # Tuple
-    assert t.get_node(('c2', 'cc1')) == t.c['c2'].c['cc1']
+    assert t.get_node(('c2', 'cc2')) == t.c['c2'].c['cc2']
     # Name
     assert t.get_node('c2') == t.c['c2']
 
 
+def test_getitem(t):
+    # Tuple
+    assert t[('c2', 'cc2', 0)] == Params({})
+    # Key
+    assert t['p1'] == 0
+
+
 def test_ancestors(t):
-    leaf = t.c['c2'].c['cc1'].c[0]
+    leaf = t.c['c2'].c['cc2'].c[0]
     assert list(leaf.ancestors()) == [
         leaf,
         leaf.p,
