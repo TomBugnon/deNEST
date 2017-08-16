@@ -5,35 +5,37 @@ children:
   simulation: {}
 
   sessions:
-    sessions_order: ['warmup'] #, 'training', 'warmup', 'testing']
+    sessions_order: ['warmup', 'training']
     params:
       time_per_frame: 5
       max_session_sim_time: !!python/float inf
       save_recorders: True
-      dynamic_synapses: False
       shuffle_time: False
       time_shuffling_params: {}
       shuffle_in_space: False
       space_shuffling_params: {}
+      synapse_changes: []
       reset_network: False
     children:
       warmup:
         name: warmup
         params:
           # Make sure the stimuli are compatible with the network dimensions
-          session_stims: 'stim_df_set_df_res_100x100_contrastnorm_filter_o2.yml'
-          # session_stims: 'noise_256.yml'
+          session_stims: 'noise_256x256.yml'
           save_recorders: False
-          dynamic_synapses: False
+          time_per_frame: 100.
+          synapse_changes:
+              - synapse_model: input_synapse
+                params:
+                  lambda: 0.
           # NOTE: Might reset STDP synapses in a future release of NEST!
           reset_network: True
-    #   training:
-    #     name: training
-    #     params:
-    #       session_stims: ''
-    #       dynamic_synapses: True
-    #   testing:
-    #     name: testing
-    #     params:
-    #       session_stims: ''
-    #       dynamic_synapses: True
+      training:
+        name: training
+        params:
+          # Make sure the stimuli are compatible with the network dimensions
+          session_stims: 'stim_df_set_df_res_100x100_contrastnorm_filter_o2.yml'
+          synapse_changes:
+              - synapse_model: input_synapse
+                params:
+                  lambda: 0.01
