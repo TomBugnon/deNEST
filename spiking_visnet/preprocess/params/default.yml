@@ -1,5 +1,5 @@
-preprocessing: ['downsample', 'normalize', 'filter'] # pipeline
+preprocessing: ['resize', 'normalize', 'filter'] # pipeline
 # below, parameters for each of the preprocessing steps
-downsample: {}
+resize: {}
 normalize: {}
 filter: {}

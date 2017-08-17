@@ -7,10 +7,10 @@
 import os
 import os.path
 
-from . import downsample, filt, normalize
+from . import filt, normalize, resize
 
 NAME_MAPPING = {
-    'downsample': downsample.get_string,
+    'resize': resize.get_string,
     'filter': filt.get_string,
     'normalize': normalize.get_string
 }

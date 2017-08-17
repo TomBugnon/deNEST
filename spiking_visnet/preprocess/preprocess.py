@@ -14,11 +14,11 @@ from tqdm import tqdm
 
 from user_config import INPUT_SUBDIRS, METADATA_FILENAME
 
-from . import downsample, filt, normalize
+from . import filt, normalize, resize
 from ..save import save_as_yaml
 
 PREPROCESS_MAPPING = {
-    'downsample': downsample.downsample,
+    'resize': resize.resize,
     'filter': filt.filter_movie,
     'normalize': normalize.normalize
 }

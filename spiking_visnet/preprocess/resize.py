@@ -3,15 +3,15 @@
 # downsample.py
 
 
-"""Downsample movie frames to network's resolution."""
+"""Resize movie frames to network's resolution."""
 
 import numpy as np
 import scipy.misc
 
 
 # TODO
-def downsample(input_movie, preprocessing_params, network):
-    """Downsample input_movie to fit with network's input resolution."""
+def resize(input_movie, preprocessing_params, network):
+    """Resize input_movie to fit with network's input resolution."""
     xdim, ydim = network.input_res()
     tdim = np.size(input_movie, axis=0)
     output_movie = np.zeros((tdim, xdim, ydim))
