@@ -346,7 +346,10 @@ def scaled_kernel(kernel, scale_factor):
 
 def scaled_weights(weights, scale_factor):
     """Multiply connection weights by `scale_factor."""
-    return weights * scale_factor
+    if isinstance(weights, int):
+        return weights * scale_factor
+    Warning('Connection weight is not an integer: no scaling')
+    return weights
 
 
 def expand_layer_list(layer_list):
