@@ -6,18 +6,21 @@
 """Resize movie frames to network's resolution."""
 
 import numpy as np
-import scipy.misc
+from scipy.ndimage import interpolation
 
 
 # TODO
 def resize(input_movie, preprocessing_params, network):
     """Resize input_movie to fit with network's input resolution."""
-    xdim, ydim = network.input_res()
+    xdim_t, ydim_t = network.input_res()
+    xdim_s, ydim_s = np.size(input_movie, 1), np.size(input_movie, 2)
     tdim = np.size(input_movie, axis=0)
-    output_movie = np.zeros((tdim, xdim, ydim))
+    output_movie = np.zeros((tdim, xdim_t, ydim_t))
     for t in range(tdim):
-        output_movie[t, :, :] = scipy.misc.imresize(input_movie[t, :, :],
-                                                    (xdim, ydim))
+        output_movie[t, :, :] = interpolation.zoom(input=input_movie[t, :, :],
+                                                   zoom=(float(xdim_t/xdim_s),
+                                                         float(ydim_t/ydim_s)),
+                                                   order=0)
     return output_movie
 
 
