@@ -5,6 +5,7 @@
 """Gather and modify NEST and network parameters."""
 
 import nest
+from tqdm import tqdm
 
 
 def change_synapse_states(synapse_changes):
@@ -20,7 +21,8 @@ def change_synapse_states(synapse_changes):
             a given model.
 
     """
-    for changes in synapse_changes:
+    for changes in tqdm(synapse_changes,
+                        desc="Change synapses's stategg"):
         nest.SetStatus(
             nest.GetConnections(synapse_model=changes['synapse_model']),
             changes['params']
