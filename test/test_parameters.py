@@ -103,7 +103,7 @@ def test_contains(t):
 
 def test_get_node(t):
     # Tuple
-    assert t.get_node(('c2', 'cc2')) == t.c['c2'].c['cc2']
+    assert t.get_node('c2', 'cc2') == t.c['c2'].c['cc2']
     # Name
     assert t.get_node('c2') == t.c['c2']
 
