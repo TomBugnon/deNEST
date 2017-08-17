@@ -75,15 +75,14 @@ class Tree(UserDict):
         """
         return self.data == other.data and self.c == other.c
 
-    def get_node(self, name):
+    def get_node(self, *names):
         """Traverse the tree downward to get a node.
 
         If ``name`` is not a tuple, returns just the child node of that name.
         """
-        if isinstance(name, tuple) and name:
-            name, descendants = name[0], name[1:]
-            if descendants:
-                return self.get_node(name).get_node(descendants)
+        name, descendants = names[0], names[1:]
+        if descendants:
+            return self.get_node(name).get_node(*descendants)
         try:
             return self.c[name]
         except KeyError:
@@ -248,7 +247,7 @@ class Params(Scope):
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
-            return self.get_node(key)
+            return self.get_node(*key)
         return super().__getitem__(key)
 
     def __setitem__(self, key, value):
