@@ -290,8 +290,9 @@ def save_formatted_recorders(network, sim_savedir):
         ( < layer_name > + STRING_SEPARATOR + <population_name > + STRING_SEPARATOR
         + <variable_name > )
 
-    NB: As for now, multiple units of the same population at a given location
-    are not distinguished between.
+    NB: For each population, we only save the activity of one unit at each
+    location. Remember there can be multiple units at each location for each
+    population.
 
     Args:
         network(Network object)
