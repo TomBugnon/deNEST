@@ -22,7 +22,7 @@ def change_synapse_states(synapse_changes):
 
     """
     for changes in tqdm(synapse_changes,
-                        desc="Change synapses's stategg"):
+                        desc="Change synapses's state."):
         nest.SetStatus(
             nest.GetConnections(synapse_model=changes['synapse_model']),
             changes['params']
