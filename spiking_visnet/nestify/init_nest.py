@@ -70,13 +70,15 @@ def gid_location_mapping(layer_gid, population_name):
                        'location': <location_by_gid_mapping>}``
             where:
             - <gid_by_location_array> (np-array) is a
-                (``nrows``, ``ncols``, ``nelems``)-array where:
+                (``nrows``, ``ncols``, ``nunits``)-array where:
                 - (``nrows``, ``ncols``) is the dimension of the layer
                 - ``nelems`` is the number of units of the considered population
                     at each location.
             - <location_by_gid_mapping> (dict) is dictionary of which keys
-                are GIDs (int) and entries are (row, col) location (tuple
-                of int)
+                are GIDs (int) and entries are (row, col, unit) location (tuple
+                of int) where ``unit`` is the index of this specific unit
+                (considering there can be multiple units of a given population
+                at each location).
 
     """
     # Get layer resolution
@@ -99,8 +101,9 @@ def gid_location_mapping(layer_gid, population_name):
         # Update array of gids
         gid_loc_map['gid'][i, j, :] = location_units
         # Update mapping of locations
-        gid_loc_map['location'].update({gid: (i, j)
-                                        for gid in location_units})
+        gid_loc_map['location'].update({gid: (i, j, unit_index)
+                                        for unit_index, gid
+                                        in enumerate(location_units)})
 
     return gid_loc_map
 

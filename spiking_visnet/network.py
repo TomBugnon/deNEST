@@ -99,9 +99,11 @@ class Network(collections.UserDict):
             - (``nrows``, ``ncols``) is the dimension of the layer
             - ``nelems`` is the number of units of the considered population at
                 each location.
-        - <location_by_gid_mapping> (dict) is dictionary of which keys are
-            GIDs (int) and entries are (``row``, ``col``) location (tuple of
-            int)
+        - <location_by_gid_mapping> (dict) is the dictionary of which keys are
+            GIDs (int) and entries are (``row``, ``col``, ``unit``) tuples of
+            int, containing the location and the index of that specific unit in
+            the population (since there can be multiple units of a given
+            population at each population).
 
         """
         self.locations = {}
