@@ -10,8 +10,9 @@ from os import makedirs
 import nest
 import nest.topology as tp
 import numpy as np
-
 from tqdm import tqdm
+
+from ..utils.structures import deepcopy_dict
 
 
 def init_nest(network, kernel_params):
@@ -143,24 +144,44 @@ def create_synapses(synapse_models):
                                   desc='Create synapses: '):
         nest.CopyModel(base_nest_model,
                        model_name,
-                       dict(format_synapse_params(params_chainmap)))
+                       format_synapse_params(dict(params_chainmap)))
     return
 
 
 def format_synapse_params(syn_params):
-    """Format synapse parameters in a NEST readable dictionary."""
-    assert not syn_params or len(syn_params.keys()) == 2, \
-        ("""If you define 'receptor_type' for a synapse, I also expect
-        target_neuron""")
-    formatted = {}
+    """Format synapse parameters in a NEST readable dictionary.
 
-    if 'receptor_type' in syn_params.keys():
+    NB: All parameters in ``syn_params`` are 'nest_parameters' and will be
+    passed to nest as is, except ``receptor_type`` and ``target_neuron``.
+    Nest expects an integer as the value of ``receptor_type``, which is the
+    index of the corresponding receptor port on the target neuron. However USER
+    provides an explicit receptor type (eg "AMPA").
+    Therefore we pass all the parameters of ``syn_params`` to NEST except
+    ``target_neuron`` and ``receptor_type`` which are removed from the
+    dictionary and used to define the nest-readable receptor type.
 
-        tgt_type = syn_params['target_neuron']
-        receptors = nest.GetDefaults(tgt_type)['receptor_types']
-        formatted['receptor_type'] = receptors[syn_params['receptor_type']]
+    Args:
+        syn_params (dict): Full synapse parameter dictionary
 
-    return formatted
+    Return:
+        nest_syn_params (dict): Full synapse parameter dictionary after
+            formatting of 'receptor_type' field.
+
+    """
+    nest_params = deepcopy_dict(syn_params)
+    if ('receptor_type' in syn_params.keys()
+        or 'target_neuron' in syn_params.keys()):
+        try:
+            receptor_type = nest_params.pop('receptor_type')
+            tgt_type = nest_params.pop('target_neuron')
+        except KeyError:
+            raise Exception("If you specify a 'receptor_type' for a synapse,\
+                please specify as well the model of the target neuron for that\
+                synapse. cf function docstring.")
+        target_receptors = nest.GetDefaults(tgt_type)['receptor_types']
+        nest_params['receptor_type'] = target_receptors[receptor_type]
+
+    return nest_params
 
 
 def create_layers(layers):
