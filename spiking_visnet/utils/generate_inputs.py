@@ -4,6 +4,7 @@
 
 """Generate and save movies (3D nparrays) by moving a stimulus across frames."""
 
+import itertools
 import math
 from math import ceil
 from os import makedirs
@@ -35,6 +36,18 @@ def vertical_tee(vsize=9, hsize=9, width=3):
 
     return array
 
+def vertical_L(vsize=9, hsize=9, width=3):
+    """Return vsize * hsize np.array containing a centered + of width."""
+    array = np.zeros((vsize, hsize))
+    h_c = int(hsize / 2)
+    half_w = int((width - 1) / 2)
+
+    array[:, : width] = 1
+    array[vsize-width:vsize, :] = 1
+
+    return array
+
+    return array
 def vertical_sinusoidal_grating(vsize=9, hsize=9, mean=0.5, amplitude=0.5, period=None):
     """Return vertical sinusoidal input."""
     if period is None:
