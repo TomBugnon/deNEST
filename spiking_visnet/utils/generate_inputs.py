@@ -137,6 +137,11 @@ def generate_path(res, t=None, path_type='default'):
         return [find_in_np(a, i + 1) for i in range(t)]
     elif path_type == 'top_left_to_top_right':
         return [(0, col) for col in range(ncols)]
+    elif path_type == 'Z':
+        # t = 9
+        # Three top positions, three middle, three bottom
+        return [(int(i*res[0]/3.), int(j*res[0]/3.)) for (i,j) in itertools.product(range(3), range(3))]
+
     else:
         raise Exception('No code')
 
