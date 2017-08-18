@@ -222,7 +222,7 @@ def get_synapses_values(network, connection, source_locs, target_locs,
         for synapse in filtered_synapses:
             # Get source location
             source_gid = synapse['source']
-            row_source, col_source = source_locs['location'][source_gid]
+            row_source, col_source, _ = source_locs['location'][source_gid]
             # Get values of interest for that synapse
             synapse_values = [synapse[key] for key in saving_keys]
 

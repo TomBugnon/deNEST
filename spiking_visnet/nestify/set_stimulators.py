@@ -69,7 +69,7 @@ def set_poisson_rates(network, image, layer, population):
     gid_locs = network.locations[layer][population]
     # Set rate for all the units in the layer.
     for gid, location in gid_locs['location'].items():
-        rate = float(max_input_rate * image[location])
+        rate = float(max_input_rate * image[location[0], location[1]])
         nest.SetStatus((gid,), {'rate': rate})
 
 
