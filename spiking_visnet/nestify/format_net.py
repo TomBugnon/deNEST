@@ -426,8 +426,10 @@ def duplicate_connection(connection, models, layers):
         exp_source_names = filt.get_expanded_names(source,
                                                    layer_params['filters'])
         if layer_params.get('scale_input_weights', True):
-            connection['params']['weights'] = (
-                base_conn_weight(connection, models) / len(exp_source_names))
+            base_weight = base_conn_weight(connection, models)
+            scaling_factor = 1./len(exp_source_names)
+            connection['params']['weights'] = scaled_weights(base_weight,
+                                                             scaling_factor)
         return [
             struct.deepcopy_dict(connection, {'source_layer': exp_source_name})
             for exp_source_name in exp_source_names
