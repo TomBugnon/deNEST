@@ -200,8 +200,8 @@ def get_synapses_values(network, connection, source_locs, target_locs,
     nrows_source = network['layers'][source_lay]['nest_params']['rows']
     ncols_source = network['layers'][source_lay]['nest_params']['columns']
 
-    # Initialize return array with -1 (absense of synapse).
-    all_synapses_all_values = -1 * np.ones((nrows_target, ncols_target,
+    # Initialize return array with -999 (absense of synapse).
+    all_synapses_all_values = -999 * np.ones((nrows_target, ncols_target,
                                             nrows_source, ncols_source,
                                             len(saving_keys)))
 
