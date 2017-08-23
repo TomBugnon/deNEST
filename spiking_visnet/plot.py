@@ -8,6 +8,7 @@
 
 import itertools
 import time
+from os.path import join
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,20 +17,93 @@ from bokeh import palettes
 from bokeh.io import output_notebook, push_notebook, show
 from bokeh.plotting import figure
 
+from .analysis.activity import all_cv, firing_rate
+from .analysis.utils import load_activity
+
 TOOLS = 'crosshair,pan,wheel_zoom,box_zoom,reset,tap,box_select,lasso_select'
 PALETTE = palettes.Inferno256
 
 
-def show_distribution(image, min_value=None):
+def make_activity_figure(pops, plot_period, output_dir, fig_title='figure'):
+    """Creates raster as sublots for each population/variable.
+
+    Args:
+        pops (list): List of tuples each of the form::
+            ('layer_name', 'population_name', 'variable_name')
+    """
+    fig = plt.figure(dpi=100)
+    fig.set_size_inches(8.27, 11.69) # Vertical A4
+
+    fig.suptitle(fig_title)
+
+    for i in range(len(pops)):
+        pop = pops[i]
+        layer = pop[0]
+        population = pop[1]
+        variable = pop[2]
+        activity = load_activity(layer, population, output_dir,
+                                 variable=variable)
+
+        subp = fig.add_subplot(len(pops), 1, i+1)
+        show_activity_raster(activity[plot_period], plot_cols=[0],
+                             variable=variable, subp=subp, show=False)
+        subp.set_ylabel(layer + ',\n' + population)
+
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(join(output_dir, fig_title))
+    plt.show()
+    plt.close()
+
+
+
+
+
+
+def show_layer_summary(activity, variable, layer, pop, plot_period=None,
+                       rate_period=None, cv_period=None, plot_cols=None,
+                       show_raster=True, show_rate=True, show_cv=False):
+    if layer=='retina':
+        variable = 'spikes'
+    if variable != 'spikes':
+        show_rate = False
+        show_cv = False
+
+    if show_raster:
+        print('Activity raster plot: ', variable)
+        show_activity_raster(activity[plot_period], plot_cols,
+                             variable=variable)
+    if show_rate:
+        print('Firing rate:')
+        rates = firing_rate(activity[rate_period])
+        show_mean_min_max(rates)
+
+    if show_cv:
+        print('CV distribution:')
+        show_distribution(all_cv(l1_exc))
+
+
+def show_distribution(image, min_value=None, figsize=(5, 3)):
     """Show histogram of values greater than ``min_value`` in image or list."""
+    # Flatten
     if isinstance(image, list):
         flat = list
     elif isinstance(image, (np.ndarray)):
         flat = image.flatten()
+    else:
+        return
+
+    # Filter
     if min_value is not None:
         flat = [x for x in flat if x > min_value]
-    pylab.hist(flat)
-    pylab.show()
+
+    # Plot
+    if len(set(flat)) == 1:
+        print('All the values in the filtered array are equal.\n' \
+              + '   => Not plotting distribution.')
+    else:
+        plt.figure(figsize=figsize)
+        plt.hist(flat)
+        plt.show()
 
 
 def show_array_of_images(array_of_images, figsize=(40, 40), plot_rows=None,
@@ -62,6 +136,12 @@ def show_im(image):
     plt.imshow(image)
     plt.show()
 
+
+def show_mean_min_max(array):
+    """Print min, max and mean of an array to screen."""
+    print('mean: ', np.mean(array))
+    print('min: ', np.min(array))
+    print('max: ', np.max(array), '\n')
 
 def init():
     """Initialize bokeh figure with jupyter notebook."""
@@ -122,36 +202,44 @@ def animate(plot, movie, fps=5, t=0, T=None, size=1):
         time.sleep(1 / fps)
 
 
-def show_average_raster(activity,
-                        xmin=None, xmax=None, interpolation='none',
-                        plot_cols=None):
+def show_activity_raster(activity, plot_cols=None, figsize=(40, 10), xmin=None,
+                         xmax=None, interpolation='none', variable='spikes',
+                         fig=None, subp=None, show=False):
     """Show raster plot of activity by column, in the active figure.
 
     Args:
         activity (np-array): (ntimesteps *nrows * ncols) activity array of a
             population.
-        xmin, xmax (float): lower and higher bound for color coding.
-        interpolation (str): type of interpolation used in plt.matshow
         plot_cols (list): List of columns to plot one under the other.
             The raster plot has dimensions
             ((ntimesteps * len(plot_cols)) * ntimesteps). If not specified, plot
             all the columns.
+        figsize (tuple): Size of figure.
+        xmin, xmax (float): lower and higher bound for color coding.
+        interpolation (str): type of interpolation used in plt.matshow
+        variable (str): If 'V_m', default (xmin, xmax) = -70, -45
     """
+    if fig is None and subp is None:
+        plt.figure(figsize=figsize)
+        subp = plt.subplot2grid((1, 3), (0, 0), colspan=3)
+
     ntimesteps, nrows, ncols = activity.shape
 
     if plot_cols is None:
         # Plot all the columns
         plot_cols = range(ncols)
     if xmin is None:
-        xmin = np.min(activity)
+        xmin = np.min(activity) if variable == 'spikes' else -70
     if xmax is None:
-        xmax = np.max(activity)
+        xmax = np.max(activity) if variable == 'spikes' else -45
 
     # Concatenate the columns to have a ((ntimesteps * len(plot_cols)) *
     # ntimesteps)
     col_activity = np.reshape(activity[:, :, plot_cols],
                               (ntimesteps, nrows * len(plot_cols)),
                               order='F')
-    subp = plt.subplot2grid((1, 3), (0, 0), colspan=3)
     subp.matshow(np.transpose(col_activity), interpolation=interpolation,
                       aspect='auto', vmin=xmin, vmax=xmax)
+    if show:
+        plt.show()
+        plt.close()
