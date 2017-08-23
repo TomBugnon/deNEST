@@ -6,6 +6,7 @@
 
 
 import itertools
+import warnings
 
 import numpy as np
 
@@ -18,20 +19,30 @@ def firing_rate(activity):
 def isi(spike_train):
     """Return the inter-spike intervals of a list-like of 0 and 1."""
     spike_times = [t for t, spike in enumerate(spike_train) if spike]
+    if not spike_times:
+        return []
     return [spike_times[i + 1] - spike_times[i]
             for i in range(len(spike_times) - 1)]
+
 
 def all_isi(activity):
     """Return an array of lists of inter-spike intervals from activity array."""
     _, nrows, ncols = activity.shape
+    if not activity.any():
+        warnings.warn('Activity array is all 0s. Not computing ISIs.')
+        return
     isis = np.empty((nrows, ncols), dtype=list)
     for row, col in itertools.product(range(nrows), range(ncols)):
         isis[row, col] = isi(activity[:, row, col])
     return isis
 
+
 def all_cv(activity):
-    """Return array of coefficients of variation."""
+    """Return array of coefficients of variation. CV = sd(ISI)/mean(ISI)."""
     _, nrows, ncols = activity.shape
+    if not activity.any():
+        warnings.warn('Activity array is all 0s. Not computing CV')
+        return
     cvs = np.zeros((nrows, ncols))
     for row, col in itertools.product(range(nrows), range(ncols)):
         inter_spike_list = isi(activity[:, row, col])

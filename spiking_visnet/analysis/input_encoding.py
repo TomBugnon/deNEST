@@ -34,7 +34,7 @@ def slice_activity(activity, labels, time_per_movie):
     """
     ntimesteps, _, _ = activity.shape
     # Sanity checks
-    assert ntimesteps % time_per_movie == 0
+    assert ntimesteps % time_per_movie == 0, 'Check time per movie'
 
     all_movie_activities = []
     for movie_i in range(int(ntimesteps/time_per_movie)):
@@ -44,7 +44,7 @@ def slice_activity(activity, labels, time_per_movie):
         movie_activity = activity[movie_indices]
         # Sanity check: only one label per movie
         unique_labels = np.unique(movie_labels)
-        assert len(unique_labels) == 1
+        assert len(unique_labels) == 1, 'Check time_per_movie'
         all_movie_activities.append((movie_activity, unique_labels[0]))
 
     return all_movie_activities
@@ -90,12 +90,14 @@ def mean_activity_per_label(activity, labels):
     return  spiking_probs
 
 
-def get_best_label(mean_per_label):
+def get_best_label(activity, labels):
     """Return the label for which a unit has most chance of firing.
 
     Args:
-        mean_per_label (np.array): structured array containing the
-            probability of firing for each unit and label.
+        activity (np-array): Array of 0 and 1 containing spiking activity for a
+            given population. Dimensions (<ntimesteps> * <nrows> * <ncol>).
+        labels (seq): Label for each timestep. 1d-array or list of length
+            <ntimesteps>
 
     Return:
         tuple (np-array, np-array): First element is an array of labels,
@@ -103,6 +105,7 @@ def get_best_label(mean_per_label):
             over all possible labels).
 
     """
+    mean_per_label = mean_activity_per_label(activity, labels)
     nrows, ncols = mean_per_label.shape
     labels = mean_per_label.dtype.names
     max_labels = np.empty((nrows, ncols), dtype=object)
@@ -110,37 +113,6 @@ def get_best_label(mean_per_label):
         unit_probs = mean_per_label[i, j].tolist()
         max_labels[i, j] = labels[unit_probs.index(max(unit_probs))]
     return max_labels
-
-
-def diff_best_to_all(mean_per_label):
-    """Return the activity difference between preferred and non-preferred label.
-
-    Args:
-        mean_per_label (structured array): output of mean_activity_per_label.
-            Structured array containing the probability of firing for each unit
-            and label.
-        best_label (np-array): Array containing the preferred label for each
-            unit.
-
-    Return:
-        np-array: Array of the same size as the population containing for each
-            unit the difference between the probability of spiking for the
-            preferred label, vs all other labels.
-
-    """
-    max_label, max_prob = get_best_label(mean_per_label)
-
-    nrows, ncols = mean_per_label.shape
-    labels = mean_per_label.dtype.names
-    diff_prob = np.empty((nrows, ncols))
-
-    for i, j in itertools.product(range(nrows), range(ncols)):
-        unit_probs = mean_per_label[i, j].tolist()
-        non_preferred_probs = [p for ind, p in enumerate(unit_probs)
-                               if labels[ind] != max_label[i, j]]
-        diff_prob[i, j] = max_prob[i, j] - np.mean(non_preferred_probs)
-
-    return diff_prob
 
 
 def prediction(activity, units_per_label):
