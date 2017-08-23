@@ -9,6 +9,7 @@
 import itertools
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pylab
 from bokeh import palettes
@@ -19,15 +20,45 @@ TOOLS = 'crosshair,pan,wheel_zoom,box_zoom,reset,tap,box_select,lasso_select'
 PALETTE = palettes.Inferno256
 
 
-def show_distribution(image):
-    """Show histogram of values in image."""
-    pylab.hist(image.flatten())
+def show_distribution(image, min_value=None):
+    """Show histogram of values greater than ``min_value`` in image or list."""
+    if isinstance(image, list):
+        flat = list
+    elif isinstance(image, (np.ndarray)):
+        flat = image.flatten()
+    if min_value is not None:
+        flat = [x for x in flat if x > min_value]
+    pylab.hist(flat)
     pylab.show()
+
+
+def show_array_of_images(array_of_images, figsize=(40, 40), plot_rows=None,
+                         plot_cols=None):
+    """Show array of images in separate subplots.
+
+    Args:
+        array_of_images: (nrows_t, ncols_t, nrows_s, nrows_s) np-array. Each
+            (row, col, :, :) is an image.
+        figsize (tuple): size of the figure,
+        plot_rows, plot_cols (list): locations of the images to be plotted.
+
+    """
+    fig = plt.figure(figsize=figsize)
+    if plot_rows is None:
+        plot_rows = range(np.size(array_of_images, 0))
+    if plot_cols is None:
+        plot_cols = range(np.size(array_of_images, 1))
+
+    nrows = len(plot_rows)
+    ncols = len(plot_cols)
+    for i, j in itertools.product(range(nrows), range(ncols)):
+        plt.subplot2grid((nrows, ncols), (i, j))
+        plt.imshow(array_of_images[plot_rows[i], plot_cols[j], :, :])
+    fig.show()
 
 
 def show_im(image):
     """Use pyplot to show a numpy image."""
-    import matplotlib.pyplot as plt
     plt.imshow(image)
     plt.show()
 
@@ -89,3 +120,38 @@ def animate(plot, movie, fps=5, t=0, T=None, size=1):
         push_notebook(handle=target)
         t += 1
         time.sleep(1 / fps)
+
+
+def show_average_raster(activity,
+                        xmin=None, xmax=None, interpolation='none',
+                        plot_cols=None):
+    """Show raster plot of activity by column, in the active figure.
+
+    Args:
+        activity (np-array): (ntimesteps *nrows * ncols) activity array of a
+            population.
+        xmin, xmax (float): lower and higher bound for color coding.
+        interpolation (str): type of interpolation used in plt.matshow
+        plot_cols (list): List of columns to plot one under the other.
+            The raster plot has dimensions
+            ((ntimesteps * len(plot_cols)) * ntimesteps). If not specified, plot
+            all the columns.
+    """
+    ntimesteps, nrows, ncols = activity.shape
+
+    if plot_cols is None:
+        # Plot all the columns
+        plot_cols = range(ncols)
+    if xmin is None:
+        xmin = np.min(activity)
+    if xmax is None:
+        xmax = np.max(activity)
+
+    # Concatenate the columns to have a ((ntimesteps * len(plot_cols)) *
+    # ntimesteps)
+    col_activity = np.reshape(activity[:, :, plot_cols],
+                              (ntimesteps, nrows * len(plot_cols)),
+                              order='F')
+    subp = plt.subplot2grid((1, 3), (0, 0), colspan=3)
+    subp.matshow(np.transpose(col_activity), interpolation=interpolation,
+                      aspect='auto', vmin=xmin, vmax=xmax)
