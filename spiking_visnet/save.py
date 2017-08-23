@@ -13,18 +13,41 @@ from shutil import rmtree
 import nest
 import numpy as np
 import yaml
-
 from tqdm import tqdm
+
 from user_config import OUTPUT_DIR
 
 from .nestify.connections import get_filtered_synapses
 from .utils.format_recorders import format_mm_data, format_sd_data
-from .utils.sparsify import save_as_sparse
+from .utils.sparsify import load_as_numpy, save_as_sparse
 
 FULL_PARAMS_TREE_STR = 'params.yaml'
 NETWORK_STR = 'network.yaml'
 SIM_METADATA_STR = 'metadata.yaml'
 STRING_SEPARATOR = '_'
+
+
+def load_session_times(output_dir):
+    """Load session time from output dir."""
+    return load_yaml(output_dir, 'session_times')
+
+
+def load_session_stim(output_dir, session_name):
+    """Load full stimulus of a session."""
+    full_stim_filename = 'session_' + session_name + '_full_stim.npy'
+    return np.load(join(output_dir, full_stim_filename))
+
+
+def load_activity(output_dir, layer, population, variable='spikes'):
+    """Load activity of a given variable for a population."""
+    filename = layer + '_' + population + '_' + variable + '.npy'
+    return load_as_numpy(join(output_dir, filename))
+
+
+def load_labels(output_dir, session_name):
+    """Load labels of a session."""
+    labels_filename = 'session_' + session_name + '_labels.npy'
+    return np.load(join(output_dir, labels_filename))
 
 
 def save_as_yaml(path, tree):
