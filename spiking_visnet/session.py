@@ -27,6 +27,9 @@ class Session(collections.UserDict):
         """Create."""
         print('create Session')
         super().__init__(session_params)
+        # Initialize the session start and end times
+        self.start_time = 0
+        self.end_time = 0
         # Load the stimuli
         self.full_stim = None
         self.labels = None
@@ -73,7 +76,9 @@ class Session(collections.UserDict):
         self.initialize(network)
         sim_time = np.size(self.full_stim, axis=0)
         print(f"Run `{sim_time}`ms")
+        self.start_time = int(nest.GetKernelStatus('time'))
         nest.Simulate(float(sim_time))
+        self.end_time = int(nest.GetKernelStatus('time'))
 
 
     def load_full_session_stim(self):
@@ -106,7 +111,7 @@ class Session(collections.UserDict):
         # Trim the stimulus in case there is a maximum allowed simulation time
         # for the session
         max_sim_time = int(min(np.size(shuffled_stim, axis=0),
-                               self['max_session_sim_time'])) 
+                               self['max_session_sim_time']))
         self.full_stim = shuffled_stim[:max_sim_time]
         self.labels = shuffled_labels[:max_sim_time]
 
