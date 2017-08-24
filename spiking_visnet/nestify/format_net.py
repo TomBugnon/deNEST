@@ -253,13 +253,18 @@ def get_connections(network):
             possible duplication of input layers.
 
     """
+    # Make a dictionary out of the tree of connection models
+    network['connection_models'] = {model_name: model_params
+                                    for (model_name, model_params)
+                                    in struct.traverse(network['connection_models'])}
+
     expanded_network = expand_connections(network)
     expanded_layers = get_layers(expanded_network['layers'], expanded=True)
 
     all_connections = []
     for connection in expanded_network['connections']:
         nest_params = get_connection_params(connection,
-                                            expanded_network['connection_models'],
+                                            network['connection_models'],
                                             expanded_layers)
         all_connections.append(
             {'source_layer': connection['source_layer'],
