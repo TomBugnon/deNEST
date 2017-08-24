@@ -19,9 +19,9 @@ def get_expanded_names(base_layer_name, filters):
         list: list of expanded names.
 
     """
-    return [
-        base_layer_name + suffix for suffix in get_extension_suffixes(filters)
-    ]
+    return ([base_layer_name + suffix
+             for suffix in get_extension_suffixes(filters)]
+            or [base_layer_name])
 
 
 def get_summary_string(filters):
@@ -44,23 +44,29 @@ def get_extension_suffixes(filters):
 
     """
     suffixes = []
+    if not filters:
+        return suffixes
     for dim in [d for d in filters['dimensions']
                 if filters['dimensions'][d] > 1]:
         suffixes.append([filters['suffixes'][dim] + str(i + 1)
                          for i in range(filters['dimensions'][dim])])
-    return (['_' + s for s in combine_strings(suffixes)]
-            if suffixes else [''])
+    return ['_' + string for string in combine_strings(suffixes)]
 
 
-def combine_strings(s):
-    """Return a list of the combinations of strings in s.
+def combine_strings(strings, separator=''):
+    """Return a list of the combinations of a list of lists of strings.
 
     Args:
-        s: List of lists of strings, eg [['a1','a2'], ['b1','b2','b3'],...]
-    Returns:
-        list: List of the combinations (sets) of strings from the different
-            sublists, with one string from each sublist, eg
-                ['a1b1', 'a1b2', 'a1b3', 'a2b1',...].
+        strings (list[list]): Strings to be combined.
 
+    Returns:
+        list: All combinations of strings from the different sequences.
+
+    Example:
+        >>> strings = [['a1','a2'], ['b1','b2','b3']]
+        >>> list(combine_strings)
+        ['a1_b1', 'a1_b2', 'a1_b3', 'a2_b1', 'a2_b2', 'a2_b3']
     """
-    return [''.join(tup) for tup in list(itertools.product(*s))]
+    if not strings:
+        return []
+    yield from (separator.join(comb) for comb in itertools.product(*strings))
