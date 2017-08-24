@@ -38,9 +38,9 @@ def init(params):
     """Initialize NEST network from the full parameter tree."""
     print('Initializing network...')
     # Get relevant parts of the full simulation tree
-    network_params = params['children']['network']['children']
-    kernel_params = params['children']['kernel']
-    sim_params = params['children']['simulation']
+    network_params = params.c['network']
+    kernel_params = params.c['kernel']
+    sim_params = params.c['simulation']
     # Build the network object
     network = Network(network_params, sim_params)
     # Initialize kernel + network in NEST
@@ -57,7 +57,7 @@ def simulate(network, params):
         params (dict-like): The simulation parameters.
     """
     print(f'Simulating...', flush=True)
-    simulation = Simulation(params['children']['sessions'])
+    simulation = Simulation(params.c['sessions'])
     simulation.run(params, network)
     print('...finished simulation.', flush=True)
     save_all(network, simulation, params)
