@@ -33,7 +33,6 @@ from config import PYTHON_SEED
 from . import run
 from .__about__ import __version__
 from .autodict import AutoDict
-from .utils.structures import dictify
 
 random.seed(PYTHON_SEED)
 
