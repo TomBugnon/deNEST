@@ -202,13 +202,13 @@ def get_layer_elements(layer_params):
     for pop in layer_elements:
         # Number of populations in layer
         if pop['type'] == 'inhibitory':
-            number = pop['ratio']
+            number = int(pop['ratio'])
         elif pop['type'] == 'excitatory':
             if sum(inh_pop) == 0:
-                number = pop['ratio']
+                number = int(pop['ratio'])
             else:
-                number = (pop['ratio'] * number_inh
-                          * layer_params['exc_inh_ratio'])
+                number = int((pop['ratio'] * number_inh
+                             * layer_params['exc_inh_ratio']))
         elements_list += [pop['population'], number]
 
     return elements_list
