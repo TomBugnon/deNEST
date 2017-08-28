@@ -5,10 +5,12 @@
 """Convert network parameters to a NEST-readable representation."""
 
 import copy as cp
+import warnings
 from collections import ChainMap
 
 from ..utils import filter_suffixes as filt
 from ..utils import structures as struct
+import warnings
 
 
 def get_network(params):
@@ -351,11 +353,10 @@ def scaled_kernel(kernel, scale_factor):
 
 def scaled_weights(weights, scale_factor):
     """Multiply connection weights by `scale_factor."""
-    if isinstance(weights, int):
+    if isinstance(weights, int) or isinstance(weights, float):
         return weights * scale_factor
-    Warning('Connection weight is not an integer: no scaling')
+    warnings.warn('Weights are not floats. Not scaling weights!!!')
     return weights
-
 
 def expand_layer_list(layer_list):
     """Duplicate with different names the layer tuples for different filters.
