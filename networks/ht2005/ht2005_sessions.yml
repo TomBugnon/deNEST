@@ -1,0 +1,32 @@
+children:
+
+  network: {}
+  kernel: {}
+  simulation: {}
+
+  sessions:
+    sessions_order: ['warmup', 'spontaneous']
+    params:
+      max_session_sim_time: !!python/float inf
+      save_recorders: True
+      shuffle_time: False
+      time_shuffling_params: {}
+      shuffle_in_space: False
+      space_shuffling_params: {}
+      synapse_changes: []
+      reset_network: False
+    children:
+      warmup:
+        name: warmup
+        params:
+          # Make sure the stimuli are compatible with the network dimensions
+          session_stims: 'noise_256x256.yml'
+          max_session_sim_time: 100.
+          time_per_frame: 500.
+      spontaneous:
+        name: spontaneous
+        params:
+          # Make sure the stimuli are compatible with the network dimensions
+          session_stims: 'noise_256x256.yml'
+          max_session_sim_time: 10.
+          time_per_frame: 2000.

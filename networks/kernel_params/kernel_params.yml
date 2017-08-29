@@ -1,0 +1,12 @@
+children:
+
+    simulation: {}
+    sessions: {}
+    network: {}
+
+    kernel:
+        local_num_threads: 20
+        resolution: 1.0
+        seed: 94
+        print_time: True
+        overwrite_files: True

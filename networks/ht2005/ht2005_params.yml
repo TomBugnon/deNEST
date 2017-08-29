@@ -1,0 +1,7 @@
+# Earlier param files take precedence over later ones if there are duplicate
+# parameters.
+- ./ht2005.yml
+- ./ht2005_recorders.yml
+- ./ht2005_sessions.yml
+- ../kernel_params/kernel_params.yml
+- ../simulation_params/simulation_params.yml
