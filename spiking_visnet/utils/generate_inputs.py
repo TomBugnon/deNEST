@@ -47,11 +47,10 @@ def vertical_L(vsize=9, hsize=9, width=3):
 
     return array
 
-    return array
 def vertical_sinusoidal_grating(vsize=9, hsize=9, mean=0.5, amplitude=0.5, period=None):
     """Return vertical sinusoidal input."""
     if period is None:
-        period = hsize
+        period = int(hsize/4)
     array = np.zeros((vsize, hsize))
     for col in range(hsize):
         sin_variation = math.sin(2 * math.pi * col / period)
