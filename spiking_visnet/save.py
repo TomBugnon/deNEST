@@ -108,7 +108,7 @@ def save_all(network, simulation, full_params_tree):
     print('Save recorders.')
     save_formatted_recorders(network, sim_savedir)
     # Delete temporary recorder dir
-    if sim_params['delete_tmp_dir']:
+    if sim_params.get('delete_tmp_dir', True):
         rmtree(get_nest_tmp_savedir(network, sim_params))
 
     print('Save synapses.')
