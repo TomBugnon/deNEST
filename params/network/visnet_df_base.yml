@@ -163,80 +163,63 @@ children:
                       ratio: 1
 
       connection_models:
-        horizontal_exc:
-          connection_type: divergent
-          synapse_model: AMPA_syn
-          mask:
-            circular:
-              radius: 12.0 # scaled during init
-          kernel:
-            gaussian:
-              p_center: 0.05
-              sigma: 7.5 # scaled during init
-          weights: 1.0 # scaled during init
-          delays:
-            uniform:
-              min: 1.75
-              max: 2.25
-          allow_autapses: false
-          allow_multapses: false
-          allow_oversized_mask: true
-
-        horizontal_inh:
-          connection_type: divergent
-          synapse_model: GABA_A_syn
-          mask:
-            circular:
-              radius: 7.0 # scaled during init
-          kernel:
-            gaussian:
-              p_center: 0.25 # TODO: much stronger than excitatory -> check
-              sigma: 7.5 # scaled during init
-          weights: 1.0 # scaled during init
-          delays:
-            uniform:
-              min: 1.75
-              max: 2.25
-          allow_autapses: false
-          allow_multapses: false
-          allow_oversized_mask: true
-
-        FF_exc:
-          connection_type: convergent
-          synapse_model: AMPA_syn
-          mask:
-            circular:
-              radius: 12.0 # scaled during init
-            # mask:
-            #   rectangular:
-            #     lower_left: [float, float]
-            #     upper_right: [-float, -float]
-          kernel: 0.8
-          weights: 1.0 # ... * weight gain during init
-          delays:
-            uniform:
-              min: 1.75
-              max: 2.25
-          allow_autapses: false
-          allow_multapses: false
-          allow_oversized_mask: true
-
-        input_connection:
-          connection_type: convergent
-          synapse_model: input_synapse
-          mask:
-            circular:
-              radius: 12.0 # scaled during init
-          kernel: 0.8
-          weights: 1.0 # scaled during init
-                 # possibly scaled by number of input layers.
-          delays:
-            uniform:
-              min: 1.75
-              max: 2.25
-          allow_autapses: false
-          allow_multapses: false
-          allow_oversized_mask: true
+        children:
+          cortical:
+            params:
+              allow_autapses: false
+              allow_multapses: false
+              allow_oversized_mask: true
+              delays:
+                uniform:
+                  min: 1.75
+                  max: 2.25
+            children:
+              horizontal_exc:
+                name: horizontal_exc
+                params:
+                  connection_type: divergent
+                  synapse_model: AMPA_syn
+                  mask:
+                    circular:
+                      radius: 12.0 # scaled during init
+                  kernel:
+                    gaussian:
+                      p_center: 0.05
+                      sigma: 7.5 # scaled during init
+                  weights: 1.0 # scaled during init
+              horizontal_inh:
+                name: horizontal_inh
+                params:
+                  connection_type: divergent
+                  synapse_model: GABA_A_syn
+                  mask:
+                    circular:
+                      radius: 7.0 # scaled during init
+                  kernel:
+                    gaussian:
+                      p_center: 0.25 # TODO: much stronger than excitatory -> check
+                      sigma: 7.5 # scaled during init
+                  weights: 1.0 # scaled during init
+              FF_exc:
+                name: FF_exc
+                params:
+                  connection_type: convergent
+                  synapse_model: AMPA_syn
+                  mask:
+                    circular:
+                      radius: 12.0 # scaled during init
+                  kernel: 0.8
+                  weights: 1.0 # ... * weight gain during init
+              input_connection:
+                name: input_connection
+                params:
+                  connection_type: convergent
+                  synapse_model: input_synapse
+                  mask:
+                    circular:
+                      radius: 12.0 # scaled during init
+                  kernel: 0.8
+                  weights: 1.0 # scaled during init
 
       connections:
 
