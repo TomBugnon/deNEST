@@ -16,6 +16,7 @@ children:
       space_shuffling_params: {}
       synapse_changes: []
       reset_network: False
+      unit_changes: []
     children:
       warmup:
         name: warmup

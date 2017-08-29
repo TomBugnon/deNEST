@@ -4,7 +4,10 @@
 
 """Gather and modify NEST and network parameters."""
 
+import random
+
 import nest
+import numpy as np
 from tqdm import tqdm
 
 
@@ -27,3 +30,39 @@ def change_synapse_states(synapse_changes):
             nest.GetConnections(synapse_model=changes['synapse_model']),
             changes['params']
             )
+
+
+def change_unit_states(unit_changes, network_layers):
+    """Change parameters for some units of a population.
+
+    Args:
+        unit_changes (list): List of dictionaries each of the form::
+                {'layer': <layer_name>,
+                 'population': <pop_name>,
+                 'proportion': <prop>,
+                 'params': {<param_name>: <param_value>,
+                            ...}
+                }
+            where <layer_name> and <population_name> define the considered
+            population, <prop> is the proportion of units of that population
+            for which the parameters are changed, and the ``'params'`` entry is
+            the dictionary of parameter changes apply to the selected units.
+
+    """
+    for changes in tqdm(unit_changes,
+                        desc="Change units' state"):
+        layer_gid = network_layers[changes['layer']]['gid']
+        all_pop_units = np.array(
+            [nd for nd in nest.GetLeaves(layer_gid)[0]
+             if nest.GetStatus([nd], 'model')[0] == changes['population']]
+        )
+        num_neurons = len(all_pop_units)
+        num_to_change = int(changes['proportion'] * num_neurons)
+
+        gids_to_change = np.random.randint(num_neurons,
+                                           size=(1, num_to_change))[0]
+
+        # for i in range(1, num_to_change, 1):
+
+        nest.SetStatus(all_pop_units[gids_to_change].tolist(),
+                       params=changes['params'])

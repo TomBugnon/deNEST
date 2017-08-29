@@ -14,7 +14,7 @@ import numpy as np
 
 from user_config import INPUT_DIR, INPUT_SUBDIRS, METADATA_FILENAME
 
-from .nestify.nest_modifs import change_synapse_states
+from .nestify.nest_modifs import change_synapse_states, change_unit_states
 from .nestify.set_stimulators import set_stimulators_state
 from .save import load_yaml, save_as_yaml
 from .utils.sparsify import load_as_numpy, save_as_sparse
@@ -62,6 +62,7 @@ class Session(collections.UserDict):
 
         # Change dynamic variables
         change_synapse_states(self['synapse_changes'])
+        change_unit_states(self['unit_changes'], network['layers'])
 
         # Set input spike times in the future.
         curr_time = nest.GetKernelStatus('time')
