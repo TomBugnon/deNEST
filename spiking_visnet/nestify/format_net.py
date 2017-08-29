@@ -469,7 +469,8 @@ def get_multimeter(pop_params):
                            'record_to': pop_params.get('mm_record_to', 'file'),
                            'interval': pop_params.get('mm_interval', 1.),
                            'withtime': pop_params.get('mm_withtime', True),
-                           'withgid': pop_params.get('mm_withgid', True)}}
+                           'withgid': pop_params.get('mm_withgid', True),
+                           'start': pop_params.get('mm_start', 0.)}}
 
 
 def get_spike_detector(pop_params):
@@ -490,7 +491,8 @@ def get_spike_detector(pop_params):
     return {'record_pop': pop_params['record_spike_detector'],
             'rec_params': {'record_to': pop_params.get('sd_record_to', 'file'),
                            'withtime': pop_params.get('sd_withtime', True),
-                           'withgid': pop_params.get('sd_withgid', True)}}
+                           'withgid': pop_params.get('sd_withgid', True),
+                           'start': pop_params.get('sd_start', 0.)}}
 
 
 def expand_populations(pop_list, non_expanded_layers):
