@@ -10,9 +10,12 @@ from os import makedirs, stat
 from os.path import basename, exists, isfile, join, splitext
 from shutil import rmtree
 
+import matplotlib.pyplot as plt
 import nest
 import numpy as np
+import pylab
 import yaml
+from nest import raster_plot
 from tqdm import tqdm
 
 from user_config import OUTPUT_DIR
@@ -96,6 +99,10 @@ def save_all(network, simulation, full_params_tree):
 
     print(f'Save everything in {sim_savedir}')
 
+    # Save nest raster plots
+    if sim_params.get('save_nest_raster', False):
+        save_nest_raster(simulation, network, sim_savedir)
+
     # Save full params
     print('Save parameters.')
     save_as_yaml(join(sim_savedir, FULL_PARAMS_TREE_STR), full_params_tree)
@@ -122,6 +129,24 @@ def save_all(network, simulation, full_params_tree):
     # Save sessions stimuli
     print('Save sessions stimuli')
     simulation.save_sessions(sim_savedir)
+
+
+def save_nest_raster(simulation, network, output_dir):
+    """Use NEST's raster function to save activity pngs.
+
+    Only do so for recorders saved on memory."""
+    for pop in network['populations']:
+        rec_gid = pop['sd']['gid']
+        if (rec_gid
+            and 'memory' in pop['sd']['rec_params']['record_to']):
+            raster = raster_plot.from_device(rec_gid, hist=True)
+            pylab.title(pop['layer']+'_'+pop['population'])
+            f = raster[0].figure
+            f.set_size_inches(15, 9)
+            filename = ('spikes_raster_' + pop['layer'] + '_'
+                        + pop['population'] + '.png')
+            f.savefig(join(output_dir, filename), dpi=100)
+            plt.close()
 
 
 def save_synapses(network, sim_savedir):
