@@ -6,101 +6,102 @@ children:
 
   network:
     children:
-
       neuron_models:
-        ht_neuron:
-          nest_model: ht_neuron
-          params:
-            g_peak_NaP: 0.5
-            g_peak_h: 0.0
-            g_peak_T: 0.0
-            g_peak_KNa: 0.5
-            g_KL: 1.0
-            E_rev_NaP: 55.0
-            g_peak_AMPA: 0.1
-            g_peak_NMDA: 0.15
-            g_peak_GABA_A: 0.33
-            g_peak_GABA_B: 0.0132
-            instant_unblock_NMDA: true        # old NEST defaults
-            S_act_NMDA: 0.4                   # old NEST defaults
-            V_act_NMDA: !!python/float -58.0  # old NEST defaults
-          children:
-            cortical_excitatory:
-              params:
-                theta_eq: !!python/float -51.0
-                tau_theta: 2.0
-                tau_spike: 1.75
-                tau_m: 16.0
-              children: # Neuron models
-                l1_exc:
-                  name: l1_exc
-                  params: {}
-                l2_exc:
-                  name: l2_exc
-                  params: {}
-                l3_exc:
-                  name: l3_exc
-                  params: {}
-            cortical_inhibitory:
-              params:
-                theta_eq: !!python/float -53.0
-                tau_theta: 1.0
-                tau_spike: 0.5
-                tau_m: 8.0
-              children: # Neuron models
-                l1_inh:
-                  name: l1_inh
-                  params: {}
-                l2_inh:
-                  name: l2_inh
-                  params: {}
-                l3_inh:
-                  name: l3_inh
-                  params: {}
-        poisson_generator:
-          nest_model: spike_generator
-          params: {}
-          children:  # Neuron models
-            input_exc:
-              name: input_exc
-              params: {}
+        children:
+          ht_neuron:
+            nest_model: ht_neuron
+            params:
+              g_peak_NaP: 0.5
+              g_peak_h: 0.0
+              g_peak_T: 0.0
+              g_peak_KNa: 0.5
+              g_KL: 1.0
+              E_rev_NaP: 55.0
+              g_peak_AMPA: 0.1
+              g_peak_NMDA: 0.15
+              g_peak_GABA_A: 0.33
+              g_peak_GABA_B: 0.0132
+              instant_unblock_NMDA: true        # old NEST defaults
+              S_act_NMDA: 0.4                   # old NEST defaults
+              V_act_NMDA: !!python/float -58.0  # old NEST defaults
+            children:
+              cortical_excitatory:
+                params:
+                  theta_eq: !!python/float -51.0
+                  tau_theta: 2.0
+                  tau_spike: 1.75
+                  tau_m: 16.0
+                children: # Neuron models
+                  l1_exc:
+                    name: l1_exc
+                    params: {}
+                  l2_exc:
+                    name: l2_exc
+                    params: {}
+                  l3_exc:
+                    name: l3_exc
+                    params: {}
+              cortical_inhibitory:
+                params:
+                  theta_eq: !!python/float -53.0
+                  tau_theta: 1.0
+                  tau_spike: 0.5
+                  tau_m: 8.0
+                children: # Neuron models
+                  l1_inh:
+                    name: l1_inh
+                    params: {}
+                  l2_inh:
+                    name: l2_inh
+                    params: {}
+                  l3_inh:
+                    name: l3_inh
+                    params: {}
+          poisson_generator:
+            nest_model: spike_generator
+            params: {}
+            children:  # Neuron models
+              input_exc:
+                name: input_exc
+                params: {}
 
       synapse_models:
-        # NOTE:
-        # - 'format_synapse_params()' needs modification if any parameters are
-        #   added here
-        # - If you define a 'receptor_type' field you need a 'target_neuron'
-        #   field as well.
-        ht_synapse:
-          nest_model: ht_synapse
-          params:
-            target_neuron: ht_neuron
-          children: # synapse models
-            AMPA_syn:
-              name: AMPA_syn
-              params:
-                receptor_type: AMPA
-            NMDA_syn:
-              name: NMDA_syn
-              params:
-                receptor_type: NMDA
-            GABA_A_syn:
-              name: GABA_A_syn
-              params:
-                receptor_type: GABA_A
-            GABA_B_syn:
-              name: GABA_B_syn
-              params:
-                receptor_type: GABA_B
-        static_synapse:
-          nest_model: stdp_synapse
-          params: {}
-          children: # synapse models
-            input_synapse:
-              name: input_synapse
-              params:
-                target_neuron: ht_neuron
-                receptor_type: AMPA
+        children:
+          # NOTE:
+          # - 'format_synapse_params()' needs modification if any parameters are
+          #   added here
+          # - If you define a 'receptor_type' field you need a 'target_neuron'
+          #   field as well.
+          ht_synapse:
+            nest_model: ht_synapse
+            params:
+              target_neuron: ht_neuron
+            children: # synapse models
+              AMPA_syn:
+                name: AMPA_syn
+                params:
+                  receptor_type: AMPA
+              NMDA_syn:
+                name: NMDA_syn
+                params:
+                  receptor_type: NMDA
+              GABA_A_syn:
+                name: GABA_A_syn
+                params:
+                  receptor_type: GABA_A
+              GABA_B_syn:
+                name: GABA_B_syn
+                params:
+                  receptor_type: GABA_B
+          static_synapse:
+            nest_model: stdp_synapse
+            params: {}
+            children: # synapse models
+              input_synapse:
+                name: input_synapse
+                params:
+                  target_neuron: ht_neuron
+                  receptor_type: AMPA
 
       layers:
         params:

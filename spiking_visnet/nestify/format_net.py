@@ -92,7 +92,7 @@ def get_models(models):
             struct.traverse(model),
             model['nest_model'],
             pos=0)
-        for key, model in models.items()
+        for key, model in models['children'].items()
     ])
 
 
