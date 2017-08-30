@@ -141,7 +141,10 @@ def save_nest_raster(simulation, network, output_dir):
         rec_gid = pop['sd']['gid']
         if (rec_gid
             and 'memory' in pop['sd']['rec_params']['record_to']):
-            raster = raster_plot.from_device(rec_gid, hist=True)
+            try:
+                raster = raster_plot.from_device(rec_gid, hist=True)
+            except:
+                print("Didn't generate raster plot. Maybe there was no spikes?")
             pylab.title(pop['layer']+'_'+pop['population'])
             f = raster[0].figure
             f.set_size_inches(15, 9)
