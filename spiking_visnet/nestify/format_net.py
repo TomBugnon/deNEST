@@ -10,7 +10,6 @@ from collections import ChainMap
 
 from ..utils import filter_suffixes as filt
 from ..utils import structures as struct
-import warnings
 
 
 def get_network(params):
@@ -302,17 +301,22 @@ def get_connection_params(connection, models, layers):
 
     source_size = max(source_params['nrows'], source_params['ncols'])
 
-    # TODO: RF and weight scaling:
-    # - maskfactor?
-    # - btw error in ht files: secondary horizontal intralaminar mixes dcpS and
-    #   dcpP
+    # User specifies masks and kernel in number of units on the grid but
+    # nest_params expects 'extent' units -> scale by extent of the 'pool' layer.
     if not target_params.get('scale_kernels_masks', False):
+        # Don't scale
         rf_factor = 1.
-    else:
-        # If we want to give the masks and kernel sizes in 'number of units', we
-        # have to scale as NEST # expects a mask in 'extent' of the layer.
+    elif params['connection_type'] == 'convergent':
+        # 'pool' layer is source
+        source_size = max(source_params['nrows'], source_params['ncols'])
         rf_factor = (target_params.get('rf_scale_factor', 1.)
                      * source_params['visSize'] / (source_size - 1))
+    elif params['connection_type'] == 'divergent':
+        # 'pool' layer is target
+        target_size = max(target_params['nrows'], target_params['ncols'])
+        rf_factor = (target_params.get('rf_scale_factor', 1.)
+                     * target_params['visSize'] / (target_size - 1))
+
     return params.new_child(
         {'sources': {'model': connection['source_population']},
          'targets': {'model': connection['target_population']},
