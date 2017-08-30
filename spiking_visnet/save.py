@@ -100,6 +100,7 @@ def save_all(network, simulation, full_params_tree):
     print(f'Save everything in {sim_savedir}')
 
     # Save nest raster plots
+    print('Save nest raster plots.')
     if sim_params.get('save_nest_raster', False):
         save_nest_raster(simulation, network, sim_savedir)
 
@@ -135,7 +136,8 @@ def save_nest_raster(simulation, network, output_dir):
     """Use NEST's raster function to save activity pngs.
 
     Only do so for recorders saved on memory."""
-    for pop in network['populations']:
+    for pop in tqdm(network['populations'],
+                    desc='--> Save nest raster plots'):
         rec_gid = pop['sd']['gid']
         if (rec_gid
             and 'memory' in pop['sd']['rec_params']['record_to']):
