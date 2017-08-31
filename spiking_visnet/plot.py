@@ -17,7 +17,7 @@ from bokeh import palettes
 from bokeh.io import output_notebook, push_notebook, show
 from bokeh.plotting import figure
 
-from .analysis.activity import all_cv, firing_rate
+from .analysis.activity import all_cv, mean_activity
 from .analysis.utils import load_activity
 
 TOOLS = 'crosshair,pan,wheel_zoom,box_zoom,reset,tap,box_select,lasso_select'
@@ -55,10 +55,6 @@ def make_activity_figure(pops, plot_period, output_dir, fig_title='figure'):
     plt.close()
 
 
-
-
-
-
 def show_layer_summary(activity, variable, layer, pop, plot_period=None,
                        rate_period=None, cv_period=None, plot_cols=None,
                        show_raster=True, show_rate=True, show_cv=False):
@@ -74,7 +70,7 @@ def show_layer_summary(activity, variable, layer, pop, plot_period=None,
                              variable=variable)
     if show_rate:
         print('Firing rate:')
-        rates = firing_rate(activity[rate_period])
+        rates = mean_activity(activity[rate_period], variable='spikes')
         show_mean_min_max(rates)
 
     if show_cv:

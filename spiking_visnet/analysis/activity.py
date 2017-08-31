@@ -11,9 +11,14 @@ import warnings
 import numpy as np
 
 
-def firing_rate(activity):
-    """Return an array containing the firing rate in Hz."""
-    return 1000 * np.sum(activity, axis=0)/np.size(activity, axis=0)
+def mean_activity(activity, variable='spikes'):
+    """Return an array containing the mean activity over time for each unit.
+
+    If the activity array contains spikes, multiply the result by 1000 to obtain
+    firing rates expressed in Hz (rather than spikes per millisecond).
+    """
+    constant = 1000. if variable == 'spikes' else 1.
+    return constant * np.sum(activity, axis=0)/np.size(activity, axis=0)
 
 
 def isi(spike_train):
