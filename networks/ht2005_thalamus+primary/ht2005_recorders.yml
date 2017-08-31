@@ -1,0 +1,135 @@
+children:
+
+  kernel: {}
+  sessions: {}
+
+  network:
+    children:
+
+      neuron_models: {}
+      synapse_models: {}
+      layers: {}
+      connection_models: {}
+      connections: {}
+
+      populations: # recorders
+        params:
+          record_multimeter: False
+          mm_interval: 1.0
+          mm_record_from: ['V_m']
+          mm_record_to: ['file']
+          mm_start: 500.
+          mm_withgid: True
+          mm_withtime: True
+          record_spike_detector: False
+          sd_start: 500.
+          sd_record_to: ['memory']
+          sd_withgid: True
+          sd_withtime: True
+        children:
+          retina:
+            params:
+              layer: retina
+            children:
+              parrot_neuron:
+                name: parrot_neuron
+                params:
+                  record_spike_detector: True
+          thalamus:
+            params: {}
+            children:
+              Tp_layer:
+                params:
+                  layer: Tp_layer
+                children:
+                  Tp_exc:
+                    name: Tp_exc
+                    params:
+                      record_spike_detector: True
+                  Tp_inh:
+                    name: Tp_inh
+                    params:
+                      record_spike_detector: True
+              Rp_layer:
+                params:
+                  layer: Rp_layer
+                children:
+                  Rp:
+                    name: Rp
+                    params:
+                      record_spike_detector: True
+          Vp:
+            params: {}
+            children:
+              Vp_L23_vertical:
+                params:
+                  layer: Vp_L23_vertical
+                children:
+                  Vp_exc:
+                    name: Vp_exc
+                    params:
+                      record_spike_detector: True
+                      record_multimeter: True
+                  Vp_inh:
+                    name: Vp_inh
+                    params:
+                      record_spike_detector: True
+              Vp_L23_horizontal:
+                params:
+                  layer: Vp_L23_horizontal
+                children:
+                  Vp_exc:
+                    name: Vp_exc
+                    params:
+                      record_spike_detector: True
+                      record_multimeter: True
+                  Vp_inh:
+                    name: Vp_inh
+                    params: {}
+              Vp_L4_vertical:
+                params:
+                  layer: Vp_L4_vertical
+                children:
+                  Vp_exc:
+                    name: Vp_exc
+                    params:
+                      record_spike_detector: True
+                      record_multimeter: True
+                  Vp_inh:
+                    name: Vp_inh
+                    params:
+                      record_spike_detector: True
+              Vp_L4_horizontal:
+                params:
+                  layer: Vp_L4_horizontal
+                children:
+                  Vp_exc:
+                    name: Vp_exc
+                    params:
+                      record_spike_detector: True
+                      record_multimeter: True
+                  Vp_inh:
+                    name: Vp_inh
+                    params: {}
+              Vp_L56_vertical:
+                params:
+                  layer: Vp_L56_vertical
+                children:
+                  Vp_exc:
+                    name: Vp_exc
+                    params:
+                      record_spike_detector: True
+                  Vp_inh:
+                    name: Vp_inh
+                    params:
+                      record_spike_detector: True
+              Vp_L56_horizontal:
+                params:
+                  layer: Vp_L56_horizontal
+                children:
+                  Vp_exc:
+                    name: Vp_exc
+                    params: {}
+                  Vp_inh:
+                    name: Vp_inh
+                    params: {}
