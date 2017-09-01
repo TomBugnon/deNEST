@@ -102,7 +102,7 @@ def save_all(network, simulation, full_params_tree):
     # Save nest raster plots
     print('Save nest raster plots.')
     if sim_params.get('save_nest_raster', False):
-        save_nest_raster(simulation, network, sim_savedir)
+        save_nest_raster(network, sim_savedir)
 
     # Save full params
     print('Save parameters.')
@@ -132,19 +132,22 @@ def save_all(network, simulation, full_params_tree):
     simulation.save_sessions(sim_savedir)
 
 
-def save_nest_raster(simulation, network, output_dir):
+def save_nest_raster(network, output_dir):
     """Use NEST's raster function to save activity pngs.
 
-    Only do so for recorders saved on memory."""
+    Only do so for recorders saved on memory for which there were spikes.
+    """
     for pop in tqdm(network['populations'],
                     desc='--> Save nest raster plots'):
         rec_gid = pop['sd']['gid']
         if (rec_gid
             and 'memory' in pop['sd']['rec_params']['record_to']):
-            try:
+            # Check there is at least one event to avoid NESTError
+            if len(nest.GetStatus(rec_gid)[0]['events']['senders']):
                 raster = raster_plot.from_device(rec_gid, hist=True)
-            except:
-                print("Didn't generate raster plot. Maybe there was no spikes?")
+            else:
+                print("Didn't generate raster plot since there were no spikes.")
+                continue
             pylab.title(pop['layer']+'_'+pop['population'])
             f = raster[0].figure
             f.set_size_inches(15, 9)
