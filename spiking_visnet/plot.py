@@ -13,6 +13,7 @@ from os.path import join
 import matplotlib.pyplot as plt
 import numpy as np
 import pylab
+import seaborn as sns
 from bokeh import palettes
 from bokeh.io import output_notebook, push_notebook, show
 from bokeh.plotting import figure
@@ -75,11 +76,17 @@ def show_layer_summary(activity, variable, layer, pop, plot_period=None,
 
     if show_cv:
         print('CV distribution:')
-        show_distribution(all_cv(l1_exc))
+        show_distribution(all_cv(activity))
 
 
-def show_distribution(image, min_value=None, figsize=(5, 3)):
-    """Show histogram of values greater than ``min_value`` in image or list."""
+def show_distribution(image, plot_density=True, plot_histogram=True,
+                      plot_rugplot=False, nbins=30, show_plot=True, label=None,
+                      min_value=None, max_value=None):
+    """Show distribution of values in array or list.
+
+    Show histogram, density plot and or rugplot of values between min_value and
+    max_value, using seaborn ``distplot`` function.
+    """
     # Flatten
     if isinstance(image, list):
         flat = list
@@ -91,14 +98,22 @@ def show_distribution(image, min_value=None, figsize=(5, 3)):
     # Filter
     if min_value is not None:
         flat = [x for x in flat if x > min_value]
+    if max_value is not None:
+        flat = [x for x in flat if x < max_value]
 
     # Plot
     if len(set(flat)) == 1:
         print('All the values in the filtered array are equal.\n' \
               + '   => Not plotting distribution.')
-    else:
-        plt.figure(figsize=figsize)
-        plt.hist(flat)
+        return
+
+    sns.set()
+    sns.distplot(flat, hist=plot_histogram, bins=nbins, kde=plot_density,
+                 rug=plot_rugplot, label=label)
+
+    # Show
+    if show_plot:
+        plt.legend()
         plt.show()
 
 

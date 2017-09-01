@@ -8,3 +8,4 @@ ipython
 scipy
 pillow
 watchdog
+seaborn
