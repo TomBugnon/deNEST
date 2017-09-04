@@ -61,18 +61,26 @@ def chaintree(tree_list, children_key='children'):
 def combine_values(values):
     """Combine a list of elements.
 
-    - First remove empty stuff from the list.
+    - First remove empty lists and mappings from the list.
     - Return an empty dict is the list is empty.
     - Return either the ChainMap of the list <values> if all its elements are
     mappings, or the first element of the list otherwise.
 
     """
-    values = [v for v in values if v]
-    if len(values) == 0:
+    if any([not isinstance(v, (float,
+                               int,
+                               Mapping,
+                               list,
+                               str)) for v in values]):
+        raise Exception("The type of a value to merge is not recognized.")
+    values = [v for v in values
+              if isinstance(v, (int, float, str))
+              or v]
+    if not values:
         return {}
-    elif len(values) > 1 and all([isinstance(x, Mapping) for x in values]):
+    elif values and all([isinstance(x, Mapping) for x in values]):
         return ChainMap(*values)
-    return(values[0])
+    return values[0]
 
 
 def all_key_values(dict_list, omit_keys=[]):
