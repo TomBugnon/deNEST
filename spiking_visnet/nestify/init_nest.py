@@ -43,7 +43,7 @@ def init_kernel(kernel_params):
         {'local_num_threads': kernel_params['local_num_threads'],
          'resolution': float(kernel_params['resolution']),
          'overwrite_files': kernel_params['overwrite_files']})
-    msd = kernel_params['seed']
+    msd = kernel_params['nest_seed']
     n_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
     nest.SetKernelStatus({
         'grng_seed': msd + n_vp,

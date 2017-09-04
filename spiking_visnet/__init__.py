@@ -8,15 +8,18 @@ from .network import Network
 from .parameters import load_params
 from .save import load_yaml, save_all
 from .simulation import Simulation
-
+import numpy as np
+import random
 
 def init(params):
     """Initialize NEST network from the full parameter tree."""
-    print('Initializing network...')
     # Get relevant parts of the full simulation tree
     network_params = params['children']['network']['children']
     kernel_params = params['children']['kernel']
     sim_params = params['children']['simulation']
+    print('Set python seeds')
+    set_python_seed(kernel_params.get('python_seed', 94))
+    print('Initializing network...')
     # Build the network object
     network = Network(network_params, sim_params)
     # Initialize kernel + network in NEST
@@ -56,3 +59,9 @@ def run(path, overrides=None):
     network = init(params)
     # Simulate and save.
     simulate(network, params)
+
+
+def set_python_seed(seed):
+    """Set all random modules' seed."""
+    np.random.seed(seed)
+    random.seed(seed)
