@@ -26,7 +26,7 @@ class Simulation:
         self.order = params['sessions_order']
         self.sessions = {
             name: Session(session_params)
-            for name, session_params in traverse(params)
+            for name, session_params in sorted(traverse(params))
         }
 
     def run(self, params, network):

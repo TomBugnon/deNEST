@@ -44,11 +44,10 @@ def init_kernel(kernel_params):
          'resolution': float(kernel_params['resolution']),
          'overwrite_files': kernel_params['overwrite_files']})
     msd = kernel_params['seed']
-    N_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
-    pyrngs = [np.random.RandomState(s) for s in range(msd, msd + N_vp)]
+    n_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
     nest.SetKernelStatus({
-        'grng_seed': msd + N_vp,
-        'rng_seeds': range(msd + N_vp + 1, msd + 2 * N_vp + 1),
+        'grng_seed': msd + n_vp,
+        'rng_seeds': range(msd + n_vp + 1, msd + 2 * n_vp + 1),
         'print_time': kernel_params['print_time'],
     })
 
@@ -127,7 +126,7 @@ def create_neurons(neuron_models):
     """Create neuron models in NEST."""
     for (base_nest_model,
          model_name,
-         params_chainmap) in tqdm(neuron_models,
+         params_chainmap) in tqdm(sorted(neuron_models),
                                   desc='Create neurons: '):
         nest.CopyModel(base_nest_model, model_name, dict(params_chainmap))
     return
@@ -143,7 +142,7 @@ def create_synapses(synapse_models):
     """
     for (base_nest_model,
          model_name,
-         params_chainmap) in tqdm(synapse_models,
+         params_chainmap) in tqdm(sorted(synapse_models),
                                   desc='Create synapses: '):
         nest.CopyModel(base_nest_model,
                        model_name,
@@ -196,7 +195,7 @@ def create_layers(layers):
     Args:
         layers (dict): Flat dictionary of dictionaries.
     """
-    for layer_name, layer_dict in tqdm(layers.items(),
+    for layer_name, layer_dict in tqdm(sorted(layers.items()),
                                        desc='Create layers: '):
         gid = tp.CreateLayer(dict(layer_dict['nest_params']))
         layers[layer_name].update({'gid': gid})
@@ -206,12 +205,24 @@ def create_layers(layers):
 def create_connections(connections, layers):
     """Create NEST connections."""
     assert ('gid' in layers[list(layers)[0]]), 'Please create the layers first'
-    for connection in tqdm(connections,
+    for connection in tqdm(sorted(connections, key=conn_sorting_key),
                            desc='Create connections: '):
         tp.ConnectLayers(layers[connection['source_layer']]['gid'],
                          layers[connection['target_layer']]['gid'],
                          dict(connection['nest_params']))
     return
+
+
+def conn_sorting_key(conn):
+    """Map connections dictionary to tuple for sorting."""
+    source_layer, target_layer = conn['source_layer'], conn['target_layer']
+    nest_params = conn['nest_params']
+    source_pop = nest_params.get('sources', dict()).get('model', 'None')
+    target_pop = nest_params.get('targets', dict()).get('model', 'None')
+    synapse_model = nest_params.get('synapse_model')
+    connection_type = nest_params.get('connection_type')
+    return (source_layer, target_layer, source_pop, target_pop, synapse_model,
+            connection_type)
 
 
 def connect_recorders(pop_list, layers):

@@ -183,7 +183,7 @@ class Network(collections.UserDict):
         """
         return [layer_name + STIM_LAYER_SUFFIX if self.has_parrots(layer_name)
                 else layer_name
-                for layer_name in self.input_layers()]
+                for layer_name in sorted(self.input_layers())]
 
     def has_parrots(self, layer_name):
         """Return the layer params' 'with_parrot' entry."""
@@ -195,9 +195,9 @@ class Network(collections.UserDict):
 
     def populations(self, layer_name):
         """Return the list of populations in a layer."""
-        return [elem for elem in (self['layers'][layer_name]
-                                  ['nest_params']['elements'])
-                if isinstance(elem, str)]
+        return sorted([elem for elem in (self['layers'][layer_name]
+                                         ['nest_params']['elements'])
+                       if isinstance(elem, str)])
 
     def stimulator_type(self, population_name):
         """Return the type of stimulator in an input layer.

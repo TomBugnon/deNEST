@@ -26,6 +26,7 @@ Options:
 import random
 import sys
 
+import numpy as np
 from docopt import docopt
 
 from config import PYTHON_SEED
@@ -36,6 +37,7 @@ from .parameters import AutoDict
 from .utils.structures import dictify
 
 random.seed(PYTHON_SEED)
+np.random.seed(PYTHON_SEED)
 
 # Maps CLI options to their corresponding path in the parameter tree.
 _CLI_ARG_MAP = {

@@ -24,12 +24,18 @@ def change_synapse_states(synapse_changes):
             a given model.
 
     """
-    for changes in tqdm(synapse_changes,
+    for changes in tqdm(sorted(synapse_changes, key=synapse_sorting_map),
                         desc="Change synapses's state."):
         nest.SetStatus(
             nest.GetConnections(synapse_model=changes['synapse_model']),
             changes['params']
             )
+
+
+def synapse_sorting_map(synapse_change):
+    """Map by (synapse_model, params_items) for sorting."""
+    return (synapse_change['synapse_model'],
+            sorted(synapse_change['params'].items()))
 
 
 def change_unit_states(unit_changes, network_layers):
@@ -49,7 +55,7 @@ def change_unit_states(unit_changes, network_layers):
             the dictionary of parameter changes apply to the selected units.
 
     """
-    for changes in tqdm(unit_changes,
+    for changes in tqdm(sorted(unit_changes, key=unit_sorting_map),
                         desc="Change units' state"):
         layer_gid = network_layers[changes['layer']]['gid']
         all_pop_units = np.array(
@@ -62,7 +68,12 @@ def change_unit_states(unit_changes, network_layers):
         gids_to_change = np.random.randint(num_neurons,
                                            size=(1, num_to_change))[0]
 
-        # for i in range(1, num_to_change, 1):
-
         nest.SetStatus(all_pop_units[gids_to_change].tolist(),
                        params=changes['params'])
+
+def unit_sorting_map(unit_change):
+    """Map by (layer, population, proportion, params_items for sorting."""
+    return (unit_change['layer'],
+            unit_change['population'],
+            unit_change['proportion'],
+            sorted(unit_change['params'].items()))
