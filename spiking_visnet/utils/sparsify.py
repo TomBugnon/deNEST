@@ -5,10 +5,11 @@
 """Save and load binary arrays sparsely."""
 
 import os
+import os.path
 import pickle
 
+import numpy as np
 import scipy.sparse
-
 
 # Use LIL as the default sparse format
 sparse_format = scipy.sparse.lil_matrix
@@ -38,9 +39,15 @@ def save_as_sparse(path, array):
     return True
 
 
-# TODO: Rename to load_sparse
-# TODO: implement another function that accepts either dense or sparse
 def load_as_numpy(path):
+    """Load as numpy a file saved with ``save_as_sparse`` or ``np.save``."""
+    ext = os.path.splitext(path)[1]
+    if ext == '.npy':
+        return np.load(path)
+    return load_sparse(path)
+
+
+def load_sparse(path):
     """Load an array saved with ``save_as_sparse``."""
     # Normalize file extension
     path = ensure_ext(path, ext='.pkl')
