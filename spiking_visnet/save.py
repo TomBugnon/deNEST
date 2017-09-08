@@ -38,7 +38,7 @@ def load_session_times(output_dir):
 def load_session_stim(output_dir, session_name):
     """Load full stimulus of a session."""
     full_stim_filename = 'session_' + session_name + '_full_stim.npy'
-    return np.load(join(output_dir, full_stim_filename))
+    return load_as_numpy(join(output_dir, full_stim_filename))
 
 
 def load_activity(output_dir, layer, population, variable='spikes'):
