@@ -67,11 +67,13 @@ def combine_values(values):
     mappings, or the first element of the list otherwise.
 
     """
-    if any([not isinstance(v, (float,
-                               int,
-                               Mapping,
-                               list,
-                               str)) for v in values]):
+    accepted_types = (float,
+                      int,
+                      Mapping,
+                      list,
+                      str)
+    if any([v is not None and not isinstance(v, accepted_types)
+            for v in values]):
         raise Exception("The type of a value to merge is not recognized.")
     values = [v for v in values
               if isinstance(v, (int, float, str))
