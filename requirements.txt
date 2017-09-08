@@ -9,3 +9,5 @@ scipy
 pillow
 watchdog
 seaborn
+pandas
+bokeh

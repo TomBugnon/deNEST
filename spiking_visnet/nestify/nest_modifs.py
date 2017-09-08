@@ -25,7 +25,7 @@ def change_synapse_states(synapse_changes):
 
     """
     for changes in tqdm(sorted(synapse_changes, key=synapse_sorting_map),
-                        desc="Change synapses's state."):
+                        desc="-> Change synapses's state."):
         nest.SetStatus(
             nest.GetConnections(synapse_model=changes['synapse_model']),
             changes['params']
@@ -56,7 +56,7 @@ def change_unit_states(unit_changes, network_layers):
 
     """
     for changes in tqdm(sorted(unit_changes, key=unit_sorting_map),
-                        desc="Change units' state"):
+                        desc="-> Change units' state"):
         layer_gid = network_layers[changes['layer']]['gid']
         all_pop_units = np.array(
             [nd for nd in nest.GetLeaves(layer_gid)[0]
