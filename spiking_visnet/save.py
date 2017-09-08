@@ -23,7 +23,7 @@ from user_config import OUTPUT_DIR
 
 from .nestify.connections import get_filtered_synapses
 from .utils.format_recorders import format_mm_data, format_sd_data
-from .utils.sparsify import load_as_numpy, save_as_sparse
+from .utils.sparsify import load_as_numpy, save_array
 
 FULL_PARAMS_TREE_STR = 'params.yaml'
 NETWORK_STR = 'network.yaml'
@@ -221,7 +221,7 @@ def save_synapses(network, sim_savedir):
 
             # Save the different types of values in separate arrays
             for i, key in enumerate(keys):
-                save_as_sparse(join(sim_savedir,
+                save_array(join(sim_savedir,
                                     base_connection_string + '_' + key),
                                all_synapses_all_values[:, :, :, :, i])
 
@@ -421,7 +421,7 @@ def save_formatted_recorders(network, sim_savedir):
                     filename = recorder_filename(layer, pop,
                                                  unit_index=unit_index,
                                                  variable=variable)
-                    save_as_sparse(join(sim_savedir, filename),
+                    save_array(join(sim_savedir, filename),
                                    activity_array)
 
             if sd['gid']:
@@ -435,7 +435,7 @@ def save_formatted_recorders(network, sim_savedir):
                 filename = recorder_filename(layer, pop,
                                              variable='spikes',
                                              unit_index=unit_index)
-                save_as_sparse(join(sim_savedir, filename),
+                save_array(join(sim_savedir, filename),
                                activity_array)
 
 
@@ -481,7 +481,7 @@ def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
             return (time, sender_gid)
 
     elif 'file' in record_to:
-
+        # from IPython.core.debugger import Tracer; Tracer()()
         recorder_files = nest.GetStatus(rec_gid, 'filenames')[0]
 
         data = load_and_combine(recorder_files)
