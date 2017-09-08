@@ -2,25 +2,32 @@
 # -*- coding: utf-8 -*-
 # sparsify.py
 
-
-"""Compress, save and load 3D and 4D np arrays."""
-
+"""Save and load binary arrays sparsely."""
 
 import numpy as np
-from scipy import sparse
 
 
-# TODO:
-def save_as_sparse(path, nparray):
-    """Save 3D or 4D nparrays as scipy sparse array in <path>."""
-    np.save(path, nparray)
+# TODO: rename to save_sparse
+def save_as_sparse(path, array):
+    """Save a binary array in a sparse format.
+
+    .. note::
+        This assumes the array contains only binary values.
+    """
+    indices = np.where(array == 1)
+    np.savez(path, indices)
 
 
-# TODO:
+# TODO: Rename to load_sparse
+# TODO: implement another function that accepts either dense or sparse
 def load_as_numpy(path):
-    """Load file at <path> as np array.
+    """Load a sparse array.
 
-    Path can point towards either a numpy file or a 'scipy' file saved using
+    Path can point towards either a numpy file or a scipy' file saved using
     save_as_sparse().
     """
-    return np.load(path)
+    indices = np.load(path)
+    shape = (index.size for index in indices)
+    dense = np.zeros(shape, dtype=int)
+    dense[indices] = 1
+    return dense
