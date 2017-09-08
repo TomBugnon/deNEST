@@ -6,6 +6,7 @@
 """Save and load movies, networks, activity and simulation parameters."""
 
 import itertools
+import os
 from os import makedirs, stat
 from os.path import basename, exists, isfile, join, splitext
 from shutil import rmtree
@@ -41,10 +42,29 @@ def load_session_stim(output_dir, session_name):
     return load_as_numpy(join(output_dir, full_stim_filename))
 
 
-def load_activity(output_dir, layer, population, variable='spikes'):
+def load_activity(output_dir, layer, population, variable='spikes',
+                  session=None, all_units=False):
     """Load activity of a given variable for a population."""
-    filename = layer + '_' + population + '_' + variable + '.npy'
-    return load_as_numpy(join(output_dir, filename))
+    if all_units:
+        filename_prefix = recorder_filename(layer, population,
+                                            variable=variable, unit_index=None)
+    else:
+        filename_prefix = recorder_filename(layer, population,
+                                            variable=variable, unit_index=0)
+    all_filenames = [f for f in os.listdir(output_dir)
+                     if f.startswith(filename_prefix)
+                     and isfile(join(output_dir, f))]
+
+    # Concatenate along first dimension (row)
+    all_sessions_activity = np.concatenate(
+        [load_as_numpy(join(output_dir, filename))
+         for filename in all_filenames],
+        axis=1
+        )
+    if session is None:
+        return  all_sessions_activity
+    session_times = load_session_times(output_dir)
+    return all_sessions_activity[session_times[session]]
 
 
 def load_labels(output_dir, session_name):
@@ -372,44 +392,62 @@ def save_formatted_recorders(network, sim_savedir):
         sd = pop_dict['sd']
         location_by_gid = gid_location_mappings[layer][pop]['location']
 
-        # For layer size for (total_time * nrow * ncol)-nparray initialization
+        # Get layer size for (total_time * nrow * ncol)-nparray initialization
         layer_params = network['layers'][layer]['nest_params']
         (nrow, ncol) = layer_params['rows'], layer_params['columns']
 
-        # Population string for saving filename
-        pop_string = layer + STRING_SEPARATOR + pop + STRING_SEPARATOR
 
-        if mm['gid']:
+        # Iterate on unit index (there can be multiple units per location)
+        nunits_per_location = np.size(gid_location_mappings[layer][pop]['gid'],
+                                      axis=2)
+        for unit_index in range(nunits_per_location):
 
-            recorded_variables = nest.GetStatus(mm['gid'], 'record_from')[0]
+            if mm['gid']:
 
-            for variable in [str(var) for var in recorded_variables]:
+                recorded_variables = nest.GetStatus(mm['gid'], 'record_from')[0]
 
-                time, gid, activity = gather_raw_data(mm['gid'],
-                                                      variable,
-                                                      recorder_type='multimeter'
-                                                      )
-                activity_array = format_mm_data(gid,
+                for variable in [str(var) for var in recorded_variables]:
+
+                    time, gid, activity = gather_raw_data(mm['gid'],
+                                                          variable,
+                                                          recorder_type='multimeter'
+                                                          )
+                    activity_array = format_mm_data(gid,
+                                                    time,
+                                                    activity,
+                                                    location_by_gid,
+                                                    dim=(n_timesteps, nrow, ncol),
+                                                    unit_index=unit_index)
+                    filename = recorder_filename(layer, pop,
+                                                 unit_index=unit_index,
+                                                 variable=variable)
+                    save_as_sparse(join(sim_savedir, filename),
+                                   activity_array)
+
+            if sd['gid']:
+                time, gid = gather_raw_data(sd['gid'],
+                                            recorder_type='spike_detector')
+                activity_array = format_sd_data(gid,
                                                 time,
-                                                activity,
                                                 location_by_gid,
-                                                dim=(n_timesteps, nrow, ncol))
-                filename = pop_string + variable
+                                                dim=(n_timesteps, nrow, ncol),
+                                                unit_index=unit_index)
+                filename = recorder_filename(layer, pop,
+                                             variable='spikes',
+                                             unit_index=unit_index)
                 save_as_sparse(join(sim_savedir, filename),
                                activity_array)
 
-        if sd['gid']:
-            time, gid = gather_raw_data(sd['gid'],
-                                        recorder_type='spike_detector')
 
-            activity_array = format_sd_data(gid,
-                                            time,
-                                            location_by_gid,
-                                            dim=(n_timesteps, nrow, ncol))
-            filename = pop_string + 'spikes'
-
-            save_as_sparse(join(sim_savedir, filename),
-                           activity_array)
+def recorder_filename(layer, pop, unit_index=None, variable='spikes'):
+    """Return filename for a population x unit_index."""
+    base_filename = (layer + STRING_SEPARATOR + pop + STRING_SEPARATOR
+                     + variable)
+    suffix = ''
+    if unit_index is not None:
+        suffix = (STRING_SEPARATOR + 'units' + STRING_SEPARATOR
+                  + str(unit_index))
+    return base_filename + suffix
 
 
 def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
