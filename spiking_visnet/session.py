@@ -30,11 +30,10 @@ class Session(collections.UserDict):
         # Initialize the session start and end times
         self.start_time = 0
         self.end_time = 0
-        # Load the stimuli
+        # Initialize stimuli fields. ()
         self.full_stim = None
         self.labels = None
         self.stim_metadata = None
-        self.load_full_session_stim()
 
     def save_stim(self, save_dir, session_name):
         """Save full stim (per timestep), labels (per timestep) and metadata."""
@@ -51,13 +50,19 @@ class Session(collections.UserDict):
     def initialize(self, network):
         """Initialize session.
 
-        1- Reset Network
-        2- Change network's dynamic variables.
-        3- Set input spike times or input rates.
+        1- Load stimuli
+        2- Reset Network
+        3- Change network's dynamic variables.
+        4- Set input spike times or input rates.
 
         """
+        # Load stimuli
+        print("-> Load session's stimulus")
+        self.load_full_session_stim()
+
         # Network resetting
         if self['reset_network']:
+            print("-> Reset network")
             nest.ResetNetwork()
 
         # Change dynamic variables
