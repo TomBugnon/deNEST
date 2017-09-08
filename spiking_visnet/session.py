@@ -40,12 +40,13 @@ class Session(collections.UserDict):
         full_stim_filename = 'session_'+session_name+'_full_stim'
         labels_filename = 'session_'+session_name+'_labels'
         stim_metadata_filename = 'session_'+session_name+'_stim_metadata.yml'
-        save_as_sparse(join(save_dir, full_stim_filename),
-                       self.full_stim)
-        save_as_sparse(join(save_dir, labels_filename),
-                       self.labels)
-        save_as_yaml(join(save_dir, stim_metadata_filename),
-                     self.stim_metadata)
+        if self.get('save_stim', True) and self.full_stim is not None:
+            save_as_sparse(join(save_dir, full_stim_filename),
+                           self.full_stim)
+            save_as_sparse(join(save_dir, labels_filename),
+                           self.labels)
+            save_as_yaml(join(save_dir, stim_metadata_filename),
+                         self.stim_metadata)
 
     def initialize(self, network):
         """Initialize session.
