@@ -87,7 +87,7 @@ def gid_location_mapping(layer_gid, population_name):
                   if nest.GetStatus((nd,), 'model')[0] == population_name])
 
     # Initialize bi-directional mapping dictionary.
-    gid_loc_map = {'gid': np.empty((nrows, ncols, nelems), dtype=list),
+    gid_loc_map = {'gid': np.empty((nrows, ncols, nelems), dtype=int),
                    'location': {}}
     # Iterate on all locations of the grid-based layer.
     for (i, j) in itertools.product(range(nrows), range(ncols)):

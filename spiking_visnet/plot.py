@@ -12,21 +12,20 @@ from os.path import join
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pylab
 import seaborn as sns
 from bokeh import palettes
 from bokeh.io import output_notebook, push_notebook, show
 from bokeh.plotting import figure
 
 from .analysis.activity import all_cv, mean_activity
-from .analysis.utils import load_activity
+from .save import load_activity
 
 TOOLS = 'crosshair,pan,wheel_zoom,box_zoom,reset,tap,box_select,lasso_select'
 PALETTE = palettes.Inferno256
 
 
 def make_activity_figure(pops, plot_period, output_dir, fig_title='figure'):
-    """Creates raster as sublots for each population/variable.
+    """Create raster as sublots for each population/variable.
 
     Args:
         pops (list): List of tuples each of the form::
