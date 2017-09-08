@@ -12,11 +12,13 @@ from os.path import join
 
 import numpy as np
 
+from .sparsify import save_as_sparse
 
-def vertical_cross(vsize=9, hsize=9, width=3):
-    """Return vsize * hsize np.array containing a centered cross of width."""
-    array = np.zeros((vsize, hsize))
-    v_c, h_c = int(vsize / 2), int(hsize / 2)
+
+def vertical_cross(nrows=9, ncols=9, width=3):
+    """Return nrows * ncols np.array containing a centered cross of width."""
+    array = np.zeros((nrows, ncols))
+    v_c, h_c = int(nrows / 2), int(ncols / 2)
     half_w = int((width - 1) / 2)
 
     array[:, h_c - half_w: h_c + half_w + 1] = 1
@@ -25,10 +27,10 @@ def vertical_cross(vsize=9, hsize=9, width=3):
     return array
 
 
-def vertical_tee(vsize=9, hsize=9, width=3):
-    """Return vsize * hsize np.array containing a centered T of width."""
-    array = np.zeros((vsize, hsize))
-    h_c = int(hsize / 2)
+def vertical_tee(nrows=9, ncols=9, width=3):
+    """Return nrows * ncols np.array containing a centered T of width."""
+    array = np.zeros((nrows, ncols))
+    h_c = int(ncols / 2)
     half_w = int((width - 1) / 2)
 
     array[:, h_c - half_w: h_c + half_w + 1] = 1
@@ -36,27 +38,16 @@ def vertical_tee(vsize=9, hsize=9, width=3):
 
     return array
 
-def vertical_L(vsize=9, hsize=9, width=3):
-    """Return vsize * hsize np.array containing a centered + of width."""
-    array = np.zeros((vsize, hsize))
-    h_c = int(hsize / 2)
+def vertical_L(nrows=9, ncols=9, width=3):
+    """Return nrows * ncols np.array containing a centered + of width."""
+    array = np.zeros((nrows, ncols))
+    h_c = int(ncols / 2)
     half_w = int((width - 1) / 2)
 
     array[:, : width] = 1
-    array[vsize-width:vsize, :] = 1
+    array[nrows-width:nrows, :] = 1
 
     return array
-
-def vertical_sinusoidal_grating(vsize=9, hsize=9, mean=0.5, amplitude=0.5, period=None):
-    """Return vertical sinusoidal input."""
-    if period is None:
-        period = int(hsize/4)
-    array = np.zeros((vsize, hsize))
-    for col in range(hsize):
-        sin_variation = math.sin(2 * math.pi * col / period)
-        array[:, col] = max(0, mean + amplitude * sin_variation)
-    return array
-
 
 
 FUN_MAP = {
@@ -65,8 +56,23 @@ FUN_MAP = {
 }
 
 
+def sinusoidal_grating(nrows=9, ncols=9, mean=0.5, amplitude=0.5,
+                       phase=0, spatial_period=None, angle=0):
+    if spatial_period is None:
+        spatial_period = min(nrows, ncols)/4
+    array = np.zeros((nrows, ncols))
+    normal_vector = math.cos(angle), math.sin(angle)
+    for row, col in itertools.product(range(nrows), range(ncols)):
+        # translate np coordinate into trigonometric
+        distance = (normal_vector[0] * (1 * col)
+                    + normal_vector[1] * (-1 * row))
+        sin_variation = math.sin(2 * math.pi * (distance - phase) / spatial_period)
+        array[row, col] = max(0, mean + amplitude * sin_variation)
+    return array
+
+
 def create_movie(raw_input_dir, res, t, stim_type, path_type='default',
-                 vsize=9, hsize=9, width=3, save=False):
+                 nrows=9, ncols=9, width=3, save=False):
     """Create, possibly save, and return a movie (3D np-array).
 
     Args:
@@ -78,8 +84,8 @@ def create_movie(raw_input_dir, res, t, stim_type, path_type='default',
             is called (see FUN_MAP)
         path_type (str): Defines the type of path the stimulus 'takes' across
             frames of the movie
-        vsize (int): vertical size (first dimension) of the stimulus
-        hsize (int): horizontal size (second dimension) of the stimulus
+        nrows (int): vertical size (first dimension) of the stimulus
+        ncols (int): horizontal size (second dimension) of the stimulus
         width (int): width of the stimulus
         save (bool): If true, saves the created movie in INPUT_DIR/raw_inputs
 
@@ -87,24 +93,24 @@ def create_movie(raw_input_dir, res, t, stim_type, path_type='default',
         np-array: (nframes*nrows*ncols)-numpy array
 
     """
-    stim = FUN_MAP[stim_type](vsize, hsize, width)
+    stim = FUN_MAP[stim_type](nrows, ncols, width)
     path = generate_path(res, t, path_type)
     movie = generate_movie(res, stim, path)
 
     if save:
-        savestr = generate_movie_str(stim_type, path_type, res, t, vsize, hsize,
+        savestr = generate_movie_str(stim_type, path_type, res, t, nrows, ncols,
                                      width)
         makedirs(raw_input_dir, exist_ok=True)
-        np.save(join(raw_input_dir, savestr), movie)
+        save_as_sparse(join(raw_input_dir, savestr), movie)
 
     return movie
 
 
-def generate_movie_str(stim_type, path_type, res, t, vsize, hsize, width):
+def generate_movie_str(stim_type, path_type, res, t, nrows, ncols, width):
     """Generate the filename under which a movie is saved."""
     return (stim_type + '_path=' + path_type + '_res=(' + str(res[0]) + ',' +
-            str(res[1]) + ')_t=' + str(t) + '_vsize=' + str(vsize) + '_hsize=' +
-            str(hsize) + '_width=' + str(width))
+            str(res[1]) + ')_t=' + str(t) + '_nrows=' + str(nrows) + '_ncols=' +
+            str(ncols) + '_width=' + str(width))
 
 
 def generate_path(res, t=None, path_type='default'):
@@ -136,6 +142,8 @@ def generate_path(res, t=None, path_type='default'):
         return [find_in_np(a, i + 1) for i in range(t)]
     elif path_type == 'top_left_to_top_right':
         return [(0, col) for col in range(ncols)]
+    elif path_type == 'top_left_to_bottom_left':
+        return [(row, 0) for row in range(nrows)]
     elif path_type == 'Z':
         # t = 9
         # Three top positions, three middle, three bottom
