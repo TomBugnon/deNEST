@@ -22,8 +22,15 @@ def ensure_ext(path, ext='.pkl'):
     return path + _ext
 
 
-# TODO: rename to save_sparse
-def save_as_sparse(path, array):
+def save_array(path, array):
+    """Save array either as dense or sparse depending on data type."""
+    try:
+        save_sparse(path, array)
+    except TypeError:
+        np.save(path, array)
+
+
+def save_sparse(path, array):
     """Save an array in a sparse format."""
     # Normalize file extension
     path = ensure_ext(path, ext='.pkl')
@@ -40,7 +47,7 @@ def save_as_sparse(path, array):
 
 
 def load_as_numpy(path):
-    """Load as numpy a file saved with ``save_as_sparse`` or ``np.save``."""
+    """Load as numpy a file saved with ``save_array`` or ``np.save``."""
     ext = os.path.splitext(path)[1]
     if ext == '.npy':
         return np.load(path)
@@ -48,7 +55,7 @@ def load_as_numpy(path):
 
 
 def load_sparse(path):
-    """Load an array saved with ``save_as_sparse``."""
+    """Load an array saved with ``save_array``."""
     # Normalize file extension
     path = ensure_ext(path, ext='.pkl')
     # Load

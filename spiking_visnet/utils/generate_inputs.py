@@ -12,7 +12,7 @@ from os.path import join
 
 import numpy as np
 
-from .sparsify import save_as_sparse
+from .sparsify import save_array
 
 
 def vertical_cross(nrows=9, ncols=9, width=3):
@@ -101,7 +101,7 @@ def create_movie(raw_input_dir, res, t, stim_type, path_type='default',
         savestr = generate_movie_str(stim_type, path_type, res, t, nrows, ncols,
                                      width)
         makedirs(raw_input_dir, exist_ok=True)
-        save_as_sparse(join(raw_input_dir, savestr), movie)
+        save_array(join(raw_input_dir, savestr), movie)
 
     return movie
 
