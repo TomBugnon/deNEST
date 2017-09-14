@@ -390,6 +390,8 @@ class InputLayer(AbstractLayer):
         names = filter_suffixes.get_expanded_names(self.name,
                                                    self.params.get('filters'))
         self.layers = [Layer(name, self.params) for name in names]
+        # TODO: Possibly scale the weights of all input connections by the
+        # number of input layers
 
     def extent_units(self, value):
         # IMPORTANT: Assumes all sublayers are the same size!
