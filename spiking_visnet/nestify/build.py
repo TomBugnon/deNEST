@@ -475,6 +475,7 @@ class Connection(NestObject):
             self.scale_factor = self.DEFAULT_SCALE_FACTOR
         # Get NEST connection parameters
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # TODO: handle divergent and convergent separately
         # Get a view of the kernel, mask, and weights inherited from the
         # connection model
         nest_params = ChainMap(self.params.get('nest_params', dict()),
