@@ -1,8 +1,3 @@
-children:
-
-    sessions: {}
-    network: {}
-    kernel: {}
-
-    simulation:
-        delete_tmp_dir: True
+simulation:
+  params:
+    delete_tmp_dir: True
