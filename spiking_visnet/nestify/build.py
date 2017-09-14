@@ -481,18 +481,18 @@ class Connection(NestObject):
         nest_params = ChainMap(self.params.get('nest_params', dict()),
                                self.model.params)
         # Set kernel, mask, and weights, scaling if necessary
-        nest_params = {
+        nest_params = nest_params.new_child({
             'kernel': self.scale_kernel(nest_params['kernel']),
             'mask': self.scale_mask(nest_params['mask']),
             'weights': self.scale_weights(nest_params['weights']),
-        }
+        })
         # Set source populations if available
         if self.source_population:
             nest_params['sources'] = {'model': self.source_population}
         if self.target_population:
             nest_params['targets'] = {'model': self.target_population}
-        # Inherit other properties from the connection model as well
-        self.nest_params = dict(ChainMap(nest_params, self.model.params))
+        # Save nest_params as a dictionary.
+        self.nest_params = dict(nest_params)
 
     def scale_kernel(self, kernel):
         try:
