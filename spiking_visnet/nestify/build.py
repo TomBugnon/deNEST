@@ -464,23 +464,32 @@ class Connection(NestObject):
         self.source_population = params.get('source_population', None)
         self.target = target
         self.target_population = params.get('target_population', None)
-        # TODO: RF and weight scaling:
-        # - maskfactor?
-        # - btw error in ht files: secondary horizontal intralaminar mixes dcpS
-        #   and dcpP
-        if self.target.params.get('scale_kernels_masks'):
-            self.scale_factor = self.source.grid_units(
+        # Get NEST connection parameters
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # TODO: Get a view of the kernel, mask, and weights inherited from the
+        # connection model
+
+        # Merge 'connection_model' and connection nest_parameters
+        nest_params = ChainMap(self.params.get('nest_params', dict()),
+                               self.model.params)
+
+        # Get scaling factor, taking in accound whether the connection is
+        # convergent or divergent
+        if (nest_params['connection_type'] == 'convergent'
+            and self.source.params.get('scale_kernels_masks', True)):
+            # For convergent connections, the pooling layer is the source
+            self.scale_factor = self.source.extent_units(
+                self.source.params.get('rf_scale_factor', 1.0)
+            )
+        elif (nest_params['connection_type'] == 'divergent'
+            and self.target.params.get('scale_kernels_masks', True)):
+            # For convergent connections, the pooling layer is the target
+            self.scale_factor = self.target.extent_units(
                 self.target.params.get('rf_scale_factor', 1.0)
             )
         else:
             self.scale_factor = self.DEFAULT_SCALE_FACTOR
-        # Get NEST connection parameters
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # TODO: handle divergent and convergent separately
-        # Get a view of the kernel, mask, and weights inherited from the
-        # connection model
-        nest_params = ChainMap(self.params.get('nest_params', dict()),
-                               self.model.params)
+
         # Set kernel, mask, and weights, scaling if necessary
         nest_params = nest_params.new_child({
             'kernel': self.scale_kernel(nest_params['kernel']),
