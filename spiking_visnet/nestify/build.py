@@ -195,12 +195,13 @@ class AbstractLayer(NestObject):
         self._populations = None
 
     @staticmethod
-    def to_grid_units(value, extent, rows, columns):
+    def to_extent_units(value, extent, rows, columns):
+        """Convert a value from grid units to extent units."""
         size = max(rows, columns)
         units = extent / size
         return value * units
 
-    def grid_units(self, value):
+    def extent_units(self, value):
         """Convert a value from grid units to extent units."""
         raise NotImplementedError
 
@@ -289,8 +290,8 @@ class Layer(AbstractLayer):
         self._connected = list()
         self._gid = None
 
-    def grid_units(self, value):
-        return self.to_grid_units(value, self.visSize, self.nrows, self.ncols)
+    def extent_units(self, value):
+        return self.to_extent_units(value, self.visSize, self.nrows, self.ncols)
 
     def build_elements(self):
         """Return the NEST description of layer elements.
@@ -390,9 +391,9 @@ class InputLayer(AbstractLayer):
                                                    self.params.get('filters'))
         self.layers = [Layer(name, self.params) for name in names]
 
-    def grid_units(self, value):
+    def extent_units(self, value):
         # IMPORTANT: Assumes all sublayers are the same size!
-        return self.layers[0].grid_units(value)
+        return self.layers[0].extent_units(value)
 
     def _layer_get(self, attr_name):
         """Get an attribute from each sublayer."""
@@ -415,7 +416,7 @@ class InputLayer(AbstractLayer):
         self._gid = flatten(self._layer_get('gid'))
         # Connect stimulators to parrots, one-to-one
         # IMPORTANT: This assumes that all layers are the same size!
-        radius = self.grid_units(0.1)
+        radius = self.extent_units(0.1)
         one_to_one_connection = {
             'sources': {'model': self.stimulator_model},
             'targets': {'model': self.PARROT_MODEL},
