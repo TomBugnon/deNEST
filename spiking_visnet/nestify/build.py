@@ -6,11 +6,11 @@
 
 # pylint: disable=too-few-public-methods
 
-from collections import ChainMap
-import itertools
 import functools
+import itertools
 import logging
 import logging.config
+from collections import ChainMap
 from pprint import pformat
 
 import numpy as np

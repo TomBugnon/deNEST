@@ -7,9 +7,9 @@
 # pylint: disable=attribute-defined-outside-init,no-member
 # pylint: disable=too-few-public-methods,too-many-ancestors
 
+import os
 from collections import ChainMap, UserDict
 from collections.abc import Mapping
-import os
 from pprint import pformat
 
 import yaml

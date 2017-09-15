@@ -13,8 +13,8 @@ from shutil import rmtree
 import nest
 import numpy as np
 import yaml
-
 from tqdm import tqdm
+
 from user_config import OUTPUT_DIR
 
 from .nestify.connections import get_filtered_synapses

@@ -6,9 +6,9 @@
 
 # pylint: disable=too-many-ancestors
 
-from collections import UserDict
 import functools
 import operator
+from collections import UserDict
 
 
 class AutoDict(UserDict):
