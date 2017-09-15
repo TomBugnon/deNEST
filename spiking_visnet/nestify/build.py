@@ -200,6 +200,11 @@ class AbstractLayer(NestObject):
         self._elements = None
         self._locations = None
         self._populations = None
+        self.shape = params['nrows'], params['ncols']
+
+    def __iter__(self):
+        yield from itertools.product(range(self.shape[0]),
+                                     range(self.shape[1]))
 
     @staticmethod
     def to_extent_units(value, extent, rows, columns):
