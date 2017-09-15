@@ -5,6 +5,7 @@
 """Convert network parameters to a NEST-readable representation."""
 
 import copy as cp
+import warnings
 from collections import ChainMap
 
 from ..utils import filter_suffixes as filt
@@ -92,7 +93,7 @@ def get_models(models):
             struct.traverse(model),
             model['nest_model'],
             pos=0)
-        for key, model in models.items()
+        for key, model in models['children'].items()
     ])
 
 
@@ -202,13 +203,13 @@ def get_layer_elements(layer_params):
     for pop in layer_elements:
         # Number of populations in layer
         if pop['type'] == 'inhibitory':
-            number = pop['ratio']
+            number = int(pop['ratio'])
         elif pop['type'] == 'excitatory':
             if sum(inh_pop) == 0:
-                number = pop['ratio']
+                number = int(pop['ratio'])
             else:
-                number = (pop['ratio'] * number_inh
-                          * layer_params['exc_inh_ratio'])
+                number = int((pop['ratio'] * number_inh
+                             * layer_params['exc_inh_ratio']))
         elements_list += [pop['population'], number]
 
     return elements_list
@@ -253,13 +254,18 @@ def get_connections(network):
             possible duplication of input layers.
 
     """
+    # Make a dictionary out of the tree of connection models
+    network['connection_models'] = {model_name: model_params
+                                    for (model_name, model_params)
+                                    in struct.traverse(network['connection_models'])}
+
     expanded_network = expand_connections(network)
     expanded_layers = get_layers(expanded_network['layers'], expanded=True)
 
     all_connections = []
     for connection in expanded_network['connections']:
         nest_params = get_connection_params(connection,
-                                            expanded_network['connection_models'],
+                                            network['connection_models'],
                                             expanded_layers)
         all_connections.append(
             {'source_layer': connection['source_layer'],
@@ -295,15 +301,22 @@ def get_connection_params(connection, models, layers):
 
     source_size = max(source_params['nrows'], source_params['ncols'])
 
-    # TODO: RF and weight scaling:
-    # - maskfactor?
-    # - btw error in ht files: secondary horizontal intralaminar mixes dcpS and
-    #   dcpP
+    # User specifies masks and kernel in number of units on the grid but
+    # nest_params expects 'extent' units -> scale by extent of the 'pool' layer.
     if not target_params.get('scale_kernels_masks', False):
+        # Don't scale
         rf_factor = 1.
-    else:
+    elif params['connection_type'] == 'convergent':
+        # 'pool' layer is source
+        source_size = max(source_params['nrows'], source_params['ncols'])
         rf_factor = (target_params.get('rf_scale_factor', 1.)
                      * source_params['visSize'] / (source_size - 1))
+    elif params['connection_type'] == 'divergent':
+        # 'pool' layer is target
+        target_size = max(target_params['nrows'], target_params['ncols'])
+        rf_factor = (target_params.get('rf_scale_factor', 1.)
+                     * target_params['visSize'] / (target_size - 1))
+
     return params.new_child(
         {'sources': {'model': connection['source_population']},
          'targets': {'model': connection['target_population']},
@@ -344,8 +357,10 @@ def scaled_kernel(kernel, scale_factor):
 
 def scaled_weights(weights, scale_factor):
     """Multiply connection weights by `scale_factor."""
-    return weights * scale_factor
-
+    if isinstance(weights, int) or isinstance(weights, float):
+        return weights * scale_factor
+    warnings.warn('Weights are not floats. Not scaling weights!!!')
+    return weights
 
 def expand_layer_list(layer_list):
     """Duplicate with different names the layer tuples for different filters.
@@ -421,8 +436,10 @@ def duplicate_connection(connection, models, layers):
         exp_source_names = filt.get_expanded_names(source,
                                                    layer_params['filters'])
         if layer_params.get('scale_input_weights', True):
-            connection['params']['weights'] = (
-                base_conn_weight(connection, models) / len(exp_source_names))
+            base_weight = base_conn_weight(connection, models)
+            scaling_factor = 1./len(exp_source_names)
+            connection['params']['weights'] = scaled_weights(base_weight,
+                                                             scaling_factor)
         return [
             struct.deepcopy_dict(connection, {'source_layer': exp_source_name})
             for exp_source_name in exp_source_names
@@ -456,7 +473,8 @@ def get_multimeter(pop_params):
                            'record_to': pop_params.get('mm_record_to', 'file'),
                            'interval': pop_params.get('mm_interval', 1.),
                            'withtime': pop_params.get('mm_withtime', True),
-                           'withgid': pop_params.get('mm_withgid', True)}}
+                           'withgid': pop_params.get('mm_withgid', True),
+                           'start': pop_params.get('mm_start', 0.)}}
 
 
 def get_spike_detector(pop_params):
@@ -477,7 +495,8 @@ def get_spike_detector(pop_params):
     return {'record_pop': pop_params['record_spike_detector'],
             'rec_params': {'record_to': pop_params.get('sd_record_to', 'file'),
                            'withtime': pop_params.get('sd_withtime', True),
-                           'withgid': pop_params.get('sd_withgid', True)}}
+                           'withgid': pop_params.get('sd_withgid', True),
+                           'start': pop_params.get('sd_start', 0.)}}
 
 
 def expand_populations(pop_list, non_expanded_layers):

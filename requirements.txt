@@ -8,3 +8,6 @@ ipython
 scipy
 pillow
 watchdog
+seaborn
+pandas
+bokeh

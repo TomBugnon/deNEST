@@ -6,25 +6,73 @@
 """Save and load movies, networks, activity and simulation parameters."""
 
 import itertools
+import os
 from os import makedirs, stat
 from os.path import basename, exists, isfile, join, splitext
 from shutil import rmtree
 
+import matplotlib.pyplot as plt
 import nest
 import numpy as np
+import pylab
 import yaml
+from nest import raster_plot
 from tqdm import tqdm
 
 from user_config import OUTPUT_DIR
 
 from .nestify.connections import get_filtered_synapses
 from .utils.format_recorders import format_mm_data, format_sd_data
-from .utils.sparsify import save_as_sparse
+from .utils.sparsify import load_as_numpy, save_array
 
 FULL_PARAMS_TREE_STR = 'params.yaml'
 NETWORK_STR = 'network.yaml'
 SIM_METADATA_STR = 'metadata.yaml'
 STRING_SEPARATOR = '_'
+
+
+def load_session_times(output_dir):
+    """Load session time from output dir."""
+    return load_yaml(output_dir, 'session_times')
+
+
+def load_session_stim(output_dir, session_name):
+    """Load full stimulus of a session."""
+    full_stim_prefix = 'session_' + session_name + '_full_stim'
+    full_stim_filenames = [f for f in os.listdir(output_dir)
+                           if f.startswith(full_stim_prefix)]
+    return load_as_numpy(join(output_dir, full_stim_filenames[0]))
+
+
+def load_activity(output_dir, layer, population, variable='spikes',
+                  session=None, all_units=False):
+    """Load activity of a given variable for a population."""
+    if all_units:
+        filename_prefix = recorder_filename(layer, population,
+                                            variable=variable, unit_index=None)
+    else:
+        filename_prefix = recorder_filename(layer, population,
+                                            variable=variable, unit_index=0)
+    all_filenames = [f for f in os.listdir(output_dir)
+                     if f.startswith(filename_prefix)
+                     and isfile(join(output_dir, f))]
+
+    # Concatenate along first dimension (row)
+    all_sessions_activity = np.concatenate(
+        [load_as_numpy(join(output_dir, filename))
+         for filename in all_filenames],
+        axis=1
+        )
+    if session is None:
+        return  all_sessions_activity
+    session_times = load_session_times(output_dir)
+    return all_sessions_activity[session_times[session]]
+
+
+def load_labels(output_dir, session_name):
+    """Load labels of a session."""
+    labels_filename = 'session_' + session_name + '_labels.npy'
+    return np.load(join(output_dir, labels_filename))
 
 
 def save_as_yaml(path, tree):
@@ -73,6 +121,11 @@ def save_all(network, simulation, full_params_tree):
 
     print(f'Save everything in {sim_savedir}')
 
+    # Save nest raster plots
+    print('Save nest raster plots.')
+    if sim_params.get('save_nest_raster', False):
+        save_nest_raster(network, sim_savedir)
+
     # Save full params
     print('Save parameters.')
     save_as_yaml(join(sim_savedir, FULL_PARAMS_TREE_STR), full_params_tree)
@@ -85,7 +138,7 @@ def save_all(network, simulation, full_params_tree):
     print('Save recorders.')
     save_formatted_recorders(network, sim_savedir)
     # Delete temporary recorder dir
-    if sim_params['delete_tmp_dir']:
+    if sim_params.get('delete_tmp_dir', True):
         rmtree(get_nest_tmp_savedir(network, sim_params))
 
     print('Save synapses.')
@@ -99,6 +152,31 @@ def save_all(network, simulation, full_params_tree):
     # Save sessions stimuli
     print('Save sessions stimuli')
     simulation.save_sessions(sim_savedir)
+
+
+def save_nest_raster(network, output_dir):
+    """Use NEST's raster function to save activity pngs.
+
+    Only do so for recorders saved on memory for which there were spikes.
+    """
+    for pop in tqdm(network['populations'],
+                    desc='--> Save nest raster plots'):
+        rec_gid = pop['sd']['gid']
+        if (rec_gid
+            and 'memory' in pop['sd']['rec_params']['record_to']):
+            # Check there is at least one event to avoid NESTError
+            if len(nest.GetStatus(rec_gid)[0]['events']['senders']):
+                raster = raster_plot.from_device(rec_gid, hist=True)
+            else:
+                print("Didn't generate raster plot since there were no spikes.")
+                continue
+            pylab.title(pop['layer']+'_'+pop['population'])
+            f = raster[0].figure
+            f.set_size_inches(15, 9)
+            filename = ('spikes_raster_' + pop['layer'] + '_'
+                        + pop['population'] + '.png')
+            f.savefig(join(output_dir, filename), dpi=100)
+            plt.close()
 
 
 def save_synapses(network, sim_savedir):
@@ -145,7 +223,7 @@ def save_synapses(network, sim_savedir):
 
             # Save the different types of values in separate arrays
             for i, key in enumerate(keys):
-                save_as_sparse(join(sim_savedir,
+                save_array(join(sim_savedir,
                                     base_connection_string + '_' + key),
                                all_synapses_all_values[:, :, :, :, i])
 
@@ -200,8 +278,8 @@ def get_synapses_values(network, connection, source_locs, target_locs,
     nrows_source = network['layers'][source_lay]['nest_params']['rows']
     ncols_source = network['layers'][source_lay]['nest_params']['columns']
 
-    # Initialize return array with -1 (absense of synapse).
-    all_synapses_all_values = -1 * np.ones((nrows_target, ncols_target,
+    # Initialize return array with -999 (absense of synapse).
+    all_synapses_all_values = -999 * np.ones((nrows_target, ncols_target,
                                             nrows_source, ncols_source,
                                             len(saving_keys)))
 
@@ -222,7 +300,7 @@ def get_synapses_values(network, connection, source_locs, target_locs,
         for synapse in filtered_synapses:
             # Get source location
             source_gid = synapse['source']
-            row_source, col_source = source_locs['location'][source_gid]
+            row_source, col_source, _ = source_locs['location'][source_gid]
             # Get values of interest for that synapse
             synapse_values = [synapse[key] for key in saving_keys]
 
@@ -290,8 +368,9 @@ def save_formatted_recorders(network, sim_savedir):
         ( < layer_name > + STRING_SEPARATOR + <population_name > + STRING_SEPARATOR
         + <variable_name > )
 
-    NB: As for now, multiple units of the same population at a given location
-    are not distinguished between.
+    NB: For each population, we only save the activity of one unit at each
+    location. Remember there can be multiple units at each location for each
+    population.
 
     Args:
         network(Network object)
@@ -315,44 +394,62 @@ def save_formatted_recorders(network, sim_savedir):
         sd = pop_dict['sd']
         location_by_gid = gid_location_mappings[layer][pop]['location']
 
-        # For layer size for (total_time * nrow * ncol)-nparray initialization
+        # Get layer size for (total_time * nrow * ncol)-nparray initialization
         layer_params = network['layers'][layer]['nest_params']
         (nrow, ncol) = layer_params['rows'], layer_params['columns']
 
-        # Population string for saving filename
-        pop_string = layer + STRING_SEPARATOR + pop + STRING_SEPARATOR
 
-        if mm['gid']:
+        # Iterate on unit index (there can be multiple units per location)
+        nunits_per_location = np.size(gid_location_mappings[layer][pop]['gid'],
+                                      axis=2)
+        for unit_index in range(nunits_per_location):
 
-            recorded_variables = nest.GetStatus(mm['gid'], 'record_from')[0]
+            if mm['gid']:
 
-            for variable in [str(var) for var in recorded_variables]:
+                recorded_variables = nest.GetStatus(mm['gid'], 'record_from')[0]
 
-                time, gid, activity = gather_raw_data(mm['gid'],
-                                                      variable,
-                                                      recorder_type='multimeter'
-                                                      )
-                activity_array = format_mm_data(gid,
+                for variable in [str(var) for var in recorded_variables]:
+
+                    time, gid, activity = gather_raw_data(mm['gid'],
+                                                          variable,
+                                                          recorder_type='multimeter'
+                                                          )
+                    activity_array = format_mm_data(gid,
+                                                    time,
+                                                    activity,
+                                                    location_by_gid,
+                                                    dim=(n_timesteps, nrow, ncol),
+                                                    unit_index=unit_index)
+                    filename = recorder_filename(layer, pop,
+                                                 unit_index=unit_index,
+                                                 variable=variable)
+                    save_array(join(sim_savedir, filename),
+                                   activity_array)
+
+            if sd['gid']:
+                time, gid = gather_raw_data(sd['gid'],
+                                            recorder_type='spike_detector')
+                activity_array = format_sd_data(gid,
                                                 time,
-                                                activity,
                                                 location_by_gid,
-                                                dim=(n_timesteps, nrow, ncol))
-                filename = pop_string + variable
-                save_as_sparse(join(sim_savedir, filename),
+                                                dim=(n_timesteps, nrow, ncol),
+                                                unit_index=unit_index)
+                filename = recorder_filename(layer, pop,
+                                             variable='spikes',
+                                             unit_index=unit_index)
+                save_array(join(sim_savedir, filename),
                                activity_array)
 
-        if sd['gid']:
-            time, gid = gather_raw_data(sd['gid'],
-                                        recorder_type='spike_detector')
 
-            activity_array = format_sd_data(gid,
-                                            time,
-                                            location_by_gid,
-                                            dim=(n_timesteps, nrow, ncol))
-            filename = pop_string + 'spikes'
-
-            save_as_sparse(join(sim_savedir, filename),
-                           activity_array)
+def recorder_filename(layer, pop, unit_index=None, variable='spikes'):
+    """Return filename for a population x unit_index."""
+    base_filename = (layer + STRING_SEPARATOR + pop + STRING_SEPARATOR
+                     + variable)
+    suffix = ''
+    if unit_index is not None:
+        suffix = (STRING_SEPARATOR + 'units' + STRING_SEPARATOR
+                  + str(unit_index))
+    return base_filename + suffix
 
 
 def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
@@ -386,7 +483,7 @@ def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
             return (time, sender_gid)
 
     elif 'file' in record_to:
-
+        # from IPython.core.debugger import Tracer; Tracer()()
         recorder_files = nest.GetStatus(rec_gid, 'filenames')[0]
 
         data = load_and_combine(recorder_files)

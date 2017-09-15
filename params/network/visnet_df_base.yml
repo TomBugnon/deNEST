@@ -1,0 +1,382 @@
+children:
+
+  kernel: {}
+  sessions: {}
+  simulation: {}
+
+  network:
+    children:
+      neuron_models:
+        children:
+          ht_neuron:
+            nest_model: ht_neuron
+            params:
+              g_peak_NaP: 0.5
+              g_peak_h: 0.0
+              g_peak_T: 0.0
+              g_peak_KNa: 0.5
+              g_KL: 1.0
+              E_rev_NaP: 55.0
+              g_peak_AMPA: 0.1
+              g_peak_NMDA: 0.15
+              g_peak_GABA_A: 0.33
+              g_peak_GABA_B: 0.0132
+              instant_unblock_NMDA: true        # old NEST defaults
+              S_act_NMDA: 0.4                   # old NEST defaults
+              V_act_NMDA: !!python/float -58.0  # old NEST defaults
+            children:
+              cortical_excitatory:
+                params:
+                  theta_eq: !!python/float -51.0
+                  tau_theta: 2.0
+                  tau_spike: 1.75
+                  tau_m: 16.0
+                children: # Neuron models
+                  l1_exc:
+                    name: l1_exc
+                    params: {}
+                  l2_exc:
+                    name: l2_exc
+                    params: {}
+                  l3_exc:
+                    name: l3_exc
+                    params: {}
+              cortical_inhibitory:
+                params:
+                  theta_eq: !!python/float -53.0
+                  tau_theta: 1.0
+                  tau_spike: 0.5
+                  tau_m: 8.0
+                children: # Neuron models
+                  l1_inh:
+                    name: l1_inh
+                    params: {}
+                  l2_inh:
+                    name: l2_inh
+                    params: {}
+                  l3_inh:
+                    name: l3_inh
+                    params: {}
+          poisson_generator:
+            nest_model: spike_generator
+            params: {}
+            children:  # Neuron models
+              input_exc:
+                name: input_exc
+                params: {}
+
+      synapse_models:
+        children:
+          # NOTE:
+          # - 'format_synapse_params()' needs modification if any parameters are
+          #   added here
+          # - If you define a 'receptor_type' field you need a 'target_neuron'
+          #   field as well.
+          ht_synapse:
+            nest_model: ht_synapse
+            params:
+              target_neuron: ht_neuron
+            children: # synapse models
+              AMPA_syn:
+                name: AMPA_syn
+                params:
+                  receptor_type: AMPA
+              NMDA_syn:
+                name: NMDA_syn
+                params:
+                  receptor_type: NMDA
+              GABA_A_syn:
+                name: GABA_A_syn
+                params:
+                  receptor_type: GABA_A
+              GABA_B_syn:
+                name: GABA_B_syn
+                params:
+                  receptor_type: GABA_B
+          static_synapse:
+            nest_model: stdp_synapse
+            params: {}
+            children: # synapse models
+              input_synapse:
+                name: input_synapse
+                params:
+                  target_neuron: ht_neuron
+                  receptor_type: AMPA
+
+      layers:
+        params:
+            with_parrot: False
+        children: # areas
+          input_area:
+            params:
+              area: input_area
+              with_parrot: True
+            children: # layers
+              input_layer:
+                name: input_layer # Actual layer name might change
+                params:
+                  elements:
+                    - population: input_exc
+                      type: excitatory
+                      ratio: 1
+          l1_area:
+            params:
+              area: l1_area
+            children: # layers
+              l1:
+                name: l1
+                params:
+                  elements:
+                    - population: l1_exc
+                      type: excitatory
+                      ratio: 1
+                    - population: l1_inh
+                      type: inhibitory
+                      ratio: 1
+          l2_area:
+            params:
+              area: l2_area
+            children: # layers
+              l2:
+                name: l2
+                params:
+                  elements:
+                    - population: l2_exc
+                      type: excitatory
+                      ratio: 1
+                    - population: l2_inh
+                      type: inhibitory
+                      ratio: 1
+          l3_area:
+            params:
+              area: l3_area
+            children: # layers
+              l3:
+                name: l3
+                params:
+                  elements:
+                    - population: l3_exc
+                      type: excitatory
+                      ratio: 1
+                    - population: l3_inh
+                      type: inhibitory
+                      ratio: 1
+
+      connection_models:
+        children:
+          cortical:
+            params:
+              allow_autapses: false
+              allow_multapses: false
+              allow_oversized_mask: true
+              delays:
+                uniform:
+                  min: 1.75
+                  max: 2.25
+            children:
+              horizontal_exc:
+                name: horizontal_exc
+                params:
+                  connection_type: divergent
+                  synapse_model: AMPA_syn
+                  mask:
+                    circular:
+                      radius: 12.0 # scaled during init
+                  kernel:
+                    gaussian:
+                      p_center: 0.05
+                      sigma: 7.5 # scaled during init
+                  weights: 1.0 # scaled during init
+              horizontal_inh:
+                name: horizontal_inh
+                params:
+                  connection_type: divergent
+                  synapse_model: GABA_A_syn
+                  mask:
+                    circular:
+                      radius: 7.0 # scaled during init
+                  kernel:
+                    gaussian:
+                      p_center: 0.25 # TODO: much stronger than excitatory -> check
+                      sigma: 7.5 # scaled during init
+                  weights: 1.0 # scaled during init
+              FF_exc:
+                name: FF_exc
+                params:
+                  connection_type: convergent
+                  synapse_model: AMPA_syn
+                  mask:
+                    circular:
+                      radius: 12.0 # scaled during init
+                  kernel: 0.8
+                  weights: 1.0 # ... * weight gain during init
+              input_connection:
+                name: input_connection
+                params:
+                  connection_type: convergent
+                  synapse_model: input_synapse
+                  mask:
+                    circular:
+                      radius: 12.0 # scaled during init
+                  kernel: 0.8
+                  weights: 1.0 # scaled during init
+
+      connections:
+
+        ### source area: input area ###
+
+        # excitatory on l1 for each input population
+        - source_layer: input_layer
+          source_population: parrot_neuron
+          target_layer: l1
+          target_population: l1_exc
+          connection: input_connection
+          params:
+              save: ['weight']
+          nest_params: {}
+        - source_layer: input_layer
+          source_population: parrot_neuron
+          target_layer: l1
+          target_population: l1_inh
+          connection: input_connection
+          params:
+              save: ['weight']
+          nest_params: {}
+
+
+        ### source area: l1 ###
+
+        # l1 excitatory horizontal
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l1
+          target_population: l1_exc
+          connection: horizontal_exc
+          params: {}
+          nest_params: {}
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l1
+          target_population: l1_inh
+          connection: horizontal_exc
+          params: {}
+          nest_params: {}
+
+        # l1 inhibitory horizontal
+        - source_layer: l1
+          source_population: l1_inh
+          target_layer: l1
+          target_population: l1_exc
+          connection: horizontal_inh
+          params: {}
+          nest_params: {}
+        - source_layer: l1
+          source_population: l1_inh
+          target_layer: l1
+          target_population: l1_inh
+          connection: horizontal_inh
+          params: {}
+          nest_params: {}
+
+        # l1 excitatory FF
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l2
+          target_population: l2_exc
+          connection: FF_exc
+          params: {}
+          nest_params: {}
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l2
+          target_population: l2_inh
+          connection: FF_exc
+          params: {}
+          nest_params: {}
+
+
+        ### source area: l2 ###
+
+        # l2 excitatory horizontal
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l2
+          target_population: l2_exc
+          connection: horizontal_exc
+          params: {}
+          nest_params: {}
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l2
+          target_population: l2_inh
+          connection: horizontal_exc
+          params: {}
+          nest_params: {}
+
+        # l2 inhibitory horizontal
+        - source_layer: l2
+          source_population: l2_inh
+          target_layer: l2
+          target_population: l2_exc
+          connection: horizontal_inh
+          params: {}
+          nest_params: {}
+        - source_layer: l2
+          source_population: l2_inh
+          target_layer: l2
+          target_population: l2_inh
+          connection: horizontal_inh
+          params: {}
+          nest_params: {}
+
+        # l2 excitatory FF
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l3
+          target_population: l3_exc
+          connection: FF_exc
+          params: {}
+          nest_params: {}
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l3
+          target_population: l3_inh
+          connection: FF_exc
+          params: {}
+          nest_params: {}
+
+        ### source area: l3 ###
+
+        # l3 excitatory horizontal
+        - source_layer: l3
+          source_population: l3_exc
+          target_layer: l3
+          target_population: l3_exc
+          connection: horizontal_exc
+          params: {}
+          nest_params: {}
+        - source_layer: l3
+          source_population: l3_exc
+          target_layer: l3
+          target_population: l3_inh
+          connection: horizontal_exc
+          params: {}
+          nest_params: {}
+
+        # l3 inhibitory horizontal
+        - source_layer: l3
+          source_population: l3_inh
+          target_layer: l3
+          target_population: l3_exc
+          connection: horizontal_inh
+          params: {}
+          nest_params: {}
+        - source_layer: l3
+          source_population: l3_inh
+          target_layer: l3
+          target_population: l3_inh
+          connection: horizontal_inh
+          params: {}
+          nest_params: {}
+
+      populations: {}

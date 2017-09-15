@@ -36,7 +36,6 @@ def load_params(path, overrides=None):
 
 def init(params):
     """Initialize NEST network from the full parameter tree."""
-    print('Initializing network...')
     # Get relevant parts of the full simulation tree
     network_params = params.c['network']
     kernel_params = params.c['kernel']

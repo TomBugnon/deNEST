@@ -14,10 +14,10 @@ import numpy as np
 
 from user_config import INPUT_DIR, INPUT_SUBDIRS, METADATA_FILENAME
 
-from .nestify.nest_modifs import toggle_dynamic_synapses
+from .nestify.nest_modifs import change_synapse_states, change_unit_states
 from .nestify.set_stimulators import set_stimulators_state
 from .save import load_yaml, save_as_yaml
-from .utils.sparsify import load_as_numpy, save_as_sparse
+from .utils.sparsify import load_as_numpy, save_array
 
 
 class Session(collections.UserDict):
@@ -27,39 +27,48 @@ class Session(collections.UserDict):
         """Create."""
         print('create Session')
         super().__init__(session_params)
-        # Load the stimuli
+        # Initialize the session start and end times
+        self.start_time = 0
+        self.end_time = 0
+        # Initialize stimuli fields. ()
         self.full_stim = None
         self.labels = None
         self.stim_metadata = None
-        self.load_full_session_stim()
 
     def save_stim(self, save_dir, session_name):
         """Save full stim (per timestep), labels (per timestep) and metadata."""
         full_stim_filename = 'session_'+session_name+'_full_stim'
         labels_filename = 'session_'+session_name+'_labels'
         stim_metadata_filename = 'session_'+session_name+'_stim_metadata.yml'
-        save_as_sparse(join(save_dir, full_stim_filename),
-                       self.full_stim)
-        save_as_sparse(join(save_dir, labels_filename),
-                       self.labels)
-        save_as_yaml(join(save_dir, stim_metadata_filename),
-                     self.stim_metadata)
+        if self.get('save_stim', True) and self.full_stim is not None:
+            save_array(join(save_dir, full_stim_filename),
+                           self.full_stim)
+            save_array(join(save_dir, labels_filename),
+                           self.labels)
+            save_as_yaml(join(save_dir, stim_metadata_filename),
+                         self.stim_metadata)
 
     def initialize(self, network):
         """Initialize session.
 
-        1- Reset Network
-        2- Change network's dynamic variables.
-        3- Set input spike times or input rates.
+        1- Load stimuli
+        2- Reset Network
+        3- Change network's dynamic variables.
+        4- Set input spike times or input rates.
 
         """
+        # Load stimuli
+        print("-> Load session's stimulus")
+        self.load_full_session_stim()
+
         # Network resetting
         if self['reset_network']:
+            print("-> Reset network")
             nest.ResetNetwork()
 
         # Change dynamic variables
-        toggle_dynamic_synapses(network,
-                                on_off=self.get('dynamic_synapses', 1))
+        change_synapse_states(self['synapse_changes'])
+        change_unit_states(self['unit_changes'], network['layers'])
 
         # Set input spike times in the future.
         curr_time = nest.GetKernelStatus('time')
@@ -74,7 +83,9 @@ class Session(collections.UserDict):
         self.initialize(network)
         sim_time = np.size(self.full_stim, axis=0)
         print(f"Run `{sim_time}`ms")
+        self.start_time = int(nest.GetKernelStatus('time'))
         nest.Simulate(float(sim_time))
+        self.end_time = int(nest.GetKernelStatus('time'))
 
 
     def load_full_session_stim(self):
@@ -107,7 +118,7 @@ class Session(collections.UserDict):
         # Trim the stimulus in case there is a maximum allowed simulation time
         # for the session
         max_sim_time = int(min(np.size(shuffled_stim, axis=0),
-                               self['max_session_sim_time'])) 
+                               self['max_session_sim_time']))
         self.full_stim = shuffled_stim[:max_sim_time]
         self.labels = shuffled_labels[:max_sim_time]
 

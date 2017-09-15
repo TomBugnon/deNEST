@@ -24,13 +24,13 @@ Options:
 import random
 import sys
 
-from docopt import docopt
-
 from config import PYTHON_SEED
+from docopt import docopt
 from user_config import INPUT_DIR
 
 from . import run
-from ..parameters import Params
+from ..parameters import AutoDict
+from ..utils.structures import dictify
 
 random.seed(PYTHON_SEED)
 
@@ -50,12 +50,12 @@ def main():
     arguments = docopt(__doc__, argv=argv)
     if not arguments['--input']:
         arguments['--input'] = INPUT_DIR
-    sim_overrides = Params({_SIM_CLI_ARG_MAP[key]: value
-                            for key, value in arguments.items()
-                            if key in _SIM_CLI_ARG_MAP})
-    prepro_overrides = Params({_PREPRO_CLI_ARG_MAP[key]: value
-                            for key, value in arguments.items()
-                            if key in _PREPRO_CLI_ARG_MAP})
+    sim_overrides = dictify(AutoDict({_SIM_CLI_ARG_MAP[key]: value
+                                      for key, value in arguments.items()
+                                      if key in _SIM_CLI_ARG_MAP}))
+    prepro_overrides = dictify(AutoDict({_PREPRO_CLI_ARG_MAP[key]: value
+                                         for key, value in arguments.items()
+                                         if key in _PREPRO_CLI_ARG_MAP}))
 
     run(arguments,
         sim_overrides=sim_overrides,

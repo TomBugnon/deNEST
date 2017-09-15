@@ -14,11 +14,12 @@ from tqdm import tqdm
 
 from user_config import INPUT_SUBDIRS, METADATA_FILENAME
 
-from . import downsample, filt, normalize
+from . import filt, normalize, resize
 from ..save import save_as_yaml
+from ..utils.sparsify import load_as_numpy, save_array
 
 PREPROCESS_MAPPING = {
-    'downsample': downsample.downsample,
+    'resize': resize.resize,
     'filter': filt.filter_movie,
     'normalize': normalize.normalize
 }
@@ -55,9 +56,9 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
     for filename in tqdm(todo_files,
                   desc=('Preprocess ' + str(len(todo_files)) + ' files')):
 
-        movie = np.load(join(raw_dir, filename))
-        np.save(join(prepro_dir, filename),
-                preprocess(movie, network, prepro_params))
+        movie = load_as_numpy(join(raw_dir, filename))
+        save_array(join(prepro_dir, filename),
+                       preprocess(movie, network, prepro_params))
 
     # Create metadata file for this preprocessing pipeline
     create_metadata(prepro_dir, prepro_params, network)

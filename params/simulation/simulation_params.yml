@@ -1,3 +1,4 @@
 simulation:
   params:
     delete_tmp_dir: True
+    save_nest_raster: True

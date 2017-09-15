@@ -23,18 +23,13 @@ Options:
     -v --version      Show version.
 """
 
-import random
 import sys
 
 from docopt import docopt
 
-from config import PYTHON_SEED
-
 from . import run
 from .__about__ import __version__
 from .autodict import AutoDict
-
-random.seed(PYTHON_SEED)
 
 # Maps CLI options to their corresponding path in the parameter tree.
 _CLI_ARG_MAP = {
