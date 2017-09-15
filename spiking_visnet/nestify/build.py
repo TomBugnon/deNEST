@@ -154,10 +154,17 @@ class Model(NestObject):
 
     @if_not_created
     def create(self):
-        """Create the NEST object represented by this model."""
-        import nest
-        nest.CopyModel(self.nest_model, self.name, self.nest_params)
+        """Create or update the NEST model represented by this object.
 
+        If the name of the base nest model and of the model to be created are
+        the same, update (change defaults) rather than copy the base nest
+        model.
+        """
+        import nest
+        if not self.nest_model == self.name:
+            nest.CopyModel(self.nest_model, self.name, self.nest_params)
+        else:
+            nest.SetDefaults(self.nest_model, self.nest_params)
 
 class SynapseModel(Model):
     """Represents a NEST synapse.
