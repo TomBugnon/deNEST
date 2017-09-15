@@ -546,6 +546,98 @@ class Connection(NestObject):
         self.source._connect(self.target, self.nest_params)
 
 
+class Population(NestObject):
+    """Represents a population.
+
+    A population is defined by a (`layer_name`, `population_name`) tuple and
+    contains a list of Recorder objects.
+    """
+    # def __init__(self, pop_name, layer_name, gids, locations, params):
+    def __init__(self, name, layer, params):
+        super().__init__(name, params)
+        self.layer = layer
+        self.params = params
+        self.recorders = [Recorder(recorder_type, recorder_params)
+                          for recorder_type, recorder_params
+                          in params.get('recorders', {}).items()]
+        self.number = self.layer.params['populations'][self.name]
+        # 3D location by gid mapping
+        self._locations = None
+        self._created = False
+
+    def __repr__(self):
+        return '{classname}(({layer}, {population}), {params})'.format(
+            classname=type(self).__name__,
+            layer=self.layer.name,
+            population=self.name,
+            params=pformat(self.params))
+
+    @if_not_created
+    def create(self):
+        # Get all gids of population
+        gids = self.layer.gids(population=self.name)
+        # Get locations of each gids as a (row, number, unit) tuple
+        self._locations = {}
+        for location in self.layer:
+            location_gids = self.layer.gids(population=self.name,
+                                            location=location)
+            for unit, gid in enumerate(location_gids):
+                self._locations[gid] = location + (unit,)
+        for recorder in self.recorders:
+            recorder.create(gids, self.locations)
+
+    @property
+    @if_created
+    def locations(self):
+        return self._locations
+
+class Recorder(NestObject):
+    """Represent a recorder node.
+
+    Handles connecting the recorder node to the population and formatting the
+    recorder's data.
+    """
+    def __init__(self, name, params):
+        super().__init__(name, params)
+        self._gids = None
+        self._locations = None
+        self._gid = None
+        self._record_to = None
+        self._files = None
+
+    @if_not_created
+    def create(self, gids, locations):
+        import nest
+        # Save gids and locations
+        self._gids = gids
+        self._locations = locations
+        # Create node
+        self._gid = nest.Create(self.name, params=self.params)
+        # Connect population
+        if self.name == 'multimeter':
+            nest.Connect(self.gid, self.gids)
+        elif self.name == 'spike_detector':
+            nest.Connect(self.gids, self.gid)
+        else:
+            # TODO: access somehow the base nest model from which the recorder
+            # model inherits.
+            raise Exception('The recorder type is not recognized.')
+
+    @property
+    @if_created
+    def gid(self):
+        return self._gid
+
+    @property
+    @if_created
+    def gids(self):
+        return self._gids
+
+    @property
+    @if_created
+    def locations(self):
+        return self._locations
+
 LAYER_TYPES = {
     None: Layer,
     'InputLayer': InputLayer,
@@ -559,33 +651,48 @@ class Network:
         self.params = params
         # Build network components
         # ~~~~~~~~~~~~~~~~~~~~~~~~
-        self.neuron_models = self.build_named_leaves(
+        self.neuron_models = self.build_named_leaves_dict(
             Model, self.params.c['neuron_models'])
-        self.synapse_models = self.build_named_leaves(
+        self.synapse_models = self.build_named_leaves_dict(
             SynapseModel, self.params.c['synapse_models'])
+        self.recorder_models = self.build_named_leaves_dict(
+            Model, self.params.c['recorders'])
         # Layers can have different types
         self.layers = {
             name: LAYER_TYPES[leaf['type']](name, leaf)
             for name, leaf in self.params.c['layers'].named_leaves()
         }
-        self.connection_models = self.build_named_leaves(
+        self.connection_models = self.build_named_leaves_dict(
             ConnectionModel, self.params.c['connection_models'])
         # Connections must be built last
         self.connections = [
             self.build_connection(connection)
             for connection in self.params.c['topology']['connections']
         ]
+        # Populations are represented as a list
+        self.populations = self.build_named_leaves_list(
+            self.build_population, self.params.c['populations'])
 
     @staticmethod
-    def build_named_leaves(constructor, node):
+    def build_named_leaves_dict(constructor, node):
         return {name: constructor(name, leaf)
                 for name, leaf in node.named_leaves()}
+
+    @staticmethod
+    def build_named_leaves_list(constructor, node):
+        return [constructor(name, leaf)
+                for name, leaf in node.named_leaves()]
 
     def build_connection(self, params):
         source = self.layers[params['source_layer']]
         target = self.layers[params['target_layer']]
         model = self.connection_models[params['connection']]
         return Connection(source, target, model, params)
+
+    def build_population(self, pop_name, pop_params):
+        # Get the gids and locations for the population from the layer object.
+        layer = self.layers[pop_params['layer']]
+        return Population(pop_name, layer, pop_params)
 
     def __repr__(self):
         return '{classname}({params})'.format(
@@ -605,7 +712,11 @@ class Network:
         self._create_all(self.neuron_models.values())
         log.info('Creating synapse models...')
         self._create_all(self.synapse_models.values())
+        log.info('Creating recorder models...')
+        self._create_all(self.recorder_models.values())
         log.info('Creating layers...')
         self._create_all(self.layers.values())
         log.info('Connecting layers...')
         self._create_all(self.connections)
+        log.info('Creating recorders...')
+        self._create_all(self.populations)
