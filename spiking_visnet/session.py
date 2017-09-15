@@ -12,12 +12,11 @@ from os.path import basename, isdir, isfile, join
 import nest
 import numpy as np
 
-from user_config import INPUT_DIR, INPUT_SUBDIRS, METADATA_FILENAME
-
 from .nestify.nest_modifs import change_synapse_states, change_unit_states
 from .nestify.set_stimulators import set_stimulators_state
 from .save import load_yaml, save_as_yaml
-from .utils.sparsify import load_as_numpy, save_array
+from .user_config import INPUT_DIR, INPUT_SUBDIRS, METADATA_FILENAME
+from .utils.sparsify import load_as_numpy, save_as_sparse
 
 
 class Session(collections.UserDict):

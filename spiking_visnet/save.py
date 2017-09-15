@@ -19,9 +19,8 @@ import yaml
 from nest import raster_plot
 from tqdm import tqdm
 
-from user_config import OUTPUT_DIR
-
 from .nestify.connections import get_filtered_synapses
+from .user_config import OUTPUT_DIR
 from .utils.format_recorders import format_mm_data, format_sd_data
 from .utils.sparsify import load_as_numpy, save_array
 
