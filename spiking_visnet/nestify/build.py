@@ -350,7 +350,7 @@ class Layer(AbstractLayer):
             def loc_filt(gid):
                 return (self._locations[gid] == location or
                         self._locations[gid] in location)
-        return tuple(filter(loc_filt, filter(pop_filt, self._gids)))
+        return sorted(tuple(filter(loc_filt, filter(pop_filt, self._gids))))
 
     @if_created
     def element(self, *args):
