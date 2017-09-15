@@ -230,7 +230,7 @@ def show_activity_raster(activity, plot_cols=None, figsize=(40, 10), xmin=None,
         variable (str): If 'V_m', default (xmin, xmax) = -70, -45
     """
     if fig is None and subp is None:
-        plt.figure(figsize=figsize)
+        fig = plt.figure(figsize=figsize)
         subp = plt.subplot2grid((1, 3), (0, 0), colspan=3)
 
     ntimesteps, nrows, ncols = activity.shape
@@ -248,8 +248,10 @@ def show_activity_raster(activity, plot_cols=None, figsize=(40, 10), xmin=None,
     col_activity = np.reshape(activity[:, :, plot_cols],
                               (ntimesteps, nrows * len(plot_cols)),
                               order='F')
-    subp.matshow(np.transpose(col_activity), interpolation=interpolation,
+    ax = subp.matshow(np.transpose(col_activity), interpolation=interpolation,
                       aspect='auto', vmin=xmin, vmax=xmax)
     if show:
         plt.show()
         plt.close()
+
+    return fig, subp, ax
