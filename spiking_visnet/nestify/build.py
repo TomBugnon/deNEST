@@ -10,13 +10,19 @@ import functools
 import itertools
 import logging
 import logging.config
+import random
 from collections import ChainMap
+from os.path import join
 from pprint import pformat
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pylab
 from tqdm import tqdm
 
-from ..utils import filter_suffixes
+from .. import save
+from ..utils import filter_suffixes, format_recorders, spike_times
+from ..utils.sparsify import save_array
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 logging.config.dictConfig({
@@ -369,6 +375,21 @@ class Layer(AbstractLayer):
     def population(self, *args):
         return tuple(self._populations[gid] for gid in args)
 
+    @if_created
+    def set_state(self, variable, values, population=None):
+        """Set the state of a variable for all units in a layer.
+
+        If value is a 2D array the same size as the layer, set the values of
+        variable per location.
+        """
+        import nest
+        value_per_location = (isinstance(values, np.ndarray)
+                              and np.shape(values) == self.shape)
+        for location in self:
+            value = values[location] if value_per_location else values
+            nest.SetStatus(self.gids(population=population,
+                                     location=location),
+                           {variable: value})
 
 class InputLayer(AbstractLayer):
     """A layer that provides input to the network.
@@ -395,6 +416,8 @@ class InputLayer(AbstractLayer):
             raise ValueError('InputLayer must have only one population')
         # Save the the stimulator type and get its number
         self.stimulator_model, number = list(populations.items())[0]
+        self.stimulator_type = None
+        print(type(self.stimulator_type))
         # Add a parrot population entry
         populations[self.PARROT_MODEL] = number
         # Make a duplicate sublayer for each filter
@@ -424,6 +447,7 @@ class InputLayer(AbstractLayer):
     @if_not_created
     def create(self):
         from nest import topology as tp
+        import nest
         # Create sublayers
         self._layer_call('create')
         # Set the GID
@@ -439,6 +463,10 @@ class InputLayer(AbstractLayer):
             'mask': {'circular': {'radius': radius}}
         }
         tp.ConnectLayers(self._gid, self._gid, one_to_one_connection)
+        # Get stimulator type
+        self.stimulator_type = nest.GetDefaults(self.stimulator_model,
+                                                'type_id')
+
 
     @if_created
     def gids(self, population=None, location=None):
@@ -458,6 +486,25 @@ class InputLayer(AbstractLayer):
     def location(self, *args):
         return flatten(self._layer_call('location', *args))
 
+    def set_input(self, stimulus, start_time=0.):
+        for layer in tqdm(self.layers):
+            # TODO: Input layers should be able to see different filters
+            layer_index = 0
+            layer_rates = (float(self.params['max_input_rate'])
+                           * stimulus['movie'][:, layer_index, :, :])
+            if self.stimulator_type == 'poisson_generator':
+                # Use only first frame
+                layer.set_state('rate', layer_rates[0],
+                                population=self.stimulator_model)
+            elif self.stimulator_type == 'spike_generator':
+                all_spike_times = spike_times.draw_spike_times(
+                    layer_rates,
+                    start_time=start_time
+                )
+                layer.set_state('spike_times', all_spike_times,
+                                population=self.stimulator_model)
+            else:
+                raise NotImplementedError
     # pylint: disable=arguments-differ
 
 
@@ -545,6 +592,12 @@ class Connection(NestObject):
     def create(self):
         self.source._connect(self.target, self.nest_params)
 
+    def save(self, output_dir):
+        # TODO
+        for field in self.params.get('save', []):
+            print('Not saving ', field, ' in ', output_dir)
+            pass
+
 
 class Population(NestObject):
     """Represents a population.
@@ -591,6 +644,41 @@ class Population(NestObject):
     def locations(self):
         return self._locations
 
+    def save(self, output_dir, with_rasters=True):
+        if with_rasters:
+            self.save_rasters(output_dir)
+        self.save_recorders(output_dir)
+
+    def save_recorders(self, output_dir):
+        import nest
+        ntimesteps = int(nest.GetKernelStatus('time')
+                          / nest.GetKernelStatus('resolution'))
+        formatted_shape = (ntimesteps,) + self.layer.shape
+        for unit_index in range(self.number):
+            for recorder in self.recorders:
+                for variable in recorder.variables:
+                    activity = recorder.formatted_data(formatted_shape=formatted_shape,
+                                                       variable=variable,
+                                                       unit_index=unit_index)
+                    filename = save.recorder_filename(self.layer.name,
+                                                      self.name,
+                                                      unit_index=unit_index,
+                                                      variable=variable)
+                    save_array(join(output_dir, filename), activity)
+
+    def save_rasters(self, output_dir):
+        for recorder in self.recorders:
+            raster = recorder.get_nest_raster()
+            if raster is not None:
+                pylab.title(self.layer.name + '_' + self.name)
+                f = raster[0].figure
+                f.set_size_inches(15, 9)
+                filename = ('spikes_raster_' + self.layer.name + '_'
+                            + self.name + '.png')
+                f.savefig(join(output_dir, filename), dpi=100)
+                plt.close()
+
+
 class Recorder(NestObject):
     """Represent a recorder node.
 
@@ -602,8 +690,17 @@ class Recorder(NestObject):
         self._gids = None
         self._locations = None
         self._gid = None
-        self._record_to = None
         self._files = None
+        self._record_to = None
+        self._record_from = None
+        self._type = None
+        if self.name in ['multimeter', 'spike_detector']:
+            self._type = self.name
+        else:
+            # TODO: access somehow the base nest model from which the recorder
+            # model inherits.
+            raise Exception('The recorder type is not recognized.')
+
 
     @if_not_created
     def create(self, gids, locations):
@@ -613,15 +710,18 @@ class Recorder(NestObject):
         self._locations = locations
         # Create node
         self._gid = nest.Create(self.name, params=self.params)
+        # Get node parameters from nest (possibly nest defaults)
+        self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
+        if self.type == 'multimeter':
+            self._record_from = [str(variable) for variable
+                                 in nest.GetStatus(self.gid, 'record_from')[0]]
+        elif self.type == 'spike_detector':
+            self._record_from = ['spikes']
         # Connect population
-        if self.name == 'multimeter':
+        if self.type == 'multimeter':
             nest.Connect(self.gid, self.gids)
-        elif self.name == 'spike_detector':
+        elif self.type == 'spike_detector':
             nest.Connect(self.gids, self.gid)
-        else:
-            # TODO: access somehow the base nest model from which the recorder
-            # model inherits.
-            raise Exception('The recorder type is not recognized.')
 
     @property
     @if_created
@@ -638,6 +738,33 @@ class Recorder(NestObject):
     def locations(self):
         return self._locations
 
+    @property
+    @if_created
+    def variables(self):
+        return self._record_from
+
+    @property
+    def type(self):
+        return self._type
+
+    def formatted_data(self, formatted_shape=None, variable=None, unit_index=0):
+        return format_recorders.format_recorder(self.gid,
+                                                recorder_type=self.type,
+                                                shape=formatted_shape,
+                                                locations=self.locations,
+                                                variable=variable,
+                                                unit_index=unit_index)
+
+    def get_nest_raster(self):
+        import nest
+        from nest import raster_plot
+        if (self.type == 'spike_detector'
+            and 'memory' in self._record_to
+            and len(nest.GetStatus(self.gid)[0]['events']['senders'])):
+            return raster_plot.from_device(self.gid, hist=True)
+        return None
+
+
 LAYER_TYPES = {
     None: Layer,
     'InputLayer': InputLayer,
@@ -648,6 +775,7 @@ class Network:
 
     def __init__(self, params):
         self._created = False
+        self._changed = False
         self.params = params
         # Build network components
         # ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -705,6 +833,34 @@ class Network:
         for obj in tqdm(objects):
             obj.create()
 
+    def _layer_call(self, method_name, *args, layer_type=None, **kwargs):
+        """Call a method on each input layer."""
+        for layer in self._get_layers(layer_type=layer_type):
+            method = getattr(layer, method_name)
+            method(*args, **kwargs)
+
+    def _layer_get(self, attr_name, layer_type=None):
+        """Get an attribute from each layer."""
+        return tuple(getattr(layer, attr_name)
+                     for layer in self._get_layers(layer_type=layer_type))
+
+    def _get_layers(self, layer_type=None):
+        if layer_type is None:
+            return self.layers
+        return [l for l in sorted(self.layers.values())
+                if type(l).__name__ == layer_type]
+
+    @property
+    def input_shapes(self):
+        return set(self._layer_get('shape', layer_type='InputLayer'))
+
+    @property
+    def max_input_shape(self):
+        """Max of each dimension."""
+        return (max([s[0] for s in self.input_shapes]),
+                max([s[1] for s in self.input_shapes]))
+
+
     @if_not_created
     def create(self):
         # TODO: use progress bar from PyPhi?
@@ -720,3 +876,67 @@ class Network:
         self._create_all(self.connections)
         log.info('Creating recorders...')
         self._create_all(self.populations)
+
+    def change_synapse_states(self, synapse_changes):
+        raise NotImplementedError
+
+    def change_unit_states(self, unit_changes):
+        """Change parameters for some units of a population.
+
+        Args:
+            unit_changes (list): List of dictionaries each of the form::
+                    {'layer': <layer_name>,
+                     'population': <pop_name>,
+                     'proportion': <prop>,
+                     'params': {<param_name>: <param_value>,
+                                ...}
+                    }
+                where <layer_name> and <population_name> define the considered
+                population, <prop> is the proportion of units of that population
+                for which the parameters are changed, and the ``'params'`` entry is
+                the dictionary of parameter changes apply to the selected units.
+
+        """
+        import nest
+        for changes in tqdm(sorted(unit_changes, key=unit_sorting_map),
+                            desc="-> Change units' state"):
+
+            if self._changed and changes['proportion'] == 1:
+                raise Exception("Attempting to change probabilistically some" +
+                                "units' state multiple times.")
+
+            layer = self.layers[changes['layer']]
+            all_gids = layer.gids(population=changes.get('population', None))
+            gids_to_change = [all_gids[i] for i
+                              in sorted(
+                                  random.sample(range(len(all_gids)),
+                                                int(len(all_gids)
+                                                    * changes['proportion'])
+                                                ))]
+
+            nest.SetStatus(gids_to_change,
+                           params=changes['params'])
+        self._changed = True
+
+    def reset(self):
+        import nest
+        nest.ResetNetwork()
+
+    def set_input(self, stimulus, start_time=0.):
+        self._layer_call('set_input', stimulus, start_time,
+                         layer_type='InputLayer')
+
+    def save(self, output_dir, with_rasters=True):
+        # Save synapses
+        for conn in self.connections:
+            conn.save(output_dir)
+        # Save recorders
+        for population in self.populations:
+            population.save(output_dir, with_rasters=with_rasters)
+
+def unit_sorting_map(unit_change):
+    """Map by (layer, population, proportion, params_items for sorting."""
+    return (unit_change['layer'],
+            unit_change['population'],
+            unit_change['proportion'],
+            sorted(unit_change['params'].items()))

@@ -6,12 +6,12 @@
 
 import os
 
-from .network import Network
 from .parameters import Params
-from .save import load_yaml, save_all
 from .simulation import Simulation
+from .nestify.build import Network
+from .save import load_yaml
 
-__all__ = ['load_params', 'init', 'simulate', 'run']
+__all__ = ['load_params', 'run', 'Simulation', 'Network']
 
 
 def load_params(path, overrides=None):
@@ -34,34 +34,6 @@ def load_params(path, overrides=None):
     ])
 
 
-def init(params):
-    """Initialize NEST network from the full parameter tree."""
-    # Get relevant parts of the full simulation tree
-    network_params = params.c['network']
-    kernel_params = params.c['kernel']
-    sim_params = params.c['simulation']
-    # Build the network object
-    network = Network(network_params, sim_params)
-    # Initialize kernel + network in NEST
-    network.init_nest(kernel_params, sim_params)
-    print('...done initializing network.')
-    return network
-
-
-def simulate(network, params):
-    """Simulate a network.
-
-    Args:
-        network (Network): The network to simulate.
-        params (dict-like): The simulation parameters.
-    """
-    print(f'Simulating...', flush=True)
-    simulation = Simulation(params.c['sessions'])
-    simulation.run(params, network)
-    print('...finished simulation.', flush=True)
-    save_all(network, simulation, params)
-
-
 def run(path, overrides=None):
     """Run the simulation described by the params at ``path``.
 
@@ -75,7 +47,7 @@ def run(path, overrides=None):
     print(f'Loading parameters: `{path}`... ', end='', flush=True)
     params = load_params(path, overrides=overrides)
     print('done.', flush=True)
-    # Initialize kernel and network
-    network = init(params)
+    # Initialize simulation
+    sim = Simulation(params)
     # Simulate and save.
-    simulate(network, params)
+    sim.run()
