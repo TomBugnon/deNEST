@@ -2,6 +2,20 @@ network:
   topology:
     params:
       connections:
+
+        ### Recognized fields:
+        # - 'source_layer' (str): mandatory
+        # - 'target_layer' (str): mandatory
+        # - 'source_population' (str or None):
+        #       All populations if no key of not __bool__
+        # - 'source_population' (str or None):
+        #       All populations if no key of not __bool__
+        # - 'nest_params' (Mapping or None):
+        #       Takes precedence on connection model if specified)
+        # - 'save' (list of str or None):
+        #       Save each field in list.
+
+
         ### Source area: input area ###
 
         # excitatory on l1 for each input population

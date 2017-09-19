@@ -11,7 +11,7 @@ network:
       maskfactor: 1
       input_area_name: input_area
       scale_input_weights: true
-      scale_kernels_masks: false
+      scale_kernels_masks: true
     input_area:
       params:
         filters:

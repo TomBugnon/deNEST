@@ -1,5 +1,9 @@
 network:
   populations:
+    params:
+      recorders:
+        spike_detector: {}
+        multimeter: {}
     input_layer:
       params:
         layer: input_layer
@@ -9,9 +13,6 @@ network:
     l1:
       params:
         layer: l1
-        recorders:
-          multimeter: {}
-          spike_detector: {}
       l1_exc:
       l1_inh:
     l2:

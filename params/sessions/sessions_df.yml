@@ -1,23 +1,14 @@
 sessions:
   params:
-    order: ['warmup', 'training'] #, 'training', 'warmup', 'testing']
-    time_per_frame: 5
-    max_session_sim_time: !!python/float inf
-    save_recorders: True
-    shuffle_time: False
-    time_shuffling_params: {}
-    shuffle_in_space: False
-    space_shuffling_params: {}
-    synapse_changes: []
+    order: ['warmup', 'grating']
     reset_network: False
-    unit_changes: []
   warmup:
     params:
       session_stimulus: 'noise_256x256.yml'
       time_per_frame: 500.
       max_session_sim_time: 500.
       reset_network: True
-  training:
+  grating:
     params:
       session_stimulus: 'sinusoidal_grating_0_degrees_100picks.yml'
       time_per_frame: 30
