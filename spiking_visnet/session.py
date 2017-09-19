@@ -55,7 +55,7 @@ class Session:
             network.reset()
 
         # Change dynamic variables
-        # network.change_synapse_states(self.params.get('synapse_changes', []))
+        network.change_synapse_states(self.params.get('synapse_changes', []))
         network.change_unit_states(self.params.get('unit_changes', []))
 
         # Set input spike times in the future.

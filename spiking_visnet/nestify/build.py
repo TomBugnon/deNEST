@@ -897,7 +897,24 @@ class Network:
         self._create_all(self.populations)
 
     def change_synapse_states(self, synapse_changes):
-        raise NotImplementedError
+        """Change parameters for some connections of a population.
+
+        Args:
+            synapse_changes (list): List of dictionaries each of the form::
+                    {synapse_model: <synapse_model>,
+                     params: {<key>: <value>,
+                              ...}}
+                where the params contains the parameters to set for all synapses
+                of a given model.
+
+        """
+        import nest
+        for changes in tqdm(sorted(synapse_changes, key=synapse_sorting_map),
+                            desc="-> Change synapses's state."):
+            nest.SetStatus(
+                nest.GetConnections(synapse_model=changes['synapse_model']),
+                changes['params']
+                )
 
     def change_unit_states(self, unit_changes):
         """Change parameters for some units of a population.
@@ -952,3 +969,15 @@ class Network:
         # Save recorders
         for population in self.populations:
             population.save(output_dir, with_rasters=with_rasters)
+
+def unit_sorting_map(unit_change):
+    """Map by (layer, population, proportion, params_items for sorting."""
+    return (unit_change['layer'],
+            unit_change['population'],
+            unit_change['proportion'],
+            sorted(unit_change['params'].items()))
+
+def synapse_sorting_map(synapse_change):
+    """Map by (synapse_model, params_items) for sorting."""
+    return (synapse_change['synapse_model'],
+            sorted(synapse_change['params'].items()))
