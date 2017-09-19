@@ -599,8 +599,8 @@ class Connection(NestObject):
     def _sort_key(self):
         # Mapping for sorting
         return (self.name,
-                self.source.name, self.source_population,
-                self.target.name, self.target_population)
+                self.source.name, str(self.source_population),
+                self.target.name, str(self.target_population))
 
     def __lt__(self, other):
         return self._sort_key() < other._sort_key() # pylint: disable=W0212
