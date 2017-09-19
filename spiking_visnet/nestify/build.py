@@ -22,7 +22,6 @@ from tqdm import tqdm
 
 from .. import save
 from ..utils import filter_suffixes, format_recorders, spike_times
-from ..utils.sparsify import save_array
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 logging.config.dictConfig({
@@ -676,7 +675,7 @@ class Population(NestObject):
                                                       self.name,
                                                       unit_index=unit_index,
                                                       variable=variable)
-                    save_array(join(output_dir, filename), activity)
+                    save.save_array(join(output_dir, filename), activity)
 
     def save_rasters(self, output_dir):
         for recorder in self.recorders:

@@ -13,7 +13,6 @@ import numpy as np
 from . import save
 from .user_config import INPUT_DIR
 from .utils.load_stimulus import load_raw_stimulus
-from .utils.sparsify import save_array
 
 
 class Session:
@@ -74,10 +73,10 @@ class Session:
     def save(self, output_dir):
         """Save full stim (per timestep), labels (per timestep) and metadata."""
         if self.params.get('save_stim', True) and self._stimulus is not None:
-            save_array(join(output_dir,
+            save.save_array(join(output_dir,
                             save.movie_filename(self.name)),
                        self.stimulus['movie'])
-            save_array(join(output_dir,
+            save.save_array(join(output_dir,
                             save.labels_filename(self.name)),
                        self.stimulus['labels'])
             save.save_as_yaml(join(output_dir,

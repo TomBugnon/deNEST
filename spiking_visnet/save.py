@@ -6,12 +6,50 @@
 """Save and load movies, networks, activity and simulation parameters."""
 
 import os
+import pickle
 from os.path import exists, isfile, join
 
 import numpy as np
+import scipy.sparse
 import yaml
 
-from .utils.sparsify import load_as_numpy
+# Use LIL as the default sparse format
+sparse_format = scipy.sparse.lil_matrix
+
+
+def save_array(path, array):
+    """Save array either as dense or sparse depending on data type."""
+    try:
+        save_sparse(path, array)
+    except TypeError:
+        np.save(path, array)
+
+
+def load_as_numpy(path):
+    """Load as numpy a file saved with ``save_array`` or ``np.save``."""
+    ext = os.path.splitext(path)[1]
+    if ext == '.npy':
+        return np.load(path)
+    return load_sparse(path)
+
+
+def save_as_yaml(path, tree):
+    """Save <tree> as yaml file at <path>."""
+    with open(path, 'w') as f:
+        yaml.dump(tree, f, default_flow_style=False)
+
+
+def load_yaml(*args):
+    """Load yaml file from joined (os.path.join) arguments.
+
+    Return empty list if the file doesn't exist.
+    """
+    path = join(*args)
+    if exists(path):
+        with open(join(*args), 'rt') as f:
+            return yaml.load(f)
+    else:
+        return []
 
 
 def load_session_times(output_dir):
@@ -36,56 +74,69 @@ def load_activity(output_dir, layer, population, variable='spikes',
     else:
         filename_prefix = recorder_filename(layer, population,
                                             variable=variable, unit_index=0)
-    print(filename_prefix)
     all_filenames = [f for f in os.listdir(output_dir)
                      if f.startswith(filename_prefix)
                      and isfile(join(output_dir, f))]
 
-    print(all_filenames)
     # Concatenate along first dimension (row)
     all_sessions_activity = np.concatenate(
         [load_as_numpy(join(output_dir, filename))
          for filename in all_filenames],
         axis=1
         )
-    print(all_sessions_activity.shape)
     if session is None:
         return  all_sessions_activity
     session_times = load_session_times(output_dir)
-    print(session_times)
     return all_sessions_activity[session_times[session]]
 
 
 def load_labels(output_dir, session_name):
     """Load labels of a session."""
-    labels_filename = labels_filename(session_name)
-    return np.load(join(output_dir, labels_filename))
+    return np.load(join(output_dir, labels_filename(session_name)))
 
 
-def save_as_yaml(path, tree):
-    """Save <tree> as yaml file at <path>."""
-    with open(path, 'w') as f:
-        yaml.dump(tree, f, default_flow_style=False)
+def save_sparse(path, array):
+    """Save an array in a sparse format."""
+    # Normalize file extension
+    path = ensure_ext(path, ext='.pkl')
+    # Store shape
+    shape = array.shape
+    # Ensure 2D
+    array = array.reshape(shape[0], -1)
+    # Save
+    data = {'shape': shape,
+            'data': sparse_format(array)}
+    with open(path, 'wb') as f:
+        pickle.dump(data, f)
+    return True
 
 
-def load_yaml(*args):
-    """Load yaml file from joined (os.path.join) arguments.
+def ensure_ext(path, ext='.pkl'):
+    """Add a file extension if there isn't one."""
+    path, _ext = os.path.splitext(path)
+    _ext = _ext or ext
+    return path + _ext
 
-    Return empty list if the file doesn't exist.
-    """
-    file = join(*args)
-    if exists(file):
-        with open(join(*args), 'rt') as f:
-            return yaml.load(f)
-    else:
-        return []
 
+def load_sparse(path):
+    """Load an array saved with ``save_array``."""
+    # Normalize file extension
+    path = ensure_ext(path, ext='.pkl')
+    # Load
+    with open(path, 'rb') as f:
+        loaded = pickle.load(f)
+    shape, data = loaded['shape'], loaded['data']
+    # Convert to dense
+    data = data.toarray()
+    # Reshape
+    return data.reshape(shape)
+
+
+# TODO
 def connection_filename(connection):
     """Generate string describing a population-to-population connection."""
-    return ('synapses_from_' + connection['source_layer'] + STRING_SEPARATOR
-            + connection['source_population'] + '_to_'
-            + connection['target_layer'] + STRING_SEPARATOR
-            + connection['target_population'])
+    pass
+
 
 def recorder_filename(layer, pop, unit_index=None, variable='spikes'):
     """Return filename for a population x unit_index."""
