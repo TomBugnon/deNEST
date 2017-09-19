@@ -11,7 +11,7 @@ from shutil import rmtree
 from .nestify.build import Network
 from .save import save_as_yaml
 from .session import Session
-from .user_config import NEST_SEED, OUTPUT_DIR, PYTHON_SEED
+from .user_config import INPUT_DIR, NEST_SEED, OUTPUT_DIR, PYTHON_SEED
 
 
 class Simulation:
@@ -28,6 +28,8 @@ class Simulation:
         self.params = params
         # Get output dir and nest tmp output_dir
         self.output_dir = self.get_output_dirs()
+        # Get input dir
+        self.input_dir = self.get_input_dir()
         # set python seeds
         self.set_python_seeds()
         # Initialize kernel (should be after getting output dirs)
@@ -118,3 +120,15 @@ class Simulation:
         self.params.c['kernel']['data_path'] = nest_output_dir
         self.params.c['simulation']['nest_output_dir'] = nest_output_dir
         return output_dir
+
+
+    def get_input_dir(self):
+        """Get input dir from params or defaults and cast to session params."""
+        input_dir = self.params.c['simulation'].get('input_dir', False)
+        # If not specified by USER, get default from config
+        if not input_dir:
+            input_dir = INPUT_DIR
+            self.params.c['simulation']['input_dir'] = input_dir
+        # Cast to session params as well as simulation params
+        self.params.c['sessions']['input_dir'] = input_dir
+        return input_dir

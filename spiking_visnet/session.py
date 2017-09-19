@@ -98,8 +98,8 @@ class Session:
 
     def load_stim(self, crop_shape=None):
         # Input path can be either to a file or to the structured input dir
-        input_path = self.params.get('input', INPUT_DIR)
-        session_stim_filename = self.params.get('session_stimulus', None)
+        input_path = self.params['input_dir']
+        session_stim_filename = self.params['session_stimulus']
         (raw_movie,
          raw_labels,
          metadata) = load_raw_stimulus(input_path, session_stim_filename)
