@@ -64,6 +64,9 @@ class Simulation:
 
     def save(self):
         """Save simulation"""
+        # Delete all files in output_dir
+        if self.params.c['simulation'].get('clear_output_dir', False):
+            self.clear_output_dir()
         # Save params
         save_as_yaml(join(self.output_dir, 'params'), self.params)
         # Save network
@@ -132,3 +135,10 @@ class Simulation:
         # Cast to session params as well as simulation params
         self.params.c['sessions']['input_dir'] = input_dir
         return input_dir
+
+    def clear_output_dir(self):
+        """Delete all files in the output directory. Pass subdirectories."""
+        for f in os.listdir(self.output_dir):
+            path = os.path.join(self.output_dir, f)
+            if os.path.isfile(path):
+                os.remove(path)
