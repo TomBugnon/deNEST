@@ -594,8 +594,7 @@ class Connection(NestObject):
     def save(self, output_dir):
         # TODO
         for field in self.params.get('save', []):
-            print('Not saving ', field, ' in ', output_dir)
-            pass
+            print('TODO: save connection ', field, ' in ', output_dir)
 
     def _sort_key(self):
         # Mapping for sorting
