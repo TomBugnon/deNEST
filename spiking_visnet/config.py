@@ -15,3 +15,4 @@ INPUT_SUBDIRS = {'raw_input': 'raw_input',
                  'stimuli': 'stimuli'}
 METADATA_FILENAME = 'metadata.yml'
 PYTHON_SEED = 94
+NEST_SEED = 94

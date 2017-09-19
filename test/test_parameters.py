@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# test_tree.py
+# test_parameters.py
 
-"""Test the ``Tree`` class."""
+"""Test the ``Params`` class."""
 
 # pylint: disable=missing-docstring,invalid-name,redefined-outer-name
 # pylint: disable=not-an-iterable
@@ -12,7 +12,7 @@ import os
 import yaml
 import pytest
 
-from spiking_visnet.tree import Params
+from spiking_visnet.parameters import Params
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -28,7 +28,7 @@ def x():
         'c2': {
             DATA_KEY: {0: 1, 1: 1},
             0: {},
-            'cc1': {
+            'cc2': {
                 0: {
                     DATA_KEY: {}
                 }
@@ -81,19 +81,42 @@ def test_eq(t):
             Params({DATA_KEY: {0: 1}, 1: {}, 2: {}}))
 
 
-def test_getitem():
-    t = Params({DATA_KEY: {0: 0, 1: 1}, 0: {DATA_KEY: {0: 1}}})
-    c = t.c[0]
-    assert c[0] == 1
-    assert c[1] == 1
+def test_iter(x, t):
+    assert set(t) == set(x[DATA_KEY])
+    assert (set(t.c['c2'].c['cc2'].c[0]) ==
+            set.union(*[
+                set(x[DATA_KEY]),
+                set(x['c2'][DATA_KEY]),
+                set(x['c2']['cc2'][0]),
+            ]) - set([DATA_KEY]))
+
+
+def test_missing(t):
+    child = t.c['c2'].c['cc2'].c[0]
+    assert child['p1'] == 0
 
 
 def test_contains(t):
     assert 'p1' in t
+    assert 'p1' in t.c['c2'].c['cc2']
+
+
+def test_get_node(t):
+    # Tuple
+    assert t.get_node('c2', 'cc2') == t.c['c2'].c['cc2']
+    # Name
+    assert t.get_node('c2') == t.c['c2']
+
+
+def test_getitem(t):
+    # Tuple
+    assert t[('c2', 'cc2', 0)] == Params({})
+    # Key
+    assert t['p1'] == 0
 
 
 def test_ancestors(t):
-    leaf = t.c['c2'].c['cc1'].c[0]
+    leaf = t.c['c2'].c['cc2'].c[0]
     assert list(leaf.ancestors()) == [
         leaf,
         leaf.p,
@@ -102,24 +125,29 @@ def test_ancestors(t):
     ]
 
 
-def test_iter(x, t):
-    assert set(t) == set(x[DATA_KEY])
-    assert (set(t.c['c2'].c['cc1'].c[0]) ==
-            set.union(*[
-                set(x[DATA_KEY]),
-                set(x['c2'][DATA_KEY]),
-                set(x['c2']['cc1'][0]),
-            ]) - set([DATA_KEY]))
+def test_keys(t):
+    assert set(t.keys()) == set(['p1', 0, 1])
+
+
+def test_num_children(t):
+    assert t.num_children == 3
 
 
 def test_leaves(t):
-    leaves = list(t.leaves())
-    print(leaves)
     assert list(t.leaves()) == [
         Params({DATA_KEY: {0: 1, 1: 1}}),
         Params({}),
         Params({}),
         Params({}),
+    ]
+
+
+def test_named_leaves(t):
+    assert list(t.named_leaves()) == [
+        ('c1', Params({DATA_KEY: {0: 1, 1: 1}})),
+        (0, Params({})),
+        (0, Params({})),
+        (0, Params({})),
     ]
 
 

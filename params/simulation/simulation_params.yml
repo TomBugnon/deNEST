@@ -1,9 +1,5 @@
-children:
-
-    sessions: {}
-    network: {}
-    kernel: {}
-
-    simulation:
-        delete_tmp_dir: True
-        save_nest_raster: True
+simulation:
+  params:
+    delete_tmp_dir: True
+    clear_output_dir: True
+    save_nest_raster: True

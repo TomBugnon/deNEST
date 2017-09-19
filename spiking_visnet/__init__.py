@@ -4,42 +4,33 @@
 
 """Spiking VisNet."""
 
-from .network import Network
-from .parameters import load_params
-from .save import load_yaml, save_all
+import os
+
+from .parameters import Params
 from .simulation import Simulation
-import numpy as np
-import random
+from .save import load_yaml
 
-def init(params):
-    """Initialize NEST network from the full parameter tree."""
-    # Get relevant parts of the full simulation tree
-    network_params = params['children']['network']['children']
-    kernel_params = params['children']['kernel']
-    sim_params = params['children']['simulation']
-    print('Set python seeds')
-    set_python_seed(kernel_params.get('python_seed', 94))
-    print('Initializing network...')
-    # Build the network object
-    network = Network(network_params, sim_params)
-    # Initialize kernel + network in NEST
-    network.init_nest(kernel_params, sim_params)
-    print('...done initializing network.')
-    return network
+__all__ = ['load_params', 'run', 'Simulation']
 
 
-def simulate(network, params):
-    """Simulate a network.
+def load_params(path, overrides=None):
+    """Load a list of parameter files, optionally overriding some values.
 
     Args:
-        network (Network): The network to simulate.
-        params (dict-like): The simulation parameters.
+        path (str): The filepath to load.
+
+    Keyword Args:
+        overrides (dict): A dictionary containing parameters that will take
+            precedence over those in the file.
+
+    Returns:
+        Params: The loaded parameters with overrides applied.
     """
-    print(f'Simulating...', flush=True)
-    simulation = Simulation(params['children']['sessions'])
-    simulation.run(params, network)
-    print('...finished simulation.', flush=True)
-    save_all(network, simulation, params)
+    directory = os.path.dirname(os.path.abspath(path))
+    return Params.merge(Params(overrides), *[
+        Params.load(directory, relative_path)
+        for relative_path in load_yaml(path)
+    ])
 
 
 def run(path, overrides=None):
@@ -55,13 +46,8 @@ def run(path, overrides=None):
     print(f'Loading parameters: `{path}`... ', end='', flush=True)
     params = load_params(path, overrides=overrides)
     print('done.', flush=True)
-    # Initialize kernel and network
-    network = init(params)
+    # Initialize simulation
+    sim = Simulation(params)
     # Simulate and save.
-    simulate(network, params)
-
-
-def set_python_seed(seed):
-    """Set all random modules' seed."""
-    np.random.seed(seed)
-    random.seed(seed)
+    sim.run()
+    sim.save()

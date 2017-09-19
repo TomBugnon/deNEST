@@ -41,7 +41,7 @@ def make_activity_figure(pops, plot_period, output_dir, fig_title='figure'):
         layer = pop[0]
         population = pop[1]
         variable = pop[2]
-        activity = load_activity(layer, population, output_dir,
+        activity = load_activity(output_dir, layer, population,
                                  variable=variable)
 
         subp = fig.add_subplot(len(pops), 1, i+1)

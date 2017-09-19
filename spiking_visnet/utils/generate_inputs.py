@@ -12,7 +12,7 @@ from os.path import join
 
 import numpy as np
 
-from .sparsify import save_array
+from ..save import save_array
 
 
 def vertical_cross(nrows=9, ncols=9, width=3):

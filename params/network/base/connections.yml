@@ -1,0 +1,137 @@
+network:
+  topology:
+    params:
+      connections:
+
+        ### Recognized fields:
+        # - 'source_layer' (str): mandatory
+        # - 'target_layer' (str): mandatory
+        # - 'source_population' (str or None):
+        #       All populations if no key of not __bool__
+        # - 'source_population' (str or None):
+        #       All populations if no key of not __bool__
+        # - 'nest_params' (Mapping or None):
+        #       Takes precedence on connection model if specified)
+        # - 'save' (list of str or None):
+        #       Save each field in list.
+
+
+        ### Source area: input area ###
+
+        # excitatory on l1 for each input population
+        - source_layer: input_layer
+          source_population: parrot_neuron
+          target_layer: l1
+          target_population: l1_exc
+          connection: input_connection
+          save: ['weight']
+        - source_layer: input_layer
+          source_population: parrot_neuron
+          target_layer: l1
+          target_population: l1_inh
+          connection: input_connection
+          save: ['weight']
+
+
+        ### Source area: l1 ###
+
+        # l1 excitatory horizontal
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l1
+          target_population: l1_exc
+          connection: horizontal_exc
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l1
+          target_population: l1_inh
+          connection: horizontal_exc
+
+        # l1 inhibitory horizontal
+        - source_layer: l1
+          source_population: l1_inh
+          target_layer: l1
+          target_population: l1_exc
+          connection: horizontal_inh
+        - source_layer: l1
+          source_population: l1_inh
+          target_layer: l1
+          target_population: l1_inh
+          connection: horizontal_inh
+
+        # l1 excitatory FF
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l2
+          target_population: l2_exc
+          connection: FF_exc
+        - source_layer: l1
+          source_population: l1_exc
+          target_layer: l2
+          target_population: l2_inh
+          connection: FF_exc
+
+
+        ### source area: l2 ###
+
+        # l2 excitatory horizontal
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l2
+          target_population: l2_exc
+          connection: horizontal_exc
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l2
+          target_population: l2_inh
+          connection: horizontal_exc
+
+        # l2 inhibitory horizontal
+        - source_layer: l2
+          source_population: l2_inh
+          target_layer: l2
+          target_population: l2_exc
+          connection: horizontal_inh
+        - source_layer: l2
+          source_population: l2_inh
+          target_layer: l2
+          target_population: l2_inh
+          connection: horizontal_inh
+
+        # l2 excitatory FF
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l3
+          target_population: l3_exc
+          connection: FF_exc
+        - source_layer: l2
+          source_population: l2_exc
+          target_layer: l3
+          target_population: l3_inh
+          connection: FF_exc
+
+        ### source area: l3 ###
+
+        # l3 excitatory horizontal
+        - source_layer: l3
+          source_population: l3_exc
+          target_layer: l3
+          target_population: l3_exc
+          connection: horizontal_exc
+        - source_layer: l3
+          source_population: l3_exc
+          target_layer: l3
+          target_population: l3_inh
+          connection: horizontal_exc
+
+        # l3 inhibitory horizontal
+        - source_layer: l3
+          source_population: l3_inh
+          target_layer: l3
+          target_population: l3_exc
+          connection: horizontal_inh
+        - source_layer: l3
+          source_population: l3_inh
+          target_layer: l3
+          target_population: l3_inh
+          connection: horizontal_inh

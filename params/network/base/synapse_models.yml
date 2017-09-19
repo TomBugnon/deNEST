@@ -1,0 +1,30 @@
+network:
+  synapse_models:
+    # NOTE:
+    # - 'format_synapse_params()' needs modification if any parameters are
+    #   added here
+    # - If you define a 'receptor_type' field you need a 'target_neuron'
+    #   field as well.
+    ht_synapse:
+      params:
+        nest_model: ht_synapse
+        target_neuron: ht_neuron
+      AMPA_syn:
+        params:
+          receptor_type: AMPA
+      NMDA_syn:
+        params:
+          receptor_type: NMDA
+      GABA_A_syn:
+        params:
+          receptor_type: GABA_A
+      GABA_B_syn:
+        params:
+          receptor_type: GABA_B
+    static_synapse:
+      params:
+        nest_model: static_synapse
+      input_synapse:
+        params:
+          target_neuron: ht_neuron
+          receptor_type: AMPA

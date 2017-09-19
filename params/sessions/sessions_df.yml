@@ -1,42 +1,15 @@
-children:
-
-  network: {}
-  kernel: {}
-  simulation: {}
-
-  sessions:
-    sessions_order: ['warmup', 'training']
+sessions:
+  params:
+    order: ['warmup', 'grating']
+    reset_network: False
+  warmup:
     params:
-      time_per_frame: 5
-      max_session_sim_time: !!python/float inf
-      save_recorders: True
-      shuffle_time: False
-      time_shuffling_params: {}
-      shuffle_in_space: False
-      space_shuffling_params: {}
-      synapse_changes: []
-      reset_network: False
-      unit_changes: []
-    children:
-      warmup:
-        name: warmup
-        params:
-          # Make sure the stimuli are compatible with the network dimensions
-          session_stims: 'noise_256x256.yml'
-          save_recorders: False
-          time_per_frame: 100.
-          synapse_changes:
-              - synapse_model: input_synapse
-                params:
-                  lambda: 0.
-          # NOTE: Might reset STDP synapses in a future release of NEST!
-          reset_network: True
-      training:
-        name: training
-        params:
-          # Make sure the stimuli are compatible with the network dimensions
-          session_stims: 'stim_df_set_df_res_100x100_contrastnorm_filter_o2.yml'
-          synapse_changes:
-              - synapse_model: input_synapse
-                params:
-                  lambda: 0.01
+      session_stimulus: 'noise_256x256.yml'
+      time_per_frame: 500.
+      max_session_sim_time: 500.
+      reset_network: True
+  grating:
+    params:
+      session_stimulus: 'sinusoidal_grating_0_degrees_100picks.yml'
+      time_per_frame: 30
+      max_session_sim_time: 500.

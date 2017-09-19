@@ -6,4 +6,4 @@
 
 import os.path
 
-from ..utils.sparsify import load_as_numpy
+from ..save import load_as_numpy

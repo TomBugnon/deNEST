@@ -3,7 +3,7 @@ c1:
 c2:
   params: {0: 1, 1: 1}
   0: {}
-  cc1:
+  cc2:
     0:
       params: {}
 c3:
