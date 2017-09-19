@@ -598,6 +598,15 @@ class Connection(NestObject):
             print('Not saving ', field, ' in ', output_dir)
             pass
 
+    def _sort_key(self):
+        # Mapping for sorting
+        return (self.name,
+                self.source.name, self.source_population,
+                self.target.name, self.target_population)
+
+    def __lt__(self, other):
+        return self._sort_key() < other._sort_key() # pylint: disable=W0212
+
 
 class Population(NestObject):
     """Represents a population.
@@ -624,6 +633,9 @@ class Population(NestObject):
             layer=self.layer.name,
             population=self.name,
             params=pformat(self.params))
+
+    def __lt__(self, other):
+        return (self.layer.name, self.name) < (other.layer.name, other.name)
 
     @if_not_created
     def create(self):
@@ -793,13 +805,20 @@ class Network:
         self.connection_models = self.build_named_leaves_dict(
             ConnectionModel, self.params.c['connection_models'])
         # Connections must be built last
-        self.connections = [
+        self.connections = sorted(
+            [
             self.build_connection(connection)
             for connection in self.params.c['topology']['connections']
-        ]
+            ]
+        )
         # Populations are represented as a list
-        self.populations = self.build_named_leaves_list(
-            self.build_population, self.params.c['populations'])
+        self.populations = sorted(
+            self.build_named_leaves_list(
+                self.build_population,
+                self.params.c['populations']
+                )
+            )
+
 
     @staticmethod
     def build_named_leaves_dict(constructor, node):
@@ -846,7 +865,7 @@ class Network:
 
     def _get_layers(self, layer_type=None):
         if layer_type is None:
-            return self.layers
+            return sorted(self.layers.values())
         return [l for l in sorted(self.layers.values())
                 if type(l).__name__ == layer_type]
 
@@ -933,10 +952,3 @@ class Network:
         # Save recorders
         for population in self.populations:
             population.save(output_dir, with_rasters=with_rasters)
-
-def unit_sorting_map(unit_change):
-    """Map by (layer, population, proportion, params_items for sorting."""
-    return (unit_change['layer'],
-            unit_change['population'],
-            unit_change['proportion'],
-            sorted(unit_change['params'].items()))
