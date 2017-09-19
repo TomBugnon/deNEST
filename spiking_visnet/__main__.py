@@ -49,7 +49,8 @@ def main():
     # Get parameter overrides from the CLI options.
     overrides = AutoDict({_CLI_ARG_MAP[key]: value
                           for key, value in arguments.items()
-                          if key in _CLI_ARG_MAP})
+                          if (value is not None
+                              and key in _CLI_ARG_MAP)})
     # Run it!
     run(arguments['<param_file.yml>'], overrides=overrides)
 

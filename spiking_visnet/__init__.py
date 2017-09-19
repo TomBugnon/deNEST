@@ -50,3 +50,4 @@ def run(path, overrides=None):
     sim = Simulation(params)
     # Simulate and save.
     sim.run()
+    sim.save()
