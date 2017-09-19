@@ -23,13 +23,13 @@ class Simulation:
     Args:
         params (dict-like): full parameter tree
     """
-    def __init__(self, params):
+    def __init__(self, params, input_dir=None, output_dir=None):
         """Initialize simulation."""
         self.params = params
         # Get output dir and nest tmp output_dir
-        self.output_dir = self.get_output_dirs()
+        self.output_dir = self.get_output_dirs(output_dir)
         # Get input dir
-        self.input_dir = self.get_input_dir()
+        self.input_dir = self.get_input_dir(input_dir)
         # set python seeds
         self.set_python_seeds()
         # Initialize kernel (should be after getting output dirs)
@@ -110,9 +110,10 @@ class Simulation:
         np.random.seed(python_seed)
         random.seed(python_seed)
 
-    def get_output_dirs(self):
+    def get_output_dirs(self, output_dir=None):
         """Get output_dir from params and update kernel params accordingly."""
-        output_dir = self.params.c['simulation'].get('output_dir', False)
+        if output_dir is None:
+            output_dir = self.params.c['simulation'].get('output_dir', False)
         # If not specified by USER, get default from config
         if not output_dir:
             output_dir = OUTPUT_DIR
@@ -125,9 +126,10 @@ class Simulation:
         return output_dir
 
 
-    def get_input_dir(self):
+    def get_input_dir(self, input_dir=None):
         """Get input dir from params or defaults and cast to session params."""
-        input_dir = self.params.c['simulation'].get('input_dir', False)
+        if input_dir is None:
+            input_dir = self.params.c['simulation'].get('input_dir', False)
         # If not specified by USER, get default from config
         if not input_dir:
             input_dir = INPUT_DIR
