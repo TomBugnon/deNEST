@@ -6,19 +6,20 @@
 
 # pylint: disable=too-few-public-methods
 
-import copy
 import functools
 import itertools
 import logging
 import logging.config
 import random
 from collections import ChainMap
+from copy import deepcopy
 from os.path import join
 from pprint import pformat
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pylab
+
 from tqdm import tqdm
 
 from .. import save
@@ -537,13 +538,13 @@ class Connection(NestObject):
         # Get scaling factor, taking in accound whether the connection is
         # convergent or divergent
         if (nest_params['connection_type'] == 'convergent'
-            and self.source.params.get('scale_kernels_masks', True)):
+                and self.source.params.get('scale_kernels_masks', True)):
             # For convergent connections, the pooling layer is the source
             self.scale_factor = self.source.extent_units(
                 self.source.params.get('rf_scale_factor', 1.0)
             )
         elif (nest_params['connection_type'] == 'divergent'
-            and self.target.params.get('scale_kernels_masks', True)):
+                and self.target.params.get('scale_kernels_masks', True)):
             # For convergent connections, the pooling layer is the target
             self.scale_factor = self.target.extent_units(
                 self.target.params.get('rf_scale_factor', 1.0)
@@ -566,24 +567,26 @@ class Connection(NestObject):
         self.nest_params = dict(nest_params)
 
     def scale_kernel(self, kernel):
+        """Return a new kernel scaled by ``scale_factor``."""
+        kernel = deepcopy(kernel)
         try:
             return float(kernel)
         except TypeError:
             if 'gaussian' in kernel:
-                kernel_copy = copy.deepcopy(kernel)
-                kernel_copy['gaussian']['sigma'] *= self.scale_factor
-            return kernel_copy
+                kernel['gaussian']['sigma'] *= self.scale_factor
+            return kernel
 
     def scale_mask(self, mask):
-        mask_copy = copy.deepcopy(mask)
+        """Return a new mask scaled by ``scale_factor``."""
+        mask = deepcopy(mask)
         if 'circular' in mask:
-            mask_copy['circular']['radius'] *= self.scale_factor
+            mask['circular']['radius'] *= self.scale_factor
         if 'rectangular' in mask:
-            mask_copy['rectangular'] = {
+            mask['rectangular'] = {
                 key: np.array(scalars) * self.scale_factor
                 for key, scalars in mask['rectangular'].items()
             }
-        return mask_copy
+        return mask
 
     def scale_weights(self, weights):
         # Default to no scaling
