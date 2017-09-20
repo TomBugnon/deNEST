@@ -599,14 +599,15 @@ class Connection(NestObject):
         for field in self.params.get('save', []):
             print('TODO: save connection ', field, ' in ', output_dir)
 
-    def _sort_key(self):
+    @property
+    def sort_key(self):
         # Mapping for sorting
         return (self.name,
                 self.source.name, str(self.source_population),
                 self.target.name, str(self.target_population))
 
     def __lt__(self, other):
-        return self._sort_key() < other._sort_key() # pylint: disable=W0212
+        return self.sort_key < other.sort_key
 
 
 class Population(NestObject):
