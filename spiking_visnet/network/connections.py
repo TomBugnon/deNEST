@@ -15,13 +15,20 @@ from .utils import if_not_created
 
 class ConnectionModel(NestObject):
     """Represent a NEST connection model."""
-    pass
+    DEFAULT_SCALE_FACTOR = 1.0
+
+    def __init__(self, name, params):
+        super().__init__(name, params)
+        self._scale_factor = self.params.pop('scale_factor',
+                                             self.DEFAULT_SCALE_FACTOR)
+
+    @property
+    def scale_factor(self):
+        return self._scale_factor
 
 
 class Connection(NestObject):
     """Represent a NEST connection."""
-
-    DEFAULT_SCALE_FACTOR = 1.0
 
     def __init__(self, source, target, model, params):
         super().__init__(model.name, params)
@@ -30,11 +37,13 @@ class Connection(NestObject):
         self.source_population = params.get('source_population', None)
         self.target = target
         self.target_population = params.get('target_population', None)
+        self.scale_factor = None
         self.nest_params = self.get_nest_params()
 
     def get_nest_params(self):
         # Get NEST connection parameters
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
         # TODO: Get a view of the kernel, mask, and weights inherited from the
         # connection model
 
@@ -47,22 +56,17 @@ class Connection(NestObject):
                      self.model.params)
         )
 
-        # Get scaling factor, taking in accound whether the connection is
-        # convergent or divergent
+        self.scale_factor = self.model.scale_factor
+        # Get connection-specific scaling factor, taking in account whether the
+        # connection is convergent or divergent
         if (nest_params['connection_type'] == 'convergent'
                 and self.source.params.get('scale_kernels_masks', True)):
             # For convergent connections, the pooling layer is the source
-            self.scale_factor = self.source.extent_units(
-                self.source.params.get('rf_scale_factor', 1.0)
-            )
+            self.scale_factor = self.source.extent_units(self.scale_factor)
         elif (nest_params['connection_type'] == 'divergent'
                 and self.target.params.get('scale_kernels_masks', True)):
             # For convergent connections, the pooling layer is the target
-            self.scale_factor = self.target.extent_units(
-                self.target.params.get('rf_scale_factor', 1.0)
-            )
-        else:
-            self.scale_factor = self.DEFAULT_SCALE_FACTOR
+            self.scale_factor = self.target.extent_units(self.scale_factor)
 
         # Set kernel, mask, and weights, scaling if necessary
         nest_params = nest_params.new_child({

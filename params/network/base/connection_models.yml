@@ -1,5 +1,7 @@
 network:
   connection_models:
+    params:
+      scale_factor: 1.
 
     horizontal_exc:
       params:
