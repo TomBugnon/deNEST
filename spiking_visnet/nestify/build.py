@@ -532,8 +532,13 @@ class Connection(NestObject):
         # connection model
 
         # Merge 'connection_model' and connection nest_parameters
-        nest_params = ChainMap(self.params.get('nest_params', dict()),
-                               self.model.params)
+        # IMPORTANT: The connection model parameters are shared between
+        # different connections, so we need to make our own copy before
+        # modifying anything in-place.
+        nest_params = deepcopy(
+            ChainMap(self.params.get('nest_params', dict()),
+                     self.model.params)
+        )
 
         # Get scaling factor, taking in accound whether the connection is
         # convergent or divergent
