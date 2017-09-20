@@ -30,6 +30,9 @@ class Connection(NestObject):
         self.source_population = params.get('source_population', None)
         self.target = target
         self.target_population = params.get('target_population', None)
+        self.nest_params = self.get_nest_params()
+
+    def get_nest_params(self):
         # Get NEST connection parameters
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # TODO: Get a view of the kernel, mask, and weights inherited from the
@@ -72,8 +75,8 @@ class Connection(NestObject):
             nest_params['sources'] = {'model': self.source_population}
         if self.target_population:
             nest_params['targets'] = {'model': self.target_population}
-        # Save nest_params as a dictionary.
-        self.nest_params = dict(nest_params)
+        # Return nest_params as a dictionary.
+        return dict(nest_params)
 
     def scale_kernel(self, kernel):
         """Return a new kernel scaled by ``scale_factor``."""
