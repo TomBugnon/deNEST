@@ -8,7 +8,7 @@ import os
 from os.path import join
 from shutil import rmtree
 
-from .nestify.build import Network
+from .network.network import Network
 from .save import save_as_yaml
 from .session import Session
 from .user_config import INPUT_DIR, NEST_SEED, OUTPUT_DIR, PYTHON_SEED

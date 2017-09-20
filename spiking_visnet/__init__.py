@@ -8,7 +8,7 @@ import os
 
 from .parameters import Params
 from .simulation import Simulation
-from .nestify.build import Network
+from .network.network import Network
 from .save import load_yaml
 
 __all__ = ['load_params', 'run', 'Simulation', 'Network']
