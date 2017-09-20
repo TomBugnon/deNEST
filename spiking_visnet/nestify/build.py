@@ -6,6 +6,7 @@
 
 # pylint: disable=too-few-public-methods
 
+import copy
 import functools
 import itertools
 import logging
@@ -569,18 +570,20 @@ class Connection(NestObject):
             return float(kernel)
         except TypeError:
             if 'gaussian' in kernel:
-                kernel['gaussian']['sigma'] *= self.scale_factor
-            return kernel
+                kernel_copy = copy.deepcopy(kernel)
+                kernel_copy['gaussian']['sigma'] *= self.scale_factor
+            return kernel_copy
 
     def scale_mask(self, mask):
+        mask_copy = copy.deepcopy(mask)
         if 'circular' in mask:
-            mask['circular']['radius'] *= self.scale_factor
+            mask_copy['circular']['radius'] *= self.scale_factor
         if 'rectangular' in mask:
-            mask['rectangular'] = {
+            mask_copy['rectangular'] = {
                 key: np.array(scalars) * self.scale_factor
                 for key, scalars in mask['rectangular'].items()
             }
-        return mask
+        return mask_copy
 
     def scale_weights(self, weights):
         # Default to no scaling
