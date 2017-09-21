@@ -36,7 +36,7 @@ class AbstractLayer(NestObject):
     @staticmethod
     def to_extent_units(value, extent, rows, columns):
         """Convert a value from grid units to extent units."""
-        size = max(rows, columns) - 1.
+        size = max(rows, columns)
         units = extent / size
         return value * units
 
