@@ -27,6 +27,7 @@ class AbstractLayer(NestObject):
         self._locations = None
         self._populations = None
         self.shape = params['nrows'], params['ncols']
+        self.extent = (params['visSize'],) * 2
 
     def __iter__(self):
         yield from itertools.product(range(self.shape[0]),
@@ -190,6 +191,11 @@ class Layer(AbstractLayer):
     @if_created
     def location(self, *args):
         return tuple(self._locations[gid] for gid in args)
+
+    @if_created
+    def position(self, *args):
+        import nest.topology as tp
+        return tp.GetPosition(args)
 
     @if_created
     def population(self, *args):
