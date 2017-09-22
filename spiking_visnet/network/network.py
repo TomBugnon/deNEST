@@ -176,7 +176,7 @@ class Network:
                             desc="-> Change units' state"):
 
             if self._changed and changes['proportion'] == 1:
-                raise Exception("Attempting to change probabilistically some" +
+                raise Exception("Attempting to change probabilistically some "
                                 "units' state multiple times.")
 
             layer = self.layers[changes['layer']]
