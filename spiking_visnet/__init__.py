@@ -4,6 +4,7 @@
 
 """Spiking VisNet."""
 
+import logging
 import os
 
 from .parameters import Params
@@ -11,7 +12,32 @@ from .simulation import Simulation
 from .network.network import Network
 from .save import load_yaml
 
+
 __all__ = ['load_params', 'run', 'Simulation', 'Network']
+
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
+        }
+    },
+    'handlers': {
+        'stdout': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        }
+    },
+    'loggers': {
+        'spiking_visnet': {
+            'level': 'INFO',
+            'handlers': ['stdout'],
+        }
+    }
+})
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def load_params(path, overrides=None):

@@ -12,28 +12,6 @@ import logging.config
 
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
-logging.config.dictConfig({
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'default': {
-            'format': '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
-        }
-    },
-    'handlers': {
-        'stdout': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'default',
-        }
-    },
-    'loggers': {
-        'spiking_visnet': {
-            'level': 'INFO',
-            'handlers': ['stdout'],
-        }
-    }
-})
 
 
 def flatten(seq):
