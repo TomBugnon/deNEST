@@ -186,6 +186,6 @@ class Recorder(NestObject):
         from nest import raster_plot
         if (self.type == 'spike_detector'
                 and 'memory' in self._record_to
-                and len(nest.GetStatus(self.gid)[0]['events']['senders'])):
+                and nest.GetStatus(self.gid)[0]['events']['senders']):
             return raster_plot.from_device(self.gid, hist=True)
         return None
