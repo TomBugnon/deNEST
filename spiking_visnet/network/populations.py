@@ -13,7 +13,8 @@ import pylab
 
 from .. import save
 from ..utils import format_recorders
-from .utils import NestObject, if_created, if_not_created
+from .nest_object import NestObject
+from .utils import if_created, if_not_created
 
 
 class Population(NestObject):

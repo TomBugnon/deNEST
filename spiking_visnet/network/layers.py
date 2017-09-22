@@ -10,7 +10,8 @@ import numpy as np
 from tqdm import tqdm
 
 from ..utils import filter_suffixes, spike_times
-from .utils import NestObject, flatten, if_created, if_not_created
+from .nest_object import NestObject
+from .utils import flatten, if_created, if_not_created
 
 
 class AbstractLayer(NestObject):

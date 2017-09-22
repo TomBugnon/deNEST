@@ -4,7 +4,8 @@
 
 """Define Models."""
 
-from .utils import NestObject, if_not_created
+from .nest_object import NestObject
+from .utils import if_not_created
 
 
 class Model(NestObject):
