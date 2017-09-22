@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # network/nest_object.py
 
+"""Base class for representations of NEST objects."""
+
 import functools
 from pprint import pformat
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # network/models.py
 
-"""Define Models."""
+"""NEST model classes."""
 
 from .nest_object import NestObject
 from .utils import if_not_created

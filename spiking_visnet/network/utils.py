@@ -2,9 +2,13 @@
 # -*- coding: utf-8 -*-
 # network/utils.py
 
+"""Utilities for building network objects."""
+
 import functools
 import logging
 import logging.config
+
+# pylint: disable=protected-access
 
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -46,8 +50,6 @@ class NotCreatedError(AttributeError):
     """Raised when a ``NestObject`` needs to have been created, but wasn't."""
     pass
 
-
-# pylint: disable=protected-access
 
 def if_not_created(method):
     """Only call a method if the ``_created`` attribute isn't set.

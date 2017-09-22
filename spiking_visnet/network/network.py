@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # network/network.py
 
-"""Construct Network object from independent parameters."""
+"""Provide a class to construct a network from independent parameters."""
 
 import random
 

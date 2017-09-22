@@ -4,7 +4,6 @@
 
 """Query, filter and modify specific synaptic connections from NEST."""
 
-
 import nest
 
 

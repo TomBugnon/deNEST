@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # network/populations.py
 
-"""Define Population and Recorder objects"""
+"""Provides the ``Population`` and ``Recorder`` classes."""
 
 from itertools import product
 from os.path import join

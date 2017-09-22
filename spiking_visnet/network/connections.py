@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # network/connections.py
 
-"""Define Connections objects"""
+"""Connection classes."""
 
 from collections import ChainMap
 from copy import deepcopy

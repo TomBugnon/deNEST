@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # network/layers.py
 
-"""Define Layer objects"""
+"""Layer objects."""
 
 import itertools
 
