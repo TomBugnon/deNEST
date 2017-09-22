@@ -4,7 +4,12 @@
 
 """Query, filter and modify specific synaptic connections from NEST."""
 
+import logging
+
 import nest
+
+
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def get_filtered_synapses(gid, ref='source', secondary_layer_gid=None,
@@ -25,8 +30,9 @@ def get_filtered_synapses(gid, ref='source', secondary_layer_gid=None,
         dictionary is the output of nest.GetStatus() applied on a connection.
     """
     if not isinstance(secondary_layer_gid, int):
-        Warning("""'secondary_layer_gid' argument should be an integer rather
-                than a sequence. Try using the first element""")
+        log.warning("`secondary_layer_gid` argument should be an integer. We "
+                    "now assume you passed a sequence and attempt to use the "
+                    "first element.")
         secondary_layer_gid = secondary_layer_gid[0]
 
     if ref == 'source':
