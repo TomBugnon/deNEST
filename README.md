@@ -2,38 +2,38 @@
 
 ## Before running the simulation
 
-1. **Preprocess stimuli**:  
-  Note: the stimuli dimension (resolution and number of filters) should be
-  compatible with (_i.e._, greater than the dimensions of) your network.
+### Preprocess stimuli  
+Note: the stimuli dimension (resolution and number of filters) should be
+compatible with (_i.e._, greater than the dimensions of) your network.
 
-  To preprocess, run
-  ```bash
-  python3 -m spiking_visnet.preprocess \
-          -p <preprocessing_params> \
-          -n <simulation_params> \
-          [-input <input_dir>]
-  ```
-  For example:
-  ```bash
-  python3 -m spiking_visnet.preprocess \
-          -p spiking_visnet/preprocess/params/default.yml \
-          -n params/default.yml
-  ```
+To preprocess, run
+```bash
+python3 -m spiking_visnet.preprocess \
+        -p <preprocessing_params> \
+        -n <simulation_params> \
+        [-input <input_dir>]
+```
+For example:
+```bash
+python3 -m spiking_visnet.preprocess \
+        -p spiking_visnet/preprocess/params/default.yml \
+        -n params/default.yml
+```
 
-  See `spiking_visnet/preprocess/README.md` for details.
+See `spiking_visnet/preprocess/README.md` for details.
 
-2. **Change the session's stimuli**
-  Manually modify the session parameters so that sessions use stimulus
-  sequences compatible with the network's dimensions. You can use the default
-  stimulus sequence created during preprocessing; _e.g._ write
-  ```yaml
-  session_stims: 'stim_df_set_df_res_100x100_contrastnorm_filter_o2.yml`
-  ``````
-  in `sessions_df.yml`.
+### Change the session's stimuli
+Manually modify the session parameters so that sessions use stimulus sequences
+compatible with the network's dimensions. You can use the default stimulus
+sequence created during preprocessing; _e.g._ put the following in
+`sessions_df.yml`:
+```yaml
+session_stims: 'stim_df_set_df_res_100x100_contrastnorm_filter_o2.yml`
+```
 
-  Alternatively, you can also specify the input that will be used for all
-  sessions as a command line argument. In that case, you don't need to modify
-  the session parameters file.
+Alternatively, you can also specify the input that will be used for all
+sessions as a command line argument. In that case, you don't need to modify
+the session parameters file.
 
 ## Run the simulation
 
