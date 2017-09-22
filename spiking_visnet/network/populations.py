@@ -4,6 +4,7 @@
 
 """Define Population and Recorder objects"""
 
+from itertools import product
 from os.path import join
 from pprint import pformat
 
@@ -73,17 +74,21 @@ class Population(NestObject):
         ntimesteps = int(nest.GetKernelStatus('time') /
                          nest.GetKernelStatus('resolution'))
         formatted_shape = (ntimesteps,) + self.layer.shape
-        for unit_index in range(self.number):
-            for recorder in self.recorders:
-                for variable in recorder.variables:
-                    activity = recorder.formatted_data(formatted_shape=formatted_shape,
-                                                       variable=variable,
-                                                       unit_index=unit_index)
-                    filename = save.recorder_filename(self.layer.name,
-                                                      self.name,
-                                                      unit_index=unit_index,
-                                                      variable=variable)
-                    save.save_array(join(output_dir, filename), activity)
+        for unit_index, recorder in product(range(self.number),
+                                            self.recorders):
+            for variable in recorder.variables:
+                activity = recorder.formatted_data(
+                    formatted_shape=formatted_shape,
+                    variable=variable,
+                    unit_index=unit_index
+                )
+                filename = save.recorder_filename(
+                    self.layer.name,
+                    self.name,
+                    unit_index=unit_index,
+                    variable=variable
+                )
+                save.save_array(join(output_dir, filename), activity)
 
     def save_rasters(self, output_dir):
         for recorder in self.recorders:
