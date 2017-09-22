@@ -5,6 +5,7 @@
 import functools
 import logging
 import logging.config
+from pprint import pformat
 
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
