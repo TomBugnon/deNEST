@@ -130,7 +130,9 @@ class Layer(AbstractLayer):
         self._gid = None
 
     def extent_units(self, value):
-        return self.to_extent_units(value, self.visSize, self.nrows, self.ncols)
+        return self.to_extent_units(
+            value, self.visSize, self.nrows, self.ncols
+        )
 
     def build_elements(self):
         """Return the NEST description of layer elements.
@@ -211,6 +213,7 @@ class Layer(AbstractLayer):
             nest.SetStatus(self.gids(population=population,
                                      location=location),
                            {variable: value})
+
 
 class InputLayer(AbstractLayer):
     """A layer that provides input to the network.
