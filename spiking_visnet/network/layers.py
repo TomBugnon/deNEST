@@ -205,6 +205,12 @@ class Layer(AbstractLayer):
         return tuple(self._populations[gid] for gid in args)
 
     @if_created
+    def find_center_element(self, population=None):
+        center_loc = (int(self.shape[0]/2),
+                      int(self.shape[1]/2))
+        return self.gids(location=center_loc, population=population)[0:1]
+
+    @if_created
     def set_state(self, variable, values, population=None):
         """Set the state of a variable for all units in a layer.
 
@@ -335,3 +341,6 @@ class InputLayer(AbstractLayer):
             else:
                 raise NotImplementedError
     # pylint: disable=arguments-differ
+
+    def find_center_element(self, population=None):
+        return self.layers[0].find_center_element(population=population)
