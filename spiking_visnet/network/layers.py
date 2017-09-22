@@ -287,7 +287,6 @@ class InputLayer(AbstractLayer):
         self.stimulator_type = nest.GetDefaults(self.stimulator_model,
                                                 'type_id')
 
-
     @if_created
     def gids(self, population=None, location=None):
         return flatten(self._layer_call('gids',

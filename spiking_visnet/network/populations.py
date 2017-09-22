@@ -70,8 +70,8 @@ class Population(NestObject):
 
     def save_recorders(self, output_dir):
         import nest
-        ntimesteps = int(nest.GetKernelStatus('time')
-                          / nest.GetKernelStatus('resolution'))
+        ntimesteps = int(nest.GetKernelStatus('time') /
+                         nest.GetKernelStatus('resolution'))
         formatted_shape = (ntimesteps,) + self.layer.shape
         for unit_index in range(self.number):
             for recorder in self.recorders:
@@ -120,7 +120,6 @@ class Recorder(NestObject):
             # model inherits.
             raise Exception('The recorder type is not recognized.')
 
-
     @if_not_created
     def create(self, gids, locations):
         import nest
@@ -166,19 +165,22 @@ class Recorder(NestObject):
     def type(self):
         return self._type
 
-    def formatted_data(self, formatted_shape=None, variable=None, unit_index=0):
-        return format_recorders.format_recorder(self.gid,
-                                                recorder_type=self.type,
-                                                shape=formatted_shape,
-                                                locations=self.locations,
-                                                variable=variable,
-                                                unit_index=unit_index)
+    def formatted_data(self, formatted_shape=None, variable=None,
+                       unit_index=0):
+        return format_recorders.format_recorder(
+            self.gid,
+            recorder_type=self.type,
+            shape=formatted_shape,
+            locations=self.locations,
+            variable=variable,
+            unit_index=unit_index
+        )
 
     def get_nest_raster(self):
         import nest
         from nest import raster_plot
         if (self.type == 'spike_detector'
-            and 'memory' in self._record_to
-            and len(nest.GetStatus(self.gid)[0]['events']['senders'])):
+                and 'memory' in self._record_to
+                and len(nest.GetStatus(self.gid)[0]['events']['senders'])):
             return raster_plot.from_device(self.gid, hist=True)
         return None

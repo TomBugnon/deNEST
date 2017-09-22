@@ -22,10 +22,8 @@ def get_filtered_synapses(gid, ref='source', secondary_layer_gid=None,
 
     Return:
         list: List of dictionaries containing the incoming/outgoing connections
-            for the reference unit (GID), filtered by layer and population. Each
-            dictionary is the output of nest.GetStatus() applied on a
-            connection.
-
+        for the reference unit (GID), filtered by layer and population. Each
+        dictionary is the output of nest.GetStatus() applied on a connection.
     """
     if not isinstance(secondary_layer_gid, int):
         Warning("""'secondary_layer_gid' argument should be an integer rather

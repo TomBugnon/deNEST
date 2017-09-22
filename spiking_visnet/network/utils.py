@@ -6,6 +6,7 @@ import functools
 import logging
 import logging.config
 
+
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 logging.config.dictConfig({
     'version': 1,
@@ -29,6 +30,7 @@ logging.config.dictConfig({
         }
     }
 })
+
 
 def flatten(seq):
     """Flatten an iterable of iterables into a tuple."""

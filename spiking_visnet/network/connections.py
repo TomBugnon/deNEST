@@ -9,7 +9,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from .utils import NestObject, if_created, if_not_created
+from .utils import NestObject, if_not_created
 
 
 class ConnectionModel(NestObject):

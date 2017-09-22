@@ -4,7 +4,7 @@
 
 """Define Models."""
 
-from .utils import NestObject, if_created, if_not_created
+from .utils import NestObject, if_not_created
 
 
 class Model(NestObject):
@@ -31,6 +31,7 @@ class Model(NestObject):
             nest.CopyModel(self.nest_model, self.name, self.nest_params)
         else:
             nest.SetDefaults(self.nest_model, self.nest_params)
+
 
 class SynapseModel(Model):
     """Represents a NEST synapse.

@@ -12,12 +12,9 @@ from .connections import Connection, ConnectionModel
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
 from .populations import Population
-from .utils import if_created, if_not_created, log
+from .utils import if_not_created, log
 
 # pylint: disable=too-few-public-methods
-
-
-
 
 
 LAYER_TYPES = {
@@ -49,10 +46,8 @@ class Network:
             ConnectionModel, self.params.c['connection_models'])
         # Connections must be built last
         self.connections = sorted(
-            [
-            self.build_connection(connection)
-            for connection in self.params.c['topology']['connections']
-            ]
+            [self.build_connection(connection)
+             for connection in self.params.c['topology']['connections']]
         )
         # Populations are represented as a list
         self.populations = sorted(
@@ -61,7 +56,6 @@ class Network:
                 self.params.c['populations']
                 )
             )
-
 
     @staticmethod
     def build_named_leaves_dict(constructor, node):
@@ -122,7 +116,6 @@ class Network:
         return (max([s[0] for s in self.input_shapes]),
                 max([s[1] for s in self.input_shapes]))
 
-
     @if_not_created
     def create(self):
         # TODO: use progress bar from PyPhi?
@@ -144,12 +137,13 @@ class Network:
 
         Args:
             synapse_changes (list): List of dictionaries each of the form::
-                    {synapse_model: <synapse_model>,
-                     params: {<key>: <value>,
-                              ...}}
-                where the params contains the parameters to set for all synapses
-                of a given model.
-
+                    {
+                        'synapse_model': <synapse_model>,
+                        'params': {<key>: <value>,
+                                    ...}
+                    }
+                where the ``'params'`` key contains the parameters to set for
+                all synapses of a given model.
         """
         import nest
         for changes in tqdm(sorted(synapse_changes, key=synapse_sorting_map),
@@ -157,24 +151,25 @@ class Network:
             nest.SetStatus(
                 nest.GetConnections(synapse_model=changes['synapse_model']),
                 changes['params']
-                )
+            )
 
     def change_unit_states(self, unit_changes):
         """Change parameters for some units of a population.
 
         Args:
             unit_changes (list): List of dictionaries each of the form::
-                    {'layer': <layer_name>,
-                     'population': <pop_name>,
-                     'proportion': <prop>,
-                     'params': {<param_name>: <param_value>,
-                                ...}
+                    {
+                        'layer': <layer_name>,
+                        'population': <pop_name>,
+                        'proportion': <prop>,
+                        'params': {<param_name>: <param_value>,
+                                   ...}
                     }
-                where <layer_name> and <population_name> define the considered
-                population, <prop> is the proportion of units of that population
-                for which the parameters are changed, and the ``'params'`` entry is
-                the dictionary of parameter changes apply to the selected units.
-
+                where ``<layer_name>`` and ``<population_name>`` define the
+                considered population, ``<prop>`` is the proportion of units of
+                that population for which the parameters are changed, and the
+                ``'params'`` entry is the dictionary of parameter changes apply
+                to the selected units.
         """
         import nest
         for changes in tqdm(sorted(unit_changes, key=unit_sorting_map),
@@ -213,12 +208,14 @@ class Network:
         for population in self.populations:
             population.save(output_dir, with_rasters=with_rasters)
 
+
 def unit_sorting_map(unit_change):
     """Map by (layer, population, proportion, params_items for sorting."""
     return (unit_change['layer'],
             unit_change['population'],
             unit_change['proportion'],
             sorted(unit_change['params'].items()))
+
 
 def synapse_sorting_map(synapse_change):
     """Map by (synapse_model, params_items) for sorting."""
