@@ -4,10 +4,13 @@
 
 """Connection classes."""
 
+import csv
 from collections import ChainMap
 from copy import deepcopy
+from os.path import join
 
-import numpy as np
+
+from tqdm import tqdm
 
 from .nest_object import NestObject
 from .utils import if_not_created
@@ -21,6 +24,11 @@ class ConnectionModel(NestObject):
         super().__init__(name, params)
         self._scale_factor = self.params.pop('scale_factor',
                                              self.DEFAULT_SCALE_FACTOR)
+        self._dump_connection = self.params.pop('dump_connection', False)
+
+    @property
+    def dump_connection(self):
+        return self._dump_connection
 
     @property
     def scale_factor(self):
@@ -118,6 +126,20 @@ class Connection(NestObject):
         for field in self.params.get('save', []):
             print('TODO: save connection ', field, ' in ', output_dir)
 
+
+    def dump(self, dump_dir):
+        # TODO: Query using synapse labels to identify connections with same
+        # source pop, target pop and synapse model
+        if self.model.dump_connection:
+            conns = nest.GetConnections(
+                source=self.source.gids(population=self.source_population),
+                target=self.target.gids(population=self.target_population),
+                synapse_model=self.nest_params['synapse_model'])
+            # We save: source_gid, target_gid, synapse_model, weight, delay
+            with open(join(dump_dir, self.__str__), 'w') as f:
+                writer = csv.writer(f, delimiter='\t')
+                writer.writerows(format_dump(conns))
+
     @property
     def __str__(self):
         return '-'.join(self.sort_key)
@@ -131,3 +153,16 @@ class Connection(NestObject):
 
     def __lt__(self, other):
         return self.sort_key < other.sort_key
+
+
+def format_dump(conns):
+    import nest
+    formatted = []
+    for conn in conns:
+        status = nest.GetStatus((conn,))[0]
+        formatted.append((status['source'],
+                          status['target'],
+                          str(status['synapse_model']),
+                          status['weight'],
+                          status['delay']))
+    return formatted
