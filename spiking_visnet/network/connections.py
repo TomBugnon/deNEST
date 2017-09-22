@@ -9,6 +9,7 @@ from collections import ChainMap
 from copy import deepcopy
 from os.path import join
 
+import nest
 
 from tqdm import tqdm
 
@@ -138,6 +139,35 @@ class Connection(NestObject):
             with open(join(dump_dir, self.__str__), 'w') as f:
                 writer = csv.writer(f, delimiter='\t')
                 writer.writerows(format_dump(conns))
+
+    def save_plot(self, plot_dir):
+        import matplotlib.pyplot as plt
+        fig = self.plot_conn()
+        plt.savefig(join(plot_dir, self.__str__))
+        plt.close()
+
+    def plot_conn(self):
+        """Plot the targets of a unit using nest.topology function."""
+        # TODO: Get our own version so we can plot convergent connections
+        import nest.topology as tp
+        fig = tp.PlotLayer(self.target.gid)
+        ctr = self.source.find_center_element(population=self.source_population)
+        try:
+            tp.PlotTargets(ctr,
+                           self.target.gid,
+                           tgt_model=self.target_population,
+                           syn_type=self.nest_params['synapse_model'],
+                           fig=fig,
+                           tgt_size=40,
+                           src_size=250,
+                           mask=self.nest_params['mask'],
+                           kernel=self.nest_params['kernel'],
+                           kernel_color='green',
+                           tgt_color='yellow')
+        except ValueError:
+            print((f"Not plotting targets: the center unit {ctr[0]} has no "
+                    + f"target within connection {self.__str__}"))
+        return fig
 
     @property
     def sort_key(self):

@@ -4,6 +4,7 @@
 
 """Construct Network object from independent parameters."""
 
+import os
 import random
 
 from tqdm import tqdm
@@ -218,6 +219,12 @@ class Network:
         # Save recorders
         for population in self.populations:
             population.save(output_dir, with_rasters=with_rasters)
+
+    def plot_connections(self, plot_dir):
+        os.makedirs(plot_dir, exist_ok=True)
+        for conn in tqdm(self.connections,
+                         desc='Create connection plots'):
+            conn.save_plot(plot_dir)
 
 def unit_sorting_map(unit_change):
     """Map by (layer, population, proportion, params_items for sorting."""
