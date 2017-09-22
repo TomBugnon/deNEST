@@ -139,6 +139,12 @@ class Network:
         log.info('Creating recorders...')
         self._create_all(self.populations)
 
+    def dump_connections(self, dump_dir):
+        os.makedirs(dump_dir, exist_ok=True)
+        for connection in tqdm(self.connections,
+                               desc='Dump connections'):
+            connection.dump(dump_dir)
+
     def change_synapse_states(self, synapse_changes):
         """Change parameters for some connections of a population.
 
