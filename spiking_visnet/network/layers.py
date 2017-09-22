@@ -7,6 +7,7 @@
 import itertools
 
 import numpy as np
+
 from tqdm import tqdm
 
 from ..utils import filter_suffixes, spike_times
@@ -253,7 +254,6 @@ class InputLayer(AbstractLayer):
         # Save the the stimulator type and get its number
         self.stimulator_model, number = list(populations.items())[0]
         self.stimulator_type = None
-        print(type(self.stimulator_type))
         # Add a parrot population entry
         populations[self.PARROT_MODEL] = number
         # Make a duplicate sublayer for each filter
