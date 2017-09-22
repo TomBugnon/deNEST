@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# network/utils.py
+
 import functools
 import logging
 import logging.config
