@@ -1,26 +1,26 @@
 # Spiking VisNet
 
-## Before running the simulation:
+## Before running the simulation
 
 1. **Preprocess stimuli**:  
   Note: the stimuli dimension (resolution and number of filters) should be
   compatible with (_i.e._, greater than the dimensions of) your network.
 
-To preprocess, run
-```bash
-python3 -m spiking_visnet.preprocess \
-        -p <preprocessing_params> \
-        -n <simulation_params> \
-        [-input <input_dir>]
-```
-For example:
-```bash
-python3 -m spiking_visnet.preprocess \
-        -p spiking_visnet/preprocess/params/default.yml \
-        -n params/default.yml
-```
+  To preprocess, run
+  ```bash
+  python3 -m spiking_visnet.preprocess \
+          -p <preprocessing_params> \
+          -n <simulation_params> \
+          [-input <input_dir>]
+  ```
+  For example:
+  ```bash
+  python3 -m spiking_visnet.preprocess \
+          -p spiking_visnet/preprocess/params/default.yml \
+          -n params/default.yml
+  ```
 
-See `spiking_visnet/preprocess/README.md` for details.
+  See `spiking_visnet/preprocess/README.md` for details.
 
 2. **Change the session's stimuli**
   Manually modify the session parameters so that sessions use stimulus
@@ -66,10 +66,10 @@ sim.save()
 
 To run directly **from the command line**:
 ```bash
-    python -m spiking_visnet <param_file.yml> [-i <input>] [-o <output>]
+python -m spiking_visnet <param_file.yml> [-i <input>] [-o <output>]
 ```
 For example:
 ```bash
-  mkdir output
-  python -m spiking_visnet params/default.yml -i my_input_array.npy -o output
+mkdir output
+python -m spiking_visnet params/default.yml -i my_input_array.npy -o output
 ```
