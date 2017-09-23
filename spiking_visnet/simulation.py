@@ -62,6 +62,14 @@ class Simulation:
             for session_name, session in self.sessions.items()
             }
 
+    def dump(self):
+        """Dump network connections."""
+        dump_dir = self.params.c['simulation'].get('dump_dir', None)
+        if dump_dir is None:
+            dump_dir = join(self.output_dir, 'dump')
+            self.params.c['simulation']['dump_dir'] = dump_dir
+        self.network.dump(dump_dir)
+
     def save(self):
         """Save simulation"""
         # Delete all files in output_dir
