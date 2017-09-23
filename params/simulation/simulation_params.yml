@@ -1,5 +1,7 @@
 simulation:
   params:
     delete_tmp_dir: True
+    dump_connections: False
+    dump_dir: None
     clear_output_dir: True
     save_nest_raster: True
