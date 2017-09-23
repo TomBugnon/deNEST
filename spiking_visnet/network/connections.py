@@ -184,6 +184,10 @@ class Connection(NestObject):
         return fig
 
     @property
+    def __str__(self):
+        return '-'.join(self.sort_key)
+
+    @property
     def sort_key(self):
         # Mapping for sorting
         return (self.name,
