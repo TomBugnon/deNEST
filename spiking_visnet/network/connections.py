@@ -119,6 +119,10 @@ class Connection(NestObject):
             print('TODO: save connection ', field, ' in ', output_dir)
 
     @property
+    def __str__(self):
+        return '-'.join(self.sort_key)
+
+    @property
     def sort_key(self):
         # Mapping for sorting
         return (self.name,
