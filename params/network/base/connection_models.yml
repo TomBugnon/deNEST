@@ -2,6 +2,7 @@ network:
   connection_models:
     params:
       scale_factor: 1.
+      type: topological
       dump_connection: False
 
     horizontal_exc:
