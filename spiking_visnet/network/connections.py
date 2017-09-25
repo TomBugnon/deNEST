@@ -59,6 +59,8 @@ class BaseConnection(NestObject):
         self.source_population = params.get('source_population', None)
         self.target = target
         self.target_population = params.get('target_population', None)
+        # Synapse model is retrieved either from nest_params or UnitConns
+        self.synapse_model = None
         # By default, we consider the driver to be the source
         self.driver = 'source'
         self.driver_layer = self.source
@@ -89,21 +91,15 @@ class BaseConnection(NestObject):
                           self.nest_params['mask'],
                           kern=self.nest_params['kernel'],
                           kernel_color='green')
-        # Nasty hack to access the synapse model for FromFileConnections
-        if hasattr(self, 'nest_params'):
-            synapse_model = self.nest_params['synapse_model']
-        else:
-            # Get the synapse model of any UnitConn
-            synapse_model = next (iter (self.conns.values()))[0]._synapse_model
         try:
             tp.PlotTargets(ctr,
                            self.target.gid,
                            tgt_model=self.target_population,
-                           syn_type=synapse_model,
+                           syn_type=self.synapse_model,
                            fig=fig,
                            tgt_size=40,
                            src_size=250,
-                           tgt_color='yellow')
+                           tgt_color='red')
         except ValueError:
             print((f"Not plotting targets: the center unit {ctr[0]} has no "
                     + f"target within connection {self.__str__}"))
@@ -162,7 +158,7 @@ class BaseConnection(NestObject):
             conns = nest.GetConnections(
                 source=self.source.gids(population=self.source_population),
                 target=self.target.gids(population=self.target_population),
-                synapse_model=self.nest_params['synapse_model'])
+                synapse_model=self.synapse_model)
             # We save: source_gid, target_gid, synapse_model, weight, delay
             with open(join(dump_dir, self.__str__), 'w') as f:
                 writer = csv.writer(f, delimiter='\t')
@@ -191,6 +187,16 @@ class BaseConnection(NestObject):
             'delay': float(line[4])
         }
 
+    def get_synapse_model(self):
+        """Get synapse model either from nest params or conns list."""
+        # Nasty hack to access the synapse model for FromFileConnections
+        if hasattr(self, 'nest_params'):
+            synapse_model = self.nest_params['synapse_model']
+        else:
+            # Get the synapse model of any UnitConn
+            synapse_model = next (iter (self.conns.values()))[0]._synapse_model
+        return synapse_model
+
 
 class FromFileConnection(BaseConnection):
     """Represent a connection loaded from file."""
@@ -198,9 +204,11 @@ class FromFileConnection(BaseConnection):
     def __init__(self, source, target, model, params):
         super().__init__(source, target, model, params)
         self.conns = None
+        self.synapse_model = None
 
     def create(self):
         self.conns = self.load_conns()
+        self.synapse_model = self.get_synapse_model()
         for conn in itertools.chain(*self.conns.values()):
             conn.create()
 
@@ -212,6 +220,7 @@ class TopoConnection(BaseConnection):
         super().__init__(source, target, model, params)
         self.scale_factor = None
         self.nest_params = self.get_nest_params()
+        self.synapse_model = self.get_synapse_model()
 
     def get_nest_params(self):
         # Get NEST connection parameters for a topological connection
@@ -309,6 +318,7 @@ class RescaledConnection(TopoConnection):
         # Both are dictionaries: {'driver_gid': [UnitConn, ...]}
         self.model_conns = None
         self.conns = None
+        self.synapse_model = None
         # TODO: same for InputLayer connections. ( or !just.don't.care!)
         if type(self.source_layer).__name__ == 'InputLayer':
             raise NotImplementedError
@@ -316,6 +326,7 @@ class RescaledConnection(TopoConnection):
     def create(self):
         self.model_conns = self.load_conns()
         self.conns = self.redraw_conns()
+        self.synapse_model = self.get_synapse_model()
         for conn in itertools.chain(*self.conns.values()):
             conn.create()
 
