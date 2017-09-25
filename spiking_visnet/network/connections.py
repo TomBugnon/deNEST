@@ -74,8 +74,16 @@ class BaseConnection(NestObject):
         """Plot the targets of a unit using nest.topology function."""
         # TODO: Get our own version so we can plot convergent connections
         import nest.topology as tp
-        fig = tp.PlotLayer(self.target.gid)
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        tp.PlotLayer(self.target.gid, fig)
         ctr = self.source.find_center_element(population=self.source_population)
+        # Plot the kernel and mask if the connection is topological or rescaled.
+        if hasattr(self, 'nest_params'):
+            tp.PlotKernel(ax, ctr,
+                          self.nest_params['mask'],
+                          kern=self.nest_params['kernel'],
+                          kernel_color='green')
         try:
             tp.PlotTargets(ctr,
                            self.target.gid,
@@ -84,9 +92,6 @@ class BaseConnection(NestObject):
                            fig=fig,
                            tgt_size=40,
                            src_size=250,
-                           mask=self.nest_params['mask'],
-                           kernel=self.nest_params['kernel'],
-                           kernel_color='green',
                            tgt_color='yellow')
         except ValueError:
             print((f"Not plotting targets: the center unit {ctr[0]} has no "
