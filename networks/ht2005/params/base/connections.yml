@@ -17,17 +17,7 @@ network:
         - source_layer: retina
           source_population: parrot_neuron
           target_layer: Tp_layer
-          target_population: Tp_exc
           connection: retino_thalamic
-          params: {}
-          nest_params: {}
-        - source_layer: retina
-          source_population: parrot_neuron
-          target_layer: Tp_layer
-          target_population: Tp_inh
-          connection: retino_thalamic
-          params: {}
-          nest_params: {}
 
         ####################################
         #### Intra thalamic/reticula #######
@@ -38,120 +28,62 @@ network:
         - source_layer: Tp_layer
           source_population: Tp_exc
           target_layer: Rp_layer
-          target_population: Rp
           connection: T_R_AMPA
-          params: {}
-          nest_params: {}
         # Tp inh to Tp exc and Tp inh GABA_A
         - source_layer: Tp_layer
           source_population: Tp_inh
           target_layer: Tp_layer
-          target_population: Tp_exc
           connection: T_T_GABA_A
-          params: {}
-          nest_params: {}
-        - source_layer: Tp_layer
-          source_population: Tp_inh
-          target_layer: Tp_layer
-          target_population: Tp_inh
-          connection: T_T_GABA_A
-          params: {}
-          nest_params: {}
         # Rp to Tp exc and Tp inh GABA_A
         - source_layer: Rp_layer
           source_population: Rp
           target_layer: Tp_layer
-          target_population: Tp_exc
           connection: R_T_GABA_A
-          params: {}
-          nest_params: {}
-        - source_layer: Rp_layer
-          source_population: Rp
-          target_layer: Tp_layer
-          target_population: Tp_inh
-          connection: R_T_GABA_A
-          params: {}
-          nest_params: {}
         # Rp to Tp exc GABA_B
         - source_layer: Rp_layer
           source_population: Rp
           target_layer: Tp_layer
           target_population: Tp_exc
           connection: R_T_GABA_B
-          params: {}
-          nest_params: {}
         # Rp to Rp GABA_B
         - source_layer: Rp_layer
           source_population: Rp
           target_layer: Rp_layer
-          target_population: Rp
           connection: R_R_GABA_B
-          params: {}
-          nest_params: {}
 
         ### Secondary intra-thalamic/reticula ###
         # Ts exc to Rs AMPA
         - source_layer: Ts_layer
           source_population: Tp_exc
           target_layer: Rs_layer
-          target_population: Rp
           connection: T_R_AMPA
-          params: {}
-          nest_params: {}
         # Ts inh to Ts exc and Ts inh GABA_A
         - source_layer: Ts_layer
           source_population: Tp_inh
           target_layer: Ts_layer
-          target_population: Tp_exc
           connection: T_T_GABA_A
-          params: {}
-          nest_params: {}
-        - source_layer: Ts_layer
-          source_population: Tp_inh
-          target_layer: Ts_layer
-          target_population: Tp_inh
-          connection: T_T_GABA_A
-          params: {}
-          nest_params: {}
         # Rs to Ts exc and Ts inh GABA_A
         - source_layer: Rs_layer
           source_population: Rp
           target_layer: Ts_layer
-          target_population: Tp_exc
           connection: R_T_GABA_A
-          params: {}
-          nest_params: {}
-        - source_layer: Rs_layer
-          source_population: Rp
-          target_layer: Ts_layer
-          target_population: Tp_inh
-          connection: R_T_GABA_A
-          params: {}
-          nest_params: {}
         # Rs to Ts exc GABA_B
         - source_layer: Rs_layer
           source_population: Rp
           target_layer: Ts_layer
           target_population: Tp_exc
           connection: R_T_GABA_B
-          params: {}
-          nest_params: {}
         # Rs to Ts inh GABA_B (!! : no equivalent for Rp/Tp in Hans' code)
         - source_layer: Rs_layer
           source_population: Rp
           target_layer: Ts_layer
           target_population: Tp_inh
           connection: R_T_GABA_B
-          params: {}
-          nest_params: {}
         # Rs to Rs GABA_B
         - source_layer: Rs_layer
           source_population: Rp
           target_layer: Rs_layer
-          target_population: Rp
           connection: R_R_GABA_B
-          params: {}
-          nest_params: {}
 
 
         ########################################################################
@@ -169,60 +101,44 @@ network:
           target_layer: Vp_L4_vertical
           target_population: Vp_exc
           connection: Tp_vertical_to_L4
-          params: {}
-          nest_params: {}
         - source_layer: Tp_layer
           source_population: Tp_exc
           target_layer: Vp_L4_horizontal
           target_population: Vp_exc
           connection: Tp_horizontal_to_L4
-          params: {}
-          nest_params: {}
         # Rectangular to L56
         - source_layer: Tp_layer
           source_population: Tp_exc
           target_layer: Vp_L56_vertical
           target_population: Vp_exc
           connection: Tp_vertical_to_L56
-          params: {}
-          nest_params: {}
         - source_layer: Tp_layer
           source_population: Tp_exc
           target_layer: Vp_L56_horizontal
           target_population: Vp_exc
           connection: Tp_horizontal_to_L56
-          params: {}
-          nest_params: {}
         # Diffuse to L4
         - source_layer: Tp_layer
           source_population: Tp_exc
           target_layer: Vp_L4_vertical
           target_population: Vp_inh
           connection: Tp_Vp_diffuse
-          params: {}
-          nest_params: {}
         - source_layer: Tp_layer
           source_population: Tp_exc
           target_layer: Vp_L4_horizontal
           target_population: Vp_inh
           connection: Tp_Vp_diffuse
-          params: {}
-          nest_params: {}
         # Diffuse to L56
         - source_layer: Tp_layer
           source_population: Tp_exc
           target_layer: Vp_L56_vertical
           target_population: Vp_inh
           connection: Tp_Vp_diffuse
-          params: {}
-          nest_params: {}
         - source_layer: Tp_layer
           source_population: Tp_exc
           target_layer: Vp_L56_horizontal
           target_population: Vp_inh
           connection: Tp_Vp_diffuse
-          params: {}
-          nest_params: {}
 
 
         ### Secondary ( Ts to Vs ) ###
@@ -232,94 +148,34 @@ network:
         - source_layer: Ts_layer
           source_population: Tp_exc
           target_layer: Vs_L4_vertical
-          target_population: Vs_exc
           connection: Ts_to_Vs_L4
-          params: {}
-          nest_params: {}
-        - source_layer: Ts_layer
-          source_population: Tp_exc
-          target_layer: Vs_L4_vertical
-          target_population: Vs_inh
-          connection: Ts_to_Vs_L4
-          params: {}
-          nest_params: {}
         # Ts exc to horizontal L4 exc+inh
         - source_layer: Ts_layer
           source_population: Tp_exc
           target_layer: Vs_L4_horizontal
-          target_population: Vs_exc
           connection: Ts_to_Vs_L4
-          params: {}
-          nest_params: {}
-        - source_layer: Ts_layer
-          source_population: Tp_exc
-          target_layer: Vs_L4_horizontal
-          target_population: Vs_inh
-          connection: Ts_to_Vs_L4
-          params: {}
-          nest_params: {}
         # Ts exc to cross L4 exc+inh
         - source_layer: Ts_layer
           source_population: Tp_exc
           target_layer: Vs_L4_cross
-          target_population: Vs_exc
           connection: Ts_to_Vs_L4
-          params: {}
-          nest_params: {}
-        - source_layer: Ts_layer
-          source_population: Tp_exc
-          target_layer: Vs_L4_cross
-          target_population: Vs_inh
-          connection: Ts_to_Vs_L4
-          params: {}
-          nest_params: {}
 
         # Ts exc to Vs L56
         # Ts exc to vertical L56 exc+inh
         - source_layer: Ts_layer
           source_population: Tp_exc
           target_layer: Vs_L56_vertical
-          target_population: Vs_exc
           connection: Ts_to_Vs_L56
-          params: {}
-          nest_params: {}
-        - source_layer: Ts_layer
-          source_population: Tp_exc
-          target_layer: Vs_L56_vertical
-          target_population: Vs_inh
-          connection: Ts_to_Vs_L56
-          params: {}
-          nest_params: {}
         # Ts exc to horizontal L56 exc+inh
         - source_layer: Ts_layer
           source_population: Tp_exc
           target_layer: Vs_L56_horizontal
-          target_population: Vs_exc
           connection: Ts_to_Vs_L56
-          params: {}
-          nest_params: {}
-        - source_layer: Ts_layer
-          source_population: Tp_exc
-          target_layer: Vs_L56_horizontal
-          target_population: Vs_inh
-          connection: Ts_to_Vs_L56
-          params: {}
-          nest_params: {}
         # Ts exc to cross L56 exc+inh
         - source_layer: Ts_layer
           source_population: Tp_exc
           target_layer: Vs_L56_cross
-          target_population: Vs_exc
           connection: Ts_to_Vs_L56
-          params: {}
-          nest_params: {}
-        - source_layer: Ts_layer
-          source_population: Tp_exc
-          target_layer: Vs_L56_cross
-          target_population: Vs_inh
-          connection: Ts_to_Vs_L56
-          params: {}
-          nest_params: {}
 
 
         ####################################
@@ -327,153 +183,68 @@ network:
         ####################################
 
         ### Primary: Vp to Tp and Rp ###
-        # Vp L56 all orientations to Tp exc
+        # Vp L56 all orientations to Tp exc + inh
         - source_layer: Vp_L56_vertical
           source_population: Vp_exc
           target_layer: Tp_layer
           target_population: Tp_exc
           connection: cortico_thalamic
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_horizontal
           source_population: Vp_exc
           target_layer: Tp_layer
           target_population: Tp_exc
           connection: cortico_thalamic
-          params: {}
-          nest_params: {}
-        # Vp L56 all orientations to Tp inh
-        - source_layer: Vp_L56_vertical
-          source_population: Vp_exc
-          target_layer: Tp_layer
-          target_population: Tp_inh
-          connection: cortico_thalamic
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L56_horizontal
-          source_population: Vp_exc
-          target_layer: Tp_layer
-          target_population: Tp_inh
-          connection: cortico_thalamic
-          params: {}
-          nest_params: {}
         # cortico_reticular
         # Vp L56 all orientations to Rp
         - source_layer: Vp_L56_vertical
           source_population: Vp_exc
           target_layer: Rp_layer
-          target_population: Rp
           connection: cortico_reticular
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_horizontal
           source_population: Vp_exc
           target_layer: Rp_layer
-          target_population: Rp
           connection: cortico_reticular
-          params: {}
-          nest_params: {}
 
 
         ### Secondary: Vs to Ts and Rs ###
-        # Vs L56 all orientations to Ts exc
+        # Vs L56 all orientations to Ts exc + inh
         - source_layer: Vs_L56_vertical
           source_population: Vs_exc
           target_layer: Ts_layer
-          target_population: Tp_exc
           connection: cortico_thalamic
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_exc
           target_layer: Ts_layer
-          target_population: Tp_exc
           connection: cortico_thalamic
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_exc
           target_layer: Ts_layer
-          target_population: Tp_exc
           connection: cortico_thalamic
-          params: {}
-          nest_params: {}
-        # Vs L56 all orientations to Ts inh
-        - source_layer: Vs_L56_vertical
-          source_population: Vs_exc
-          target_layer: Ts_layer
-          target_population: Tp_inh
-          connection: cortico_thalamic
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_horizontal
-          source_population: Vs_exc
-          target_layer: Ts_layer
-          target_population: Tp_inh
-          connection: cortico_thalamic
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_cross
-          source_population: Vs_exc
-          target_layer: Ts_layer
-          target_population: Tp_inh
-          connection: cortico_thalamic
-          params: {}
-          nest_params: {}
         # cortico_reticular
         # Vs L56 all orientations to Rs
         - source_layer: Vs_L56_vertical
           source_population: Vs_exc
           target_layer: Rs_layer
-          target_population: Rp
           connection: cortico_reticular
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_exc
           target_layer: Rs_layer
-          target_population: Rp
           connection: cortico_reticular
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_exc
           target_layer: Rs_layer
-          target_population: Rp
           connection: cortico_reticular
-          params: {}
-          nest_params: {}
 
         ### Crossed: Vp to Ts and Rs ###
         # Vp L56 all orientations to Ts exc and inh
         - source_layer: Vp_L56_vertical
           source_population: Vp_exc
           target_layer: Ts_layer
-          target_population: Tp_exc
           connection: Vp_Ts_cortico_thalamic
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L56_vertical
-          source_population: Vp_exc
-          target_layer: Ts_layer
-          target_population: Tp_inh
-          connection: Vp_Ts_cortico_thalamic
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_horizontal
           source_population: Vp_exc
           target_layer: Ts_layer
-          target_population: Tp_exc
           connection: Vp_Ts_cortico_thalamic
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L56_horizontal
-          source_population: Vp_exc
-          target_layer: Ts_layer
-          target_population: Tp_inh
-          connection: Vp_Ts_cortico_thalamic
-          params: {}
-          nest_params: {}
 
 
 
@@ -491,88 +262,28 @@ network:
         - source_layer: Vp_L23_vertical
           source_population: Vp_exc
           target_layer: Vp_L23_vertical
-          target_population: Vp_exc
           connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L23_vertical
-          source_population: Vp_exc
-          target_layer: Vp_L23_vertical
-          target_population: Vp_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L4_vertical
           source_population: Vp_exc
           target_layer: Vp_L4_vertical
-          target_population: Vp_exc
           connection: intralaminar_AMPA_L4
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L4_vertical
-          source_population: Vp_exc
-          target_layer: Vp_L4_vertical
-          target_population: Vp_inh
-          connection: intralaminar_AMPA_L4
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_vertical
           source_population: Vp_exc
           target_layer: Vp_L56_vertical
-          target_population: Vp_exc
           connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L56_vertical
-          source_population: Vp_exc
-          target_layer: Vp_L56_vertical
-          target_population: Vp_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         # horizontal exc to horizontal exc and horizontal inh
         - source_layer: Vp_L23_horizontal
           source_population: Vp_exc
           target_layer: Vp_L23_horizontal
-          target_population: Vp_exc
           connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L23_horizontal
-          source_population: Vp_exc
-          target_layer: Vp_L23_horizontal
-          target_population: Vp_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L4_horizontal
           source_population: Vp_exc
           target_layer: Vp_L4_horizontal
-          target_population: Vp_exc
           connection: intralaminar_AMPA_L4
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L4_horizontal
-          source_population: Vp_exc
-          target_layer: Vp_L4_horizontal
-          target_population: Vp_inh
-          connection: intralaminar_AMPA_L4
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_horizontal
           source_population: Vp_exc
           target_layer: Vp_L56_horizontal
-          target_population: Vp_exc
           connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L56_horizontal
-          source_population: Vp_exc
-          target_layer: Vp_L56_horizontal
-          target_population: Vp_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
 
         ## intralaminar_NMDA
         # L23 exc to L23 exc (hor and vertical, full selectivity)
@@ -581,133 +292,49 @@ network:
           target_layer: Vp_L23_horizontal
           target_population: Vp_exc
           connection: intralaminar_NMDA
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_vertical
           source_population: Vp_exc
           target_layer: Vp_L23_vertical
           target_population: Vp_exc
           connection: intralaminar_NMDA
-          params: {}
-          nest_params: {}
 
         ## interlaminar_AMPA
         # L23 exc to L56_exc and L56_inh (hor and vertical, full selectivity)
         - source_layer: Vp_L23_vertical
           source_population: Vp_exc
           target_layer: Vp_L56_vertical
-          target_population: Vp_exc
           connection: interlaminar_AMPA_L23_to_L56
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L23_vertical
-          source_population: Vp_exc
-          target_layer: Vp_L56_vertical
-          target_population: Vp_inh
-          connection: interlaminar_AMPA_L23_to_L56
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_horizontal
           source_population: Vp_exc
           target_layer: Vp_L56_horizontal
-          target_population: Vp_exc
           connection: interlaminar_AMPA_L23_to_L56
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L23_horizontal
-          source_population: Vp_exc
-          target_layer: Vp_L56_horizontal
-          target_population: Vp_inh
-          connection: interlaminar_AMPA_L23_to_L56
-          params: {}
-          nest_params: {}
         # L4 exc to L2_exc and L2_inh (hor and vertical, full selectivity)
         - source_layer: Vp_L4_vertical
           source_population: Vp_exc
           target_layer: Vp_L23_vertical
-          target_population: Vp_exc
           connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L4_vertical
-          source_population: Vp_exc
-          target_layer: Vp_L23_vertical
-          target_population: Vp_inh
-          connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L4_horizontal
           source_population: Vp_exc
           target_layer: Vp_L23_horizontal
-          target_population: Vp_exc
           connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L4_horizontal
-          source_population: Vp_exc
-          target_layer: Vp_L23_horizontal
-          target_population: Vp_inh
-          connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
         # L56 exc to L23_exc and L23_inh (hor and vertical, full selectivity)
         - source_layer: Vp_L56_vertical
           source_population: Vp_exc
           target_layer: Vp_L23_vertical
-          target_population: Vp_exc
           connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L56_vertical
-          source_population: Vp_exc
-          target_layer: Vp_L23_vertical
-          target_population: Vp_inh
-          connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_horizontal
           source_population: Vp_exc
           target_layer: Vp_L23_horizontal
-          target_population: Vp_exc
           connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L56_horizontal
-          source_population: Vp_exc
-          target_layer: Vp_L23_horizontal
-          target_population: Vp_inh
-          connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
         # L56 exc to L4_exc and L4_inh (hor and vertical, full selectivity)
         - source_layer: Vp_L56_vertical
           source_population: Vp_exc
           target_layer: Vp_L4_vertical
-          target_population: Vp_exc
           connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L56_vertical
-          source_population: Vp_exc
-          target_layer: Vp_L4_vertical
-          target_population: Vp_inh
-          connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_horizontal
           source_population: Vp_exc
           target_layer: Vp_L4_horizontal
-          target_population: Vp_exc
           connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L56_horizontal
-          source_population: Vp_exc
-          target_layer: Vp_L4_horizontal
-          target_population: Vp_inh
-          connection: interlaminar_AMPA_Vp
-          params: {}
-          nest_params: {}
 
         ## Interlaminar NMDA
         # L23 exc to L56 exc, full selectivity
@@ -716,77 +343,57 @@ network:
           target_layer: Vp_L56_vertical
           target_population: Vp_exc
           connection: interlaminar_NMDA
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_horizontal
           source_population: Vp_exc
           target_layer: Vp_L56_horizontal
           target_population: Vp_exc
           connection: interlaminar_NMDA
-          params: {}
-          nest_params: {}
 
         ## Intralaminar GABA_A
         # L23
-        # L23 inh to L23 exc (partial selectivity)
+        # L23 inh to L23 exc (no selectivity)
         - source_layer: Vp_L23_vertical
           source_population: Vp_inh
           target_layer: Vp_L23_vertical
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_vertical
           source_population: Vp_inh
           target_layer: Vp_L23_horizontal
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L23_horizontal
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L23_vertical
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
-        # L23 inh to L23 inh (All orientations- same and crossed.)
+        # L23 inh to L23 inh (partial selectivity)
         # Crossed have higher weight
         - source_layer: Vp_L23_vertical
           source_population: Vp_inh
           target_layer: Vp_L23_vertical
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_vertical
           source_population: Vp_inh
           target_layer: Vp_L23_horizontal
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cx
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L23_horizontal
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L23_vertical
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cx
-          params: {}
-          nest_params: {}
         # L4
         # L4 inh to L4 exc (no selectivity)
         - source_layer: Vp_L4_vertical
@@ -794,59 +401,43 @@ network:
           target_layer: Vp_L4_vertical
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L4_vertical
           source_population: Vp_inh
           target_layer: Vp_L4_horizontal
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L4_horizontal
           source_population: Vp_inh
           target_layer: Vp_L4_horizontal
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L4_horizontal
           source_population: Vp_inh
           target_layer: Vp_L4_vertical
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
-        # L4 inh to L4 inh (no selectivity)
+        # L4 inh to L4 inh (partial selectivity)
         # Crossed have higher weight
         - source_layer: Vp_L4_vertical
           source_population: Vp_inh
           target_layer: Vp_L4_vertical
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L4_vertical
           source_population: Vp_inh
           target_layer: Vp_L4_horizontal
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cx
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L4_horizontal
           source_population: Vp_inh
           target_layer: Vp_L4_horizontal
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L4_horizontal
           source_population: Vp_inh
           target_layer: Vp_L4_vertical
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cx
-          params: {}
-          nest_params: {}
         # L56
         # L56 inh to L56 exc (no selectivity)
         - source_layer: Vp_L56_vertical
@@ -854,29 +445,21 @@ network:
           target_layer: Vp_L56_vertical
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_vertical
           source_population: Vp_inh
           target_layer: Vp_L56_horizontal
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_horizontal
           source_population: Vp_inh
           target_layer: Vp_L56_horizontal
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_horizontal
           source_population: Vp_inh
           target_layer: Vp_L56_vertical
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         # L56 inh to L56 inh (partial selectivity)
         # Crossed have higher weight
         - source_layer: Vp_L56_vertical
@@ -884,29 +467,21 @@ network:
           target_layer: Vp_L56_vertical
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_vertical
           source_population: Vp_inh
           target_layer: Vp_L56_horizontal
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cx
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_horizontal
           source_population: Vp_inh
           target_layer: Vp_L56_horizontal
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cc
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L56_horizontal
           source_population: Vp_inh
           target_layer: Vp_L56_vertical
           target_population: Vp_inh
           connection: intralaminar_GABA_A_to_inh_cx
-          params: {}
-          nest_params: {}
 
         ## Interlaminar GABA_B
         # From L23_inh to all layer exc, full selectivity
@@ -915,43 +490,31 @@ network:
           target_layer: Vp_L23_vertical
           target_population: Vp_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L23_horizontal
           target_population: Vp_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_vertical
           source_population: Vp_inh
           target_layer: Vp_L4_vertical
           target_population: Vp_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L4_horizontal
           target_population: Vp_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_vertical
           source_population: Vp_inh
           target_layer: Vp_L56_vertical
           target_population: Vp_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L56_horizontal
           target_population: Vp_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
 
 
         ####################################
@@ -963,131 +526,41 @@ network:
         - source_layer: Vs_L23_vertical
           source_population: Vs_exc
           target_layer: Vs_L23_vertical
-          target_population: Vs_exc
           connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L23_vertical
-          source_population: Vs_exc
-          target_layer: Vs_L23_vertical
-          target_population: Vs_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_vertical
           source_population: Vs_exc
           target_layer: Vs_L4_vertical
-          target_population: Vs_exc
           connection: intralaminar_AMPA_L4
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L4_vertical
-          source_population: Vs_exc
-          target_layer: Vs_L4_vertical
-          target_population: Vs_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_vertical
           source_population: Vs_exc
           target_layer: Vs_L56_vertical
-          target_population: Vs_exc
           connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_vertical
-          source_population: Vs_exc
-          target_layer: Vs_L56_vertical
-          target_population: Vs_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         # horizontal exc to horizontal exc and horizontal inh
         - source_layer: Vs_L23_horizontal
           source_population: Vs_exc
           target_layer: Vs_L23_horizontal
-          target_population: Vs_exc
           connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L23_horizontal
-          source_population: Vs_exc
-          target_layer: Vs_L23_horizontal
-          target_population: Vs_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_horizontal
           source_population: Vs_exc
           target_layer: Vs_L4_horizontal
-          target_population: Vs_exc
           connection: intralaminar_AMPA_L4
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L4_horizontal
-          source_population: Vs_exc
-          target_layer: Vs_L4_horizontal
-          target_population: Vs_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_exc
           target_layer: Vs_L56_horizontal
-          target_population: Vs_exc
           connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_horizontal
-          source_population: Vs_exc
-          target_layer: Vs_L56_horizontal
-          target_population: Vs_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         # cross exc to cross exc and cross inh
         - source_layer: Vs_L23_cross
           source_population: Vs_exc
           target_layer: Vs_L23_cross
-          target_population: Vs_exc
           connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L23_cross
-          source_population: Vs_exc
-          target_layer: Vs_L23_cross
-          target_population: Vs_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_cross
           source_population: Vs_exc
           target_layer: Vs_L4_cross
-          target_population: Vs_exc
           connection: intralaminar_AMPA_L4
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L4_cross
-          source_population: Vs_exc
-          target_layer: Vs_L4_cross
-          target_population: Vs_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_exc
           target_layer: Vs_L56_cross
-          target_population: Vs_exc
           connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_cross
-          source_population: Vs_exc
-          target_layer: Vs_L56_cross
-          target_population: Vs_inh
-          connection: intralaminar_AMPA
-          params: {}
-          nest_params: {}
 
         ## intralaminar_NMDA
         # L23 exc to L23 exc (full selectivity)
@@ -1096,22 +569,16 @@ network:
           target_layer: Vs_L23_vertical
           target_population: Vs_exc
           connection: intralaminar_NMDA
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_exc
           target_layer: Vs_L23_horizontal
           target_population: Vs_exc
           connection: intralaminar_NMDA
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_exc
           target_layer: Vs_L23_cross
           target_population: Vs_exc
           connection: intralaminar_NMDA
-          params: {}
-          nest_params: {}
 
 
         ## interlaminar_AMPA
@@ -1119,174 +586,54 @@ network:
         - source_layer: Vs_L23_vertical
           source_population: Vs_exc
           target_layer: Vs_L56_vertical
-          target_population: Vs_exc
           connection: interlaminar_AMPA_L23_to_L56
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L23_vertical
-          source_population: Vs_exc
-          target_layer: Vs_L56_vertical
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_L23_to_L56
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_exc
           target_layer: Vs_L56_horizontal
-          target_population: Vs_exc
           connection: interlaminar_AMPA_L23_to_L56
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L23_horizontal
-          source_population: Vs_exc
-          target_layer: Vs_L56_horizontal
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_L23_to_L56
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_exc
           target_layer: Vs_L56_cross
-          target_population: Vs_exc
           connection: interlaminar_AMPA_L23_to_L56
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L23_cross
-          source_population: Vs_exc
-          target_layer: Vs_L56_cross
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_L23_to_L56
-          params: {}
-          nest_params: {}
         # L4 exc to L2_exc and L2_inh (full selectivity)
         - source_layer: Vs_L4_vertical
           source_population: Vs_exc
           target_layer: Vs_L23_vertical
-          target_population: Vs_exc
           connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L4_vertical
-          source_population: Vs_exc
-          target_layer: Vs_L23_vertical
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_horizontal
           source_population: Vs_exc
           target_layer: Vs_L23_horizontal
-          target_population: Vs_exc
           connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L4_horizontal
-          source_population: Vs_exc
-          target_layer: Vs_L23_horizontal
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_cross
           source_population: Vs_exc
           target_layer: Vs_L23_cross
-          target_population: Vs_exc
           connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L4_cross
-          source_population: Vs_exc
-          target_layer: Vs_L23_cross
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
         # L56 exc to L23_exc and L23_inh (full selectivity)
         - source_layer: Vs_L56_vertical
           source_population: Vs_exc
           target_layer: Vs_L23_vertical
-          target_population: Vs_exc
           connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_vertical
-          source_population: Vs_exc
-          target_layer: Vs_L23_vertical
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_exc
           target_layer: Vs_L23_horizontal
-          target_population: Vs_exc
           connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_horizontal
-          source_population: Vs_exc
-          target_layer: Vs_L23_horizontal
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_exc
           target_layer: Vs_L23_cross
-          target_population: Vs_exc
           connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_cross
-          source_population: Vs_exc
-          target_layer: Vs_L23_cross
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
         # L56 exc to L4_exc and L4_inh (full selectivity)
         - source_layer: Vs_L56_vertical
           source_population: Vs_exc
           target_layer: Vs_L4_vertical
-          target_population: Vs_exc
           connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_vertical
-          source_population: Vs_exc
-          target_layer: Vs_L4_vertical
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_exc
           target_layer: Vs_L4_horizontal
-          target_population: Vs_exc
           connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_horizontal
-          source_population: Vs_exc
-          target_layer: Vs_L4_horizontal
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_exc
           target_layer: Vs_L4_cross
-          target_population: Vs_exc
           connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
-        - source_layer: Vs_L56_cross
-          source_population: Vs_exc
-          target_layer: Vs_L4_cross
-          target_population: Vs_inh
-          connection: interlaminar_AMPA_Vs
-          params: {}
-          nest_params: {}
 
         ## Interlaminar NMDA
         # L23 exc to L56 exc, full selectivity
@@ -1295,22 +642,16 @@ network:
           target_layer: Vs_L56_vertical
           target_population: Vs_exc
           connection: interlaminar_NMDA
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_exc
           target_layer: Vs_L56_horizontal
           target_population: Vs_exc
           connection: interlaminar_NMDA
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_exc
           target_layer: Vs_L56_cross
           target_population: Vs_exc
           connection: interlaminar_NMDA
-          params: {}
-          nest_params: {}
 
         ## Intralaminar GABA_A
         # L23
@@ -1320,128 +661,92 @@ network:
           target_layer: Vs_L23_vertical
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_vertical
           source_population: Vs_inh
           target_layer: Vs_L23_horizontal
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_vertical
           source_population: Vs_inh
           target_layer: Vs_L23_cross
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L23_vertical
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L23_horizontal
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L23_cross
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L23_vertical
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L23_horizontal
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L23_cross
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         # L23 inh to L23 inh (no selectivity
         - source_layer: Vs_L23_vertical
           source_population: Vs_inh
           target_layer: Vs_L23_vertical
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_vertical
           source_population: Vs_inh
           target_layer: Vs_L23_horizontal
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_vertical
           source_population: Vs_inh
           target_layer: Vs_L23_cross
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L23_vertical
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L23_horizontal
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L23_cross
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L23_vertical
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L23_horizontal
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L23_cross
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         # L4
         # L4 inh to L4 exc (no selectivity)
         - source_layer: Vs_L4_vertical
@@ -1449,128 +754,92 @@ network:
           target_layer: Vs_L4_vertical
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_vertical
           source_population: Vs_inh
           target_layer: Vs_L4_horizontal
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_vertical
           source_population: Vs_inh
           target_layer: Vs_L4_cross
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_horizontal
           source_population: Vs_inh
           target_layer: Vs_L4_vertical
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_horizontal
           source_population: Vs_inh
           target_layer: Vs_L4_horizontal
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_horizontal
           source_population: Vs_inh
           target_layer: Vs_L4_cross
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_cross
           source_population: Vs_inh
           target_layer: Vs_L4_vertical
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_cross
           source_population: Vs_inh
           target_layer: Vs_L4_horizontal
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_cross
           source_population: Vs_inh
           target_layer: Vs_L4_cross
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         # L4 inh to L4 inh (no selectivity)
         - source_layer: Vs_L4_vertical
           source_population: Vs_inh
           target_layer: Vs_L4_vertical
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_vertical
           source_population: Vs_inh
           target_layer: Vs_L4_horizontal
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_vertical
           source_population: Vs_inh
           target_layer: Vs_L4_cross
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_horizontal
           source_population: Vs_inh
           target_layer: Vs_L4_vertical
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_horizontal
           source_population: Vs_inh
           target_layer: Vs_L4_horizontal
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_horizontal
           source_population: Vs_inh
           target_layer: Vs_L4_cross
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_cross
           source_population: Vs_inh
           target_layer: Vs_L4_vertical
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_cross
           source_population: Vs_inh
           target_layer: Vs_L4_horizontal
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L4_cross
           source_population: Vs_inh
           target_layer: Vs_L4_cross
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         # L56
         # L56 inh to L56 exc (no selectivity)
         - source_layer: Vs_L56_vertical
@@ -1578,128 +847,92 @@ network:
           target_layer: Vs_L56_vertical
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_vertical
           source_population: Vs_inh
           target_layer: Vs_L56_horizontal
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_vertical
           source_population: Vs_inh
           target_layer: Vs_L56_cross
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_inh
           target_layer: Vs_L56_vertical
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_inh
           target_layer: Vs_L56_horizontal
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_inh
           target_layer: Vs_L56_cross
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_inh
           target_layer: Vs_L56_vertical
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_inh
           target_layer: Vs_L56_horizontal
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_inh
           target_layer: Vs_L56_cross
           target_population: Vs_exc
           connection: intralaminar_GABA_A_to_exc
-          params: {}
-          nest_params: {}
         # L56 inh to L56 inh (no selectivity)
         - source_layer: Vs_L56_vertical
           source_population: Vs_inh
           target_layer: Vs_L56_vertical
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_vertical
           source_population: Vs_inh
           target_layer: Vs_L56_horizontal
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_vertical
           source_population: Vs_inh
           target_layer: Vs_L56_cross
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_inh
           target_layer: Vs_L56_vertical
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_inh
           target_layer: Vs_L56_horizontal
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_horizontal
           source_population: Vs_inh
           target_layer: Vs_L56_cross
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_inh
           target_layer: Vs_L56_vertical
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_inh
           target_layer: Vs_L56_horizontal
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L56_cross
           source_population: Vs_inh
           target_layer: Vs_L56_cross
           target_population: Vs_inh
           connection: intralaminar_GABA_A_to_inh_Vs
-          params: {}
-          nest_params: {}
 
 
         ## Interlaminar GABA_B
@@ -1709,64 +942,46 @@ network:
           target_layer: Vs_L23_vertical
           target_population: Vs_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L23_horizontal
           target_population: Vs_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L23_cross
           target_population: Vs_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_vertical
           source_population: Vs_inh
           target_layer: Vs_L4_vertical
           target_population: Vs_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L4_horizontal
           target_population: Vs_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L4_cross
           target_population: Vs_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_vertical
           source_population: Vs_inh
           target_layer: Vs_L56_vertical
           target_population: Vs_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L56_horizontal
           target_population: Vs_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L56_cross
           target_population: Vs_exc
           connection: interlaminar_GABA_B
-          params: {}
-          nest_params: {}
 
 
         ########################################################################
@@ -1781,61 +996,21 @@ network:
         - source_layer: Vp_L23_horizontal
           source_population: Vp_exc
           target_layer: Vs_L4_horizontal
-          target_population: Vs_exc
           connection: Vp_Vs_forward_horizontal
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L23_horizontal
-          source_population: Vp_exc
-          target_layer: Vs_L4_horizontal
-          target_population: Vs_inh
-          connection: Vp_Vs_forward_horizontal
-          params: {}
-          nest_params: {}
         #Vp_L23_vertical to Vs_L4_vertical excitatory and inhibitory
         - source_layer: Vp_L23_vertical
           source_population: Vp_exc
           target_layer: Vs_L4_vertical
-          target_population: Vs_exc
           connection: Vp_Vs_forward_vertical
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L23_vertical
-          source_population: Vp_exc
-          target_layer: Vs_L4_vertical
-          target_population: Vs_inh
-          connection: Vp_Vs_forward_vertical
-          params: {}
-          nest_params: {}
         #Vp_L23_vertical and horizontal to Vs_L4_cross excitatory and inhibitory
         - source_layer: Vp_L23_vertical
           source_population: Vp_exc
           target_layer: Vs_L4_cross
-          target_population: Vs_exc
           connection: Vp_Vs_forward_cross_from_vertical
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L23_vertical
-          source_population: Vp_exc
-          target_layer: Vs_L4_cross
-          target_population: Vs_inh
-          connection: Vp_Vs_forward_cross_from_vertical
-          params: {}
-          nest_params: {}
         - source_layer: Vp_L23_horizontal
           source_population: Vp_exc
           target_layer: Vs_L4_cross
-          target_population: Vs_exc
           connection: Vp_Vs_forward_cross_from_horizontal
-          params: {}
-          nest_params: {}
-        - source_layer: Vp_L23_horizontal
-          source_population: Vp_exc
-          target_layer: Vs_L4_cross
-          target_population: Vs_inh
-          connection: Vp_Vs_forward_cross_from_horizontal
-          params: {}
-          nest_params: {}
 
         ####################################
         ###### Secondary to Primary  #######
@@ -1848,32 +1023,24 @@ network:
           target_layer: Vp_L23_vertical
           target_population: Vp_exc
           connection: Vp_Vs_backward_to_exc
-          params: {}
-          nest_params: {}
         # Vs_L56_horizontal exc to Vp_L23_horizontal exc
         - source_layer: Vs_L56_horizontal
           source_population: Vs_exc
           target_layer: Vp_L23_horizontal
           target_population: Vp_exc
           connection: Vp_Vs_backward_to_exc
-          params: {}
-          nest_params: {}
         # Vs_L56_cross exc to Vp_L23_horizontal exc
         - source_layer: Vs_L56_cross
           source_population: Vs_exc
           target_layer: Vp_L23_horizontal
           target_population: Vp_exc
           connection: Vp_Vs_backward_to_exc
-          params: {}
-          nest_params: {}
         # Vs_L56_cross exc to Vp_L23_vertical exc
         - source_layer: Vs_L56_cross
           source_population: Vs_exc
           target_layer: Vp_L23_vertical
           target_population: Vp_exc
           connection: Vp_Vs_backward_to_exc
-          params: {}
-          nest_params: {}
 
         # inhitatory L56 to inhibitory L23: AMPA
         # Vs_L56_vertical exc to Vp_L23_vertical inh
@@ -1882,24 +1049,18 @@ network:
           target_layer: Vp_L23_vertical
           target_population: Vp_inh
           connection: Vp_Vs_backward_to_inh
-          params: {}
-          nest_params: {}
         # Vs_L56_horizontal exc to Vp_L23_horizontal inh
         - source_layer: Vs_L56_horizontal
           source_population: Vs_exc
           target_layer: Vp_L23_horizontal
           target_population: Vp_inh
           connection: Vp_Vs_backward_to_inh
-          params: {}
-          nest_params: {}
         # Vs_L56_cross exc to Vp_L23_horizontal inh
         - source_layer: Vs_L56_cross
           source_population: Vs_exc
           target_layer: Vp_L23_horizontal
           target_population: Vp_inh
           connection: Vp_Vs_backward_to_inh
-          params: {}
-          nest_params: {}
         # Vs_L56_cross exc to Vp_L23_vertical inh
         - source_layer: Vs_L56_cross
           source_population: Vs_exc

@@ -5,7 +5,7 @@
 - ./layers.yml
 - ./base/layers.yml
 - ./base/populations.yml
-- ./base/connections_singleconn.yml
+- ./base/connections.yml
 - ./base/connection_models.yml
 - ./base/recorder_models.yml
 - ./base/synapse_models.yml
