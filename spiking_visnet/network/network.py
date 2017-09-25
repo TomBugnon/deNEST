@@ -134,7 +134,7 @@ class Network:
         log.info('Creating recorder models...')
         self._create_all(self.recorder_models.values())
         log.info('Creating layers...')
-        self._create_all(self.layers.values())
+        self._create_all(self._get_layers())
         log.info('Connecting layers...')
         self._create_all(self.connections)
         log.info('Creating recorders...')
