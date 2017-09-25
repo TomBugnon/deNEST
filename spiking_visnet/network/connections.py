@@ -225,7 +225,7 @@ class RescaledConnection(Connection):
 
     def create(self):
         print(self.__str__)
-        self.model_conns = self.load_model_conns()
+        self.model_conns = self.load_conns()
         self.conns = self.redraw_conns()
         self.check_conns()
         for conn in itertools.chain(*self.conns.values()):
@@ -249,19 +249,19 @@ class RescaledConnection(Connection):
             if not self.nest_params['allow_autapses']:
                 assert gid not in self.conns[gid]
 
-    def load_model_conns(self):
+    def load_conns(self):
         """Return a dictionary of model connections. Keys are driver gids."""
-        model_conns = {}
+        conns = {}
         with open(join(self.model.source_dir, self.__str__), 'r') as f:
             reader = csv.reader(f, delimiter='\t')
             for line in reader:
                 params = format_dumped_line(line)
                 unitconn = UnitConn(params['synapse_model'], params)
                 driver_gid = unitconn.params[self.driver]
-                model_conns[driver_gid] = (model_conns.get(driver_gid, [])
+                conns[driver_gid] = (conns.get(driver_gid, [])
                                            + [unitconn])
         # Return a connection list (possibly empty) for each driver gid
-        return {driver: model_conns.get(driver, [])
+        return {driver: conns.get(driver, [])
                 for driver in self.driver_gids()}
 
     def redraw_conns(self):
