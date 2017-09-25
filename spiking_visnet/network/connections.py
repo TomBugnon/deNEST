@@ -30,8 +30,9 @@ class ConnectionModel(NestObject):
         self._type = self.params.pop('type', 'topological')
         self._source_dir = self.params.pop('source_dir', None)
         self._dump_connection = self.params.pop('dump_connection', False)
-        assert self.type in ['topological', 'rescaled']
+        assert self.type in ['topological', 'rescaled', 'from_file']
         assert self.type != 'rescaled' or self.source_dir is not None
+        assert self.type != 'from_file' or self.source_dir is not None
 
     @property
     def type(self):
@@ -58,6 +59,10 @@ class BaseConnection(NestObject):
         self.source_population = params.get('source_population', None)
         self.target = target
         self.target_population = params.get('target_population', None)
+        # By default, we consider the driver to be the source
+        self.driver = 'source'
+        self.driver_layer = self.source
+        self.driver_population = self.source_population
 
     def save(self, output_dir):
         # TODO
@@ -84,11 +89,17 @@ class BaseConnection(NestObject):
                           self.nest_params['mask'],
                           kern=self.nest_params['kernel'],
                           kernel_color='green')
+        # Nasty hack to access the synapse model for FromFileConnections
+        if hasattr(self, 'nest_params'):
+            synapse_model = self.nest_params['synapse_model']
+        else:
+            # Get the synapse model of any UnitConn
+            synapse_model = next (iter (self.conns.values()))[0]._synapse_model
         try:
             tp.PlotTargets(ctr,
                            self.target.gid,
                            tgt_model=self.target_population,
-                           syn_type=self.nest_params['synapse_model'],
+                           syn_type=synapse_model,
                            fig=fig,
                            tgt_size=40,
                            src_size=250,
@@ -112,6 +123,12 @@ class BaseConnection(NestObject):
     def __lt__(self, other):
         return self.sort_key < other.sort_key
 
+    def driver_gids(self):
+        return self.driver_layer.gids(population=self.driver_population)
+
+    def pool_gids(self):
+        return self.pool_layer.gids(population=self.pool_population)
+
     def load_conns(self):
         """Return a dictionary of model connections. Keys are driver gids.
 
@@ -120,7 +137,11 @@ class BaseConnection(NestObject):
                 <driver_gid>: <UnitConn_list>
             }
         Where <UnitConn_list> is a list of UnitConn single connections for the
-        considered driver unit."""
+        considered driver unit.
+
+        NB: By default (ie, if the connection is not topological) the driver
+        layer is considered to be the source.
+        """
         conns = {}
         with open(join(self.model.source_dir, self.__str__), 'r') as f:
             reader = csv.reader(f, delimiter='\t')
@@ -169,6 +190,20 @@ class BaseConnection(NestObject):
             'weight': float(line[3]),
             'delay': float(line[4])
         }
+
+
+class FromFileConnection(BaseConnection):
+    """Represent a connection loaded from file."""
+
+    def __init__(self, source, target, model, params):
+        super().__init__(source, target, model, params)
+        self.conns = None
+
+    def create(self):
+        self.conns = self.load_conns()
+        for conn in itertools.chain(*self.conns.values()):
+            conn.create()
+
 
 class TopoConnection(BaseConnection):
     """Represent a topological connection."""
@@ -283,12 +318,6 @@ class RescaledConnection(TopoConnection):
         self.conns = self.redraw_conns()
         for conn in itertools.chain(*self.conns.values()):
             conn.create()
-
-    def driver_gids(self):
-        return self.driver_layer.gids(population=self.driver_population)
-
-    def pool_gids(self):
-        return self.pool_layer.gids(population=self.pool_population)
 
     def redraw_conns(self):
         """Redraw pool gids according to topological parameters."""

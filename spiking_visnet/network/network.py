@@ -9,7 +9,8 @@ import random
 
 from tqdm import tqdm
 
-from .connections import ConnectionModel, RescaledConnection, TopoConnection
+from .connections import (ConnectionModel, FromFileConnection,
+                          RescaledConnection, TopoConnection)
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
 from .populations import Population
@@ -25,7 +26,8 @@ LAYER_TYPES = {
 
 CONNECTION_TYPES = {
     'topological': TopoConnection,
-    'rescaled': RescaledConnection
+    'rescaled': RescaledConnection,
+    'from_file': FromFileConnection
 }
 
 
