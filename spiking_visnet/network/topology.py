@@ -58,6 +58,8 @@ def draw_pool_gids(conn, driver_gid, N=1):
                 if not conn.nest_params.get('allow_multapses'):
                     candidate_gids = [tup for tup in candidate_gids
                                       if tup[0] != gid]
+            if n_drawn == N:
+                break
     return pool_gids
 
 
