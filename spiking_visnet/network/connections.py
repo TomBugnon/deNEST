@@ -179,7 +179,7 @@ class BaseConnection(NestObject):
                               str(status['synapse_model']),
                               status['weight'],
                               status['delay']))
-        return formatted
+        return sorted(formatted)
 
     @staticmethod
     def format_dumped_line(line):
