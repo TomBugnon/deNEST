@@ -85,16 +85,17 @@ class Simulation:
         self.make_output_dir(self.output_dir)
         # Save params
         save_as_yaml(join(self.output_dir, 'params'), self.params)
-        # Save network
-        with_rasters = self.params.c['simulation'].get('save_nest_raster', True)
-        self.network.save(self.output_dir, with_rasters = with_rasters)
-        # Save sessions
-        session_dir = join(self.output_dir, 'sessions')
-        self.make_output_dir(session_dir)
-        for session in self.sessions.values():
-            session.save(session_dir)
-        # Save session times
-        save_as_yaml(join(self.output_dir, 'session_times'), self.session_times)
+        if not self.params.c['simulation']['dry_run']:
+            # Save network
+            with_rasters = self.params.c['simulation'].get('save_nest_raster', True)
+            self.network.save(self.output_dir, with_rasters = with_rasters)
+            # Save sessions
+            session_dir = join(self.output_dir, 'sessions')
+            self.make_output_dir(session_dir)
+            for session in self.sessions.values():
+                session.save(session_dir)
+            # Save session times
+            save_as_yaml(join(self.output_dir, 'session_times'), self.session_times)
         # Delete nest temporary directory
         if self.params.c['simulation'].get('delete_tmp_dir', True):
             rmtree(self.params.c['simulation']['nest_output_dir'])

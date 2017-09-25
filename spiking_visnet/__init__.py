@@ -78,8 +78,8 @@ def run(path, overrides=None):
     # Simulate and save
     if not params.c['simulation']['dry_run']:
         sim.run()
-        if params.c['simulation']['save_simulation']:
-            sim.save()
+    if params.c['simulation']['save_simulation']:
+        sim.save()
     # Dump network's connections
     if params.c['simulation']['dump_connections']:
         sim.dump_connections()
