@@ -63,19 +63,6 @@ class BaseConnection(NestObject):
         for field in self.params.get('save', []):
             print('TODO: save connection ', field, ' in ', output_dir)
 
-    def dump(self, dump_dir):
-        # TODO: Query using synapse labels to identify connections with same
-        # source pop, target pop and synapse model
-        if self.model.dump_connection:
-            conns = nest.GetConnections(
-                source=self.source.gids(population=self.source_population),
-                target=self.target.gids(population=self.target_population),
-                synapse_model=self.nest_params['synapse_model'])
-            # We save: source_gid, target_gid, synapse_model, weight, delay
-            with open(join(dump_dir, self.__str__), 'w') as f:
-                writer = csv.writer(f, delimiter='\t')
-                writer.writerows(format_dump(conns))
-
     def save_plot(self, plot_dir):
         import matplotlib.pyplot as plt
         fig = self.plot_conn() #pylint: disable=unused-variable
@@ -105,21 +92,6 @@ class BaseConnection(NestObject):
                     + f"target within connection {self.__str__}"))
         return fig
 
-    def load_conns(self):
-        """Return a dictionary of model connections. Keys are driver gids."""
-        conns = {}
-        with open(join(self.model.source_dir, self.__str__), 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
-            for line in reader:
-                params = format_dumped_line(line)
-                unitconn = UnitConn(params['synapse_model'], params)
-                driver_gid = unitconn.params[self.driver]
-                conns[driver_gid] = (conns.get(driver_gid, [])
-                                           + [unitconn])
-        # Return a connection list (possibly empty) for each driver gid
-        return {driver: conns.get(driver, [])
-                for driver in self.driver_gids()}
-
     @property
     def __str__(self):
         return '-'.join(self.sort_key)
@@ -134,6 +106,56 @@ class BaseConnection(NestObject):
     def __lt__(self, other):
         return self.sort_key < other.sort_key
 
+    def load_conns(self):
+        """Return a dictionary of model connections. Keys are driver gids."""
+        conns = {}
+        with open(join(self.model.source_dir, self.__str__), 'r') as f:
+            reader = csv.reader(f, delimiter='\t')
+            for line in reader:
+                params = self.format_dumped_line(line)
+                unitconn = UnitConn(params['synapse_model'], params)
+                driver_gid = unitconn.params[self.driver]
+                conns[driver_gid] = (conns.get(driver_gid, [])
+                                           + [unitconn])
+        # Return a connection list (possibly empty) for each driver gid
+        return {driver: conns.get(driver, [])
+                for driver in self.driver_gids()}
+
+    def dump(self, dump_dir):
+        # TODO: Query using synapse labels to identify connections with same
+        # source pop, target pop and synapse model
+        if self.model.dump_connection:
+            conns = nest.GetConnections(
+                source=self.source.gids(population=self.source_population),
+                target=self.target.gids(population=self.target_population),
+                synapse_model=self.nest_params['synapse_model'])
+            # We save: source_gid, target_gid, synapse_model, weight, delay
+            with open(join(dump_dir, self.__str__), 'w') as f:
+                writer = csv.writer(f, delimiter='\t')
+                writer.writerows(self.format_dump(conns))
+
+    @staticmethod
+    def format_dump(conns):
+        import nest
+        formatted = []
+        for conn in conns:
+            status = nest.GetStatus((conn,))[0]
+            formatted.append((status['source'],
+                              status['target'],
+                              str(status['synapse_model']),
+                              status['weight'],
+                              status['delay']))
+        return formatted
+
+    @staticmethod
+    def format_dumped_line(line):
+        return {
+            'source': int(line[0]),
+            'target': int(line[1]),
+            'synapse_model': str(line[2]),
+            'weight': float(line[3]),
+            'delay': float(line[4])
+        }
 
 class TopoConnection(BaseConnection):
     """Represent a topological connection."""
@@ -316,24 +338,3 @@ class UnitConn(NestObject):
                      syn_spec= {'model': self._synapse_model,
                                 'weight': self._weight,
                                 'delay': self._delay})
-
-def format_dump(conns):
-    import nest
-    formatted = []
-    for conn in conns:
-        status = nest.GetStatus((conn,))[0]
-        formatted.append((status['source'],
-                          status['target'],
-                          str(status['synapse_model']),
-                          status['weight'],
-                          status['delay']))
-    return formatted
-
-def format_dumped_line(line):
-    return {
-        'source': int(line[0]),
-        'target': int(line[1]),
-        'synapse_model': str(line[2]),
-        'weight': float(line[3]),
-        'delay': float(line[4])
-    }
