@@ -11,6 +11,7 @@ from copy import deepcopy
 from os.path import join
 
 import nest
+import numpy as np
 from tqdm import tqdm
 
 from . import topology
