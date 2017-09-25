@@ -24,7 +24,6 @@ network:
           tau_m: 16.0
         l1_exc:
         l2_exc:
-        l3_exc:
       cortical_inhibitory:
         params:
           theta_eq: -53.0
@@ -33,7 +32,6 @@ network:
           tau_m: 8.0
         l1_inh:
         l2_inh:
-        l3_inh:
     input_exc:
       params:
         nest_model: spike_generator
