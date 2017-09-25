@@ -9,7 +9,7 @@ import random
 
 from tqdm import tqdm
 
-from .connections import Connection, ConnectionModel, RescaledConnection
+from .connections import ConnectionModel, RescaledConnection, TopoConnection
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
 from .populations import Population
@@ -21,6 +21,11 @@ from .utils import if_not_created, log
 LAYER_TYPES = {
     None: Layer,
     'InputLayer': InputLayer,
+}
+
+CONNECTION_TYPES = {
+    'topological': TopoConnection,
+    'rescaled': RescaledConnection
 }
 
 
@@ -72,10 +77,7 @@ class Network:
         source = self.layers[params['source_layer']]
         target = self.layers[params['target_layer']]
         model = self.connection_models[params['connection']]
-        if model.type == 'topological':
-            return Connection(source, target, model, params)
-        elif model.type == 'rescaled':
-            return RescaledConnection(source, target, model, params)
+        return CONNECTION_TYPES[model.type](source, target, model, params)
 
     def build_population(self, pop_name, pop_params):
         # Get the gids and locations for the population from the layer object.

@@ -48,10 +48,8 @@ class ConnectionModel(NestObject):
     def scale_factor(self):
         return self._scale_factor
 
-
-class Connection(NestObject):
-    """Represent a NEST connection."""
-
+class BaseConnection(NestObject):
+    """Base class for all connection types."""
     def __init__(self, source, target, model, params):
         super().__init__(model.name, params)
         self.model = model
@@ -59,12 +57,94 @@ class Connection(NestObject):
         self.source_population = params.get('source_population', None)
         self.target = target
         self.target_population = params.get('target_population', None)
+
+    def save(self, output_dir):
+        # TODO
+        for field in self.params.get('save', []):
+            print('TODO: save connection ', field, ' in ', output_dir)
+
+    def dump(self, dump_dir):
+        # TODO: Query using synapse labels to identify connections with same
+        # source pop, target pop and synapse model
+        if self.model.dump_connection:
+            conns = nest.GetConnections(
+                source=self.source.gids(population=self.source_population),
+                target=self.target.gids(population=self.target_population),
+                synapse_model=self.nest_params['synapse_model'])
+            # We save: source_gid, target_gid, synapse_model, weight, delay
+            with open(join(dump_dir, self.__str__), 'w') as f:
+                writer = csv.writer(f, delimiter='\t')
+                writer.writerows(format_dump(conns))
+
+    def save_plot(self, plot_dir):
+        import matplotlib.pyplot as plt
+        fig = self.plot_conn() #pylint: disable=unused-variable
+        plt.savefig(join(plot_dir, self.__str__))
+        plt.close()
+
+    def plot_conn(self):
+        """Plot the targets of a unit using nest.topology function."""
+        # TODO: Get our own version so we can plot convergent connections
+        import nest.topology as tp
+        fig = tp.PlotLayer(self.target.gid)
+        ctr = self.source.find_center_element(population=self.source_population)
+        try:
+            tp.PlotTargets(ctr,
+                           self.target.gid,
+                           tgt_model=self.target_population,
+                           syn_type=self.nest_params['synapse_model'],
+                           fig=fig,
+                           tgt_size=40,
+                           src_size=250,
+                           mask=self.nest_params['mask'],
+                           kernel=self.nest_params['kernel'],
+                           kernel_color='green',
+                           tgt_color='yellow')
+        except ValueError:
+            print((f"Not plotting targets: the center unit {ctr[0]} has no "
+                    + f"target within connection {self.__str__}"))
+        return fig
+
+    def load_conns(self):
+        """Return a dictionary of model connections. Keys are driver gids."""
+        conns = {}
+        with open(join(self.model.source_dir, self.__str__), 'r') as f:
+            reader = csv.reader(f, delimiter='\t')
+            for line in reader:
+                params = format_dumped_line(line)
+                unitconn = UnitConn(params['synapse_model'], params)
+                driver_gid = unitconn.params[self.driver]
+                conns[driver_gid] = (conns.get(driver_gid, [])
+                                           + [unitconn])
+        # Return a connection list (possibly empty) for each driver gid
+        return {driver: conns.get(driver, [])
+                for driver in self.driver_gids()}
+
+    @property
+    def __str__(self):
+        return '-'.join(self.sort_key)
+
+    @property
+    def sort_key(self):
+        # Mapping for sorting
+        return (self.name,
+                self.source.name, str(self.source_population),
+                self.target.name, str(self.target_population))
+
+    def __lt__(self, other):
+        return self.sort_key < other.sort_key
+
+
+class TopoConnection(BaseConnection):
+    """Represent a topological connection."""
+    def __init__(self, source, target, model, params):
+        super().__init__(source, target, model, params)
         self.scale_factor = None
         self.nest_params = self.get_nest_params()
 
     def get_nest_params(self):
-        # Get NEST connection parameters
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Get NEST connection parameters for a topological connection
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         # TODO: Get a view of the kernel, mask, and weights inherited from the
         # connection model
@@ -135,70 +215,8 @@ class Connection(NestObject):
     def create(self):
         self.source._connect(self.target, self.nest_params)
 
-    def save(self, output_dir):
-        # TODO
-        for field in self.params.get('save', []):
-            print('TODO: save connection ', field, ' in ', output_dir)
 
-
-    def dump(self, dump_dir):
-        # TODO: Query using synapse labels to identify connections with same
-        # source pop, target pop and synapse model
-        if self.model.dump_connection:
-            conns = nest.GetConnections(
-                source=self.source.gids(population=self.source_population),
-                target=self.target.gids(population=self.target_population),
-                synapse_model=self.nest_params['synapse_model'])
-            # We save: source_gid, target_gid, synapse_model, weight, delay
-            with open(join(dump_dir, self.__str__), 'w') as f:
-                writer = csv.writer(f, delimiter='\t')
-                writer.writerows(format_dump(conns))
-
-    def save_plot(self, plot_dir):
-        import matplotlib.pyplot as plt
-        fig = self.plot_conn()
-        plt.savefig(join(plot_dir, self.__str__))
-        plt.close()
-
-    def plot_conn(self):
-        """Plot the targets of a unit using nest.topology function."""
-        # TODO: Get our own version so we can plot convergent connections
-        import nest.topology as tp
-        fig = tp.PlotLayer(self.target.gid)
-        ctr = self.source.find_center_element(population=self.source_population)
-        try:
-            tp.PlotTargets(ctr,
-                           self.target.gid,
-                           tgt_model=self.target_population,
-                           syn_type=self.nest_params['synapse_model'],
-                           fig=fig,
-                           tgt_size=40,
-                           src_size=250,
-                           mask=self.nest_params['mask'],
-                           kernel=self.nest_params['kernel'],
-                           kernel_color='green',
-                           tgt_color='yellow')
-        except ValueError:
-            print((f"Not plotting targets: the center unit {ctr[0]} has no "
-                    + f"target within connection {self.__str__}"))
-        return fig
-
-    @property
-    def __str__(self):
-        return '-'.join(self.sort_key)
-
-    @property
-    def sort_key(self):
-        # Mapping for sorting
-        return (self.name,
-                self.source.name, str(self.source_population),
-                self.target.name, str(self.target_population))
-
-    def __lt__(self, other):
-        return self.sort_key < other.sort_key
-
-
-class RescaledConnection(Connection):
+class RescaledConnection(TopoConnection):
 
     def __init__(self, source, target, model, params):
         super().__init__(source, target, model, params)
@@ -249,21 +267,6 @@ class RescaledConnection(Connection):
             if not self.nest_params['allow_autapses']:
                 assert gid not in self.conns[gid]
 
-    def load_conns(self):
-        """Return a dictionary of model connections. Keys are driver gids."""
-        conns = {}
-        with open(join(self.model.source_dir, self.__str__), 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
-            for line in reader:
-                params = format_dumped_line(line)
-                unitconn = UnitConn(params['synapse_model'], params)
-                driver_gid = unitconn.params[self.driver]
-                conns[driver_gid] = (conns.get(driver_gid, [])
-                                           + [unitconn])
-        # Return a connection list (possibly empty) for each driver gid
-        return {driver: conns.get(driver, [])
-                for driver in self.driver_gids()}
-
     def redraw_conns(self):
         conns = {}
         # TODO: Parallelize
@@ -313,7 +316,6 @@ class UnitConn(NestObject):
                      syn_spec= {'model': self._synapse_model,
                                 'weight': self._weight,
                                 'delay': self._delay})
-
 
 def format_dump(conns):
     import nest
