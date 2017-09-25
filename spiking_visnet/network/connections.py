@@ -276,7 +276,6 @@ class RescaledConnection(TopoConnection):
     def create(self):
         self.model_conns = self.load_conns()
         self.conns = self.redraw_conns()
-        self.check_conns()
         for conn in itertools.chain(*self.conns.values()):
             conn.create()
 
