@@ -108,7 +108,14 @@ class BaseConnection(NestObject):
         return self.sort_key < other.sort_key
 
     def load_conns(self):
-        """Return a dictionary of model connections. Keys are driver gids."""
+        """Return a dictionary of model connections. Keys are driver gids.
+
+        The returned dictionary is of the form::
+            {
+                <driver_gid>: <UnitConn_list>
+            }
+        Where <UnitConn_list> is a list of UnitConn single connections for the
+        considered driver unit."""
         conns = {}
         with open(join(self.model.source_dir, self.__str__), 'r') as f:
             reader = csv.reader(f, delimiter='\t')
