@@ -141,7 +141,6 @@ class Network:
         self._create_all(self.populations)
 
     def dump_connections(self, dump_dir):
-        os.makedirs(dump_dir, exist_ok=True)
         for connection in tqdm(self.connections,
                                desc='Dump connections'):
             connection.dump(dump_dir)
@@ -223,7 +222,6 @@ class Network:
             population.save(output_dir, with_rasters=with_rasters)
 
     def plot_connections(self, plot_dir):
-        os.makedirs(plot_dir, exist_ok=True)
         for conn in tqdm(self.connections,
                          desc='Create connection plots'):
             conn.save_plot(plot_dir)

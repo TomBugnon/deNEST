@@ -62,27 +62,37 @@ class Simulation:
             for session_name, session in self.sessions.items()
             }
 
-    def dump(self):
+    def dump_connections(self):
         """Dump network connections."""
         dump_dir = self.params.c['simulation'].get('dump_dir', None)
         if dump_dir is None:
             dump_dir = join(self.output_dir, 'dump')
             self.params.c['simulation']['dump_dir'] = dump_dir
-        self.network.dump(dump_dir)
+        self.make_output_dir(dump_dir)
+        self.network.dump_connections(dump_dir)
+
+    def plot_connections(self):
+        """Plot network connections."""
+        plot_dir = self.params.c['simulation'].get('plot_dir', None)
+        if plot_dir is None:
+            plot_dir = join(self.output_dir, 'connections')
+            self.params.c['simulation']['plot_dir'] = plot_dir
+        self.make_output_dir(plot_dir)
+        self.network.plot_connections(plot_dir)
 
     def save(self):
         """Save simulation"""
-        # Delete all files in output_dir
-        if self.params.c['simulation'].get('clear_output_dir', False):
-            self.clear_output_dir()
+        self.make_output_dir(self.output_dir)
         # Save params
         save_as_yaml(join(self.output_dir, 'params'), self.params)
         # Save network
         with_rasters = self.params.c['simulation'].get('save_nest_raster', True)
         self.network.save(self.output_dir, with_rasters = with_rasters)
         # Save sessions
+        session_dir = join(self.output_dir, 'sessions')
+        self.make_output_dir(session_dir)
         for session in self.sessions.values():
-            session.save(self.output_dir)
+            session.save(session_dir)
         # Save session times
         save_as_yaml(join(self.output_dir, 'session_times'), self.session_times)
         # Delete nest temporary directory
@@ -133,7 +143,6 @@ class Simulation:
         self.params.c['simulation']['nest_output_dir'] = nest_output_dir
         return output_dir
 
-
     def get_input_dir(self, input_dir=None):
         """Get input dir from params or defaults and cast to session params."""
         if input_dir is None:
@@ -146,9 +155,15 @@ class Simulation:
         self.params.c['sessions']['input_dir'] = input_dir
         return input_dir
 
-    def clear_output_dir(self):
-        """Delete all files in the output directory. Pass subdirectories."""
-        for f in os.listdir(self.output_dir):
-            path = os.path.join(self.output_dir, f)
-            if os.path.isfile(path):
-                os.remove(path)
+    def make_output_dir(self, dir_path):
+        """Create or possibly possibly clear directory.
+
+        Create the directory if it doesn't exist and delete all the files it
+        contains if the simulation parameter ``clear_output_dirs`` is True.
+        """
+        os.makedirs(dir_path, exist_ok=True)
+        if self.params.c['simulation'].get('clear_output_dirs'):
+            for f in os.listdir(dir_path):
+                path = os.path.join(dir_path, f)
+                if os.path.isfile(path):
+                    os.remove(path)
