@@ -1,0 +1,12 @@
+simulation:
+  params:
+    output_dir: networks/ht2005/output
+    dry_run: False
+    clear_output_dirs: True
+    save_simulation: True
+    delete_tmp_dir: True
+    save_nest_raster: True
+    dump_connections: True
+    dump_dir: null
+    plot_connections: True
+    plot_dir: null

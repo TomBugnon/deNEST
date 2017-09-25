@@ -2,9 +2,15 @@ network:
   connection_models:
 
     params:
+      #
+      type: topological
+      scale_factor: 1.0
+      dump_connection: True
+
+      # nest parameters
       allow_autapses: false
       allow_multapses: false
-    #   allow_oversized_mask: true
+      allow_oversized_mask: true
       delays:
           uniform:
               min: 1.75

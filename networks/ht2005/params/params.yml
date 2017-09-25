@@ -10,9 +10,11 @@
 - ./base/recorder_models.yml
 - ./base/synapse_models.yml
 - ./base/neuron_models.yml
+# NEST default params
+- ./nest_defaults.yml
 # Sessions
 - ./sessions.yml
 # Kernel
-- ../../kernel_params/kernel_params.yml
+- ./kernel_params.yml
 # Simulation
-- ../../simulation_params/simulation_params.yml
+- ./simulation_params.yml
