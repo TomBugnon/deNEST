@@ -1,5 +1,12 @@
 network:
   connection_models:
+    params:
+      scale_factor: 1.0
+      type: topological
+      dump_connection: True
+      allow_autapses: false
+      allow_multapses: false
+      allow_oversized_mask: true
 
     horizontal_exc:
       params:
@@ -17,9 +24,6 @@ network:
           uniform:
             min: 1.75
             max: 2.25
-        allow_autapses: false
-        allow_multapses: false
-        allow_oversized_mask: true
 
     horizontal_inh:
       params:
@@ -37,9 +41,6 @@ network:
           uniform:
             min: 1.75
             max: 2.25
-        allow_autapses: false
-        allow_multapses: false
-        allow_oversized_mask: true
 
     FF_exc:
       params:
@@ -48,19 +49,12 @@ network:
         mask:
           circular:
             radius: 12.0 # scaled during init
-          # mask:
-          #   rectangular:
-          #     lower_left: [float, float]
-          #     upper_right: [-float, -float]
         kernel: 0.8
         weights: 1.0 # ... * weight gain during init
         delays:
           uniform:
             min: 1.75
             max: 2.25
-        allow_autapses: false
-        allow_multapses: false
-        allow_oversized_mask: true
 
     input_connection:
       params:
@@ -71,11 +65,7 @@ network:
             radius: 12.0 # scaled during init
         kernel: 0.8
         weights: 1.0 # scaled during init
-               # possibly scaled by number of input layers.
         delays:
           uniform:
             min: 1.75
             max: 2.25
-        allow_autapses: false
-        allow_multapses: false
-        allow_oversized_mask: true

@@ -4,10 +4,7 @@
 
 """Gather and modify NEST and network parameters."""
 
-import random
-
 import nest
-import numpy as np
 from tqdm import tqdm
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# nestify/spike_times.py
+# network/spike_times.py
 
 
 """Draw times of spiking from instantaneous rates."""

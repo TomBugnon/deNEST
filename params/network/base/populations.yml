@@ -20,8 +20,3 @@ network:
         layer: l2
       l2_exc:
       l2_inh:
-    l3:
-      params:
-        layer: l3
-      l3_exc:
-      l3_inh:
