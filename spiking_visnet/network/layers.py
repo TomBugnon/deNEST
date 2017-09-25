@@ -7,7 +7,6 @@
 import itertools
 
 import numpy as np
-
 from tqdm import tqdm
 
 from ..utils import filter_suffixes, spike_times

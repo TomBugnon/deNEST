@@ -18,7 +18,7 @@ from .utils import if_created, if_not_created
 
 
 class Population(NestObject):
-    """Represents a population.
+    """Represent a population.
 
     A population is defined by a (`layer_name`, `population_name`) tuple and
     contains a list of Recorder objects.

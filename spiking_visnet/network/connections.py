@@ -159,6 +159,7 @@ class BaseConnection(NestObject):
 
 class TopoConnection(BaseConnection):
     """Represent a topological connection."""
+
     def __init__(self, source, target, model, params):
         super().__init__(source, target, model, params)
         self.scale_factor = None
@@ -239,6 +240,7 @@ class TopoConnection(BaseConnection):
 
 
 class RescaledConnection(TopoConnection):
+    """Represent a rescaled topological connection from a dump."""
 
     def __init__(self, source, target, model, params):
         super().__init__(source, target, model, params)
@@ -264,7 +266,6 @@ class RescaledConnection(TopoConnection):
             raise NotImplementedError
 
     def create(self):
-        print(self.__str__)
         self.model_conns = self.load_conns()
         self.conns = self.redraw_conns()
         self.check_conns()
@@ -277,25 +278,13 @@ class RescaledConnection(TopoConnection):
     def pool_gids(self):
         return self.pool_layer.gids(population=self.pool_population)
 
-    def check_conns(self):
-        driver_gids = self.driver_gids()
-
-        for gid in driver_gids:
-            nmodel = len(self.model_conns[gid])
-            nrescale = len(self.conns[gid])
-            assert nmodel == nrescale
-            if not self.nest_params['allow_multapses']:
-                assert len(set(self.conns[gid])) == len(self.conns[gid])
-            if not self.nest_params['allow_autapses']:
-                assert gid not in self.conns[gid]
-
     def redraw_conns(self):
+        """Redraw pool gids according to topological parameters."""
         conns = {}
         # TODO: Parallelize
         for driver in tqdm(self.driver_gids(),
                            desc=('Rescaling ' + self.__str__)):
             # Copy the model connection list
-            # print('driver: ', driver, 'n_model_conns: ', len(self.model_conns.get(driver, [])))
             conns[driver] = list(self.model_conns[driver])
             # Draw the model's number of pooled gids for each driving unit
             pool_gids = self.draw_pool_gids(driver,
@@ -311,6 +300,8 @@ class RescaledConnection(TopoConnection):
 
 
 class UnitConn(NestObject):
+    """Represent a single connection between two neurons."""
+
     def __init__(self, name, params):
         super().__init__(name, params)
         self._synapse_model = None

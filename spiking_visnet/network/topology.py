@@ -11,7 +11,7 @@ import scipy.spatial
 
 
 def draw_pool_gids(conn, driver_gid, N=1):
-    """Draw n pool gids for a driver gid, taking in account topology params.
+    """Draw n pool gids for a driver gid, taking in account topological params.
 
     Algorithm:
     - Get a list of candidate gids of the pool layer (checking population,
@@ -62,6 +62,7 @@ def draw_pool_gids(conn, driver_gid, N=1):
 
 
 def within_mask(conn, distance):
+    """Check whether a pool unit is within the mask."""
     # TODO: check allow_oversized_mask
     mask = conn.nest_params.get('mask', None)
     if not mask:
@@ -70,7 +71,9 @@ def within_mask(conn, distance):
         return distance < mask['circular']['radius']
     raise NotImplementedError
 
+
 def wrapped_distance(conn, driver_position, pool_position):
+    """Return the distance between driver and pool unit, considering wrap."""
     if not conn.pool_layer.params['edge_wrap']:
         return scipy.spatial.distance.euclidean(driver_position,
                                                 pool_position)
@@ -89,6 +92,7 @@ def wrapped_distance(conn, driver_position, pool_position):
 
 
 def kernel_probability(conn, distance):
+    """Return the point probability of connection for a pool-target distance."""
     kernel = conn.nest_params.get('kernel', None)
     if kernel is None:
         return 1.
