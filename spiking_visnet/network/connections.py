@@ -30,6 +30,7 @@ class ConnectionModel(NestObject):
         self._type = self.params.pop('type', 'topological')
         self._source_dir = self.params.pop('source_dir', None)
         self._dump_connection = self.params.pop('dump_connection', False)
+        self._plot_connection = self.params.pop('plot_connection', True)
         assert self.type in ['topological', 'rescaled', 'from_file']
         assert self.type != 'rescaled' or self.source_dir is not None
         assert self.type != 'from_file' or self.source_dir is not None
@@ -72,10 +73,11 @@ class BaseConnection(NestObject):
             print('TODO: save connection ', field, ' in ', output_dir)
 
     def save_plot(self, plot_dir):
-        import matplotlib.pyplot as plt
-        fig = self.plot_conn() #pylint: disable=unused-variable
-        plt.savefig(join(plot_dir, self.__str__))
-        plt.close()
+        if self.model._plot_connection:
+            import matplotlib.pyplot as plt
+            fig = self.plot_conn() #pylint: disable=unused-variable
+            plt.savefig(join(plot_dir, self.__str__))
+            plt.close()
 
     def plot_conn(self):
         """Plot the targets of a unit using nest.topology function."""
@@ -86,11 +88,13 @@ class BaseConnection(NestObject):
         tp.PlotLayer(self.target.gid, fig)
         ctr = self.source.find_center_element(population=self.source_population)
         # Plot the kernel and mask if the connection is topological or rescaled.
-        if hasattr(self, 'nest_params'):
+        try:
             tp.PlotKernel(ax, ctr,
                           self.nest_params['mask'],
                           kern=self.nest_params['kernel'],
                           kernel_color='green')
+        except (AttributeError, KeyError):
+            pass
         try:
             tp.PlotTargets(ctr,
                            self.target.gid,
@@ -190,12 +194,52 @@ class BaseConnection(NestObject):
     def get_synapse_model(self):
         """Get synapse model either from nest params or conns list."""
         # Nasty hack to access the synapse model for FromFileConnections
-        if hasattr(self, 'nest_params'):
+        synapse_model = None
+        try:
             synapse_model = self.nest_params['synapse_model']
-        else:
-            # Get the synapse model of any UnitConn
-            synapse_model = next (iter (self.conns.values()))[0]._synapse_model
+        except (AttributeError, KeyError):
+            # Get the synapse model of any UnitConn.
+            for conn in self.conns.values():
+                if conn:
+                    synapse_model = conn[0].params['synapse_model']
+                    break
+        if synapse_model is None:
+            #TODO
+            import warnings
+            warnings.warn('Could not determine synapse model since there was'
+                            ' no dumped connection')
         return synapse_model
+
+    def _connect(self):
+        """Call nest.Connect() to create all unit connections.
+
+        We call nest.Connect() with the following arguments:
+            <sources> (list): list of gids.
+            <targets> (list): list of gids.
+            conn_spec='one_to_one'
+            syn_spec=params
+        where params is of the form::
+            {
+                <weight>: <list_of_weights>
+                <delays>: <list_of_delays>
+                <model>: <synapse_model>
+            }
+        """
+        sources, targets, params = self.format_conns()
+        nest.Connect(sources, targets,
+                     conn_spec='one_to_one',
+                     syn_spec=params)
+
+    def format_conns(self):
+        """Format the self.conns() dict in a form suitable for nest.Connect."""
+        # import ipdb; ipdb.set_trace()
+        all_conns = list(itertools.chain(*self.conns.values()))
+        sources = [conn.params['source'] for conn in all_conns]
+        targets = [conn.params['target'] for conn in all_conns]
+        params = {'weight': [conn.params['weight'] for conn in all_conns],
+                  'delay': [conn.params['delay'] for conn in all_conns],
+                  'model': self.synapse_model}
+        return sources, targets, params
 
 
 class FromFileConnection(BaseConnection):
@@ -207,10 +251,12 @@ class FromFileConnection(BaseConnection):
         self.synapse_model = None
 
     def create(self):
+        # Get connections
         self.conns = self.load_conns()
+        # Get synapse model from connections
         self.synapse_model = self.get_synapse_model()
-        for conn in itertools.chain(*self.conns.values()):
-            conn.create()
+        # Create connections
+        self._connect()
 
 
 class TopoConnection(BaseConnection):
@@ -324,11 +370,13 @@ class RescaledConnection(TopoConnection):
             raise NotImplementedError
 
     def create(self):
+        # Load and rescale connections
         self.model_conns = self.load_conns()
         self.conns = self.redraw_conns()
+        # Get synapse model from connections
         self.synapse_model = self.get_synapse_model()
-        for conn in itertools.chain(*self.conns.values()):
-            conn.create()
+        # Create connections
+        self._connect()
 
     def redraw_conns(self):
         """Redraw pool gids according to topological parameters."""
@@ -368,16 +416,3 @@ class UnitConn(NestObject):
 
     def __lt__(self, other):
         return self.sort_key() < other.sort_key()
-
-    def create(self):
-        import nest
-        self._synapse_model = self.params['synapse_model']
-        self._weight = self.params['weight']
-        self._source = self.params['source']
-        self._target = self.params['target']
-        self._delay = self.params['delay']
-        nest.Connect((self._source,),
-                     (self._target,),
-                     syn_spec= {'model': self._synapse_model,
-                                'weight': self._weight,
-                                'delay': self._delay})
