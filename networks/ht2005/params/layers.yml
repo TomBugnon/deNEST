@@ -1,8 +1,8 @@
 network:
   layers:
     params:
-      nrows: 5
-      ncols: 5
+      nrows: 40
+      ncols: 40
       max_input_rate: 20 # Input image can be 0.5 (noise) -> half on retina
       edge_wrap: true
       visSize: 8.0
@@ -24,15 +24,15 @@ network:
     thalamus:
       Ts_layer:
         params:
-          nrows: 3
-          ncols: 3
+          nrows: 30
+          ncols: 30
     reticula:
       Rs_layer:
         params:
-          nrows: 3
-          ncols: 3
+          nrows: 30
+          ncols: 30
     Vs:
       params:
         area: Vs
-        nrows: 3
-        ncols: 3
+        nrows: 30
+        ncols: 30
