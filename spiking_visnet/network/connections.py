@@ -30,6 +30,7 @@ class ConnectionModel(NestObject):
         self._type = self.params.pop('type', 'topological')
         self._source_dir = self.params.pop('source_dir', None)
         self._dump_connection = self.params.pop('dump_connection', False)
+        self._plot_connection = self.params.pop('plot_connection', True)
         assert self.type in ['topological', 'rescaled', 'from_file']
         assert self.type != 'rescaled' or self.source_dir is not None
         assert self.type != 'from_file' or self.source_dir is not None
@@ -72,10 +73,11 @@ class BaseConnection(NestObject):
             print('TODO: save connection ', field, ' in ', output_dir)
 
     def save_plot(self, plot_dir):
-        import matplotlib.pyplot as plt
-        fig = self.plot_conn() #pylint: disable=unused-variable
-        plt.savefig(join(plot_dir, self.__str__))
-        plt.close()
+        if self.model._plot_connection:
+            import matplotlib.pyplot as plt
+            fig = self.plot_conn() #pylint: disable=unused-variable
+            plt.savefig(join(plot_dir, self.__str__))
+            plt.close()
 
     def plot_conn(self):
         """Plot the targets of a unit using nest.topology function."""
