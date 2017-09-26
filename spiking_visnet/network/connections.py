@@ -86,11 +86,13 @@ class BaseConnection(NestObject):
         tp.PlotLayer(self.target.gid, fig)
         ctr = self.source.find_center_element(population=self.source_population)
         # Plot the kernel and mask if the connection is topological or rescaled.
-        if hasattr(self, 'nest_params'):
+        try:
             tp.PlotKernel(ax, ctr,
                           self.nest_params['mask'],
                           kern=self.nest_params['kernel'],
                           kernel_color='green')
+        except (AttributeError, KeyError):
+            pass
         try:
             tp.PlotTargets(ctr,
                            self.target.gid,
@@ -190,11 +192,20 @@ class BaseConnection(NestObject):
     def get_synapse_model(self):
         """Get synapse model either from nest params or conns list."""
         # Nasty hack to access the synapse model for FromFileConnections
-        if hasattr(self, 'nest_params'):
+        synapse_model = None
+        try:
             synapse_model = self.nest_params['synapse_model']
-        else:
-            # Get the synapse model of any UnitConn
-            synapse_model = next (iter (self.conns.values()))[0]._synapse_model
+        except (AttributeError, KeyError):
+            # Get the synapse model of any UnitConn.
+            for conn in self.conns.values():
+                if conn:
+                    synapse_model = conn[0].params['synapse_model']
+                    break
+        if synapse_model is None:
+            #TODO
+            import warnings
+            warnings.warn('Could not determine synapse model since there was'
+                            ' no dumped connection')
         return synapse_model
 
 
