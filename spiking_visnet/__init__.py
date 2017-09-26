@@ -60,7 +60,7 @@ def load_params(path, overrides=None):
     ])
 
 
-def run(path, overrides=None):
+def run(path, overrides=None, output_dir=None, input_dir=None):
     """Run the simulation described by the params at ``path``.
 
     Args:
@@ -72,6 +72,11 @@ def run(path, overrides=None):
     """
     print(f'Loading parameters: `{path}`... ', end='', flush=True)
     params = load_params(path, overrides=overrides)
+    # Incorporate kwargs in params
+    if output_dir is not None:
+        params.c['simulation']['output_dir'] = output_dir
+    if output_dir is not None:
+        params.c['simulation']['input_dir'] = input_dir
     print('done.', flush=True)
     # Initialize simulation
     sim = Simulation(params)
