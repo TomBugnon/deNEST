@@ -208,6 +208,37 @@ class BaseConnection(NestObject):
                             ' no dumped connection')
         return synapse_model
 
+    def _connect(self):
+        """Call nest.Connect() to create all unit connections.
+
+        We call nest.Connect() with the following arguments:
+            <sources> (list): list of gids.
+            <targets> (list): list of gids.
+            conn_spec='one_to_one'
+            syn_spec=params
+        where params is of the form::
+            {
+                <weight>: <list_of_weights>
+                <delays>: <list_of_delays>
+                <model>: <synapse_model>
+            }
+        """
+        sources, targets, params = self.format_conns()
+        nest.Connect(sources, targets,
+                     conn_spec='one_to_one',
+                     syn_spec=params)
+
+    def format_conns(self):
+        """Format the self.conns() dict in a form suitable for nest.Connect."""
+        # import ipdb; ipdb.set_trace()
+        all_conns = list(itertools.chain(*self.conns.values()))
+        sources = [conn.params['source'] for conn in all_conns]
+        targets = [conn.params['target'] for conn in all_conns]
+        params = {'weight': [conn.params['weight'] for conn in all_conns],
+                  'delay': [conn.params['delay'] for conn in all_conns],
+                  'model': self.synapse_model}
+        return sources, targets, params
+
 
 class FromFileConnection(BaseConnection):
     """Represent a connection loaded from file."""
@@ -218,10 +249,12 @@ class FromFileConnection(BaseConnection):
         self.synapse_model = None
 
     def create(self):
+        # Get connections
         self.conns = self.load_conns()
+        # Get synapse model from connections
         self.synapse_model = self.get_synapse_model()
-        for conn in itertools.chain(*self.conns.values()):
-            conn.create()
+        # Create connections
+        self._connect()
 
 
 class TopoConnection(BaseConnection):
@@ -335,11 +368,13 @@ class RescaledConnection(TopoConnection):
             raise NotImplementedError
 
     def create(self):
+        # Load and rescale connections
         self.model_conns = self.load_conns()
         self.conns = self.redraw_conns()
+        # Get synapse model from connections
         self.synapse_model = self.get_synapse_model()
-        for conn in itertools.chain(*self.conns.values()):
-            conn.create()
+        # Create connections
+        self._connect()
 
     def redraw_conns(self):
         """Redraw pool gids according to topological parameters."""
@@ -379,16 +414,3 @@ class UnitConn(NestObject):
 
     def __lt__(self, other):
         return self.sort_key() < other.sort_key()
-
-    def create(self):
-        import nest
-        self._synapse_model = self.params['synapse_model']
-        self._weight = self.params['weight']
-        self._source = self.params['source']
-        self._target = self.params['target']
-        self._delay = self.params['delay']
-        nest.Connect((self._source,),
-                     (self._target,),
-                     syn_spec= {'model': self._synapse_model,
-                                'weight': self._weight,
-                                'delay': self._delay})
