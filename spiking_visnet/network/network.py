@@ -188,7 +188,7 @@ class Network:
         for changes in tqdm(sorted(unit_changes, key=unit_sorting_map),
                             desc="-> Change units' state"):
 
-            if self._changed and changes['proportion'] == 1:
+            if self._changed and changes['proportion'] != 1:
                 raise Exception("Attempting to change probabilistically some "
                                 "units' state multiple times.")
 
