@@ -137,6 +137,7 @@ class Network:
         self._create_all(self._get_layers())
         log.info('Connecting layers...')
         self._create_all(self.connections)
+        self.print_network_size()
         log.info('Creating recorders...')
         self._create_all(self.populations)
 
@@ -188,7 +189,7 @@ class Network:
         for changes in tqdm(sorted(unit_changes, key=unit_sorting_map),
                             desc="-> Change units' state"):
 
-            if self._changed and changes['proportion'] == 1:
+            if self._changed and changes['proportion'] != 1:
                 raise Exception("Attempting to change probabilistically some "
                                 "units' state multiple times.")
 
@@ -225,6 +226,17 @@ class Network:
         for conn in tqdm(self.connections,
                          desc='Create connection plots'):
             conn.save_plot(plot_dir)
+
+    @staticmethod
+    def print_network_size():
+        import nest
+        print('------------------------')
+        print('Network size (without recorders)')
+        print('Number of nodes: ', nest.GetKernelStatus('network_size'))
+        print('Number of connections: ',
+              nest.GetKernelStatus('num_connections'))
+        print('------------------------')
+
 
 def unit_sorting_map(unit_change):
     """Map by (layer, population, proportion, params_items for sorting."""
