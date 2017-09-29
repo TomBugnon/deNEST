@@ -380,19 +380,30 @@ class RescaledConnection(TopoConnection):
 
     def redraw_conns(self):
         """Redraw pool gids according to topological parameters."""
-        conns = {}
+        PARALLEL = True
+        drivers = self.driver_gids()
         # TODO: Parallelize
-        for driver in tqdm(self.driver_gids(),
-                           desc=('Rescaling ' + self.__str__)):
-            # Copy the model connection list
-            conns[driver] = list(self.model_conns[driver])
-            # Draw the model's number of pooled gids for each driving unit
-            pool_gids = self.draw_pool_gids(driver,
-                                            N=len(self.model_conns[driver]))
-            # Replace the model gids by the drawn gids in each UnitConn
+        # Draw the model's number of pooled gids for each driving unit
+        if PARALLEL:
+            from joblib import Parallel, delayed
+            arg_list = [(driver, len(self.model_conns[driver]))
+                        for driver in drivers]
+            all_pool_gids = Parallel(n_jobs=8)(
+                delayed(self.draw_pool_gids)(*args) for args in arg_list
+            )
+        else:
+            all_pool_gids = [
+                self.draw_pool_gids(driver, N=len(self.model_conns[driver]))
+                for driver in tqdm(drivers, desc=('Rescaling ' + self.__str__))
+            ]
+        # Copy the model connection list
+        conns = deepcopy(self.model_conns)
+        # Replace the model gids by the drawn gids in each UnitConn
+        for driver, pool_gids in zip(drivers, all_pool_gids):
             for i, unitconn in enumerate(conns[driver]):
                 unitconn.params[self.pool] = pool_gids[i]
-            # TODO: Redraw delays and weights if they have a spatial profile?
+                # TODO: Redraw delays and weights if they have a spatial
+                # profile?
         return conns
 
     def draw_pool_gids(self, driver_gid, N=1):
