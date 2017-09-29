@@ -131,9 +131,8 @@ class Layer(AbstractLayer):
         self._gid = None
 
     def extent_units(self, value):
-        return self.to_extent_units(
-            value, self.visSize, self.nrows, self.ncols
-        )
+        return self.to_extent_units(value, self.extent[0],
+                                    self.shape[0], self.shape[1])
 
     def build_elements(self):
         """Return the NEST description of layer elements.
@@ -160,7 +159,8 @@ class Layer(AbstractLayer):
         self._locations = dict()
         # Maps GID to population
         self._populations = dict()
-        for i, j in itertools.product(range(self.nrows), range(self.ncols)):
+        for i, j in itertools.product(range(self.shape[0]),
+                                      range(self.shape[1])):
             # IMPORTANT: rows and columns are switched in the GetElement query
             gids = tp.GetElement(self.gid, locations=(j, i))
             populations = [
