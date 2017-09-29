@@ -91,3 +91,6 @@ def run(path, overrides=None, output_dir=None, input_dir=None):
     # Plot network's connections
     if params.c['simulation']['plot_connections']:
         sim.plot_connections()
+    # Dump network's incoming connection numbers per layer
+    if params.c['simulation'].get('dump_connection_numbers', False):
+        sim.dump_connection_numbers()

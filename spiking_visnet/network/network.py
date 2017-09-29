@@ -237,6 +237,16 @@ class Network:
               nest.GetKernelStatus('num_connections'))
         print('------------------------')
 
+    def dump_connection_numbers(self, ratio_dump_dir):
+        from ..save import save_as_yaml
+        from os.path import join
+        layer_connections = {}
+        for layer in tqdm(self._get_layers(layer_type='Layer'),
+                          desc='Dumping connection numbers per layer'):
+            layer_connections[layer.name] = layer.incoming_connections()
+        save_as_yaml(join(ratio_dump_dir, 'synapse_numbers.yml'),
+                     layer_connections)
+
 
 def unit_sorting_map(unit_change):
     """Map by (layer, population, proportion, params_items for sorting."""

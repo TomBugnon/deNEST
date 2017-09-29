@@ -226,6 +226,21 @@ class Layer(AbstractLayer):
                                      location=location),
                            {variable: value})
 
+    @if_created
+    def incoming_connections(self):
+        """Return the # of incoming synapses per synapse type."""
+        import nest
+        n_AMPA = len(nest.GetConnections(target=self.gids(),
+                                        synapse_model='AMPA_syn'))
+        n_GABA_A = len(nest.GetConnections(target=self.gids(),
+                                           synapse_model='GABA_A_syn'))
+        n_GABA_B = len(nest.GetConnections(target=self.gids(),
+                                           synapse_model='GABA_B_syn'))
+        exc_inh_ratio = n_AMPA/(n_GABA_A + n_GABA_B)
+        return {'AMPA': n_AMPA,
+                'GABA_A': n_GABA_A,
+                'GABA_B': n_GABA_B,
+                'exc_inh_ratio': exc_inh_ratio}
 
 class InputLayer(AbstractLayer):
     """A layer that provides input to the network.
