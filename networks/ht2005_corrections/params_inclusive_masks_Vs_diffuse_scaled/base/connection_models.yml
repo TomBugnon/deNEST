@@ -63,7 +63,7 @@ network:
             circular:
               radius: 5.5
 
-    interlaminar_exc:
+    interlaminar_exc_Vp:
       params:
         mask:
           circular:
@@ -72,11 +72,11 @@ network:
           gaussian:
             p_center: 1.0
             sigma: 7.5
-      interlaminar_NMDA:
+      interlaminar_NMDA_Vp:
         params:
           synapse_model: NMDA_syn
           weights: 1.0
-      interlaminar_AMPA_L23_to_L56:
+      interlaminar_AMPA_L23_to_L56_Vp:
         params:
           synapse_model: AMPA_syn
           weights: 1.0
@@ -84,6 +84,28 @@ network:
         params:
           synapse_model: AMPA_syn
           weights: 2.0
+      interlaminar_AMPA_Vs:
+        params:
+          synapse_model: AMPA_syn
+          weights: 1.0
+
+    interlaminar_exc_Vs:
+      params:
+        mask:
+          circular:
+            radius: 2.1
+        kernel:
+          gaussian:
+            p_center: 1.0
+            sigma: 7.5
+      interlaminar_NMDA_Vs:
+        params:
+          synapse_model: NMDA_syn
+          weights: 1.0
+      interlaminar_AMPA_L23_to_L56_Vs:
+        params:
+          synapse_model: AMPA_syn
+          weights: 1.0
       interlaminar_AMPA_Vs:
         params:
           synapse_model: AMPA_syn
@@ -124,7 +146,16 @@ network:
         params:
           weights: 0.5
 
-    interlaminar_GABA_B:
+    interlaminar_GABA_B_Vp:
+      params:
+        synapse_model: GABA_B_syn
+        weights: 1.0
+        mask:
+          circular:
+            radius: 2.1
+        kernel: 0.3
+
+    interlaminar_GABA_B_Vs:
       params:
         synapse_model: GABA_B_syn
         weights: 1.0
@@ -191,7 +222,7 @@ network:
           synapse_model: AMPA_syn
 
     intra-thalamic:
-      T_R_AMPA:
+      Tp_Rp_AMPA:
         params:
           synapse_model: AMPA_syn
           weights: 2.0
@@ -202,7 +233,29 @@ network:
             gaussian:
               p_center: 1.0
               sigma: 7.5
-      T_T_GABA_A:
+      Ts_Rs_AMPA:
+        params:
+          synapse_model: AMPA_syn
+          weights: 2.0
+          mask:
+            circular:
+              radius: 2.1
+          kernel:
+            gaussian:
+              p_center: 1.0
+              sigma: 7.5
+      Tp_Tp_GABA_A:
+        params:
+          synapse_model: GABA_A_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 2.1
+          kernel:
+            gaussian:
+              p_center: 0.25
+              sigma: 7.5
+      Ts_Ts_GABA_A:
         params:
           synapse_model: GABA_A_syn
           weights: 1.0

@@ -28,12 +28,12 @@ network:
         - source_layer: Tp_layer
           source_population: Tp_exc
           target_layer: Rp_layer
-          connection: T_R_AMPA
+          connection: Tp_Rp_AMPA
         # Tp inh to Tp exc and Tp inh GABA_A
         - source_layer: Tp_layer
           source_population: Tp_inh
           target_layer: Tp_layer
-          connection: T_T_GABA_A
+          connection: Tp_Tp_GABA_A
         # Rp to Tp exc and Tp inh GABA_A
         - source_layer: Rp_layer
           source_population: Rp
@@ -56,12 +56,12 @@ network:
         - source_layer: Ts_layer
           source_population: Tp_exc
           target_layer: Rs_layer
-          connection: T_R_AMPA
+          connection: Ts_Rs_AMPA
         # Ts inh to Ts exc and Ts inh GABA_A
         - source_layer: Ts_layer
           source_population: Tp_inh
           target_layer: Ts_layer
-          connection: T_T_GABA_A
+          connection: Ts_Ts_GABA_A
         # Rs to Ts exc and Ts inh GABA_A
         - source_layer: Rs_layer
           source_population: Rp
@@ -303,11 +303,11 @@ network:
         - source_layer: Vp_L23_vertical
           source_population: Vp_exc
           target_layer: Vp_L56_vertical
-          connection: interlaminar_AMPA_L23_to_L56
+          connection: interlaminar_AMPA_L23_to_L56_Vp
         - source_layer: Vp_L23_horizontal
           source_population: Vp_exc
           target_layer: Vp_L56_horizontal
-          connection: interlaminar_AMPA_L23_to_L56
+          connection: interlaminar_AMPA_L23_to_L56_Vp
         # L4 exc to L2_exc and L2_inh (hor and vertical, full selectivity)
         - source_layer: Vp_L4_vertical
           source_population: Vp_exc
@@ -342,12 +342,12 @@ network:
           source_population: Vp_exc
           target_layer: Vp_L56_vertical
           target_population: Vp_exc
-          connection: interlaminar_NMDA
+          connection: interlaminar_NMDA_Vp
         - source_layer: Vp_L23_horizontal
           source_population: Vp_exc
           target_layer: Vp_L56_horizontal
           target_population: Vp_exc
-          connection: interlaminar_NMDA
+          connection: interlaminar_NMDA_Vp
 
         ## Intralaminar GABA_A
         # L23
@@ -489,32 +489,32 @@ network:
           source_population: Vp_inh
           target_layer: Vp_L23_vertical
           target_population: Vp_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vp
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L23_horizontal
           target_population: Vp_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vp
         - source_layer: Vp_L23_vertical
           source_population: Vp_inh
           target_layer: Vp_L4_vertical
           target_population: Vp_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vp
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L4_horizontal
           target_population: Vp_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vp
         - source_layer: Vp_L23_vertical
           source_population: Vp_inh
           target_layer: Vp_L56_vertical
           target_population: Vp_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vp
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L56_horizontal
           target_population: Vp_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vp
 
 
         ####################################
@@ -586,15 +586,15 @@ network:
         - source_layer: Vs_L23_vertical
           source_population: Vs_exc
           target_layer: Vs_L56_vertical
-          connection: interlaminar_AMPA_L23_to_L56
+          connection: interlaminar_AMPA_L23_to_L56_Vs
         - source_layer: Vs_L23_horizontal
           source_population: Vs_exc
           target_layer: Vs_L56_horizontal
-          connection: interlaminar_AMPA_L23_to_L56
+          connection: interlaminar_AMPA_L23_to_L56_Vs
         - source_layer: Vs_L23_cross
           source_population: Vs_exc
           target_layer: Vs_L56_cross
-          connection: interlaminar_AMPA_L23_to_L56
+          connection: interlaminar_AMPA_L23_to_L56_Vs
         # L4 exc to L2_exc and L2_inh (full selectivity)
         - source_layer: Vs_L4_vertical
           source_population: Vs_exc
@@ -641,17 +641,17 @@ network:
           source_population: Vs_exc
           target_layer: Vs_L56_vertical
           target_population: Vs_exc
-          connection: interlaminar_NMDA
+          connection: interlaminar_NMDA_Vs
         - source_layer: Vs_L23_horizontal
           source_population: Vs_exc
           target_layer: Vs_L56_horizontal
           target_population: Vs_exc
-          connection: interlaminar_NMDA
+          connection: interlaminar_NMDA_Vs
         - source_layer: Vs_L23_cross
           source_population: Vs_exc
           target_layer: Vs_L56_cross
           target_population: Vs_exc
-          connection: interlaminar_NMDA
+          connection: interlaminar_NMDA_Vs
 
         ## Intralaminar GABA_A
         # L23
@@ -941,47 +941,47 @@ network:
           source_population: Vs_inh
           target_layer: Vs_L23_vertical
           target_population: Vs_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vs
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L23_horizontal
           target_population: Vs_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vs
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L23_cross
           target_population: Vs_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vs
         - source_layer: Vs_L23_vertical
           source_population: Vs_inh
           target_layer: Vs_L4_vertical
           target_population: Vs_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vs
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L4_horizontal
           target_population: Vs_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vs
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L4_cross
           target_population: Vs_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vs
         - source_layer: Vs_L23_vertical
           source_population: Vs_inh
           target_layer: Vs_L56_vertical
           target_population: Vs_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vs
         - source_layer: Vs_L23_horizontal
           source_population: Vs_inh
           target_layer: Vs_L56_horizontal
           target_population: Vs_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vs
         - source_layer: Vs_L23_cross
           source_population: Vs_inh
           target_layer: Vs_L56_cross
           target_population: Vs_exc
-          connection: interlaminar_GABA_B
+          connection: interlaminar_GABA_B_Vs
 
 
         ########################################################################

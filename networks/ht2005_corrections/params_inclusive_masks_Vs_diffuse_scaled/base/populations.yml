@@ -12,8 +12,7 @@ network:
       parrot_neuron: {}
 
     thalamus:
-      params:
-        recorders: {}
+      params: {}
       Tp_layer:
         params:
           layer: Tp_layer
