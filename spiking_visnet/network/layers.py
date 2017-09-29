@@ -7,6 +7,7 @@
 import itertools
 
 import numpy as np
+
 from tqdm import tqdm
 
 from ..utils import filter_suffixes, spike_times
@@ -230,6 +231,8 @@ class Layer(AbstractLayer):
     def incoming_connections(self):
         """Return the # of incoming synapses per synapse type."""
         import nest
+        if not self.params.get('dump_connection_numbers', True):
+            return {}
         n_AMPA = len(nest.GetConnections(target=self.gids(),
                                         synapse_model='AMPA_syn'))
         n_GABA_A = len(nest.GetConnections(target=self.gids(),
