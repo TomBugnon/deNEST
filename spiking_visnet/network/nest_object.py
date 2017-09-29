@@ -47,9 +47,3 @@ class NestObject:
 
     def __hash__(self):
         return hash(self.name)
-
-    def __getattr__(self, name):
-        try:
-            return self.params[name]
-        except KeyError:
-            return self.__getattribute__(name)
