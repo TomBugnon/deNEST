@@ -1,0 +1,338 @@
+network:
+  connection_models:
+
+    params:
+      #
+      type: topological
+      scale_factor: 1.0
+      dump_connection: True
+
+      # nest parameters
+      allow_autapses: false
+      allow_multapses: false
+      allow_oversized_mask: true
+      delays:
+          uniform:
+              min: 1.75
+              max: 2.25
+      connection_type: divergent
+
+    intralaminar_exc:
+      params:
+        weights: 1.
+        mask:
+          circular:
+            radius: 12.1
+        kernel:
+          gaussian:
+            p_center: 0.05
+            sigma: 7.5
+      intralaminar_NMDA:
+        params:
+          synapse_model: NMDA_syn
+      intralaminar_AMPA:
+        params:
+          synapse_model: AMPA_syn
+      intralaminar_AMPA_L4:
+        params:
+          synapse_model: AMPA_syn
+          mask:
+            circular:
+              radius: 7.1
+
+    interlaminar_exc:
+      params:
+        mask:
+          circular:
+            radius: 2.1
+        kernel:
+          gaussian:
+            p_center: 1.0
+            sigma: 7.5
+      interlaminar_NMDA:
+        params:
+          synapse_model: NMDA_syn
+          weights: 1.0
+      interlaminar_AMPA_L23_to_L56:
+        params:
+          synapse_model: AMPA_syn
+          weights: 1.0
+      interlaminar_AMPA_Vp:
+        params:
+          synapse_model: AMPA_syn
+          weights: 2.0
+      interlaminar_AMPA_Vs:
+        params:
+          synapse_model: AMPA_syn
+          weights: 1.0
+
+    intralaminar_GABA_A:
+      params:
+        synapse_model: GABA_A_syn
+        weights: 1.0
+        mask:
+          circular:
+            radius: 7.1
+        kernel:
+          gaussian:
+            p_center: 0.25
+            sigma: 7.5
+      intralaminar_GABA_A_to_exc:
+      intralaminar_GABA_A_to_inh_cc:
+        params:
+          weights: 0.5
+      intralaminar_GABA_A_to_inh_cx:
+        params:
+          weights: 0.75
+      intralaminar_GABA_A_to_inh_Vs:
+        params:
+          weights: 0.5
+
+    interlaminar_GABA_B:
+      params:
+        synapse_model: GABA_B_syn
+        weights: 1.0
+        mask:
+          circular:
+            radius: 2.1
+        kernel: 0.3
+
+    Vp_Vs_forward:
+      params:
+        synapse_model: AMPA_syn
+        connection_type: convergent
+        weights: 1.0
+        kernel: 0.8
+        delays:
+          uniform:
+            min: 2.75
+            max: 3.25
+      Vp_Vs_forward_horizontal:
+        params:
+          mask:
+            rectangular:
+              lower_left: !!python/list [-9.5, -1.5]
+              upper_right: !!python/list [9.5, 1.5]
+      Vp_Vs_forward_vertical:
+        params:
+          mask:
+            rectangular:
+              lower_left: !!python/list [-1.5, -9.5]
+              upper_right: !!python/list [1.5, 9.5]
+      Vp_Vs_forward_cross_from_vertical:
+        params:
+          mask:
+            rectangular:
+              lower_left: !!python/list [-1.5, -4.5]
+              upper_right: !!python/list [1.5, 4.5]
+      Vp_Vs_forward_cross_from_horizontal:
+        params:
+          mask:
+            rectangular:
+              lower_left: !!python/list [-4.5, -1.5]
+              upper_right: !!python/list [4.5, 1.5]
+
+    Vp_Vs_backward:
+      params:
+        mask:
+          circular:
+            radius: 12.1
+        kernel:
+          gaussian:
+            p_center: 0.1
+            sigma: 7.5
+        weights: 1.0
+        delays:
+          uniform:
+            min: 5.5
+            max: 6.5
+      Vp_Vs_backward_to_exc:
+        params:
+          synapse_model: NMDA_syn
+      Vp_Vs_backward_to_inh:
+        params:
+          synapse_model: AMPA_syn
+
+    intra-thalamic:
+    #   params: {} #TODO: can I comment out?
+      T_R_AMPA:
+        params:
+          synapse_model: AMPA_syn
+          weights: 2.0
+          mask:
+            circular:
+              radius: 2.1
+          kernel:
+            gaussian:
+              p_center: 1.0
+              sigma: 7.5
+      T_T_GABA_A:
+        params:
+          synapse_model: GABA_A_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 2.1
+          kernel:
+            gaussian:
+              p_center: 0.25
+              sigma: 7.5
+      R_T_GABA_A:
+        params:
+          synapse_model: GABA_A_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 12.1
+          kernel:
+            gaussian:
+              p_center: 0.15
+              sigma: 7.5
+      R_T_GABA_B:
+        params:
+          synapse_model: GABA_B_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 12.1
+          kernel:
+            gaussian:
+              p_center: 0.05
+              sigma: 7.5
+
+      R_R_GABA_B:
+        params:
+          synapse_model: GABA_B_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 12.1
+          kernel:
+            gaussian:
+              p_center: 0.5
+              sigma: 7.5
+
+    thalamo_cortical:
+      params:
+        synapse_model: AMPA_syn
+        connection_type: convergent
+        weights: 5.0
+        delays:
+          uniform:
+            min: 2.75
+            max: 3.25
+      rectangular:
+        params: {}
+        Tp_horizontal_to_L4:
+          params:
+              kernel: 0.5
+              mask:
+                rectangular:
+                  lower_left: !!python/list [-4.1, -1.1]
+                  upper_right: !!python/list [4.1, 1.1]
+        Tp_vertical_to_L4:
+          params:
+              kernel: 0.5
+              mask:
+                rectangular:
+                  lower_left: !!python/list [-1.1, -4.1]
+                  upper_right: !!python/list [1.1, 4.1]
+        Tp_horizontal_to_L56:
+          params:
+              kernel: 0.3
+              mask:
+                rectangular:
+                  lower_left: !!python/list [-4.1, -1.1]
+                  upper_right: !!python/list [4.1, 1.1]
+        Tp_vertical_to_L56:
+          params:
+              kernel: 0.3
+              mask:
+                rectangular:
+                  lower_left: !!python/list [-1.1, -4.1]
+                  upper_right: !!python/list [1.1, 4.1]
+
+        Tp_Vp_diffuse:
+          params:
+            mask:
+              circular:
+                radius: 5.1
+            kernel:
+              gaussian:
+                p_center: 0.1
+                sigma: 7.5
+
+        Ts_to_Vs:
+          params:
+            connection_type: divergent
+            mask:
+              rectangular:
+                lower_left: !!python/list [-2.1, -2.1]
+                upper_right: !!python/list [2.1, 2.1]
+          Ts_to_Vs_L4:
+            params:
+              kernel: 0.5
+          Ts_to_Vs_L56:
+            params:
+              kernel: 0.3
+
+    cortico_thalamic:
+      params:
+        synapse_model: AMPA_syn
+        weights: 1.0
+        mask:
+          circular:
+            radius: 5.1
+        kernel:
+          gaussian:
+            p_center: 0.5
+            sigma: 7.5
+        delays:
+          uniform:
+            min: 7.5
+            max: 8.5
+
+    cortico_reticular:
+      params:
+        synapse_model: AMPA_syn
+        weights: 2.5
+        mask:
+          circular:
+            radius: 5.1
+        kernel:
+          gaussian:
+            p_center: 0.5
+            sigma: 7.5
+        delays:
+          uniform:
+            min: 7.5
+            max: 8.5
+
+    Vp_Ts_cortico_thalamic:
+      params:
+        synapse_model: AMPA_syn
+        weights: 5.0
+        mask:
+          circular:
+            radius: 2.1
+        kernel:
+          gaussian:
+            p_center: 1.0
+            sigma: 7.5
+        delays:
+          uniform:
+            min: 7.5
+            max: 8.5
+
+    retino_thalamic:
+      params:
+        synapse_model: reticular_projection
+        weights: 10.0
+        mask:
+          circular:
+            radius: 1.1
+        kernel:
+          gaussian:
+            p_center: 0.75
+            sigma: 2.5
+        delays: 1.0

@@ -1,0 +1,30 @@
+sessions:
+  params:
+    order: ['warmup', 'spontaneous', 'grating']
+    reset_network: False
+  warmup:
+    params:
+      session_stimulus: 'noise_256x256.yml'
+      max_session_sim_time: 500.
+      time_per_frame: 500.
+      unit_changes:
+          - layer: Vp_L56_vertical
+            population: Vp_exc
+            proportion: 0.3
+            params:
+                g_peak_h: 1.0
+          - layer: Vp_L56_horizontal
+            population: Vp_exc
+            proportion: 0.3
+            params:
+                g_peak_h: 1.0
+  spontaneous:
+    params:
+      session_stimulus: 'noise_256x256.yml'
+      max_session_sim_time: 5000.
+      time_per_frame: 10000.
+  grating:
+    params:
+      session_stimulus: 'sinusoidal_grating_0_degrees_100picks.yml'
+      max_session_sim_time: 5000.
+      time_per_frame: 40.
