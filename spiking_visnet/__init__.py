@@ -81,13 +81,13 @@ def run(path, overrides=None, output_dir=None, input_dir=None):
     # Initialize simulation
     sim = Simulation(params)
     # Simulate and save
-    if not params.c['simulation']['dry_run']:
+    if not params.c['simulation'].get('dry_run', False):
         sim.run()
-    if params.c['simulation']['save_simulation']:
+    if params.c['simulation'].get('save_simulation', True):
         sim.save()
     # Dump network's connections
-    if params.c['simulation']['dump_connections']:
+    if params.c['simulation'].get('dump_connections', False):
         sim.dump_connections()
     # Plot network's connections
-    if params.c['simulation']['plot_connections']:
+    if params.c['simulation'].get('plot_connections', False):
         sim.plot_connections()
