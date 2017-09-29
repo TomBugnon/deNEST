@@ -1,0 +1,114 @@
+network:
+  populations: # recorders
+    params:
+      recorders:
+        spike_detector: {}
+
+    retina:
+      params:
+        layer: retina
+        recorders:
+          spike_detector: {}
+      parrot_neuron: {}
+
+    thalamus:
+      params: {}
+      Tp_layer:
+        params:
+          layer: Tp_layer
+        Tp_exc:
+        Tp_inh:
+      Ts_layer:
+        params:
+          layer: Ts_layer
+        Tp_exc:
+        Tp_inh:
+      Rp_layer:
+        params:
+          layer: Rp_layer
+        Rp:
+      Rs_layer:
+        params:
+          layer: Rs_layer
+        Rp:
+
+    Vp:
+      params: {}
+      Vp_L23_vertical:
+        params:
+          layer: Vp_L23_vertical
+        Vp_exc:
+        Vp_inh:
+      Vp_L23_horizontal:
+        params:
+          layer: Vp_L23_horizontal
+        Vp_exc:
+        Vp_inh:
+      Vp_L4_vertical:
+        params:
+          layer: Vp_L4_vertical
+        Vp_exc:
+        Vp_inh:
+      Vp_L4_horizontal:
+        params:
+          layer: Vp_L4_horizontal
+        Vp_exc:
+        Vp_inh:
+      Vp_L56_vertical:
+        params:
+          layer: Vp_L56_vertical
+        Vp_exc:
+        Vp_inh:
+      Vp_L56_horizontal:
+        params:
+          layer: Vp_L56_horizontal
+        Vp_exc:
+        Vp_inh:
+    Vs:
+      params: {}
+      children:
+        Vs_L23_vertical:
+          params:
+            layer: Vs_L23_vertical
+          Vs_exc:
+          Vs_inh:
+        Vs_L23_horizontal:
+          params:
+            layer: Vs_L23_horizontal
+          Vs_exc:
+          Vs_inh:
+        Vs_L23_cross:
+          params:
+            layer: Vs_L23_cross
+          Vs_exc:
+          Vs_inh:
+        Vs_L4_vertical:
+          params:
+            layer: Vs_L4_vertical
+          Vs_exc:
+          Vs_inh:
+        Vs_L4_horizontal:
+          params:
+            layer: Vs_L4_horizontal
+          Vs_exc:
+          Vs_inh:
+        Vs_L4_cross:
+          params:
+            layer: Vs_L4_cross
+          Vs_exc:
+          Vs_inh:
+        Vs_L56_vertical:
+          params:
+            layer: Vs_L56_vertical
+          Vs_exc:
+          Vs_inh:
+        Vs_L56_horizontal:
+          params:
+            layer: Vs_L56_horizontal
+          Vs_exc:
+          Vs_inh:
+        Vs_L56_cross:
+          params:
+            layer: Vs_L56_cross
+          Vs_exc:
+          Vs_inh:

@@ -1,0 +1,27 @@
+network:
+  synapse_models:
+    ht_synapse:
+      params:
+        nest_model: ht_synapse
+        target_neuron: ht_neuron
+        tau_P: 50.
+        delta_P: 0.2
+      AMPA_syn:
+        params:
+          receptor_type: AMPA
+      NMDA_syn:
+        params:
+          receptor_type: NMDA
+      GABA_A_syn:
+        params:
+          receptor_type: GABA_A
+      GABA_B_syn:
+        params:
+          receptor_type: GABA_B
+    static_synapse:
+      params:
+        nest_model: static_synapse
+      reticular_projection:
+        params:
+          target_neuron: ht_neuron
+          receptor_type: AMPA

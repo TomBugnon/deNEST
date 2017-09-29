@@ -1,0 +1,117 @@
+network:
+  layers:
+    params:
+      type: null
+    input_area:
+      params:
+        area: input_area
+        type: 'InputLayer'
+      retina:
+        params:
+          populations:
+            input_exc: 1
+    thalamus:
+      params:
+        area: thalamus
+      Tp_layer:
+        params:
+          populations:
+            Tp_exc: 1
+            Tp_inh: 1
+      Ts_layer:
+        params:
+          populations:
+            Tp_exc: 1
+            Tp_inh: 1
+    reticula:
+      params:
+        area: reticula
+      Rp_layer:
+        params:
+          populations:
+            Rp: 1
+      Rs_layer:
+        params:
+          populations:
+            Rp: 1
+    Vp:
+      params:
+        area: Vp
+      Vp_L23_vertical:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L23_horizontal:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L4_vertical:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L4_horizontal:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L56_vertical:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L56_horizontal:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+    Vs:
+      params:
+        area: Vs
+      Vs_L23_vertical:
+        params:
+          populations:
+            Vs_exc: 2
+            Vs_inh: 1
+      Vs_L23_horizontal:
+        params:
+          populations:
+            Vs_exc: 2
+            Vs_inh: 1
+      Vs_L23_cross:
+        params:
+          populations:
+            Vs_exc: 2
+            Vs_inh: 1
+      Vs_L4_vertical:
+        params:
+          populations:
+            Vs_exc: 2
+            Vs_inh: 1
+      Vs_L4_horizontal:
+        params:
+          populations:
+            Vs_exc: 2
+            Vs_inh: 1
+      Vs_L4_cross:
+        params:
+          populations:
+            Vs_exc: 2
+            Vs_inh: 1
+      Vs_L56_vertical:
+        params:
+          populations:
+            Vs_exc: 2
+            Vs_inh: 1
+      Vs_L56_horizontal:
+        params:
+          populations:
+            Vs_exc: 2
+            Vs_inh: 1
+      Vs_L56_cross:
+        params:
+          populations:
+            Vs_exc: 2
+            Vs_inh: 1
