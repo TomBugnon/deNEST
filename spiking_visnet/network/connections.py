@@ -12,9 +12,11 @@ from os.path import join
 
 import nest
 import numpy as np
+
 from tqdm import tqdm
 
 from . import topology
+from .layers import InputLayer
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
 
@@ -366,7 +368,7 @@ class RescaledConnection(TopoConnection):
         self.conns = None
         self.synapse_model = None
         # TODO: same for InputLayer connections. ( or !just.don't.care!)
-        if type(self.source_layer).__name__ == 'InputLayer':
+        if isinstance(self.source, InputLayer):
             raise NotImplementedError
 
     def create(self):
