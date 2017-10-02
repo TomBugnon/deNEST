@@ -388,9 +388,10 @@ class RescaledConnection(TopoConnection):
         # Draw the model's number of pooled gids for each driving unit
         if PARALLEL:
             from joblib import Parallel, delayed
+            print('Rescaling ', self.__str__)
             arg_list = [(driver, len(self.model_conns[driver]))
                         for driver in drivers]
-            all_pool_gids = Parallel(n_jobs=8)(
+            all_pool_gids = Parallel(n_jobs=8, verbose=1)(
                 delayed(self.draw_pool_gids)(*args) for args in arg_list
             )
         else:
