@@ -15,17 +15,16 @@ def draw_pool_gids(conn, driver_gid, N=1):
 
     Algorithm:
     - Get a list of candidate gids of the pool layer (checking population,
-        mask and autapse)
+      mask and autapse)
     - While the number of drawn pool gids is smaller than the requested number:
-        1- Check that the list of candidate gids is not empty
-        1- Shuffle the list of candidate gids
-        2- For each candidate gid in turn from the shuffled list, draw a success
-            according to the point kernel probability.
-            -> if success, add gid to the return list and increase the count.
-            -> if not allow_multapse, pop the drawn gid from the list of
-                candidate gids
-        3- return when the count is reached
-
+        1. Check that the list of candidate gids is not empty
+        1. Shuffle the list of candidate gids
+        2. For each candidate gid in turn from the shuffled list, draw a success
+           according to the point kernel probability.
+           - if success, add gid to the return list and increase the count.
+           - if not allow_multapse, pop the drawn gid from the list of
+             candidate gids
+        3. Return when the count is reached
     """
     # Get all pool gids and distance from driver (accounting for edge_wrap)
     all_gids = [
@@ -39,7 +38,7 @@ def draw_pool_gids(conn, driver_gid, N=1):
         (gid, distance)
         for gid, distance in all_gids
         if within_mask(conn, distance)
-        ]
+    ]
     # Filter out autapse
     if not conn.nest_params.get('allow_autapses', True):
         candidate_gids = [tup for tup in candidate_gids if tup[0] != driver_gid]
@@ -48,7 +47,7 @@ def draw_pool_gids(conn, driver_gid, N=1):
     pool_gids = []
     while n_drawn < N:
         if not candidate_gids:
-            raise Exception('Can not draw the requested number of gids...' +
+            raise Exception('Can not draw the requested number of gids... '
                             'Check mask/allow_multapses/allow_autapses params?')
         # Shuffle and draw according to point probability
         for gid, distance in random.sample(candidate_gids, len(candidate_gids)):
