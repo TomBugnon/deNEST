@@ -8,3 +8,4 @@ It is a model of the thalamocortical network with two orientation selectivities 
 The modifications from HT2005 are as follows:
 - 1-  Make all the masks inclusive (12 -> 12.1, 7->7.1 etc)
 - 2- Scale all the diffuse (mask > 4 units) connections of which the pool layer is Vs so that the masks of analogous connections have the same physical extent in Vp and Vs.
+- 3- Remove all orientation selectivity for intralaminar GABA_A connections (no inh->inh selectivity)

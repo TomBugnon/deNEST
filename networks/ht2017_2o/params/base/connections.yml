@@ -372,28 +372,27 @@ network:
           target_layer: Vp_L23_vertical
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc_Vp
-        # L23 inh to L23 inh (partial selectivity)
-        # Crossed have higher weight
+        # L23 inh to L23 inh (no selectivity)
         - source_layer: Vp_L23_vertical
           source_population: Vp_inh
           target_layer: Vp_L23_vertical
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cc_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         - source_layer: Vp_L23_vertical
           source_population: Vp_inh
           target_layer: Vp_L23_horizontal
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cx_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L23_horizontal
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cc_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         - source_layer: Vp_L23_horizontal
           source_population: Vp_inh
           target_layer: Vp_L23_vertical
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cx_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         # L4
         # L4 inh to L4 exc (no selectivity)
         - source_layer: Vp_L4_vertical
@@ -416,28 +415,27 @@ network:
           target_layer: Vp_L4_vertical
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc_Vp
-        # L4 inh to L4 inh (partial selectivity)
-        # Crossed have higher weight
+        # L4 inh to L4 inh (no selectivity)
         - source_layer: Vp_L4_vertical
           source_population: Vp_inh
           target_layer: Vp_L4_vertical
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cc_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         - source_layer: Vp_L4_vertical
           source_population: Vp_inh
           target_layer: Vp_L4_horizontal
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cx_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         - source_layer: Vp_L4_horizontal
           source_population: Vp_inh
           target_layer: Vp_L4_horizontal
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cc_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         - source_layer: Vp_L4_horizontal
           source_population: Vp_inh
           target_layer: Vp_L4_vertical
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cx_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         # L56
         # L56 inh to L56 exc (no selectivity)
         - source_layer: Vp_L56_vertical
@@ -460,28 +458,27 @@ network:
           target_layer: Vp_L56_vertical
           target_population: Vp_exc
           connection: intralaminar_GABA_A_to_exc_Vp
-        # L56 inh to L56 inh (partial selectivity)
-        # Crossed have higher weight
+        # L56 inh to L56 inh (no selectivity)
         - source_layer: Vp_L56_vertical
           source_population: Vp_inh
           target_layer: Vp_L56_vertical
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cc_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         - source_layer: Vp_L56_vertical
           source_population: Vp_inh
           target_layer: Vp_L56_horizontal
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cx_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         - source_layer: Vp_L56_horizontal
           source_population: Vp_inh
           target_layer: Vp_L56_horizontal
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cc_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
         - source_layer: Vp_L56_horizontal
           source_population: Vp_inh
           target_layer: Vp_L56_vertical
           target_population: Vp_inh
-          connection: intralaminar_GABA_A_to_inh_cx_Vp
+          connection: intralaminar_GABA_A_to_inh_Vp
 
         ## Interlaminar GABA_B
         # From L23_inh to all layer exc, full selectivity

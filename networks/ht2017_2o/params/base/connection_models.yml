@@ -123,12 +123,9 @@ network:
             p_center: 0.25
             sigma: 7.5
       intralaminar_GABA_A_to_exc_Vp:
-      intralaminar_GABA_A_to_inh_cc_Vp:
+      intralaminar_GABA_A_to_inh_Vp:
         params:
           weights: 0.5
-      intralaminar_GABA_A_to_inh_cx_Vp:
-        params:
-          weights: 0.75
 
     intralaminar_GABA_A_Vs:
       params:
