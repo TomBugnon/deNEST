@@ -240,10 +240,42 @@ class Layer(AbstractLayer):
         n_GABA_B = len(nest.GetConnections(target=self.gids(),
                                            synapse_model='GABA_B_syn'))
         exc_inh_ratio = n_AMPA/(n_GABA_A + n_GABA_B)
+        exc_pop = self.exc_population()
+        if exc_pop:
+            n_AMPA_to_exc = len(
+                nest.GetConnections(target=self.gids(population=exc_pop[0]),
+                                    synapse_model='AMPA_syn')
+            )
+            n_GABA_A_to_exc = len(
+                nest.GetConnections(target=self.gids(population=exc_pop[0]),
+                                    synapse_model='GABA_A_syn')
+            )
+            n_GABA_B_to_exc = len(
+                nest.GetConnections(target=self.gids(population=exc_pop[0]),
+                                    synapse_model='GABA_B_syn')
+            )
+            exc_inh_ratio_exc = n_AMPA_to_exc / (n_GABA_A_to_exc + n_GABA_B_to_exc)
+            return {'AMPA': n_AMPA,
+                    'GABA_A': n_GABA_A,
+                    'GABA_B': n_GABA_B,
+                    'exc_inh_ratio': exc_inh_ratio,
+                    'AMPA_to_exc': n_AMPA_to_exc,
+                    'GABA_A_to_exc': n_GABA_A_to_exc,
+                    'GABA_B_to_exc': n_GABA_B_to_exc,
+                    'exc_inh_ratio_exc': exc_inh_ratio_exc}
         return {'AMPA': n_AMPA,
                 'GABA_A': n_GABA_A,
                 'GABA_B': n_GABA_B,
                 'exc_inh_ratio': exc_inh_ratio}
+
+    def exc_population(self):
+        return [pop_name for pop_name in self.params['populations'].keys()
+                if 'exc' in pop_name]
+
+    def inh_population(self):
+        return [pop_name for pop_name in self.params['populations'].keys()
+                if 'inh' in pop_name]
+
 
 class InputLayer(AbstractLayer):
     """A layer that provides input to the network.
