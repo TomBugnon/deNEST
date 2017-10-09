@@ -1,0 +1,11 @@
+/*
+ *  rotatedrectangularmaskmodule-init.sli
+ *
+ */
+
+/*
+ * Initialization file for RotatedRectangularMaskModule.
+ * Run automatically when RotatedRectangularMaskModule is loaded.
+ */
+
+M_DEBUG (rotatedrectangularmaskmodule.sli) (Initializing SLI support for RotatedRectangularMaskModule.) message
