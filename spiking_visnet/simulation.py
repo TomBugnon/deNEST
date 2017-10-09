@@ -104,6 +104,9 @@ class Simulation:
         """Initialize NEST kernel."""
         import nest
         kernel_params = self.params.c['kernel']
+        # Install extension modules
+        for module in kernel_params.get('extension_modules', []):
+            nest.Install(module)
         nest.ResetKernel()
         # Create tmp directory in advance
         tmp_dir = kernel_params['data_path']
