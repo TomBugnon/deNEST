@@ -1,0 +1,623 @@
+network:
+  connection_models:
+
+    params:
+      #
+      type: topological
+      scale_factor: 1.0
+      dump_connection: True
+
+      # nest parameters
+      allow_autapses: false
+      allow_multapses: false
+      allow_oversized_mask: true
+      delays:
+          uniform:
+              min: 1.75
+              max: 2.25
+      connection_type: divergent
+
+    # Intermediate specificity
+    intralaminar_exc_Vp:
+      params:
+        weights: 1.
+        mask:
+          circular:
+            radius: 12.1
+      intralaminar_NMDA_d0_Vp:
+        params:
+          synapse_model: NMDA_syn
+          kernel:
+            gaussian:
+              p_center: 0.05
+              sigma: 7.5
+      intralaminar_NMDA_d45_Vp:
+        params:
+          synapse_model: NMDA_syn
+          kernel:
+            gaussian:
+              p_center: 0.025
+              sigma: 7.5
+      intralaminar_NMDA_d90_Vp:
+        params:
+          synapse_model: NMDA_syn
+          kernel:
+            gaussian:
+              p_center: 0.015
+              sigma: 7.5
+      intralaminar_AMPA_d0_Vp:
+        params:
+          synapse_model: AMPA_syn
+          kernel:
+            gaussian:
+              p_center: 0.05
+              sigma: 7.5
+      intralaminar_AMPA_d45_Vp:
+        params:
+          synapse_model: AMPA_syn
+          kernel:
+            gaussian:
+              p_center: 0.025
+              sigma: 7.5
+      intralaminar_AMPA_d90_Vp:
+        params:
+          synapse_model: AMPA_syn
+          kernel:
+            gaussian:
+              p_center: 0.015
+              sigma: 7.5
+      intralaminar_AMPA_L4_d0_Vp:
+        params:
+          synapse_model: AMPA_syn
+          mask:
+            circular:
+              radius: 7.1
+          kernel:
+            gaussian:
+              p_center: 0.05
+              sigma: 7.5
+      intralaminar_AMPA_L4_d45_Vp:
+        params:
+          synapse_model: AMPA_syn
+          mask:
+            circular:
+              radius: 7.1
+          kernel:
+            gaussian:
+              p_center: 0.025
+              sigma: 7.5
+      intralaminar_AMPA_L4_d90_Vp:
+        params:
+          synapse_model: AMPA_syn
+          mask:
+            circular:
+              radius: 7.1
+          kernel:
+            gaussian:
+              p_center: 0.015
+              sigma: 7.5
+
+    intralaminar_exc_Vs:
+      params:
+        weights: 1.
+        mask:
+          circular:
+            radius: 9.1
+      intralaminar_NMDA_same_Vs:
+        params:
+          synapse_model: NMDA_syn
+          kernel:
+            gaussian:
+              p_center: 0.05
+              sigma: 5.5
+      intralaminar_NMDA_other_Vs:
+        params:
+          synapse_model: NMDA_syn
+          kernel:
+            gaussian:
+              p_center: 0.02
+              sigma: 5.5
+      intralaminar_AMPA_same_Vs:
+        params:
+          synapse_model: AMPA_syn
+          kernel:
+            gaussian:
+              p_center: 0.05
+              sigma: 5.5
+      intralaminar_AMPA_other_Vs:
+        params:
+          synapse_model: AMPA_syn
+          kernel:
+            gaussian:
+              p_center: 0.02
+              sigma: 5.5
+      intralaminar_AMPA_L4_same_Vs:
+        params:
+          synapse_model: AMPA_syn
+          kernel:
+            gaussian:
+              p_center: 0.05
+              sigma: 5.5
+          mask:
+            circular:
+              radius: 5.5
+      intralaminar_AMPA_L4_other_Vs:
+        params:
+          synapse_model: AMPA_syn
+          kernel:
+            gaussian:
+              p_center: 0.02
+              sigma: 5.5
+          mask:
+            circular:
+              radius: 5.5
+
+    # Full specificity
+    interlaminar_exc_Vp:
+      params:
+        mask:
+          circular:
+            radius: 2.1
+        kernel:
+          gaussian:
+            p_center: 1.0
+            sigma: 7.5
+      interlaminar_NMDA_Vp:
+        params:
+          synapse_model: NMDA_syn
+          weights: 1.0
+      interlaminar_AMPA_L23_to_L56_Vp:
+        params:
+          synapse_model: AMPA_syn
+          weights: 1.0
+      interlaminar_AMPA_Vp:
+        params:
+          synapse_model: AMPA_syn
+          weights: 2.0
+      interlaminar_AMPA_Vs:
+        params:
+          synapse_model: AMPA_syn
+          weights: 1.0
+
+    # Full specificity
+    interlaminar_exc_Vs:
+      params:
+        mask:
+          circular:
+            radius: 2.1
+        kernel:
+          gaussian:
+            p_center: 1.0
+            sigma: 7.5
+      interlaminar_NMDA_Vs:
+        params:
+          synapse_model: NMDA_syn
+          weights: 1.0
+      interlaminar_AMPA_L23_to_L56_Vs:
+        params:
+          synapse_model: AMPA_syn
+          weights: 1.0
+      interlaminar_AMPA_Vs:
+        params:
+          synapse_model: AMPA_syn
+          weights: 1.0
+
+    # No specificity
+    intralaminar_GABA_A_Vp:
+      params:
+        synapse_model: GABA_A_syn
+        weights: 1.0
+        mask:
+          circular:
+            radius: 7.1
+        kernel:
+          gaussian:
+            p_center: 0.25
+            sigma: 7.5
+      intralaminar_GABA_A_to_exc_Vp:
+      intralaminar_GABA_A_to_inh_Vp:
+        params:
+          weights: 0.5
+
+    # No specificity
+    intralaminar_GABA_A_Vs:
+      params:
+        synapse_model: GABA_A_syn
+        weights: 1.0
+        mask:
+          circular:
+            radius: 5.5
+        kernel:
+          gaussian:
+            p_center: 0.25
+            sigma: 5.5
+      intralaminar_GABA_A_to_exc_Vs:
+      intralaminar_GABA_A_to_inh_Vs:
+        params:
+          weights: 0.5
+
+    # Full specificity
+    interlaminar_GABA_B_Vp:
+      params:
+        synapse_model: GABA_B_syn
+        weights: 1.0
+        mask:
+          circular:
+            radius: 2.1
+        kernel: 0.3
+
+    # Full specificity
+    interlaminar_GABA_B_Vs:
+      params:
+        synapse_model: GABA_B_syn
+        weights: 1.0
+        mask:
+          circular:
+            radius: 2.1
+        kernel: 0.3
+
+    Vp_Vs_forward:
+      params:
+        synapse_model: AMPA_syn
+        connection_type: convergent
+        weights: 1.0
+        kernel: 0.8
+        delays:
+          uniform:
+            min: 2.75
+            max: 3.25
+      Vp_Vs_forward_P+_from_P00:
+        params:
+          mask:
+            rotated_rectangular:
+              angle: 0.0
+              lower_left: !!python/list [-4.1, -1.1]
+              upper_right: !!python/list [4.1, 1.1]
+      Vp_Vs_forward_P+_from_P90:
+        params:
+          mask:
+            rotated_rectangular:
+              angle: 1.5707963267948966 # Pi/2
+              lower_left: !!python/list [-4.1, -1.1]
+              upper_right: !!python/list [4.1, 1.1]
+      Vp_Vs_forward_Px_from_P45:
+        params:
+          mask:
+            rotated_rectangular:
+              angle: 0.7853981633974483 # Pi/4
+              lower_left: !!python/list [-4.1, -1.1]
+              upper_right: !!python/list [4.1, 1.1]
+      Vp_Vs_forward_Px_from_P135:
+        params:
+          mask:
+            rotated_rectangular:
+              angle: 2.356194490192345 # 3*Pi/4
+              lower_left: !!python/list [-4.1, -1.1]
+              upper_right: !!python/list [4.1, 1.1]
+
+    Vp_Vs_backward:
+      params:
+        connection_type: divergent
+        mask:
+          circular:
+            radius: 12.1
+        kernel:
+          gaussian:
+            p_center: 0.1
+            sigma: 7.5
+        weights: 1.0
+        delays:
+          uniform:
+            min: 5.5
+            max: 6.5
+      Vp_Vs_backward_to_exc:
+        params:
+          synapse_model: NMDA_syn
+      Vp_Vs_backward_to_inh:
+        params:
+          synapse_model: AMPA_syn
+
+    intra-thalamic:
+      Tp_Rp_AMPA:
+        params:
+          synapse_model: AMPA_syn
+          weights: 2.0
+          mask:
+            circular:
+              radius: 2.1
+          kernel:
+            gaussian:
+              p_center: 1.0
+              sigma: 7.5
+      Ts_Rs_AMPA:
+        params:
+          synapse_model: AMPA_syn
+          weights: 2.0
+          mask:
+            circular:
+              radius: 2.1
+          kernel:
+            gaussian:
+              p_center: 1.0
+              sigma: 7.5
+      Tp_Tp_GABA_A:
+        params:
+          synapse_model: GABA_A_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 2.1
+          kernel:
+            gaussian:
+              p_center: 0.25
+              sigma: 7.5
+      Ts_Ts_GABA_A:
+        params:
+          synapse_model: GABA_A_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 2.1
+          kernel:
+            gaussian:
+              p_center: 0.25
+              sigma: 7.5
+      Rp_Tp_GABA_A:
+        params:
+          synapse_model: GABA_A_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 12.1
+          kernel:
+            gaussian:
+              p_center: 0.15
+              sigma: 7.5
+      Rs_Ts_GABA_A:
+        params:
+          synapse_model: GABA_A_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 9.1
+          kernel:
+            gaussian:
+              p_center: 0.15
+              sigma: 5.5
+      Rp_Tp_GABA_B:
+        params:
+          synapse_model: GABA_B_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 12.1
+          kernel:
+            gaussian:
+              p_center: 0.05
+              sigma: 7.5
+      Rs_Ts_GABA_B:
+        params:
+          synapse_model: GABA_B_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 9.1
+          kernel:
+            gaussian:
+              p_center: 0.05
+              sigma: 5.5
+      Rp_Rp_GABA_B:
+        params:
+          synapse_model: GABA_B_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 12.1
+          kernel:
+            gaussian:
+              p_center: 0.5
+              sigma: 7.5
+      Rs_Rs_GABA_B:
+        params:
+          synapse_model: GABA_B_syn
+          weights: 1.0
+          mask:
+            circular:
+              radius: 9.1
+          kernel:
+            gaussian:
+              p_center: 0.5
+              sigma: 5.5
+
+    thalamo_cortical:
+      params:
+        synapse_model: AMPA_syn
+        connection_type: convergent
+        weights: 5.0
+        delays:
+          uniform:
+            min: 2.75
+            max: 3.25
+      rectangular:
+        params: {}
+        Tp_to_L4_P00:
+          params:
+              kernel: 0.5
+              mask:
+                rotated_rectangular:
+                  angle: 0.0
+                  lower_left: !!python/list [-4.1, -1.1]
+                  upper_right: !!python/list [4.1, 1.1]
+        Tp_to_L4_P45:
+          params:
+              kernel: 0.5
+              mask:
+                rotated_rectangular:
+                  angle: 0.7853981633974483 # Pi/4
+                  lower_left: !!python/list [-4.1, -1.1]
+                  upper_right: !!python/list [4.1, 1.1]
+        Tp_to_L4_P90:
+          params:
+              kernel: 0.5
+              mask:
+                rotated_rectangular:
+                  angle: 1.5707963267948966 # Pi/2
+                  lower_left: !!python/list [-4.1, -1.1]
+                  upper_right: !!python/list [4.1, 1.1]
+        Tp_to_L4_P135:
+          params:
+              kernel: 0.5
+              mask:
+                rotated_rectangular:
+                  angle: 2.356194490192345 # 3*Pi/4
+                  lower_left: !!python/list [-4.1, -1.1]
+                  upper_right: !!python/list [4.1, 1.1]
+        Tp_to_L56_P00:
+          params:
+              kernel: 0.3
+              mask:
+                rotated_rectangular:
+                  angle: 0.0
+                  lower_left: !!python/list [-4.1, -1.1]
+                  upper_right: !!python/list [4.1, 1.1]
+        Tp_to_L56_P45:
+          params:
+              kernel: 0.3
+              mask:
+                rotated_rectangular:
+                  angle: 0.7853981633974483 # Pi/4
+                  lower_left: !!python/list [-4.1, -1.1]
+                  upper_right: !!python/list [4.1, 1.1]
+        Tp_to_L56_P90:
+          params:
+              kernel: 0.3
+              mask:
+                rotated_rectangular:
+                  angle: 1.5707963267948966 # Pi/2
+                  lower_left: !!python/list [-4.1, -1.1]
+                  upper_right: !!python/list [4.1, 1.1]
+        Tp_to_L56_P135:
+          params:
+              kernel: 0.3
+              mask:
+                rotated_rectangular:
+                  angle: 2.356194490192345 # 3*Pi/4
+                  lower_left: !!python/list [-4.1, -1.1]
+                  upper_right: !!python/list [4.1, 1.1]
+
+        Tp_Vp_diffuse:
+          params:
+            mask:
+              circular:
+                radius: 5.1
+            kernel:
+              gaussian:
+                p_center: 0.1
+                sigma: 7.5
+
+        Ts_to_Vs:
+          params:
+            connection_type: divergent
+            mask:
+              rectangular:
+                lower_left: !!python/list [-2.1, -2.1]
+                upper_right: !!python/list [2.1, 2.1]
+          Ts_to_Vs_L4:
+            params:
+              kernel: 0.5
+          Ts_to_Vs_L56:
+            params:
+              kernel: 0.3
+
+    cortico_thalamic_p:
+      params:
+        synapse_model: AMPA_syn
+        weights: 1.0
+        mask:
+          circular:
+            radius: 5.1
+        kernel:
+          gaussian:
+            p_center: 0.5
+            sigma: 7.5
+        delays:
+          uniform:
+            min: 7.5
+            max: 8.5
+
+    cortico_thalamic_s:
+      params:
+        synapse_model: AMPA_syn
+        weights: 1.0
+        mask:
+          circular:
+            radius: 3.8
+        kernel:
+          gaussian:
+            p_center: 0.5
+            sigma: 5.5
+        delays:
+          uniform:
+            min: 7.5
+            max: 8.5
+
+    cortico_reticular_p:
+      params:
+        synapse_model: AMPA_syn
+        weights: 2.5
+        mask:
+          circular:
+            radius: 5.1
+        kernel:
+          gaussian:
+            p_center: 0.5
+            sigma: 7.5
+        delays:
+          uniform:
+            min: 7.5
+            max: 8.5
+
+    cortico_reticular_s:
+      params:
+        synapse_model: AMPA_syn
+        weights: 2.5
+        mask:
+          circular:
+            radius: 3.8
+        kernel:
+          gaussian:
+            p_center: 0.5
+            sigma: 5.5
+        delays:
+          uniform:
+            min: 7.5
+            max: 8.5
+
+    Vp_Ts_cortico_thalamic:
+      params:
+        synapse_model: AMPA_syn
+        weights: 5.0
+        mask:
+          circular:
+            radius: 2.1
+        kernel:
+          gaussian:
+            p_center: 1.0
+            sigma: 7.5
+        delays:
+          uniform:
+            min: 7.5
+            max: 8.5
+
+    retino_thalamic:
+      params:
+        synapse_model: reticular_projection
+        weights: 10.0
+        mask:
+          circular:
+            radius: 1.1
+        kernel:
+          gaussian:
+            p_center: 0.75
+            sigma: 2.5
+        delays: 1.0
