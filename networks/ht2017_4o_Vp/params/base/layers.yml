@@ -1,0 +1,90 @@
+network:
+  layers:
+    params:
+      type: null
+    input_area:
+      params:
+        area: input_area
+        type: 'InputLayer'
+      retina:
+        params:
+          populations:
+            input_exc: 1
+    thalamus:
+      params:
+        area: thalamus
+      Tp_layer:
+        params:
+          populations:
+            Tp_exc: 1
+            Tp_inh: 1
+    reticula:
+      params:
+        area: reticula
+      Rp_layer:
+        params:
+          populations:
+            Rp: 1
+    Vp:
+      params:
+        area: Vp
+      Vp_L23_P00:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L23_P45:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L23_P90:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L23_P135:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L4_P00:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L4_P45:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L4_P90:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L4_P135:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L56_P00:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L56_P45:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L56_P90:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1
+      Vp_L56_P135:
+        params:
+          populations:
+            Vp_exc: 2
+            Vp_inh: 1

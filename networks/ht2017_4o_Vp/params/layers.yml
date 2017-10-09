@@ -1,0 +1,23 @@
+network:
+  layers:
+    params:
+      nrows: 40
+      ncols: 40
+      max_input_rate: 20 # Input image can be 0.5 (noise) -> half on retina
+      edge_wrap: true
+      visSize: 8.0
+      weight_gain: 0.66666666666666666
+      input_area_name: input_area
+      scale_input_weights: true
+      scale_kernels_masks: true
+    input_area:
+      params:
+        filters:
+          dimensions:
+            spatial_frequencies: 1
+            orientations: 1
+            signs: 1
+          suffixes:
+            spatial_frequencies: sf
+            orientations: o
+            signs: s

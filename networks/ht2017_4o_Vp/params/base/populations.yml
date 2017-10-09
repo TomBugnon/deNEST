@@ -1,0 +1,87 @@
+network:
+  populations: # recorders
+    params:
+      recorders:
+        spike_detector: {}
+
+    retina:
+      params:
+        layer: retina
+        recorders:
+          spike_detector: {}
+      parrot_neuron: {}
+
+    thalamus:
+      params: {}
+      Tp_layer:
+        params:
+          layer: Tp_layer
+        Tp_exc:
+        Tp_inh:
+      Rp_layer:
+        params:
+          layer: Rp_layer
+        Rp:
+
+    Vp:
+      params: {}
+      Vp_L23_P00:
+        params:
+          layer: Vp_L23_P00
+        Vp_exc:
+        Vp_inh:
+      Vp_L23_P45:
+        params:
+          layer: Vp_L23_P45
+        Vp_exc:
+        Vp_inh:
+      Vp_L23_P90:
+        params:
+          layer: Vp_L23_P90
+        Vp_exc:
+        Vp_inh:
+      Vp_L23_P135:
+        params:
+          layer: Vp_L23_P135
+        Vp_exc:
+        Vp_inh:
+      Vp_L4_P00:
+        params:
+          layer: Vp_L4_P00
+        Vp_exc:
+        Vp_inh:
+      Vp_L4_P45:
+        params:
+          layer: Vp_L4_P45
+        Vp_exc:
+        Vp_inh:
+      Vp_L4_P90:
+        params:
+          layer: Vp_L4_P90
+        Vp_exc:
+        Vp_inh:
+      Vp_L4_P135:
+        params:
+          layer: Vp_L4_P135
+        Vp_exc:
+        Vp_inh:
+      Vp_L56_P00:
+        params:
+          layer: Vp_L56_P00
+        Vp_exc:
+        Vp_inh:
+      Vp_L56_P45:
+        params:
+          layer: Vp_L56_P45
+        Vp_exc:
+        Vp_inh:
+      Vp_L56_P90:
+        params:
+          layer: Vp_L56_P90
+        Vp_exc:
+        Vp_inh:
+      Vp_L56_P135:
+        params:
+          layer: Vp_L56_P135
+        Vp_exc:
+        Vp_inh:

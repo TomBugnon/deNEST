@@ -1,0 +1,1184 @@
+network:
+  topology:
+    params:
+      connections:
+
+        ########################################################################
+        #################        Thalamic / reticular INTRA        #############
+        ########################################################################
+
+        ####################################
+        ######## Retina to thalamus ########
+        ####################################
+
+        # Retina to Tp exc and Tp inh
+        - source_layer: retina
+          source_population: parrot_neuron
+          target_layer: Tp_layer
+          connection: retino_thalamic
+
+        ####################################
+        #### Intra thalamic/reticula #######
+        ####################################
+
+        ### Primary Intra-thalamic/reticula ###
+        # Tp exc to Rp AMPA:
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Rp_layer
+          connection: Tp_Rp_AMPA
+        # Tp inh to Tp exc and Tp inh GABA_A
+        - source_layer: Tp_layer
+          source_population: Tp_inh
+          target_layer: Tp_layer
+          connection: Tp_Tp_GABA_A
+        # Rp to Tp exc and Tp inh GABA_A
+        - source_layer: Rp_layer
+          source_population: Rp
+          target_layer: Tp_layer
+          connection: Rp_Tp_GABA_A
+        # Rp to Tp exc GABA_B
+        - source_layer: Rp_layer
+          source_population: Rp
+          target_layer: Tp_layer
+          target_population: Tp_exc
+          connection: Rp_Tp_GABA_B
+        # Rp to Rp GABA_B
+        - source_layer: Rp_layer
+          source_population: Rp
+          target_layer: Rp_layer
+          connection: Rp_Rp_GABA_B
+
+
+        ########################################################################
+        #############     Thalamico-cortical and cortico-thalamic      #########
+        ########################################################################
+
+        ####################################
+        ######### Thalamo-cortical #########
+        ####################################
+
+        ### Primary ( Tp to Vp ) ###
+        # Rectangular to L4
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L4_P00
+          target_population: Vp_exc
+          connection: Tp_to_L4_P00
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L4_P45
+          target_population: Vp_exc
+          connection: Tp_to_L4_P45
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L4_P90
+          target_population: Vp_exc
+          connection: Tp_to_L4_P90
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L4_P135
+          target_population: Vp_exc
+          connection: Tp_to_L4_P135
+        # Rectangular to L56
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L56_P00
+          target_population: Vp_exc
+          connection: Tp_to_L56_P00
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L56_P45
+          target_population: Vp_exc
+          connection: Tp_to_L56_P45
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L56_P90
+          target_population: Vp_exc
+          connection: Tp_to_L56_P90
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L56_P135
+          target_population: Vp_exc
+          connection: Tp_to_L56_P135
+        # Diffuse to L4
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L4_P00
+          target_population: Vp_inh
+          connection: Tp_Vp_diffuse
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L4_P45
+          target_population: Vp_inh
+          connection: Tp_Vp_diffuse
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L4_P90
+          target_population: Vp_inh
+          connection: Tp_Vp_diffuse
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L4_P135
+          target_population: Vp_inh
+          connection: Tp_Vp_diffuse
+        # Diffuse to L56
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L56_P00
+          target_population: Vp_inh
+          connection: Tp_Vp_diffuse
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L56_P45
+          target_population: Vp_inh
+          connection: Tp_Vp_diffuse
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L56_P90
+          target_population: Vp_inh
+          connection: Tp_Vp_diffuse
+        - source_layer: Tp_layer
+          source_population: Tp_exc
+          target_layer: Vp_L56_P135
+          target_population: Vp_inh
+          connection: Tp_Vp_diffuse
+
+
+        ####################################
+        ######### Cortico-Thalamic #########
+        ####################################
+
+        ### Primary: Vp to Tp and Rp ###
+        # Vp L56 all orientations to Tp exc + inh
+        - source_layer: Vp_L56_P00
+          source_population: Vp_exc
+          target_layer: Tp_layer
+          target_population: Tp_exc
+          connection: cortico_thalamic_p
+        - source_layer: Vp_L56_P45
+          source_population: Vp_exc
+          target_layer: Tp_layer
+          target_population: Tp_exc
+          connection: cortico_thalamic_p
+        - source_layer: Vp_L56_P90
+          source_population: Vp_exc
+          target_layer: Tp_layer
+          target_population: Tp_exc
+          connection: cortico_thalamic_p
+        - source_layer: Vp_L56_P135
+          source_population: Vp_exc
+          target_layer: Tp_layer
+          target_population: Tp_exc
+          connection: cortico_thalamic_p
+        # cortico_reticular
+        # Vp L56 all orientations to Rp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_exc
+          target_layer: Rp_layer
+          connection: cortico_reticular_p
+        - source_layer: Vp_L56_P45
+          source_population: Vp_exc
+          target_layer: Rp_layer
+          connection: cortico_reticular_p
+        - source_layer: Vp_L56_P90
+          source_population: Vp_exc
+          target_layer: Rp_layer
+          connection: cortico_reticular_p
+        - source_layer: Vp_L56_P135
+          source_population: Vp_exc
+          target_layer: Rp_layer
+          connection: cortico_reticular_p
+
+
+        ########################################################################
+        ##########################     Intra-areal       #######################
+        ########################################################################
+
+
+        ####################################
+        ###### Intra-areal Primary #########
+        ####################################
+
+        ### intralaminar_AMPA. (partial selectivity)
+
+        ## source population: P00 excitatory.
+        # to: P00, excitatory and inhibitory
+        - source_layer: Vp_L23_P00
+          source_population: Vp_exc
+          target_layer: Vp_L23_P00
+          connection: intralaminar_AMPA_d0_Vp
+        - source_layer: Vp_L4_P00
+          source_population: Vp_exc
+          target_layer: Vp_L4_P00
+          connection: intralaminar_AMPA_L4_d0_Vp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_exc
+          target_layer: Vp_L56_P00
+          connection: intralaminar_AMPA_d0_Vp
+        # to: P45, excitatory and inhibitory
+        - source_layer: Vp_L23_P00
+          source_population: Vp_exc
+          target_layer: Vp_L23_P45
+          connection: intralaminar_AMPA_d45_Vp
+        - source_layer: Vp_L4_P00
+          source_population: Vp_exc
+          target_layer: Vp_L4_P45
+          connection: intralaminar_AMPA_L4_d45_Vp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_exc
+          target_layer: Vp_L56_P45
+          connection: intralaminar_AMPA_d45_Vp
+        # to: P135, excitatory and inhibitory
+        - source_layer: Vp_L23_P00
+          source_population: Vp_exc
+          target_layer: Vp_L23_P135
+          connection: intralaminar_AMPA_d45_Vp
+        - source_layer: Vp_L4_P00
+          source_population: Vp_exc
+          target_layer: Vp_L4_P135
+          connection: intralaminar_AMPA_L4_d45_Vp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_exc
+          target_layer: Vp_L56_P135
+          connection: intralaminar_AMPA_d45_Vp
+        # to: P90, excitatory and inhibitory
+        - source_layer: Vp_L23_P00
+          source_population: Vp_exc
+          target_layer: Vp_L23_P90
+          connection: intralaminar_AMPA_d90_Vp
+        - source_layer: Vp_L4_P00
+          source_population: Vp_exc
+          target_layer: Vp_L4_P90
+          connection: intralaminar_AMPA_L4_d90_Vp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_exc
+          target_layer: Vp_L56_P90
+          connection: intralaminar_AMPA_d90_Vp
+
+        ## source population: P45 excitatory.
+        # to: P45, excitatory and inhibitory
+        - source_layer: Vp_L23_P45
+          source_population: Vp_exc
+          target_layer: Vp_L23_P45
+          connection: intralaminar_AMPA_d0_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_exc
+          target_layer: Vp_L4_P45
+          connection: intralaminar_AMPA_L4_d0_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_exc
+          target_layer: Vp_L56_P45
+          connection: intralaminar_AMPA_d0_Vp
+        # to: P00, excitatory and inhibitory
+        - source_layer: Vp_L23_P45
+          source_population: Vp_exc
+          target_layer: Vp_L23_P00
+          connection: intralaminar_AMPA_d45_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_exc
+          target_layer: Vp_L4_P00
+          connection: intralaminar_AMPA_L4_d45_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_exc
+          target_layer: Vp_L56_P00
+          connection: intralaminar_AMPA_d45_Vp
+        # to: P90, excitatory and inhibitory
+        - source_layer: Vp_L23_P45
+          source_population: Vp_exc
+          target_layer: Vp_L23_P90
+          connection: intralaminar_AMPA_d45_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_exc
+          target_layer: Vp_L4_P90
+          connection: intralaminar_AMPA_L4_d45_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_exc
+          target_layer: Vp_L56_P90
+          connection: intralaminar_AMPA_d45_Vp
+        # to: P135, excitatory and inhibitory
+        - source_layer: Vp_L23_P45
+          source_population: Vp_exc
+          target_layer: Vp_L23_P135
+          connection: intralaminar_AMPA_d90_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_exc
+          target_layer: Vp_L4_P135
+          connection: intralaminar_AMPA_L4_d90_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_exc
+          target_layer: Vp_L56_P135
+          connection: intralaminar_AMPA_d90_Vp
+
+        ## source population: P90 excitatory.
+        # to: P90, excitatory and inhibitory
+        - source_layer: Vp_L23_P90
+          source_population: Vp_exc
+          target_layer: Vp_L23_P90
+          connection: intralaminar_AMPA_d0_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_exc
+          target_layer: Vp_L4_P90
+          connection: intralaminar_AMPA_L4_d0_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_exc
+          target_layer: Vp_L56_P90
+          connection: intralaminar_AMPA_d0_Vp
+        # to: P45, excitatory and inhibitory
+        - source_layer: Vp_L23_P90
+          source_population: Vp_exc
+          target_layer: Vp_L23_P45
+          connection: intralaminar_AMPA_d45_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_exc
+          target_layer: Vp_L4_P45
+          connection: intralaminar_AMPA_L4_d45_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_exc
+          target_layer: Vp_L56_P45
+          connection: intralaminar_AMPA_d45_Vp
+        # to: P135, excitatory and inhibitory
+        - source_layer: Vp_L23_P90
+          source_population: Vp_exc
+          target_layer: Vp_L23_P135
+          connection: intralaminar_AMPA_d45_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_exc
+          target_layer: Vp_L4_P135
+          connection: intralaminar_AMPA_L4_d45_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_exc
+          target_layer: Vp_L56_P135
+          connection: intralaminar_AMPA_d45_Vp
+        # to: P00, excitatory and inhibitory
+        - source_layer: Vp_L23_P90
+          source_population: Vp_exc
+          target_layer: Vp_L23_P00
+          connection: intralaminar_AMPA_d90_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_exc
+          target_layer: Vp_L4_P00
+          connection: intralaminar_AMPA_L4_d90_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_exc
+          target_layer: Vp_L56_P00
+          connection: intralaminar_AMPA_d90_Vp
+
+        ## source population: P135 excitatory.
+        # to: P135, excitatory and inhibitory
+        - source_layer: Vp_L23_P135
+          source_population: Vp_exc
+          target_layer: Vp_L23_P135
+          connection: intralaminar_AMPA_d0_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_exc
+          target_layer: Vp_L4_P135
+          connection: intralaminar_AMPA_L4_d0_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_exc
+          target_layer: Vp_L56_P135
+          connection: intralaminar_AMPA_d0_Vp
+        # to: P00, excitatory and inhibitory
+        - source_layer: Vp_L23_P135
+          source_population: Vp_exc
+          target_layer: Vp_L23_P00
+          connection: intralaminar_AMPA_d45_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_exc
+          target_layer: Vp_L4_P00
+          connection: intralaminar_AMPA_L4_d45_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_exc
+          target_layer: Vp_L56_P00
+          connection: intralaminar_AMPA_d45_Vp
+        # to: P90, excitatory and inhibitory
+        - source_layer: Vp_L23_P135
+          source_population: Vp_exc
+          target_layer: Vp_L23_P90
+          connection: intralaminar_AMPA_d45_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_exc
+          target_layer: Vp_L4_P90
+          connection: intralaminar_AMPA_L4_d45_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_exc
+          target_layer: Vp_L56_P90
+          connection: intralaminar_AMPA_d45_Vp
+        # to: P45, excitatory and inhibitory
+        - source_layer: Vp_L23_P135
+          source_population: Vp_exc
+          target_layer: Vp_L23_P45
+          connection: intralaminar_AMPA_d90_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_exc
+          target_layer: Vp_L4_P45
+          connection: intralaminar_AMPA_L4_d90_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_exc
+          target_layer: Vp_L56_P45
+          connection: intralaminar_AMPA_d90_Vp
+
+
+
+        ### intralaminar_NMDA (partial selectivity)
+        ### L23 exc to L23 exc
+        # source: P00
+        - source_layer: Vp_L23_P00
+          source_population: Vp_exc
+          target_layer: Vp_L23_P00
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d0_Vp
+        - source_layer: Vp_L23_P00
+          source_population: Vp_exc
+          target_layer: Vp_L23_P45
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d45_Vp
+        - source_layer: Vp_L23_P00
+          source_population: Vp_exc
+          target_layer: Vp_L23_P135
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d45_Vp
+        - source_layer: Vp_L23_P00
+          source_population: Vp_exc
+          target_layer: Vp_L23_P90
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d90_Vp
+        # source: P45
+        - source_layer: Vp_L23_P45
+          source_population: Vp_exc
+          target_layer: Vp_L23_P45
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d0_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_exc
+          target_layer: Vp_L23_P00
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d45_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_exc
+          target_layer: Vp_L23_P90
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d45_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_exc
+          target_layer: Vp_L23_P135
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d90_Vp
+        # source: P90
+        - source_layer: Vp_L23_P90
+          source_population: Vp_exc
+          target_layer: Vp_L23_P90
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d0_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_exc
+          target_layer: Vp_L23_P45
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d45_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_exc
+          target_layer: Vp_L23_P135
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d45_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_exc
+          target_layer: Vp_L23_P00
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d90_Vp
+        # source: P135
+        - source_layer: Vp_L23_P135
+          source_population: Vp_exc
+          target_layer: Vp_L23_P135
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d0_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_exc
+          target_layer: Vp_L23_P00
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d45_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_exc
+          target_layer: Vp_L23_P90
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d45_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_exc
+          target_layer: Vp_L23_P45
+          target_population: Vp_exc
+          connection: intralaminar_NMDA_d90_Vp
+
+        ## interlaminar_AMPA
+        # L23 exc to L56_exc and L56_inh (all P, full selectivity)
+        - source_layer: Vp_L23_P00
+          source_population: Vp_exc
+          target_layer: Vp_L56_P00
+          connection: interlaminar_AMPA_L23_to_L56_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_exc
+          target_layer: Vp_L56_P45
+          connection: interlaminar_AMPA_L23_to_L56_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_exc
+          target_layer: Vp_L56_P90
+          connection: interlaminar_AMPA_L23_to_L56_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_exc
+          target_layer: Vp_L56_P135
+          connection: interlaminar_AMPA_L23_to_L56_Vp
+        # L4 exc to L2_exc and L2_inh (all P, full selectivity)
+        - source_layer: Vp_L4_P00
+          source_population: Vp_exc
+          target_layer: Vp_L23_P00
+          connection: interlaminar_AMPA_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_exc
+          target_layer: Vp_L23_P45
+          connection: interlaminar_AMPA_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_exc
+          target_layer: Vp_L23_P90
+          connection: interlaminar_AMPA_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_exc
+          target_layer: Vp_L23_P135
+          connection: interlaminar_AMPA_Vp
+        # L56 exc to L23_exc and L23_inh (all P, full selectivity)
+        - source_layer: Vp_L56_P00
+          source_population: Vp_exc
+          target_layer: Vp_L23_P00
+          connection: interlaminar_AMPA_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_exc
+          target_layer: Vp_L23_P45
+          connection: interlaminar_AMPA_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_exc
+          target_layer: Vp_L23_P90
+          connection: interlaminar_AMPA_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_exc
+          target_layer: Vp_L23_P135
+          connection: interlaminar_AMPA_Vp
+        # L56 exc to L4_exc and L4_inh (all P, full selectivity)
+        - source_layer: Vp_L56_P00
+          source_population: Vp_exc
+          target_layer: Vp_L4_P00
+          connection: interlaminar_AMPA_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_exc
+          target_layer: Vp_L4_P45
+          connection: interlaminar_AMPA_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_exc
+          target_layer: Vp_L4_P90
+          connection: interlaminar_AMPA_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_exc
+          target_layer: Vp_L4_P135
+          connection: interlaminar_AMPA_Vp
+
+        ## Interlaminar NMDA
+        # L23 exc to L56 exc, (all P, full selectivity
+        - source_layer: Vp_L23_P00
+          source_population: Vp_exc
+          target_layer: Vp_L56_P00
+          target_population: Vp_exc
+          connection: interlaminar_NMDA_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_exc
+          target_layer: Vp_L56_P45
+          target_population: Vp_exc
+          connection: interlaminar_NMDA_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_exc
+          target_layer: Vp_L56_P90
+          target_population: Vp_exc
+          connection: interlaminar_NMDA_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_exc
+          target_layer: Vp_L56_P135
+          target_population: Vp_exc
+          connection: interlaminar_NMDA_Vp
+
+        ### Intralaminar GABA_A
+        ## L23
+        ## L23 inh to L23 exc (no selectivity)
+        # source: P00
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L23_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L23_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L23_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L23_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # source: P45
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L23_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L23_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L23_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L23_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # source: P90
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L23_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L23_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L23_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L23_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # source: P135
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L23_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L23_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L23_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L23_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # L23 inh to L23 inh (no selectivity)
+        # source: P00
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L23_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L23_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L23_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L23_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        # source: P45
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L23_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L23_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L23_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L23_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        # source: P90
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L23_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L23_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L23_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L23_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        # source: P135
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L23_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L23_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L23_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L23_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        # ## L4
+        ## L4 inh to L4 exc (no selectivity)
+        # source: P00
+        - source_layer: Vp_L4_P00
+          source_population: Vp_inh
+          target_layer: Vp_L4_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P00
+          source_population: Vp_inh
+          target_layer: Vp_L4_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P00
+          source_population: Vp_inh
+          target_layer: Vp_L4_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P00
+          source_population: Vp_inh
+          target_layer: Vp_L4_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # source: P45
+        - source_layer: Vp_L4_P45
+          source_population: Vp_inh
+          target_layer: Vp_L4_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_inh
+          target_layer: Vp_L4_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_inh
+          target_layer: Vp_L4_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_inh
+          target_layer: Vp_L4_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # source: P90
+        - source_layer: Vp_L4_P90
+          source_population: Vp_inh
+          target_layer: Vp_L4_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_inh
+          target_layer: Vp_L4_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_inh
+          target_layer: Vp_L4_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_inh
+          target_layer: Vp_L4_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # source: P135
+        - source_layer: Vp_L4_P135
+          source_population: Vp_inh
+          target_layer: Vp_L4_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_inh
+          target_layer: Vp_L4_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_inh
+          target_layer: Vp_L4_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_inh
+          target_layer: Vp_L4_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # L4 inh to L4 inh (no selectivity)
+        # source: P00
+        - source_layer: Vp_L4_P00
+          source_population: Vp_inh
+          target_layer: Vp_L4_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P00
+          source_population: Vp_inh
+          target_layer: Vp_L4_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P00
+          source_population: Vp_inh
+          target_layer: Vp_L4_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P00
+          source_population: Vp_inh
+          target_layer: Vp_L4_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        # source: P45
+        - source_layer: Vp_L4_P45
+          source_population: Vp_inh
+          target_layer: Vp_L4_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_inh
+          target_layer: Vp_L4_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_inh
+          target_layer: Vp_L4_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P45
+          source_population: Vp_inh
+          target_layer: Vp_L4_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        # source: P90
+        - source_layer: Vp_L4_P90
+          source_population: Vp_inh
+          target_layer: Vp_L4_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_inh
+          target_layer: Vp_L4_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_inh
+          target_layer: Vp_L4_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P90
+          source_population: Vp_inh
+          target_layer: Vp_L4_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        # source: P135
+        - source_layer: Vp_L4_P135
+          source_population: Vp_inh
+          target_layer: Vp_L4_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_inh
+          target_layer: Vp_L4_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_inh
+          target_layer: Vp_L4_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L4_P135
+          source_population: Vp_inh
+          target_layer: Vp_L4_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+
+        ## L56
+        # L56 inh to L56 exc (no selectivity)
+        # source: P00
+        - source_layer: Vp_L56_P00
+          source_population: Vp_inh
+          target_layer: Vp_L56_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_inh
+          target_layer: Vp_L56_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_inh
+          target_layer: Vp_L56_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_inh
+          target_layer: Vp_L56_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # source: P45
+        - source_layer: Vp_L56_P45
+          source_population: Vp_inh
+          target_layer: Vp_L56_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_inh
+          target_layer: Vp_L56_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_inh
+          target_layer: Vp_L56_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_inh
+          target_layer: Vp_L56_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # source: P90
+        - source_layer: Vp_L56_P90
+          source_population: Vp_inh
+          target_layer: Vp_L56_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_inh
+          target_layer: Vp_L56_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_inh
+          target_layer: Vp_L56_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_inh
+          target_layer: Vp_L56_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # source: P135
+        - source_layer: Vp_L56_P135
+          source_population: Vp_inh
+          target_layer: Vp_L56_P00
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_inh
+          target_layer: Vp_L56_P45
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_inh
+          target_layer: Vp_L56_P90
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_inh
+          target_layer: Vp_L56_P135
+          target_population: Vp_exc
+          connection: intralaminar_GABA_A_to_exc_Vp
+        # L56 inh to L56 inh (no selectivity)
+        # source: P00
+        - source_layer: Vp_L56_P00
+          source_population: Vp_inh
+          target_layer: Vp_L56_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_inh
+          target_layer: Vp_L56_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_inh
+          target_layer: Vp_L56_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P00
+          source_population: Vp_inh
+          target_layer: Vp_L56_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        # source: P45
+        - source_layer: Vp_L56_P45
+          source_population: Vp_inh
+          target_layer: Vp_L56_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_inh
+          target_layer: Vp_L56_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_inh
+          target_layer: Vp_L56_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P45
+          source_population: Vp_inh
+          target_layer: Vp_L56_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        # source: P90
+        - source_layer: Vp_L56_P90
+          source_population: Vp_inh
+          target_layer: Vp_L56_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_inh
+          target_layer: Vp_L56_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_inh
+          target_layer: Vp_L56_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P90
+          source_population: Vp_inh
+          target_layer: Vp_L56_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        # source: P135
+        - source_layer: Vp_L56_P135
+          source_population: Vp_inh
+          target_layer: Vp_L56_P00
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_inh
+          target_layer: Vp_L56_P45
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_inh
+          target_layer: Vp_L56_P90
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+        - source_layer: Vp_L56_P135
+          source_population: Vp_inh
+          target_layer: Vp_L56_P135
+          target_population: Vp_inh
+          connection: intralaminar_GABA_A_to_inh_Vp
+
+
+        ## Interlaminar GABA_B
+        # From L23_inh to all layer exc, full selectivity
+        # To L23
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L23_P00
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L23_P45
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L23_P90
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L23_P135
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        # To L4
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L4_P00
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L4_P45
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L4_P90
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L4_P135
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        # To L56
+        - source_layer: Vp_L23_P00
+          source_population: Vp_inh
+          target_layer: Vp_L56_P00
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        - source_layer: Vp_L23_P45
+          source_population: Vp_inh
+          target_layer: Vp_L56_P45
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        - source_layer: Vp_L23_P90
+          source_population: Vp_inh
+          target_layer: Vp_L56_P90
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
+        - source_layer: Vp_L23_P135
+          source_population: Vp_inh
+          target_layer: Vp_L56_P135
+          target_population: Vp_exc
+          connection: interlaminar_GABA_B_Vp
