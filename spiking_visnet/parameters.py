@@ -146,7 +146,7 @@ class Tree(UserDict):
         """
         merged = cls()
         # Merge data.
-        merged.data = dict(ChainMap(*trees))
+        merged.data = dict(ChainMap(*(tree.data for tree in trees)))
         # Merge children recursively.
         all_names = set.union(*[set(tree.c.keys()) for tree in trees])
         merged.c = {
