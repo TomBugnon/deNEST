@@ -40,11 +40,13 @@ logging.config.dictConfig({
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-def load_params(path, overrides=None):
+def load_params(path, *overrides):
     """Load a list of parameter files, optionally overriding some values.
 
     Args:
         path (str): The filepath to load.
+        *overrides (tree-like): Variable number of tree-like parameters that
+            should override those from the path. Last in list is applied first.
 
     Keyword Args:
         overrides (tree or list of trees): A dictionary or list/tuple of
@@ -55,29 +57,29 @@ def load_params(path, overrides=None):
     Returns:
         Params: The loaded parameters with overrides applied.
     """
-    if not isinstance(overrides, (list, tuple)):
-        overrides = [overrides]
     directory = os.path.dirname(os.path.abspath(path))
     return Params.merge(
-        *[Params(overrides_dict)
-          for overrides_dict in overrides],
+        *[Params(overrides_tree)
+          for overrides_tree in overrides],
         *[Params.load(directory, relative_path)
         for relative_path in load_yaml(path)]
     )
 
 
-def run(path, overrides=None, output_dir=None, input_dir=None):
+def run(path, *overrides, output_dir=None, input_dir=None):
     """Run the simulation described by the params at ``path``.
 
     Args:
         path (str): The filepath of a parameter file specifying the simulation.
+        *overrides (tree-like): Variable number of tree-like parameters that
+            should override those from the path. Last in list is applied first.
 
     Keyword Arguments:
         overrides (dict or list): Parameters that should override those from
             the path. Either provided as a dictionary or as a list of dict.
     """
     print(f'Loading parameters: `{path}`... ', end='', flush=True)
-    params = load_params(path, overrides=overrides)
+    params = load_params(path, *overrides)
     # Incorporate kwargs in params
     if output_dir is not None:
         params.c['simulation']['output_dir'] = output_dir

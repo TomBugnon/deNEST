@@ -52,7 +52,7 @@ def main():
                           if (value is not None
                               and key in _CLI_ARG_MAP)})
     # Run it!
-    run(arguments['<param_file.yml>'], overrides=overrides)
+    run(arguments['<param_file.yml>'], overrides)
 
 
 if __name__ == '__main__':
