@@ -176,6 +176,25 @@ def trees():
 
 
 @pytest.fixture
+def inheritance_trees():
+    return [
+        Params({
+            'intermediate1': {DATA_KEY: {'key': 'intermediate'}}
+        }),
+        Params({
+            DATA_KEY: {'key': 'root'},
+            'intermediate1': {
+                'leaf1': {DATA_KEY: {'key': 'leaf'}},
+                'leaf2': {}
+            },
+            'intermediate2': {
+                'leaf1': {}
+            }
+        })
+    ]
+
+
+@pytest.fixture
 def merged(trees):
     return Params.merge(*trees)
 
@@ -195,6 +214,13 @@ def test_merge(trees):
     for name in [0, 1, 2, 'hi']:
         assert name in merged.c
     assert 0 in merged.c[1]
+
+
+def test_merge_inheritance(inheritance_trees):
+    merged = Params.merge(*inheritance_trees)
+    assert merged.c['intermediate1'].c['leaf1']['key'] == 'leaf'
+    assert merged.c['intermediate1'].c['leaf2']['key'] == 'intermediate'
+    assert merged.c['intermediate2'].c['leaf1']['key'] == 'root'
 
 
 def test_merge_precedence(merged):
