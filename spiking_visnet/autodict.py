@@ -10,7 +10,7 @@ import functools
 import operator
 from collections import UserDict
 
-from .structures.utils import dictify
+from .utils.structures import dictify
 
 
 class AutoDict(UserDict):
