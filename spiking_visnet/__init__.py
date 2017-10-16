@@ -48,12 +48,6 @@ def load_params(path, *overrides):
         *overrides (tree-like): Variable number of tree-like parameters that
             should override those from the path. Last in list is applied first.
 
-    Keyword Args:
-        overrides (tree or list of trees): A dictionary or list/tuple of
-            dictionaries containing parameters that will take precedence over
-            those in the file. If the argument is a list of trees, the
-            overrides will be applied in turn starting from the end of the list.
-
     Returns:
         Params: The loaded parameters with overrides applied.
     """
@@ -73,10 +67,6 @@ def run(path, *overrides, output_dir=None, input_dir=None):
         path (str): The filepath of a parameter file specifying the simulation.
         *overrides (tree-like): Variable number of tree-like parameters that
             should override those from the path. Last in list is applied first.
-
-    Keyword Arguments:
-        overrides (dict or list): Parameters that should override those from
-            the path. Either provided as a dictionary or as a list of dict.
     """
     print(f'Loading parameters: `{path}`... ', end='', flush=True)
     params = load_params(path, *overrides)
