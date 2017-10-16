@@ -218,7 +218,8 @@ class Network:
         for conn in self.connections:
             conn.save(output_dir)
         # Save recorders
-        for population in self.populations:
+        for population in tqdm(self.populations,
+                               desc='Save formatted recorders'):
             population.save(output_dir, with_rasters=with_rasters)
 
     def plot_connections(self, output_dir):
