@@ -48,17 +48,18 @@ class Population(NestObject):
 
     @if_not_created
     def create(self):
-        # Get all gids of population
-        gids = self.layer.gids(population=self.name)
-        # Get locations of each gids as a (row, number, unit) tuple
-        self._locations = {}
-        for location in self.layer:
-            location_gids = self.layer.gids(population=self.name,
-                                            location=location)
-            for unit, gid in enumerate(location_gids):
-                self._locations[gid] = location + (unit,)
-        for recorder in self.recorders:
-            recorder.create(gids, self.locations)
+        if self.recorders:
+            # Get all gids of population
+            gids = self.layer.gids(population=self.name)
+            # Get locations of each gids as a (row, number, unit) tuple
+            self._locations = {}
+            for location in self.layer:
+                location_gids = self.layer.gids(population=self.name,
+                                                location=location)
+                for unit, gid in enumerate(location_gids):
+                    self._locations[gid] = location + (unit,)
+            for recorder in self.recorders:
+                recorder.create(gids, self.locations)
 
     @property
     @if_created
