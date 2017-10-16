@@ -72,7 +72,11 @@ class Simulation:
 
     def save(self):
         """Save simulation"""
-        self.make_output_dir(self.output_dir)
+        # Initialize output dir (create and clear)
+        print(f'Creating output_dir: {self.output_dir}')
+        clear_output_dir = self.params.c['simulation'].get('clear_output_dir',
+                                        False)
+        make_output_dir(self.output_dir, clear_output_dir)
         # Save params
         save_as_yaml(output_path(self.output_dir, 'params'),
                      self.params)

@@ -29,6 +29,11 @@ OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
                   'params': (),
 }
 
+# Subdirectories that are cleared if the simulation parameter 'clear_output_dir'
+# is set to true.
+CLEAR_SUBDIRS = [(), ('recorders',), ('sessions'), ('connections',), ('dump',),
+                 ('rasters',)]
+
 def output_subdir(output_dir, data_keyword):
     """Create and return the output subdirectory where a data type is saved.
 
@@ -57,6 +62,27 @@ def output_filename(data_keyword, *args, **kwargs):
 def output_path(output_dir, data_keyword, *args, **kwargs):
     return join(output_subdir(output_dir, data_keyword),
                 output_filename(data_keyword, *args, **kwargs))
+
+
+def make_output_dir(output_dir, clear_output_dir):
+    """Create and possibly clear output directory.
+
+    Create the directory if it doesn't exist and delete the files in the
+    subdirectories specified in CLEAR_SUBDIRS if ``clear_output_dir`` is
+    True.
+    """
+    # clear_output_dir = False
+    os.makedirs(output_dir, exist_ok=True)
+    if clear_output_dir:
+        for clear_dir in [join(output_dir, *subdir)
+                          for subdir in CLEAR_SUBDIRS
+                          if isdir(join(output_dir, *subdir))]:
+            print(f'-> Clearing {clear_dir}')
+            for f in os.listdir(clear_dir):
+                path = join(clear_dir, f)
+                if os.path.isfile(path):
+                    os.remove(path)
+
 
 def save_array(path, array):
     """Save array either as dense or sparse depending on data type."""
