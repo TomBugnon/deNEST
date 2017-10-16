@@ -6,7 +6,5 @@ simulation:
     save_simulation: True
     delete_raw_dir: True
     save_nest_raster: True
-    dump_connections: True
-    dump_dir: null
-    plot_connections: True
-    plot_dir: null
+    dump_connections: False
+    plot_connections: False
