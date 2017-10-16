@@ -5,11 +5,10 @@
 """Provides the ``Simulation`` class."""
 
 import os
-from os.path import join
 from shutil import rmtree
 
 from .network.network import Network
-from .save import save_as_yaml
+from .save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
 from .user_config import INPUT_DIR, NEST_SEED, OUTPUT_DIR, PYTHON_SEED
 
@@ -26,7 +25,7 @@ class Simulation:
     def __init__(self, params, input_dir=None, output_dir=None):
         """Initialize simulation."""
         self.params = params
-        # Get output dir and nest tmp output_dir
+        # Get output dir and nest raw output_dir
         self.output_dir = self.get_output_dirs(output_dir)
         # Get input dir
         self.input_dir = self.get_input_dir(input_dir)
@@ -64,43 +63,38 @@ class Simulation:
 
     def dump_connections(self):
         """Dump network connections."""
-        dump_dir = self.params.c['simulation'].get('dump_dir', None)
-        if dump_dir is None:
-            dump_dir = join(self.output_dir, 'dump')
-            self.params.c['simulation']['dump_dir'] = dump_dir
-        self.make_output_dir(dump_dir)
-        self.network.dump_connections(dump_dir)
+        self.network.dump_connections(self.output_dir)
 
     def plot_connections(self):
         """Plot network connections."""
-        plot_dir = self.params.c['simulation'].get('plot_dir', None)
-        if plot_dir is None:
-            plot_dir = join(self.output_dir, 'connections')
-            self.params.c['simulation']['plot_dir'] = plot_dir
-        self.make_output_dir(plot_dir)
-        self.network.plot_connections(plot_dir)
+        self.network.plot_connections(self.output_dir)
 
     def dump_connection_numbers(self):
         self.network.dump_connection_numbers(self.output_dir)
 
     def save(self):
         """Save simulation"""
-        self.make_output_dir(self.output_dir)
+        # Initialize output dir (create and clear)
+        print(f'Creating output_dir: {self.output_dir}')
+        clear_output_dir = self.params.c['simulation'].get('clear_output_dir',
+                                        False)
+        make_output_dir(self.output_dir, clear_output_dir)
         # Save params
-        save_as_yaml(join(self.output_dir, 'params'), self.params)
+        save_as_yaml(output_path(self.output_dir, 'params'),
+                     self.params)
         if not self.params.c['simulation']['dry_run']:
             # Save network
-            with_rasters = self.params.c['simulation'].get('save_nest_raster', True)
-            self.network.save(self.output_dir, with_rasters = with_rasters)
+            with_rasters = self.params.c['simulation'].get('save_nest_raster',
+                                                           True)
+            self.network.save(self.output_dir, with_rasters=with_rasters)
             # Save sessions
-            session_dir = join(self.output_dir, 'sessions')
-            self.make_output_dir(session_dir)
             for session in self.sessions.values():
-                session.save(session_dir)
+                session.save(self.output_dir)
             # Save session times
-            save_as_yaml(join(self.output_dir, 'session_times'), self.session_times)
+            save_as_yaml(output_path(self.output_dir, 'session_times'),
+                         self.session_times)
         # Delete nest temporary directory
-        if self.params.c['simulation'].get('delete_tmp_dir', True):
+        if self.params.c['simulation'].get('delete_raw_dir', True):
             rmtree(self.params.c['simulation']['nest_output_dir'])
 
     def init_kernel(self):
@@ -110,16 +104,22 @@ class Simulation:
         # Install extension modules
         for module in kernel_params.get('extension_modules', []):
             nest.Install(module)
-        nest.ResetKernel()
-        # Create tmp directory in advance
-        tmp_dir = kernel_params['data_path']
-        os.makedirs(tmp_dir, exist_ok=True)
-        nest.SetKernelStatus(
-            {'local_num_threads': kernel_params.get('local_num_threads', 1),
-             'resolution': kernel_params.get('resolution', 1.),
-             'overwrite_files': kernel_params.get('overwrite_files', True),
-             'data_path': tmp_dir})
+        # Create raw directory in advance
+        raw_dir = kernel_params['data_path']
+        os.makedirs(raw_dir, exist_ok=True)
+        # Set kernel status
+        num_threads = kernel_params.get('local_num_threads', 1)
+        resolution = kernel_params.get('resolution', 1.)
         msd = kernel_params.get('nest_seed', NEST_SEED)
+        print('NEST master seed: ', str(msd))
+        print('data_path: ', str(raw_dir))
+        print('local_num_threads: ', str(num_threads))
+        nest.ResetKernel()
+        nest.SetKernelStatus(
+            {'local_num_threads': num_threads,
+             'resolution': resolution,
+             'overwrite_files': kernel_params.get('overwrite_files', True),
+             'data_path': raw_dir})
         N_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
         nest.SetKernelStatus({
             'grng_seed': msd + N_vp,
@@ -144,8 +144,8 @@ class Simulation:
             output_dir = OUTPUT_DIR
             # Save output dir in params
             self.params.c['simulation']['output_dir'] = output_dir
-        # Tell NEST kernel to save recorder files in OUTPUT_DIR/tmp
-        nest_output_dir = join(output_dir, 'tmp')
+        # Tell NEST kernel where to save the raw recorder files
+        nest_output_dir = output_subdir(output_dir, 'raw')
         self.params.c['kernel']['data_path'] = nest_output_dir
         self.params.c['simulation']['nest_output_dir'] = nest_output_dir
         return output_dir
@@ -161,16 +161,3 @@ class Simulation:
         # Cast to session params as well as simulation params
         self.params.c['sessions']['input_dir'] = input_dir
         return input_dir
-
-    def make_output_dir(self, dir_path):
-        """Create or possibly possibly clear directory.
-
-        Create the directory if it doesn't exist and delete all the files it
-        contains if the simulation parameter ``clear_output_dirs`` is True.
-        """
-        os.makedirs(dir_path, exist_ok=True)
-        if self.params.c['simulation'].get('clear_output_dirs'):
-            for f in os.listdir(dir_path):
-                path = os.path.join(dir_path, f)
-                if os.path.isfile(path):
-                    os.remove(path)

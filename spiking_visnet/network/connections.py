@@ -12,10 +12,10 @@ from os.path import join
 
 import nest
 import numpy as np
-
 from tqdm import tqdm
 
 from . import topology
+from .. import save
 from .layers import InputLayer
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
@@ -74,11 +74,12 @@ class BaseConnection(NestObject):
         for field in self.params.get('save', []):
             print('TODO: save connection ', field, ' in ', output_dir)
 
-    def save_plot(self, plot_dir):
+    def save_plot(self, output_dir):
         if self.model._plot_connection:
             import matplotlib.pyplot as plt
             fig = self.plot_conn() #pylint: disable=unused-variable
-            plt.savefig(join(plot_dir, self.__str__))
+            plt.savefig(join(save.output_subdir(output_dir, 'connections'),
+                             self.__str__))
             plt.close()
 
     def plot_conn(self):
@@ -157,7 +158,7 @@ class BaseConnection(NestObject):
         return {driver: conns.get(driver, [])
                 for driver in self.driver_gids()}
 
-    def dump(self, dump_dir):
+    def dump(self, output_dir):
         # TODO: Query using synapse labels to identify connections with same
         # source pop, target pop and synapse model
         if self.model.dump_connection:
@@ -166,7 +167,8 @@ class BaseConnection(NestObject):
                 target=self.target.gids(population=self.target_population),
                 synapse_model=self.synapse_model)
             # We save: source_gid, target_gid, synapse_model, weight, delay
-            with open(join(dump_dir, self.__str__), 'w') as f:
+            with open(join(save.output_subdir(output_dir, 'dump'),
+                           self.__str__), 'w') as f:
                 writer = csv.writer(f, delimiter='\t')
                 writer.writerows(self.format_dump(conns))
 

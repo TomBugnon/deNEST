@@ -2,11 +2,9 @@ simulation:
   params:
     output_dir: output
     dry_run: False
-    clear_output_dirs: True
+    clear_output_dir: True
     save_simulation: True
-    delete_tmp_dir: True
+    delete_raw_dir: True
     save_nest_raster: True
     dump_connections: False
-    dump_dir: null
     plot_connections: False
-    plot_dir: null

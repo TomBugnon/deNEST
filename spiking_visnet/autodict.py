@@ -10,6 +10,8 @@ import functools
 import operator
 from collections import UserDict
 
+from .utils.structures import dictify
+
 
 class AutoDict(UserDict):
     """A dictionary supporting deep access and modification with tuples.
@@ -31,3 +33,6 @@ class AutoDict(UserDict):
     def __missing__(self, key):
         value = self[key] = type(self)()
         return value
+
+    def todict(self):
+        return dictify(self)
