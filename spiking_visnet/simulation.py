@@ -9,7 +9,7 @@ from os.path import join
 from shutil import rmtree
 
 from .network.network import Network
-from .save import output_path, save_as_yaml
+from .save import output_path, output_subdir, save_as_yaml
 from .session import Session
 from .user_config import INPUT_DIR, NEST_SEED, OUTPUT_DIR, PYTHON_SEED
 
@@ -138,8 +138,8 @@ class Simulation:
             output_dir = OUTPUT_DIR
             # Save output dir in params
             self.params.c['simulation']['output_dir'] = output_dir
-        # Tell NEST kernel to save recorder files in OUTPUT_DIR/tmp
-        nest_output_dir = join(output_dir, 'tmp')
+        # Tell NEST kernel where to save the raw recorder files
+        nest_output_dir = output_subdir(output_dir, 'raw')
         self.params.c['kernel']['data_path'] = nest_output_dir
         self.params.c['simulation']['nest_output_dir'] = nest_output_dir
         return output_dir
