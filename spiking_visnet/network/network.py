@@ -141,10 +141,10 @@ class Network:
         log.info('Creating recorders...')
         self._create_all(self.populations)
 
-    def dump_connections(self, dump_dir):
+    def dump_connections(self, output_dir):
         for connection in tqdm(self.connections,
                                desc='Dump connections'):
-            connection.dump(dump_dir)
+            connection.dump(output_dir)
 
     def change_synapse_states(self, synapse_changes):
         """Change parameters for some connections of a population.
@@ -201,7 +201,6 @@ class Network:
                                                 int(len(all_gids)
                                                     * changes['proportion'])
                                                 ))]
-
             nest.SetStatus(gids_to_change,
                            params=changes['params'])
         self._changed = True
@@ -222,10 +221,10 @@ class Network:
         for population in self.populations:
             population.save(output_dir, with_rasters=with_rasters)
 
-    def plot_connections(self, plot_dir):
+    def plot_connections(self, output_dir):
         for conn in tqdm(self.connections,
                          desc='Create connection plots'):
-            conn.save_plot(plot_dir)
+            conn.save_plot(output_dir)
 
     @staticmethod
     def print_network_size():

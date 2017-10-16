@@ -9,7 +9,7 @@ from os.path import join
 from shutil import rmtree
 
 from .network.network import Network
-from .save import save_as_yaml
+from .save import output_path, save_as_yaml
 from .session import Session
 from .user_config import INPUT_DIR, NEST_SEED, OUTPUT_DIR, PYTHON_SEED
 
@@ -64,38 +64,29 @@ class Simulation:
 
     def dump_connections(self):
         """Dump network connections."""
-        dump_dir = self.params.c['simulation'].get('dump_dir', None)
-        if dump_dir is None:
-            dump_dir = join(self.output_dir, 'dump')
-            self.params.c['simulation']['dump_dir'] = dump_dir
-        self.make_output_dir(dump_dir)
-        self.network.dump_connections(dump_dir)
+        self.network.dump_connections(self.output_dir)
 
     def plot_connections(self):
         """Plot network connections."""
-        plot_dir = self.params.c['simulation'].get('plot_dir', None)
-        if plot_dir is None:
-            plot_dir = join(self.output_dir, 'connections')
-            self.params.c['simulation']['plot_dir'] = plot_dir
-        self.make_output_dir(plot_dir)
-        self.network.plot_connections(plot_dir)
+        self.network.plot_connections(self.output_dir)
 
     def save(self):
         """Save simulation"""
         self.make_output_dir(self.output_dir)
         # Save params
-        save_as_yaml(join(self.output_dir, 'params'), self.params)
+        save_as_yaml(output_path(self.output_dir, 'params'),
+                     self.params)
         if not self.params.c['simulation']['dry_run']:
             # Save network
-            with_rasters = self.params.c['simulation'].get('save_nest_raster', True)
-            self.network.save(self.output_dir, with_rasters = with_rasters)
+            with_rasters = self.params.c['simulation'].get('save_nest_raster',
+                                                           True)
+            self.network.save(self.output_dir, with_rasters=with_rasters)
             # Save sessions
-            session_dir = join(self.output_dir, 'sessions')
-            self.make_output_dir(session_dir)
             for session in self.sessions.values():
-                session.save(session_dir)
+                session.save(self.output_dir)
             # Save session times
-            save_as_yaml(join(self.output_dir, 'session_times'), self.session_times)
+            save_as_yaml(output_path(self.output_dir, 'session_times'),
+                         self.session_times)
         # Delete nest temporary directory
         if self.params.c['simulation'].get('delete_tmp_dir', True):
             rmtree(self.params.c['simulation']['nest_output_dir'])

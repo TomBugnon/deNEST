@@ -83,13 +83,15 @@ class Population(NestObject):
                     variable=variable,
                     unit_index=unit_index
                 )
-                filename = save.recorder_filename(
+                recorder_path = save.output_path(
+                    output_dir,
+                    'recorders',
                     self.layer.name,
                     self.name,
                     unit_index=unit_index,
                     variable=variable
                 )
-                save.save_array(join(output_dir, filename), activity)
+                save.save_array(recorder_path, activity)
 
     def save_rasters(self, output_dir):
         for recorder in self.recorders:
@@ -98,9 +100,9 @@ class Population(NestObject):
                 pylab.title(self.layer.name + '_' + self.name)
                 f = raster[0].figure
                 f.set_size_inches(15, 9)
-                filename = ('spikes_raster_' + self.layer.name + '_'
-                            + self.name + '.png')
-                f.savefig(join(output_dir, filename), dpi=100)
+                f.savefig(save.output_path(output_dir, 'rasters',
+                                           self.layer.name, self.name),
+                          dpi=100)
                 plt.close()
 
 
