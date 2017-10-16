@@ -7,7 +7,7 @@
 
 import os
 import pickle
-from os.path import exists, isfile, join
+from os.path import exists, isdir, isfile, join
 
 import numpy as np
 import scipy.sparse
@@ -58,6 +58,7 @@ def output_filename(data_keyword, *args, **kwargs):
             for a given data type.
     """
     return FILENAME_FUNCS[data_keyword](*args, **kwargs)
+
 
 def output_path(output_dir, data_keyword, *args, **kwargs):
     return join(output_subdir(output_dir, data_keyword),

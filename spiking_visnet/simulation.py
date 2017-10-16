@@ -5,11 +5,10 @@
 """Provides the ``Simulation`` class."""
 
 import os
-from os.path import join
 from shutil import rmtree
 
 from .network.network import Network
-from .save import output_path, output_subdir, save_as_yaml
+from .save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
 from .user_config import INPUT_DIR, NEST_SEED, OUTPUT_DIR, PYTHON_SEED
 
@@ -159,16 +158,3 @@ class Simulation:
         # Cast to session params as well as simulation params
         self.params.c['sessions']['input_dir'] = input_dir
         return input_dir
-
-    def make_output_dir(self, dir_path):
-        """Create or possibly possibly clear directory.
-
-        Create the directory if it doesn't exist and delete all the files it
-        contains if the simulation parameter ``clear_output_dirs`` is True.
-        """
-        os.makedirs(dir_path, exist_ok=True)
-        if self.params.c['simulation'].get('clear_output_dirs'):
-            for f in os.listdir(dir_path):
-                path = os.path.join(dir_path, f)
-                if os.path.isfile(path):
-                    os.remove(path)
