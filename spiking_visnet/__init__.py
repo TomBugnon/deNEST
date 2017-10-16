@@ -12,6 +12,7 @@ from .simulation import Simulation
 from .network.network import Network
 from .save import load_yaml
 
+from .user_config import USER_OVERRIDES
 
 __all__ = ['load_params', 'run', 'Simulation', 'Network']
 
@@ -69,7 +70,7 @@ def run(path, *overrides, output_dir=None, input_dir=None):
             should override those from the path. Last in list is applied first.
     """
     print(f'Loading parameters: `{path}`... ', end='', flush=True)
-    params = load_params(path, *overrides)
+    params = load_params(path, *overrides, USER_OVERRIDES)
     # Incorporate kwargs in params
     if output_dir is not None:
         params.c['simulation']['output_dir'] = output_dir

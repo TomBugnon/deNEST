@@ -16,3 +16,4 @@ INPUT_SUBDIRS = {'raw_input': 'raw_input',
 METADATA_FILENAME = 'metadata.yml'
 PYTHON_SEED = 94
 NEST_SEED = 94
+USER_OVERRIDES = {}
