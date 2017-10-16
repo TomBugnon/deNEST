@@ -26,7 +26,7 @@ class Simulation:
     def __init__(self, params, input_dir=None, output_dir=None):
         """Initialize simulation."""
         self.params = params
-        # Get output dir and nest tmp output_dir
+        # Get output dir and nest raw output_dir
         self.output_dir = self.get_output_dirs(output_dir)
         # Get input dir
         self.input_dir = self.get_input_dir(input_dir)
@@ -88,7 +88,7 @@ class Simulation:
             save_as_yaml(output_path(self.output_dir, 'session_times'),
                          self.session_times)
         # Delete nest temporary directory
-        if self.params.c['simulation'].get('delete_tmp_dir', True):
+        if self.params.c['simulation'].get('delete_raw_dir', True):
             rmtree(self.params.c['simulation']['nest_output_dir'])
 
     def init_kernel(self):
@@ -98,22 +98,22 @@ class Simulation:
         # Install extension modules
         for module in kernel_params.get('extension_modules', []):
             nest.Install(module)
-        # Create tmp directory in advance
-        tmp_dir = kernel_params['data_path']
-        os.makedirs(tmp_dir, exist_ok=True)
+        # Create raw directory in advance
+        raw_dir = kernel_params['data_path']
+        os.makedirs(raw_dir, exist_ok=True)
         # Set kernel status
         num_threads = kernel_params.get('local_num_threads', 1)
         resolution = kernel_params.get('resolution', 1.)
         msd = kernel_params.get('nest_seed', NEST_SEED)
         print('NEST master seed: ', str(msd))
-        print('data_path: ', str(tmp_dir))
+        print('data_path: ', str(raw_dir))
         print('local_num_threads: ', str(num_threads))
         nest.ResetKernel()
         nest.SetKernelStatus(
             {'local_num_threads': num_threads,
              'resolution': resolution,
              'overwrite_files': kernel_params.get('overwrite_files', True),
-             'data_path': tmp_dir})
+             'data_path': raw_dir})
         N_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
         nest.SetKernelStatus({
             'grng_seed': msd + N_vp,
