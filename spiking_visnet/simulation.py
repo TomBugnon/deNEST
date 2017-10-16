@@ -98,16 +98,22 @@ class Simulation:
         # Install extension modules
         for module in kernel_params.get('extension_modules', []):
             nest.Install(module)
-        nest.ResetKernel()
         # Create tmp directory in advance
         tmp_dir = kernel_params['data_path']
         os.makedirs(tmp_dir, exist_ok=True)
+        # Set kernel status
+        num_threads = kernel_params.get('local_num_threads', 1)
+        resolution = kernel_params.get('resolution', 1.)
+        msd = kernel_params.get('nest_seed', NEST_SEED)
+        print('NEST master seed: ', str(msd))
+        print('data_path: ', str(tmp_dir))
+        print('local_num_threads: ', str(num_threads))
+        nest.ResetKernel()
         nest.SetKernelStatus(
-            {'local_num_threads': kernel_params.get('local_num_threads', 1),
-             'resolution': kernel_params.get('resolution', 1.),
+            {'local_num_threads': num_threads,
+             'resolution': resolution,
              'overwrite_files': kernel_params.get('overwrite_files', True),
              'data_path': tmp_dir})
-        msd = kernel_params.get('nest_seed', NEST_SEED)
         N_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
         nest.SetKernelStatus({
             'grng_seed': msd + N_vp,
