@@ -30,16 +30,18 @@ class Simulation:
         # Get input dir
         self.input_dir = self.get_input_dir(input_dir)
         # set python seeds
+        print('Set python seed...', flush=True)
         self.set_python_seeds()
+        print('...done\n', flush=True)
         # Initialize kernel (should be after getting output dirs)
         print('Initialize NEST kernel...', flush=True)
         self.init_kernel()
-        print('...done', flush=True)
+        print('...done\n', flush=True)
         # Create network
         print('Create network...', flush=True)
         self.network = Network(self.params.c['network'])
         self.network.create()
-        print('...done', flush=True)
+        print('...done\n', flush=True)
         # Create sessions
         print('Create sessions...', flush=True)
         self.order = self.params.c['sessions']['order']
@@ -48,7 +50,8 @@ class Simulation:
             for name, session_params in self.params.c['sessions'].named_leaves()
         }
         self.session_times = None
-        print('Done...', flush=True)
+        print(f'-> Session order: {self.order}')
+        print('Done...\n', flush=True)
 
     def run(self):
         """Run each of the sessions in order."""
@@ -108,9 +111,9 @@ class Simulation:
         num_threads = kernel_params.get('local_num_threads', 1)
         resolution = kernel_params.get('resolution', 1.)
         msd = kernel_params.get('nest_seed', NEST_SEED)
-        print('NEST master seed: ', str(msd))
-        print('data_path: ', str(raw_dir))
-        print('local_num_threads: ', str(num_threads))
+        print('-> NEST master seed: ', str(msd))
+        print('-> data_path: ', str(raw_dir))
+        print('-> local_num_threads: ', str(num_threads))
         nest.ResetKernel()
         nest.SetKernelStatus(
             {'local_num_threads': num_threads,
@@ -128,7 +131,7 @@ class Simulation:
         import numpy as np
         import random
         python_seed = self.params.c['kernel'].get('python_seed', PYTHON_SEED)
-        print(f'Set python seed: {str(python_seed)}')
+        print(f'-> Setting python seed: {str(python_seed)}')
         np.random.seed(python_seed)
         random.seed(python_seed)
 
@@ -158,3 +161,7 @@ class Simulation:
         # Cast to session params as well as simulation params
         self.params.c['sessions']['input_dir'] = input_dir
         return input_dir
+
+    def total_time(self):
+        import nest
+        return nest.GetKernelStatus('time')
