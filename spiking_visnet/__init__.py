@@ -12,7 +12,7 @@ from .simulation import Simulation
 from .network.network import Network
 from .save import load_yaml
 
-from .user_config import USER_OVERRIDES
+from .user_config import USER_OVERRIDES, DEFAULT_PARAMS_PATH
 
 __all__ = ['load_params', 'run', 'Simulation', 'Network']
 
@@ -52,11 +52,11 @@ def load_params(path, *overrides):
     Returns:
         Params: The loaded parameters with overrides applied.
     """
-    directory = os.path.dirname(os.path.abspath(path))
+    path_dir = os.path.dirname(os.path.abspath(path))
     return Params.merge(
         *[Params(overrides_tree)
           for overrides_tree in overrides],
-        *[Params.load(directory, relative_path)
+        *[Params.load(path_dir, relative_path)
         for relative_path in load_yaml(path)]
     )
 
@@ -69,8 +69,11 @@ def run(path, *overrides, output_dir=None, input_dir=None):
         *overrides (tree-like): Variable number of tree-like parameters that
             should override those from the path. Last in list is applied first.
     """
-    print(f'Loading parameters: `{path}`... ', end='', flush=True)
+    print(f'Loading parameters: `{path}`...', end='', flush=True)
     params = load_params(path, *overrides, USER_OVERRIDES)
+    if DEFAULT_PARAMS_PATH is not None:
+        default_params = load_params(DEFAULT_PARAMS_PATH)
+        params = Params.merge(params, default_params)
     # Incorporate kwargs in params
     if output_dir is not None:
         params.c['simulation']['output_dir'] = output_dir
