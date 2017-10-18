@@ -128,10 +128,13 @@ def load_session_times(output_dir):
 def load_session_stim(output_dir, session_name):
     """Load full stimulus of a session."""
     movie_prefix = output_filename('movie', session_name)
-    sessions_dir = output_subdir(output_dir, 'sessions')
+    sessions_dir = output_subdir(output_dir, 'movie')
     movie_filenames = [f for f in os.listdir(sessions_dir)
                        if f.startswith(movie_prefix)]
-    return load_as_numpy(join(sessions_dir, movie_filenames[0]))
+    movie = load_as_numpy(join(sessions_dir, movie_filenames[0]))
+    if filt is None:
+        return movie
+    return movie[:, filt]
 
 
 def load_activity(output_dir, layer, population, variable='spikes',
