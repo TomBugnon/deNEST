@@ -40,7 +40,8 @@ class Simulation:
         # Create network
         print('Create network...', flush=True)
         self.network = Network(self.params.c['network'])
-        self.network.create()
+        self.network.create(dry_run=self.params.c['simulation'].get('dry_run',
+                                                                    False))
         print('...done\n', flush=True)
         # Create sessions
         print('Create sessions...', flush=True)
