@@ -20,6 +20,12 @@ from .layers import InputLayer
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
 
+# Matched substrings when scaling masks.
+SCALED_MASK_SUBSTRINGS = ['radius', 'lower_left', 'upper_right']
+
+# Recognized non-float types when scaling kernels.
+SCALED_KERNEL_TYPES = ['gaussian']
+
 
 class ConnectionModel(NestObject):
     """Represent a NEST connection model."""
@@ -96,7 +102,9 @@ class BaseConnection(NestObject):
                           self.nest_params['mask'],
                           kern=self.nest_params['kernel'],
                           kernel_color='green')
-        except (AttributeError, KeyError):
+        except (AttributeError, KeyError, ValueError):
+            # AttributeError, KeyError: if no nest_params mask or kernel
+            # ValueError: if the mask or kernel cannot be plotted (custom mask)
             pass
         try:
             tp.PlotTargets(ctr,
@@ -302,8 +310,8 @@ class TopoConnection(BaseConnection):
 
         # Set kernel, mask, and weights, scaling if necessary
         nest_params = nest_params.new_child({
-            'kernel': self.scale_kernel(nest_params['kernel']),
-            'mask': self.scale_mask(nest_params['mask']),
+            'kernel': self.scale_kernel(nest_params.get('kernel', {})),
+            'mask': self.scale_mask(nest_params.get('mask', {})),
             'weights': self.scale_weights(nest_params['weights']),
         })
         # Set source populations if available
@@ -315,25 +323,60 @@ class TopoConnection(BaseConnection):
         return dict(nest_params)
 
     def scale_kernel(self, kernel):
-        """Return a new kernel scaled by ``scale_factor``."""
+        """Return a new kernel scaled by ``scale_factor``.
+
+        If kernel is a float: copy and return
+        If kernel is a dictionary:
+            - If empty: return ``{}``
+            - If recognized type (in SCALED_KERNEL_TYPES): scale 'sigma' field
+                and return scaled kernel
+            - If unrecognized type (not in SCALED_KERNEL_TYPES): issue warning
+                and return same kernel
+        """
         kernel = deepcopy(kernel)
         try:
+            # Float kernel (not scaled)
             return float(kernel)
         except TypeError:
-            if 'gaussian' in kernel:
-                kernel['gaussian']['sigma'] *= self.scale_factor
+            if not kernel:
+                # Empty kernel
+                return kernel
+            kernel_type = list(kernel.keys())[0]
+            if kernel_type in SCALED_KERNEL_TYPES:
+                # Recognized non-trivial kernel type (scale sigma parameter)
+                kernel[kernel_type]['sigma'] *= self.scale_factor
+                return kernel
+            # Unrecognized non-trivial kernel type (return and warn)
+            import warnings
+            warnings.warn('Not scaling unrecognized kernel type')
             return kernel
 
     def scale_mask(self, mask):
-        """Return a new mask scaled by ``scale_factor``."""
+        """Return a new mask scaled by ``scale_factor``.
+
+        Scale the fields of the mask parameters if their key contains the
+        strings 'radius' (for circular and doughnut mask.), 'lower_left' or
+        'upper_right' (for rectangular or box masks.)
+        You can modify the list of scaled field by changing the
+        ``SCALED_MASK_SUBSTRINGS`` constant.
+
+        Return ``{}`` if ``mask`` is empty.
+        """
         mask = deepcopy(mask)
-        if 'circular' in mask:
-            mask['circular']['radius'] *= self.scale_factor
-        if 'rectangular' in mask:
-            mask['rectangular'] = {
-                key: np.array(scalars) * self.scale_factor
-                for key, scalars in mask['rectangular'].items()
-            }
+        mask_type, mask_params = list(mask.items())[0]
+        # Iterate on all the parameters of the mask
+        for key in mask_params:
+            # Test if the key contains any of the matching substrings.
+            if any([substring in key for substring
+                    in SCALED_MASK_SUBSTRINGS]):
+                try:
+                    # If entry is list, scale all the elements
+                    mask[mask_type][key] = [scalar * self.scale_factor
+                                            for scalar
+                                            in mask[mask_type][key]]
+                except TypeError:
+                    # If entry is float, scale it
+                    mask[mask_type][key] *= self.scale_factor
         return mask
 
     def scale_weights(self, weights):
