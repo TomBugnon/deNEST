@@ -13,7 +13,7 @@ from .simulation import Simulation
 from .network.network import Network
 from .save import load_yaml
 
-from .utils.misc import pretty_time
+from .utils import misc
 from .user_config import USER_OVERRIDES, DEFAULT_PARAMS_PATH
 
 __all__ = ['load_params', 'run', 'Simulation', 'Network']
@@ -131,9 +131,12 @@ def run(path, *overrides, output_dir=None, input_dir=None):
     if params.c['simulation'].get('dump_connection_numbers', False):
         sim.dump_connection_numbers()
 
+    # Drop git hash
+    misc.drop_git_hash(sim.output_dir)
+
     # Conclusive remarks
     print('\nThis simulation is a great success.\n')
     print(f"Total simulation virtual time: {sim.total_time()}ms")
-    print(f"Total simulation real time: {pretty_time(start_time)}")
+    print(f"Total simulation real time: {misc.pretty_time(start_time)}")
     print('\nSimulation output can be found at the following path:')
     print(os.path.abspath(sim.output_dir), '\n')
