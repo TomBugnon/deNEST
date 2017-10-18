@@ -143,7 +143,7 @@ class Network:
 
     def dump_connections(self, output_dir):
         for connection in tqdm(self.connections,
-                               desc='Dump connections'):
+                               desc='Dumping connections'):
             connection.dump(output_dir)
 
     def change_synapse_states(self, synapse_changes):
@@ -161,7 +161,7 @@ class Network:
         """
         import nest
         for changes in tqdm(sorted(synapse_changes, key=synapse_sorting_map),
-                            desc="-> Change synapses's state."):
+                            desc="-> Changing synapses's state."):
             nest.SetStatus(
                 nest.GetConnections(synapse_model=changes['synapse_model']),
                 changes['params']
@@ -187,7 +187,7 @@ class Network:
         """
         import nest
         for changes in tqdm(sorted(unit_changes, key=unit_sorting_map),
-                            desc="-> Change units' state"):
+                            desc="-> Changing units' state"):
 
             if self._changed and changes['proportion'] != 1:
                 raise Exception("Attempting to change probabilistically some "
@@ -219,12 +219,12 @@ class Network:
             conn.save(output_dir)
         # Save recorders
         for population in tqdm(self.populations,
-                               desc='Save formatted recorders'):
+                               desc='Saving formatted recorders'):
             population.save(output_dir, with_rasters=with_rasters)
 
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections,
-                         desc='Create connection plots'):
+                         desc='Creating connection plots'):
             conn.save_plot(output_dir)
 
     @staticmethod

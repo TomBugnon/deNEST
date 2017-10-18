@@ -29,12 +29,15 @@ def load_raw_stimulus(input_path, session_stim_yaml):
     """
     # Single movie given by user.
     if isfile(input_path):
+        print(f'-> Loading input from numpy at `{input_path}`')
         movie = load_as_numpy(input_path)
         # All frames have the same filename
         labels = [basename(input_path)
                   for i in range(np.size(movie, 0))]
         return (movie, labels, None)
     # Concatenate multiple movies from stimulus yaml file
+    print(f'Loading input from input directory: `{input_path}`,'
+          f' using stimulus yaml `{session_stim_yaml}`')
     return load_stim_from_yaml(input_path, session_stim_yaml)
 
 

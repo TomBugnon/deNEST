@@ -5,6 +5,7 @@
 
 """Represent a sequence of stimuli."""
 
+import time
 from os.path import join
 from pprint import pformat
 
@@ -13,13 +14,14 @@ import numpy as np
 from . import save
 from .user_config import INPUT_DIR
 from .utils.load_stimulus import load_raw_stimulus
+from .utils.misc import pretty_time
 
 
 class Session:
     """Represents a sequence of stimuli."""
 
     def __init__(self, name, params):
-        print('create Session')
+        print(f'-> Creating session `{name}`')
         self.name = name
         self.params = params
         # Initialize the session start and end times
@@ -45,7 +47,6 @@ class Session:
 
         """
         # Load stimuli
-        print("-> Load session's stimulus")
         self._stimulus = self.load_stim(crop_shape=network.max_input_shape)
         self._simulation_time = float(np.size(self.stimulus['movie'], axis=0))
 
@@ -64,10 +65,17 @@ class Session:
         """Initialize and run session."""
         import nest
         self._start = int(nest.GetKernelStatus('time'))
-        print("Initialize session")
+        print("Initialize session...")
         self.initialize(network)
-        print(f"Run `{self.simulation_time}`ms")
+        print("done...\n")
+        print(f"Running session `{self.name}` for `{self.simulation_time}`ms")
+        start_time = time.time()
         nest.Simulate(self.simulation_time)
+        print(f"done.")
+        print(f"Session `{self.name}` virtual running time: "
+              f"`{self.simulation_time}`ms")
+        print(f"Session `{self.name}` real running time: "
+              f"{pretty_time(start_time)}...\n")
         self._end = int(nest.GetKernelStatus('time'))
 
     def save(self, output_dir):

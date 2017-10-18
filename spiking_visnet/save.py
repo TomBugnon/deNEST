@@ -122,8 +122,7 @@ def load_yaml(*args):
 
 def load_session_times(output_dir):
     """Load session time from output dir."""
-    return load_yaml(output_subdir(output_dir, 'sessions'),
-                     output_filename('session_times'))
+    return load_yaml(output_path(output_dir, 'session_times'))
 
 
 def load_session_stim(output_dir, session_name):
@@ -139,19 +138,19 @@ def load_activity(output_dir, layer, population, variable='spikes',
                   session=None, all_units=False):
     """Load activity of a given variable for a population."""
     # Get all filenames for that population (one per unit index)
-    formatted_dir = output_subdir(output_dir, 'formatted')
+    recorders_dir = output_subdir(output_dir, 'recorders')
     unit_index = None if all_units else 0
     filename_prefix = output_filename('recorders', layer, population,
                                       variable=variable,
                                       unit_index=unit_index)
-    all_filenames = [f for f in os.listdir(formatted_dir)
+    all_filenames = [f for f in os.listdir(recorders_dir)
                      if f.startswith(filename_prefix)
-                     and isfile(join(formatted_dir, f))]
+                     and isfile(join(recorders_dir, f))]
     # Load the activity for the required unit indices and concatenate along the
     # first dimension.
     # Concatenate along first dimension (row)
     all_sessions_activity = np.concatenate(
-        [load_as_numpy(join(formatted_dir, filename))
+        [load_as_numpy(join(recorders_dir, filename))
          for filename in all_filenames],
         axis=1
     )
