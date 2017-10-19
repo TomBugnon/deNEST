@@ -10,3 +10,4 @@ input
 output
 scripts
 user_config.py
+test_*
