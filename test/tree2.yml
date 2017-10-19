@@ -1,0 +1,12 @@
+c1:
+  params: {0: 1, 1: 1}
+c2:
+  params: {0: 1, 1: 1, 'key': 'intermediate'}
+  0: 
+    params: {'key': 'leaf'}
+  cc2:
+    0:
+      params: {}
+c3:
+  0: {}
+params: {p1: 0, 0: 0, 1: 0, 'key': 'root'}
