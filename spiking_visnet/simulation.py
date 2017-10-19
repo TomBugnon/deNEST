@@ -102,9 +102,10 @@ class Simulation:
         """Initialize NEST kernel."""
         import nest
         kernel_params = self.params.c['kernel']
+        nest.ResetKernel()
         # Install extension modules
         for module in kernel_params.get('extension_modules', []):
-            nest.Install(module)
+            self.install_module(module)
         # Create raw directory in advance
         raw_dir = kernel_params['data_path']
         os.makedirs(raw_dir, exist_ok=True)
@@ -115,7 +116,6 @@ class Simulation:
         print('-> NEST master seed: ', str(msd))
         print('-> data_path: ', str(raw_dir))
         print('-> local_num_threads: ', str(num_threads))
-        nest.ResetKernel()
         nest.SetKernelStatus(
             {'local_num_threads': num_threads,
              'resolution': resolution,
@@ -166,3 +166,21 @@ class Simulation:
     def total_time(self):
         import nest
         return nest.GetKernelStatus('time')
+
+    @staticmethod
+    def install_module(module_name):
+        """Install module in NEST using nest.Install() and catch errors.
+
+        Even after resetting the kernel, NEST throws a NESTError (rather than a)
+        warning when the module is already loaded. I couldn't find a way to test
+        whether the module is already installed so this function catches the
+        error if the module is already installed by matching the error message.
+        """
+        import nest
+        try:
+            nest.Install(module_name)
+        except nest.NESTError as e:
+            if 'loaded already' in str(e):
+                print(f'Module {module_name} is already loaded.')
+                return
+            raise
