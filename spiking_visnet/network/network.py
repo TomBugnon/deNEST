@@ -177,35 +177,66 @@ class Network:
             unit_changes (list): List of dictionaries each of the form::
                     {
                         'layer': <layer_name>,
+                        'layer_type': <layer_type>,
                         'population': <pop_name>,
+                        'change_type': <change_type>,
                         'proportion': <prop>,
                         'params': {<param_name>: <param_value>,
                                    ...}
                     }
-                where ``<layer_name>`` and ``<population_name>`` define the
-                considered population, ``<prop>`` is the proportion of units of
-                that population for which the parameters are changed, and the
-                ``'params'`` entry is the dictionary of parameter changes apply
-                to the selected units.
+                where:
+                ``<layer_name>`` (default None) is the name of the considered
+                    layer. If not specified, changes are applied to all the
+                    layers of type <layer_type>.
+                ``<layer_type>`` (default None) is the name of the type of
+                    layers to which the changes are applied. Should be 'Layer'
+                    or 'InputLayer'. Used only if <layer_name> is None.
+                ``<population_name>`` (default None) is the name of the
+                    considered population. If not specified, changes are applied
+                    to all the populations.
+                ``<change_type>`` ('multiplicative' or None). If
+                    'multiplicative', the set value for each parameter is the
+                    product between the preexisting value and the given value.
+                    Otherwise, the given value is set without regard for the
+                    preexisting value.
+                ``<prop>`` (default 1) is the proportion of units of the
+                    considered population for which the parameters are changed.
+                ``'params'`` (default {}) is the dictionary of parameter changes
+                    applied to the selected units.
         """
-        import nest
         for changes in tqdm(sorted(unit_changes, key=unit_sorting_map),
                             desc="-> Changing units' state"):
+            # Pass if no parameter dictionary.
+            if not changes['params']:
+                continue
 
-            if self._changed and changes['proportion'] != 1:
+            proportion = changes.get('proportion', 1)
+            # Avoid probabilistic changes in multiple sessions.
+            if self._changed and proportion != 1:
                 raise Exception("Attempting to change probabilistically some "
                                 "units' state multiple times.")
 
-            layer = self.layers[changes['layer']]
-            all_gids = layer.gids(population=changes.get('population', None))
-            gids_to_change = [all_gids[i] for i
-                              in sorted(
-                                  random.sample(range(len(all_gids)),
-                                                int(len(all_gids)
-                                                    * changes['proportion'])
-                                                ))]
-            nest.SetStatus(gids_to_change,
-                           params=changes['params'])
+            # Verbose
+            print('--> Applying unit changes dictionary: ', changes)
+
+            # Iterate on all layers of a given subtype or on a specific layer
+            change_layer = changes.get('layer', None)
+            if change_layer is None:
+                layers = self._get_layers(layer_type=changes.get('layer_type',
+                                                                 None))
+            else:
+                layers = [self.layers[change_layer]]
+
+            for layer in layers:
+
+                gids_to_change = self.get_gids_subset(
+                    layer.gids(population=changes.get('population',
+                                                      None)),
+                    proportion
+                )
+
+                self.apply_unit_changes(gids_to_change,
+                                        changes)
         self._changed = True
 
     def reset(self):
@@ -243,9 +274,10 @@ class Network:
 
 def unit_sorting_map(unit_change):
     """Map by (layer, population, proportion, params_items for sorting."""
-    return (unit_change['layer'],
-            unit_change['population'],
-            unit_change['proportion'],
+    return (unit_change.get('layer', 'None'),
+            unit_change.get('layer_type', 'None'),
+            unit_change.get('population', 'None'),
+            unit_change.get('proportion', '1'),
             sorted(unit_change['params'].items()))
 
 
