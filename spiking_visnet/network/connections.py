@@ -74,6 +74,7 @@ class BaseConnection(NestObject):
         self.driver = 'source'
         self.driver_layer = self.source
         self.driver_population = self.source_population
+        self.check()
 
     def save(self, output_dir):
         # TODO
@@ -252,6 +253,23 @@ class BaseConnection(NestObject):
                   'delay': [conn.params['delay'] for conn in all_conns],
                   'model': self.synapse_model}
         return sources, targets, params
+
+    def check(self):
+        """Check the connection to avoid bad errors.
+
+        Make sure that:
+        - the target is not an ``InputLayer``,
+        - if the source is an ``InputLayer``, the source population is a parrot
+        neuron (otherwise we can't record the input layer).
+        """
+        assert(type(self.target).__name__ != 'InputLayer')
+        if (type(self.source).__name__ == 'InputLayer'
+            and self.source_population != self.source.PARROT_MODEL):
+                import warnings
+                warn_str = (f'\n\nCareful! The Input population for connection:'
+                            f'\n{self.__str__}\n is not a parrot '
+                            'neuron! This might throw a bad NEST error.\n\n\n')
+                warnings.warn(warn_str)
 
 
 class FromFileConnection(BaseConnection):
