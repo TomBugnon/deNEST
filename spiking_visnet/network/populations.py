@@ -95,8 +95,9 @@ class Population(NestObject):
                 save.save_array(recorder_path, activity)
 
     def save_rasters(self, output_dir):
-        for recorder in self.recorders:
-            raster = recorder.get_nest_raster()
+        for recorder in [rec for rec in self.recorders
+                         if rec.type == 'spike_detector']:
+            raster, error_msg = recorder.get_nest_raster()
             if raster is not None:
                 pylab.title(self.layer.name + '_' + self.name)
                 f = raster[0].figure
@@ -105,6 +106,10 @@ class Population(NestObject):
                                            self.layer.name, self.name),
                           dpi=100)
                 plt.close()
+            else:
+                print(f'Not saving raster for population {str(self)}:')
+                print(f'-> {error_msg}\n')
+
 
 
 class Recorder(NestObject):
@@ -186,10 +191,22 @@ class Recorder(NestObject):
         )
 
     def get_nest_raster(self):
+        """Return the nest_raster plot and possibly error message."""
         import nest
         from nest import raster_plot
-        if (self.type == 'spike_detector'
-                and 'memory' in self._record_to
-                and len(nest.GetStatus(self.gid)[0]['events']['senders'])):
-            return raster_plot.from_device(self.gid, hist=True)
-        return None
+        assert (self.type == 'spike_detector')
+        raster, error_msg = None, None
+        if 'memory' not in self._record_to:
+            error_msg = 'Data was not saved to memory.'
+        elif not len(nest.GetStatus(self.gid)[0]['events']['senders']):
+            error_msg = 'No events were recorded.'
+        elif len(nest.GetStatus(self.gid)[0]['events']['senders']) == 1:
+            error_msg = 'There was only one sender'
+        else:
+            try:
+                raster = raster_plot.from_device(self.gid, hist=True)
+            except Exception as e:
+                error_msg = (f'Uncaught exception when generating raster.\n'
+                             f'--> Exception message: {e}\n'
+                             f'--> Recorder status: {nest.GetStatus(self.gid)}')
+        return raster, error_msg
