@@ -214,7 +214,7 @@ def animate(plot, movie, fps=5, t=0, T=None, size=1):
 
 def show_activity_raster(activity, plot_cols=None, figsize=(40, 10), xmin=None,
                          xmax=None, interpolation='none', variable='spikes',
-                         fig=None, subp=None, show=False):
+                         fig=None, subp=None, show=True):
     """Show raster plot of activity by column, in the active figure.
 
     Args:
