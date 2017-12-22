@@ -73,8 +73,8 @@ class Population(NestObject):
 
     def save_recorders(self, output_dir):
         import nest
-        ntimesteps = int(nest.GetKernelStatus('time') /
-                         nest.GetKernelStatus('resolution'))
+        # NB: We only sample at 1ms !
+        ntimesteps = int(nest.GetKernelStatus('time'))
         formatted_shape = (ntimesteps,) + self.layer.shape
         for unit_index, recorder in product(range(self.number),
                                             self.recorders):
@@ -181,6 +181,14 @@ class Recorder(NestObject):
 
     def formatted_data(self, formatted_shape=None, variable=None,
                        unit_index=0):
+        # Throw a warning if the interval is below the millisecond as that won't
+        # be taken in account during formatting.
+        import nest
+        if (self.type == 'multimeter'
+            and nest.GetStatus(self.gid, 'interval')[0] < 1):
+            import warnings
+            warnings.warn('NB: The multimeter interval is below 1msec, but we'
+                          'only format at the msec scale!')
         return format_recorders.format_recorder(
             self.gid,
             recorder_type=self.type,
