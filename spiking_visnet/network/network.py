@@ -114,6 +114,12 @@ class Network:
         return [l for l in sorted(self.layers.values())
                 if type(l).__name__ == layer_type]
 
+    def _get_synapses(self, synapse_type=None):
+        if synapse_type is None:
+            return sorted(self.synapse_models.values())
+        return [syn for syn in sorted(self.synapse_models.values())
+                if syn.type == synapse_type]
+
     @property
     def input_shapes(self):
         return set(self._layer_get('shape', layer_type='InputLayer'))
