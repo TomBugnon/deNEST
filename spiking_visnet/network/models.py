@@ -15,6 +15,9 @@ class Model(NestObject):
         super().__init__(name, params)
         # Save and remove the NEST model name from the nest parameters.
         self.nest_model = self.params.pop('nest_model')
+        # Get the model's "type" (+1 for excitatory neuron/synapse,
+        # -1 for inhibitory)
+        self.type = self.params.pop('type', None)
         # TODO: keep nest params in params['nest_params'] and leave base model
         # as params['nest_model']?
         self.nest_params = dict(self.params)
@@ -53,3 +56,39 @@ class SynapseModel(Model):
             receptors = nest.GetDefaults(target)['receptor_types']
             self.nest_params['receptor_type'] = \
                 receptors[self.params['receptor_type']]
+        # Try to infer the synapse type (1 for excitatory/-1 for inhibitory)
+        # If not specified in the params.
+        if self.type is None:
+            self.type = self.guess_synapse_type()
+
+    def guess_synapse_type(self):
+        """Guess the synapse type from the model or receptor name.
+
+        Return +1(/-1) for excitatory (/inhibitory) synapse.
+        """
+        EXC_SUBSTRINGS = ['AMPA', 'NMDA', 'exc']
+        INH_SUBSTRINGS = ['GABA', 'inh']
+
+        syn_type = None
+        # Try to match either the receptor type or the model name
+        if 'receptor_type' in self.params:
+            test_string = self.params['receptor_type']
+        else:
+            test_string = self.name
+        if any(substring.lower() in test_string.lower()
+               for substring in EXC_SUBSTRINGS):
+            syn_type = 1.0
+        elif any(substring.lower() in test_string.lower()
+               for substring in INH_SUBSTRINGS):
+            syn_type = -1.0
+
+        # Tell USER about it
+        if syn_type is None:
+            print(f'Could not guess synapse type for synapse {self.name}. '
+                  f'You can specify the synapse type (+-1 for exc/inh) in the'
+                  f' ``type`` field of the parameters.')
+        else:
+            print(f'Guessing the type: `{syn_type}`\t'
+                  f'...for synapse:\t {self.name}.')
+
+        return syn_type
