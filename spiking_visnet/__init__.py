@@ -127,6 +127,7 @@ def run(path, *overrides, output_dir=None, input_dir=None):
         print('Plot connections...\n', flush=True)
         sim.plot_connections()
         print('\n...done plotting connections...', flush=True, end=SEPARATOR)
+
     # Dump network's incoming connection numbers per layer
     if params.c['simulation'].get('dump_connection_numbers', False):
         sim.dump_connection_numbers()

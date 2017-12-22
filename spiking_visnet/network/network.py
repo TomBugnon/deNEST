@@ -277,6 +277,75 @@ class Network:
               nest.GetKernelStatus('num_connections'))
         print('------------------------')
 
+    def populations_by_gids(self, layer_type='Layer'):
+        """Return a dictionary of the form {'gid': (layer_name, pop_name)}."""
+        all_pops = {}
+        for layer in self._get_layers(layer_type=layer_type):
+            all_pops.update(
+                {
+                    gid: (layer.name, population)
+                    for gid, population
+                    in layer._populations.items()
+                }
+            )
+        return all_pops
+
+    def dump_connection_numbers(self, ratio_dump_dir):
+        """Count the incoming connections by population and synapse type."""
+        from ..save import save_as_yaml
+        from os.path import join
+        from ..autodict import AutoDict, dictify
+        import nest
+
+        def increase_autodict_count(autodict, keys):
+            """Increase the count or initialize it at 1."""
+            if isinstance(autodict[keys], int):
+                autodict[keys] += 1
+            else:
+                # type Autodict of not yet created
+                autodict[keys] = 1
+
+        all_connections = nest.GetStatus(nest.GetConnections())
+        all_populations_by_gid = self.populations_by_gids(
+            layer_type='Layer'
+        ) #{gid: (layer, pop)}
+
+        # Use an autodict for easy deep modification with tuples
+        connection_summary = AutoDict({})
+
+        for conn in tqdm(all_connections,
+                         desc='Dumping connection numbers'):
+            layer, pop = all_populations_by_gid.get(conn['target'],
+                                                    (None, None))
+            if layer is None:
+                # We're not interested in InputLayers
+                continue
+            synapse_name = str(conn['synapse_model'])
+            keys = (layer, pop, synapse_name)
+            # Add to 'synapse' count.
+            increase_autodict_count(connection_summary, keys)
+
+            # Add to 'exc' or 'inh' count
+            syn_type = self.synapse_models[synapse_name].type
+            if syn_type is None:
+                pass
+            elif syn_type > 0:
+                increase_autodict_count(connection_summary, (layer, pop, 'exc'))
+            elif syn_type < 0:
+                increase_autodict_count(connection_summary, (layer, pop, 'inh'))
+
+
+        # Dictify now that we're done with deep modifications
+        connection_summary = dictify(connection_summary)
+        # Update exc/inh ratio in place
+        for layer_numbers in connection_summary.values():
+            for pop_numbers in layer_numbers.values():
+                pop_numbers['exc_inh_ratio'] = (pop_numbers.get('exc', 0.)
+                                                / pop_numbers.get('inh', 1e-9))
+
+        save_as_yaml(join(ratio_dump_dir, 'synapse_numbers.yml'),
+                     connection_summary)
+
 
 def unit_sorting_map(unit_change):
     """Map by (layer, population, proportion, params_items for sorting."""
