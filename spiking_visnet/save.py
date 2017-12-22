@@ -7,7 +7,7 @@
 
 import os
 import pickle
-from os.path import exists, isdir, isfile, join
+from os.path import exists, isdir, isfile, join, abspath
 
 import numpy as np
 import scipy.sparse
@@ -158,11 +158,17 @@ def load_activity(output_dir, layer, population, variable='spikes',
     # Load the activity for the required unit indices and concatenate along the
     # first dimension.
     # Concatenate along first dimension (row)
-    all_sessions_activity = np.concatenate(
-        [load_as_numpy(join(recorders_dir, filename))
-         for filename in all_filenames],
-        axis=1
-    )
+    try:
+        all_sessions_activity = np.concatenate(
+            [load_as_numpy(join(recorders_dir, filename))
+             for filename in all_filenames],
+            axis=1
+        )
+    except ValueError as e:
+        error = (f"Couldn't load filenames with prefix: ``{filename_prefix}``\n"
+                 f"...in directory: ``{abspath(recorders_dir)}``")
+        print(error)
+        raise e
     # Possibly extract the times for a specific session
     if session is None:
         return  all_sessions_activity
