@@ -204,6 +204,10 @@ class Layer(AbstractLayer):
     def population(self, *args):
         return tuple(self._populations[gid] for gid in args)
 
+    def population_names(self):
+        """Return a list of population names within this layer."""
+        return list(self.params['populations'].keys())
+
     @if_created
     def find_center_element(self, population=None):
         center_loc = (int(self.shape[0]/2),
