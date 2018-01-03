@@ -9,7 +9,7 @@ from ..save import load_yaml as _load_yaml
 from .preprocess import preprocess_all as _preprocess_all
 from .utils import preprocessing_subdir as _preprocessing_subdir
 from ..utils.structures import chaintree, dictify
-from ..parameters import AutoDict
+from ..utils.autodict import AutoDict
 
 
 def run(args, sim_overrides=None, prepro_overrides=None):

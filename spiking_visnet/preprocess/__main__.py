@@ -27,7 +27,7 @@ from docopt import docopt
 from user_config import INPUT_DIR
 
 from . import run
-from ..parameters import AutoDict
+from ..utils.autodict import AutoDict
 from ..utils.structures import dictify
 
 random.seed(PYTHON_SEED)
