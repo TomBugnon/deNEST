@@ -287,7 +287,7 @@ class Network:
         """Count the incoming connections by population and synapse type."""
         from ..save import save_as_yaml
         from os.path import join
-        from ..autodict import AutoDict, dictify
+        from ..utils.autodict import AutoDict, dictify
         import nest
 
         def increase_autodict_count(autodict, keys):

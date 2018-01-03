@@ -28,7 +28,7 @@ from docopt import docopt
 
 from . import run
 from .__about__ import __version__
-from .autodict import AutoDict
+from utils.autodict import AutoDict
 
 # Maps CLI options to their corresponding path in the parameter tree.
 _CLI_ARG_MAP = {
