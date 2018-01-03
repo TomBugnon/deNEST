@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/nest_object.py
-
 """Base class for representations of NEST objects."""
 
 import functools
@@ -10,6 +9,7 @@ from pprint import pformat
 
 @functools.total_ordering
 class NestObject:
+
     """Base class for a named NEST object.
 
     Args:
@@ -34,12 +34,12 @@ class NestObject:
         with p.group(p.indentation, opener, closer):
             p.breakable()
             p.pretty(self.params)
+
     # pylint: enable=unused-argument,invalid-name
 
     def __repr__(self):
         return '{classname}({name}, {params})'.format(
-            classname=type(self).__name__,
-            name=self.name,
+            classname=type(self).__name__, name=self.name,
             params=pformat(self.params))
 
     def __lt__(self, other):

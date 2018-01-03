@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/spike_times.py
-
-
 """Draw times of spiking from instantaneous rates."""
 
 import itertools

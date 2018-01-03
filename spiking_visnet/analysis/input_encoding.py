@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # input_encoding.py
-
 """Utility functions for checking whether inputs have been encoded."""
 
 import itertools
@@ -19,7 +18,7 @@ def test_network_predictions(test_activity, test_labels, best_label,
                                                 time_per_movie):
         predicted_label = prediction(movie_activity, units_per_label)
         predictions.append(predicted_label == label)
-    return sum(predictions)/len(predictions)
+    return sum(predictions) / len(predictions)
 
 
 def slice_activity(activity, labels, time_per_movie):
@@ -37,7 +36,7 @@ def slice_activity(activity, labels, time_per_movie):
     assert ntimesteps % time_per_movie == 0, 'Check time per movie'
 
     all_movie_activities = []
-    for movie_i in range(int(ntimesteps/time_per_movie)):
+    for movie_i in range(int(ntimesteps / time_per_movie)):
         movie_indices = range(movie_i * time_per_movie,
                               (movie_i + 1) * time_per_movie)
         movie_labels = labels[movie_indices]
@@ -64,6 +63,7 @@ def get_best_label_units(best_label):
         units[best_label[row, col]].append((row, col))
     return units
 
+
 def mean_activity_per_label(activity, labels):
     """Return for each unit the probability of spiking for each label.
 
@@ -81,13 +81,12 @@ def mean_activity_per_label(activity, labels):
 
     """
     fields = [(label, float) for label in set(labels)]
-    spiking_probs = np.empty((np.size(activity, 1),
-                             np.size(activity, 2)),
+    spiking_probs = np.empty((np.size(activity, 1), np.size(activity, 2)),
                              dtype=fields)
     for label in set(labels):
         label_times = [x == label for x in labels]
         spiking_probs[label] = np.mean(activity[label_times, :, :], axis=0)
-    return  spiking_probs
+    return spiking_probs
 
 
 def get_best_label(activity, labels):
@@ -127,9 +126,10 @@ def prediction(activity, units_per_label):
     """
     labels = list(units_per_label.keys())
 
-    label_activity = [mean_subpopulation_activity(activity,
-                                                  units_per_label[label])
-                      for label in labels]
+    label_activity = [
+        mean_subpopulation_activity(activity, units_per_label[label])
+        for label in labels
+    ]
 
     max_i = label_activity.index(max(label_activity))
     return labels[max_i]

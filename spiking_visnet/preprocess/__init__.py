@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # preprocess/__init__.py
-
 """Preprocess all raw stimuli."""
 
 from .. import load_params as _load_params
@@ -27,9 +26,9 @@ def run(args, sim_overrides=None, prepro_overrides=None):
                                               overrides=prepro_overrides)
 
     _preprocess_all(args['--input'],
-                    _preprocessing_subdir(prepro_params, network),
-                    network,
+                    _preprocessing_subdir(prepro_params, network), network,
                     prepro_params)
+
 
 def load_preprocessing_params(path, overrides=None):
     """Load Params from yaml containing a tree.

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # preprocess/utils.py
-
 """Preprocessing utils."""
 
 import os
@@ -31,7 +30,7 @@ def preprocessing_subdir(prepro_params, network):
 
 def create_set(input_dir, setname, filenames):
     """Create a raw input set of symlinks to elements of filenames."""
-    assert(isinstance(filenames, list))
+    assert (isinstance(filenames, list))
     set_dir = os.path.join(input_dir, 'raw_input_sets', setname)
     os.makedirs(set_dir, exist_ok=True)
     # Create symlinks

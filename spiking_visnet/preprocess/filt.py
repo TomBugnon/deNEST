@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # filt.py
-
 """Filter (nframes * nrows * ncols) to (nframes * nfilters * nrows * ncols)."""
 
 import numpy as np

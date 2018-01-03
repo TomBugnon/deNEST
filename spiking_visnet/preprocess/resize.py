@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # downsample.py
-
-
 """Resize movie frames to network's resolution."""
 
 import numpy as np
@@ -18,8 +16,9 @@ def resize(input_movie, preprocessing_params, network):
     output_movie = np.zeros((tdim, xdim_t, ydim_t))
     for t in range(tdim):
         output_movie[t, :, :] = interpolation.zoom(input=input_movie[t, :, :],
-                                                   zoom=(float(xdim_t/xdim_s),
-                                                         float(ydim_t/ydim_s)),
+                                                   zoom=(
+                                                       float(xdim_t / xdim_s),
+                                                       float(ydim_t / ydim_s)),
                                                    order=0)
     return output_movie
 

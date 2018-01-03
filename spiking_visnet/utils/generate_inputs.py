@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # generate_inputs.py
-
 """Generate and save movies (3D nparrays) by moving a stimulus across frames."""
 
 import itertools
@@ -21,8 +20,8 @@ def vertical_cross(nrows=9, ncols=9, width=3):
     v_c, h_c = int(nrows / 2), int(ncols / 2)
     half_w = int((width - 1) / 2)
 
-    array[:, h_c - half_w: h_c + half_w + 1] = 1
-    array[v_c - half_w: v_c + half_w + 1, :] = 1
+    array[:, h_c - half_w:h_c + half_w + 1] = 1
+    array[v_c - half_w:v_c + half_w + 1, :] = 1
 
     return array
 
@@ -33,10 +32,11 @@ def vertical_tee(nrows=9, ncols=9, width=3):
     h_c = int(ncols / 2)
     half_w = int((width - 1) / 2)
 
-    array[:, h_c - half_w: h_c + half_w + 1] = 1
-    array[0: width, :] = 1
+    array[:, h_c - half_w:h_c + half_w + 1] = 1
+    array[0:width, :] = 1
 
     return array
+
 
 def vertical_L(nrows=9, ncols=9, width=3):
     """Return nrows * ncols np.array containing a centered + of width."""
@@ -44,8 +44,8 @@ def vertical_L(nrows=9, ncols=9, width=3):
     h_c = int(ncols / 2)
     half_w = int((width - 1) / 2)
 
-    array[:, : width] = 1
-    array[nrows-width:nrows, :] = 1
+    array[:, :width] = 1
+    array[nrows - width:nrows, :] = 1
 
     return array
 
@@ -56,23 +56,24 @@ FUN_MAP = {
 }
 
 
-def sinusoidal_grating(nrows=9, ncols=9, mean=0.5, amplitude=0.5,
-                       phase=0, spatial_period=None, angle=0):
+def sinusoidal_grating(nrows=9, ncols=9, mean=0.5, amplitude=0.5, phase=0,
+                       spatial_period=None, angle=0):
     if spatial_period is None:
-        spatial_period = min(nrows, ncols)/4
+        spatial_period = min(nrows, ncols) / 4
     array = np.zeros((nrows, ncols))
     normal_vector = math.cos(angle), math.sin(angle)
     for row, col in itertools.product(range(nrows), range(ncols)):
         # translate np coordinate into trigonometric
-        distance = (normal_vector[0] * (1 * col)
-                    + normal_vector[1] * (-1 * row))
-        sin_variation = math.sin(2 * math.pi * (distance - phase) / spatial_period)
+        distance = (
+            normal_vector[0] * (1 * col) + normal_vector[1] * (-1 * row))
+        sin_variation = math.sin(2 * math.pi *
+                                 (distance - phase) / spatial_period)
         array[row, col] = max(0, mean + amplitude * sin_variation)
     return array
 
 
-def create_movie(raw_input_dir, res, t, stim_type, path_type='default',
-                 nrows=9, ncols=9, width=3, save=False):
+def create_movie(raw_input_dir, res, t, stim_type, path_type='default', nrows=9,
+                 ncols=9, width=3, save=False):
     """Create, possibly save, and return a movie (3D np-array).
 
     Args:
@@ -147,7 +148,8 @@ def generate_path(res, t=None, path_type='default'):
     elif path_type == 'Z':
         # t = 9
         # Three top positions, three middle, three bottom
-        return [(int(i*res[0]/3.), int(j*res[0]/3.)) for (i,j) in itertools.product(range(3), range(3))]
+        return [(int(i * res[0] / 3.), int(j * res[0] / 3.))
+                for (i, j) in itertools.product(range(3), range(3))]
 
     else:
         raise Exception('No code')
@@ -182,9 +184,7 @@ def generate_movie(res, stim, path):
     tdim = len(path)
     a = np.zeros((tdim, res[0], res[1]))
     for t in range(tdim):
-        a[t, :, :] = wrapped_addition(np.zeros((res)),
-                                      stim,
-                                      path[t])
+        a[t, :, :] = wrapped_addition(np.zeros((res)), stim, path[t])
     return a
 
 

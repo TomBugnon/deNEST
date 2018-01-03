@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/topology.py
-
 """Draw topological conns."""
 
 import math
@@ -27,18 +26,15 @@ def draw_pool_gids(conn, driver_gid, N=1):
         3. Return when the count is reached
     """
     # Get all pool gids and distance from driver (accounting for edge_wrap)
-    all_gids = [
-        (gid, wrapped_distance(conn,
-                               conn.driver_layer.position(driver_gid)[0],
-                               conn.pool_layer.position(gid)[0]))
-        for gid in conn.pool_gids()
-        ]
+    all_gids = [(gid,
+                 wrapped_distance(conn,
+                                  conn.driver_layer.position(driver_gid)[0],
+                                  conn.pool_layer.position(gid)[0]))
+                for gid in conn.pool_gids()]
     # Filter out depending on mask
-    candidate_gids = [
-        (gid, distance)
-        for gid, distance in all_gids
-        if within_mask(conn, distance)
-    ]
+    candidate_gids = [(gid, distance)
+                      for gid, distance in all_gids
+                      if within_mask(conn, distance)]
     # Filter out autapse
     if not conn.nest_params.get('allow_autapses', True):
         candidate_gids = [tup for tup in candidate_gids if tup[0] != driver_gid]
@@ -55,8 +51,9 @@ def draw_pool_gids(conn, driver_gid, N=1):
                 pool_gids.append(gid)
                 n_drawn += 1
                 if not conn.nest_params.get('allow_multapses'):
-                    candidate_gids = [tup for tup in candidate_gids
-                                      if tup[0] != gid]
+                    candidate_gids = [
+                        tup for tup in candidate_gids if tup[0] != gid
+                    ]
             if n_drawn == N:
                 break
     return pool_gids
@@ -76,20 +73,18 @@ def within_mask(conn, distance):
 def wrapped_distance(conn, driver_position, pool_position):
     """Return the distance between driver and pool unit, considering wrap."""
     if not conn.pool_layer.params['edge_wrap']:
-        return scipy.spatial.distance.euclidean(driver_position,
-                                                pool_position)
+        return scipy.spatial.distance.euclidean(driver_position, pool_position)
     x_d, y_d = driver_position
     x_p, y_p = pool_position
     # TODO: IMPORTANT: Deal with case where the driver position is outside
     # of the pool layer
     # TODO: Make sure layers are centered
     pool_extent = conn.pool_layer.extent
-    assert abs(x_d) <= pool_extent[0]/2
-    assert abs(y_d) <= pool_extent[1]/2
+    assert abs(x_d) <= pool_extent[0] / 2
+    assert abs(y_d) <= pool_extent[1] / 2
     return math.sqrt(
-        min(abs(x_d - x_p), pool_extent[0] - abs(x_d - x_p))**2
-        + min(abs(y_d - y_p), pool_extent[1] - abs(y_d - y_p))**2
-    )
+        min(abs(x_d - x_p), pool_extent[0] - abs(x_d - x_p))**2 +
+        min(abs(y_d - y_p), pool_extent[1] - abs(y_d - y_p))**2)
 
 
 def kernel_probability(conn, distance):
@@ -108,5 +103,5 @@ def kernel_probability(conn, distance):
         cutoff = kernel['gaussian'].get('cutoff', 0.)
         sigma = kernel['gaussian']['sigma']
         p_center = kernel['gaussian']['p_center']
-        return cutoff + p_center * math.exp(-(distance/sigma)**2/2)
+        return cutoff + p_center * math.exp(-(distance / sigma)**2 / 2)
     raise NotImplementedError

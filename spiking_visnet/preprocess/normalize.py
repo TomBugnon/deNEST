@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # normalize.py
-
-
 """Perform contrast-normalization of input image."""
 
 import numpy as np

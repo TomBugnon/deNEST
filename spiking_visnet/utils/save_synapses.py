@@ -30,26 +30,23 @@ def save_synapses(network, sim_savedir):
         base_connection_string = make_base_connection_string(connection)
 
         # Access source and target unit locations
-        source_locs = locations[connection['source_layer']
-                                ][connection['source_population']]
-        target_locs = locations[connection['target_layer']
-                                ][connection['target_population']]
+        source_locs = locations[connection['source_layer']][connection[
+            'source_population']]
+        target_locs = locations[connection['target_layer']][connection[
+            'target_population']]
 
         keys = connection['params'].get('save', [])
         if keys:
             # (nrows_target, ncols_target, nrows_source, ncols_source, nkeys)
             # np-array.
-            all_synapses_all_values = get_synapses_values(network,
-                                                          connection,
-                                                          source_locs,
-                                                          target_locs,
-                                                          saving_keys=keys)
+            all_synapses_all_values = get_synapses_values(
+                network, connection, source_locs, target_locs, saving_keys=keys)
 
             # Save the different types of values in separate arrays
             for i, key in enumerate(keys):
-                save_array(join(sim_savedir,
-                                    base_connection_string + '_' + key),
-                               all_synapses_all_values[:, :, :, :, i])
+                save_array(
+                    join(sim_savedir, base_connection_string + '_' + key),
+                    all_synapses_all_values[:, :, :, :, i])
 
 
 def get_synapses_values(network, connection, source_locs, target_locs,
@@ -104,12 +101,12 @@ def get_synapses_values(network, connection, source_locs, target_locs,
 
     # Initialize return array with -999 (absense of synapse).
     all_synapses_all_values = -999 * np.ones((nrows_target, ncols_target,
-                                            nrows_source, ncols_source,
-                                            len(saving_keys)))
+                                              nrows_source, ncols_source,
+                                              len(saving_keys)))
 
     # Iterate on target layer to fill return array.
-    for row_target, col_target in itertools.product(range(nrows_target),
-                                                    range(ncols_target)):
+    for row_target, col_target in itertools.product(
+            range(nrows_target), range(ncols_target)):
 
         # Reference unit at a given location (Arbitrary choice after filtering
         # for population
@@ -129,7 +126,7 @@ def get_synapses_values(network, connection, source_locs, target_locs,
             synapse_values = [synapse[key] for key in saving_keys]
 
             # Fill array with synapses' values in each of the keys.
-            all_synapses_all_values[row_target, col_target,
-                                    row_source, col_source, :] = synapse_values
+            all_synapses_all_values[row_target, col_target, row_source,
+                                    col_source, :] = synapse_values
 
     return all_synapses_all_values

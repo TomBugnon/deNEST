@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/utils.py
-
 """Utilities for building network objects."""
 
 import functools
@@ -10,7 +9,6 @@ import logging.config
 from pprint import pformat
 
 # pylint: disable=protected-access
-
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -26,6 +24,7 @@ def indent(string, amount=2):
 
 
 class NotCreatedError(AttributeError):
+
     """Raised when a ``NestObject`` needs to have been created, but wasn't."""
     pass
 
@@ -35,6 +34,7 @@ def if_not_created(method):
 
     After calling, sets ``_created = True``.
     """
+
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):  # pylint: disable=missing-docstring
         if self._created:
@@ -48,15 +48,18 @@ def if_not_created(method):
             self._created = False
             raise error
         return value
+
     return wrapper
 
 
 def if_created(method):
     """Raise an error if the `_created` attribute is not set."""
+
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):  # pylint: disable=missing-docstring
         if not self._created:
-            raise NotCreatedError('Must call `create()` first:\n' +
-                                  indent(str(self)))
+            raise NotCreatedError(
+                'Must call `create()` first:\n' + indent(str(self)))
         return method(self, *args, **kwargs)
+
     return wrapper

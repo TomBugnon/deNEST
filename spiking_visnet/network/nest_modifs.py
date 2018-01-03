@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # nest_modifs.py
-
 """Gather and modify NEST and network parameters."""
 
 import nest
@@ -21,12 +20,12 @@ def change_synapse_states(synapse_changes):
             a given model.
 
     """
-    for changes in tqdm(sorted(synapse_changes, key=synapse_sorting_map),
-                        desc="-> Change synapses's state."):
+    for changes in tqdm(
+            sorted(synapse_changes, key=synapse_sorting_map),
+            desc="-> Change synapses's state."):
         nest.SetStatus(
             nest.GetConnections(synapse_model=changes['synapse_model']),
-            changes['params']
-            )
+            changes['params'])
 
 
 def synapse_sorting_map(synapse_change):

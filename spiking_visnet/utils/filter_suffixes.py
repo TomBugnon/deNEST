@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # utils/filter_suffixes.py
-
-
 """Map between filter descriptions and input layer names."""
 
 import itertools
@@ -19,9 +17,9 @@ def get_expanded_names(base_layer_name, filters):
         list: list of expanded names.
 
     """
-    return ([base_layer_name + suffix
-             for suffix in get_extension_suffixes(filters)]
-            or [base_layer_name])
+    return ([
+        base_layer_name + suffix for suffix in get_extension_suffixes(filters)
+    ] or [base_layer_name])
 
 
 def get_summary_string(filters):
@@ -48,8 +46,10 @@ def get_extension_suffixes(filters):
         return suffixes
     for dim in [d for d in filters['dimensions']
                 if filters['dimensions'][d] > 1]:
-        suffixes.append([filters['suffixes'][dim] + str(i + 1)
-                         for i in range(filters['dimensions'][dim])])
+        suffixes.append([
+            filters['suffixes'][dim] + str(i + 1)
+            for i in range(filters['dimensions'][dim])
+        ])
     return ['_' + string for string in combine_strings(suffixes)]
 
 

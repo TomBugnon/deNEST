@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # preprocess/__main__.py
-
-
 """
 preprocessing.
 
@@ -50,16 +48,22 @@ def main():
     arguments = docopt(__doc__, argv=argv)
     if not arguments['--input']:
         arguments['--input'] = INPUT_DIR
-    sim_overrides = dictify(AutoDict({_SIM_CLI_ARG_MAP[key]: value
-                                      for key, value in arguments.items()
-                                      if key in _SIM_CLI_ARG_MAP}))
-    prepro_overrides = dictify(AutoDict({_PREPRO_CLI_ARG_MAP[key]: value
-                                         for key, value in arguments.items()
-                                         if key in _PREPRO_CLI_ARG_MAP}))
+    sim_overrides = dictify(
+        AutoDict({
+            _SIM_CLI_ARG_MAP[key]: value
+            for key, value in arguments.items()
+            if key in _SIM_CLI_ARG_MAP
+        }))
+    prepro_overrides = dictify(
+        AutoDict({
+            _PREPRO_CLI_ARG_MAP[key]: value
+            for key, value in arguments.items()
+            if key in _PREPRO_CLI_ARG_MAP
+        }))
 
-    run(arguments,
-        sim_overrides=sim_overrides,
+    run(arguments, sim_overrides=sim_overrides,
         prepro_overrides=prepro_overrides)
+
 
 if __name__ == '__main__':
     main()

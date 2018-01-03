@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # preprocess.py
-
 """Preprocess all raw movies with a given pipeline."""
 
 import os
@@ -45,19 +44,22 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
     makedirs(prepro_dir, exist_ok=True)
 
     # Get files to be processed
-    all_raw_files = [f for f in os.listdir(raw_dir)
-                     if is_input_file(raw_dir, f)]
-    all_prepro_files = [f for f in os.listdir(prepro_dir)
-                        if is_input_file(prepro_dir, f)]
+    all_raw_files = [
+        f for f in os.listdir(raw_dir) if is_input_file(raw_dir, f)
+    ]
+    all_prepro_files = [
+        f for f in os.listdir(prepro_dir) if is_input_file(prepro_dir, f)
+    ]
     todo_files = [f for f in all_raw_files if f not in all_prepro_files]
 
     # Preprocess and save each file
-    for filename in tqdm(todo_files,
-                  desc=('Preprocess ' + str(len(todo_files)) + ' files')):
+    for filename in tqdm(todo_files, desc=(
+            'Preprocess ' + str(len(todo_files)) + ' files')):
 
         movie = load_as_numpy(join(raw_dir, filename))
-        save_array(join(prepro_dir, filename),
-                       preprocess(movie, network, prepro_params))
+        save_array(
+            join(prepro_dir, filename), preprocess(movie, network,
+                                                   prepro_params))
 
     # Create metadata file for this preprocessing pipeline
     create_metadata(prepro_dir, prepro_params, network)
@@ -92,15 +94,14 @@ def create_default_stim_yaml(input_dir, prepro_subdir_str):
     DEFAULT_SET = 'set_df'
     DEFAULT_STIM_NAME = 'stim_df'
 
-    default_stim_filename = (DEFAULT_STIM_NAME + '_' + DEFAULT_SET + '_'
-                             + prepro_subdir_str + '.yml')
+    default_stim_filename = (
+        DEFAULT_STIM_NAME + '_' + DEFAULT_SET + '_' + prepro_subdir_str +
+        '.yml')
     stim_dir_path = join(input_dir, INPUT_SUBDIRS['stimuli'])
-    default_stim_path = join(stim_dir_path,
-                             default_stim_filename)
+    default_stim_path = join(stim_dir_path, default_stim_filename)
 
     default_set_name = (DEFAULT_SET + '_' + prepro_subdir_str)
-    default_set_path = join(input_dir,
-                            INPUT_SUBDIRS['preprocessed_input_sets'],
+    default_set_path = join(input_dir, INPUT_SUBDIRS['preprocessed_input_sets'],
                             default_set_name)
 
     # Check existence of a default set
@@ -108,15 +109,16 @@ def create_default_stim_yaml(input_dir, prepro_subdir_str):
         warnings.warn('No default set. Could not create default stimulus.')
     # Create the default stimulus yaml
     else:
-        set_filenames = [f for f in os.listdir(default_set_path)
-                         if not f == METADATA_FILENAME]
+        set_filenames = [
+            f for f in os.listdir(default_set_path)
+            if not f == METADATA_FILENAME
+        ]
 
         makedirs(stim_dir_path, exist_ok=True)
-        save_as_yaml(default_stim_path,
-                     {
-                         'sequence': set_filenames,
-                         'set_name': default_set_name
-                     })
+        save_as_yaml(default_stim_path, {
+            'sequence': set_filenames,
+            'set_name': default_set_name
+        })
 
 
 def update_sets(input_dir, prepro_subdir_str):
@@ -130,14 +132,14 @@ def update_sets(input_dir, prepro_subdir_str):
     print('Update sets')
     setdir = join(input_dir, INPUT_SUBDIRS['raw_input_sets'])
 
-    all_setnames = [setname for setname in os.listdir(setdir)
-                    if isdir(join(setdir, setname))]
+    all_setnames = [
+        setname for setname in os.listdir(setdir)
+        if isdir(join(setdir, setname))
+    ]
 
     # Create sets of files + metadata
     for setname in all_setnames:
-        create_set(input_dir,
-                   setname,
-                   prepro_subdir_str)
+        create_set(input_dir, setname, prepro_subdir_str)
 
 
 def create_set(input_dir, setname, prepro_subdir_str):
@@ -151,20 +153,23 @@ def create_set(input_dir, setname, prepro_subdir_str):
 
     # Create simlinks to files if they don't already exist
     # Symlinks need to be relative
-    for f in [f for f in os.listdir(raw_set_dir)
-              if not f == METADATA_FILENAME
-              and not exists(join(prepro_set_dir, f))]:
+    for f in [
+            f for f in os.listdir(raw_set_dir)
+            if not f == METADATA_FILENAME and
+            not exists(join(prepro_set_dir, f))
+    ]:
         print(f)
-        os.symlink(join('..', '..', INPUT_SUBDIRS['preprocessed_input'],
-                        prepro_subdir_str, f),
-                   join(prepro_set_dir, f))
+        os.symlink(
+            join('..', '..', INPUT_SUBDIRS['preprocessed_input'],
+                 prepro_subdir_str, f), join(prepro_set_dir, f))
 
     # Copy preprocessing metadata into set directory
     # print(exists(join(prepro_set_dir, METADATA_FILENAME)))
     if not isfile(join(prepro_set_dir, METADATA_FILENAME)):
-        os.symlink(join('..', '..', INPUT_SUBDIRS['preprocessed_input'],
-                        prepro_subdir_str, METADATA_FILENAME),
-                   join(prepro_set_dir, METADATA_FILENAME))
+        os.symlink(
+            join('..', '..', INPUT_SUBDIRS['preprocessed_input'],
+                 prepro_subdir_str, METADATA_FILENAME),
+            join(prepro_set_dir, METADATA_FILENAME))
 
 
 def preprocessed_set_name(raw_set_name, prepro_subdir_str):
@@ -174,8 +179,8 @@ def preprocessed_set_name(raw_set_name, prepro_subdir_str):
 
 def is_input_file(dirpath, filename):
     """Discriminate between input files and metadata files."""
-    return (isfile(join(dirpath, filename))
-            and not filename == METADATA_FILENAME)
+    return (isfile(join(dirpath, filename)) and
+            not filename == METADATA_FILENAME)
 
 
 def preprocess(movie, network, prepro_params):

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # __main__.py
-
 """
 Spiking VisNet
 ~~~~~~~~~~~~~~
@@ -47,10 +46,11 @@ def main():
     # Get command-line args from docopt.
     arguments = docopt(__doc__, argv=argv, version=__version__)
     # Get parameter overrides from the CLI options.
-    overrides = AutoDict({_CLI_ARG_MAP[key]: value
-                          for key, value in arguments.items()
-                          if (value is not None
-                              and key in _CLI_ARG_MAP)})
+    overrides = AutoDict({
+        _CLI_ARG_MAP[key]: value
+        for key, value in arguments.items()
+        if (value is not None and key in _CLI_ARG_MAP)
+    })
     # Run it!
     run(arguments['<param_file.yml>'], overrides)
 

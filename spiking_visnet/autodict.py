@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # autodict.py
-
 """Provides the ``AutoDict`` class."""
 
 # pylint: disable=too-many-ancestors
@@ -14,6 +13,7 @@ from .utils.structures import dictify
 
 
 class AutoDict(UserDict):
+
     """A dictionary supporting deep access and modification with tuples.
 
     Intermediate dictionaries are created if necessary.

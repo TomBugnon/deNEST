@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # format_recorders.py
-
 """Format NEST recorders activity in (time*row*col) numpy arrays.
 
 NB: If multiple recorded units (of a given population) are at the same location
@@ -20,30 +19,17 @@ def format_recorder(gid, recorder_type=None, shape=None, locations=None,
 
     if recorder_type == 'multimeter':
 
-        time, sender_gid, activity = gather_raw_data(gid,
-                                              variable,
-                                              recorder_type='multimeter')
-        activity_array = format_mm_data(sender_gid,
-                                        time,
-                                        activity,
-                                        locations,
-                                        shape=shape,
-                                        unit_index=unit_index)
+        time, sender_gid, activity = gather_raw_data(gid, variable,
+                                                     recorder_type='multimeter')
+        activity_array = format_mm_data(sender_gid, time, activity, locations,
+                                        shape=shape, unit_index=unit_index)
 
     if recorder_type == 'spike_detector':
-        time, sender_gid = gather_raw_data(gid,
-                                    recorder_type='spike_detector')
-        activity_array = format_sd_data(sender_gid,
-                                        time,
-                                        locations,
-                                        shape=shape,
-                                        unit_index=unit_index)
-
+        time, sender_gid = gather_raw_data(gid, recorder_type='spike_detector')
+        activity_array = format_sd_data(sender_gid, time, locations,
+                                        shape=shape, unit_index=unit_index)
 
     return activity_array
-
-
-
 
 
 def format_mm_data(sender_gid, time, activity, location_by_gid, shape=None,
@@ -132,9 +118,11 @@ def load_and_combine(recorder_files_list):
             rows.
 
     """
-    file_data_list = [np.loadtxt(filepath, dtype=float, ndmin=2)
-                      for filepath in recorder_files_list
-                      if isfile(filepath) and not stat(filepath).st_size == 0]
+    file_data_list = [
+        np.loadtxt(filepath, dtype=float, ndmin=2)
+        for filepath in recorder_files_list
+        if isfile(filepath) and not stat(filepath).st_size == 0
+    ]
 
     if file_data_list:
         return np.concatenate(file_data_list, axis=0)

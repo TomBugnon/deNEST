@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # utils/structures.py
-
-
 """Tree, dictionary and list utility functions."""
-
 
 import copy as cp
 from collections import ChainMap
@@ -39,20 +36,22 @@ def chaintree(tree_list, children_key='children'):
     # Combine horizontally the values in all trees under each key except
     # <children_key>
     key_value_tups = all_key_values(tree_list, omit_keys=[children_key])
-    chained_tree.update({key: combine_values(values)
-                         for (key, values) in key_value_tups})
+    chained_tree.update(
+        {key: combine_values(values)
+         for (key, values) in key_value_tups})
 
     # Recursively combine children if there are any.
     # <children_tups> is a list of (<child_key>, <list_of_child_subtrees>
-    children_tups = all_key_values([tree[children_key]
-                                    for tree in tree_list
-                                    if (children_key in tree
-                                        and tree[children_key])])
+    children_tups = all_key_values([
+        tree[children_key]
+        for tree in tree_list
+        if (children_key in tree and tree[children_key])
+    ])
     if len(children_tups) > 0:
-        combined_subtrees = {child_key: chaintree(child_subtrees_list,
-                                                  children_key='children')
-                             for (child_key, child_subtrees_list)
-                             in children_tups}
+        combined_subtrees = {
+            child_key: chaintree(child_subtrees_list, children_key='children')
+            for (child_key, child_subtrees_list) in children_tups
+        }
         chained_tree[children_key] = combined_subtrees
 
     return chained_tree
@@ -67,17 +66,11 @@ def combine_values(values):
     mappings, or the first element of the list otherwise.
 
     """
-    accepted_types = (float,
-                      int,
-                      Mapping,
-                      list,
-                      str)
-    if any([v is not None and not isinstance(v, accepted_types)
-            for v in values]):
+    accepted_types = (float, int, Mapping, list, str)
+    if any(
+        [v is not None and not isinstance(v, accepted_types) for v in values]):
         raise Exception("The type of a value to merge is not recognized.")
-    values = [v for v in values
-              if isinstance(v, (int, float, str))
-              or v]
+    values = [v for v in values if isinstance(v, (int, float, str)) or v]
     if not values:
         return {}
     elif values and all([isinstance(x, Mapping) for x in values]):
@@ -97,11 +90,9 @@ def all_key_values(dict_list, omit_keys=[]):
             dictionaries, scanned from left to right.
 
     """
-    all_keys = (set(flatten([list(d.keys())
-                             for d in dict_list]))
-                - set(omit_keys))
-    return [(key, [d[key] for d in dict_list if key in d])
-            for key in all_keys]
+    all_keys = (
+        set(flatten([list(d.keys()) for d in dict_list])) - set(omit_keys))
+    return [(key, [d[key] for d in dict_list if key in d]) for key in all_keys]
 
 
 def invert_dict(d, inversion_key):
@@ -123,10 +114,11 @@ def invert_dict(d, inversion_key):
          'value2':[key3]}
 
     """
-    return {value: [key for (key, entry) in d.items()
-                    if entry[inversion_key] == value]
-            for value in set([entry[inversion_key]
-                              for _, entry in d.items()])}
+    return {
+        value:
+        [key for (key, entry) in d.items() if entry[inversion_key] == value]
+        for value in set([entry[inversion_key] for _, entry in d.items()])
+    }
 
 
 def deepcopy_dict(source_dict, diffs={}):
@@ -138,8 +130,7 @@ def deepcopy_dict(source_dict, diffs={}):
 
 def distribute_to_tuple(tuple_list, value, pos=0):
     """Insert <value> at the position <pos> of each tuple in <tuple_list>."""
-    return [tuple(insert_in_list(list(tup), value, pos))
-            for tup in tuple_list]
+    return [tuple(insert_in_list(list(tup), value, pos)) for tup in tuple_list]
 
 
 def insert_in_list(l, value, position=0):
@@ -166,8 +157,8 @@ def flatten(l):
     return [item for sublist in gen for item in sublist]
 
 
-def traverse(tree, data_key='params', children_key='children',
-             name_key='name', accumulator=None):
+def traverse(tree, data_key='params', children_key='children', name_key='name',
+             accumulator=None):
     """Return the leaf nodes of a tree, accumulating data from ancestors.
 
     For each leaf, return the value of its ``name_key`` key and a ChainMap
@@ -200,12 +191,11 @@ def traverse(tree, data_key='params', children_key='children',
     if not tree.get(children_key, False):
         return (tree[name_key], ChainMap(*reversed(accumulator)))
     # Recursive case: not a leaf
-    return flatten([traverse(child,
-                             data_key=data_key,
-                             children_key=children_key,
-                             name_key=name_key,
-                             accumulator=accumulator)
-                    for child in tree[children_key].values()])
+    return flatten([
+        traverse(child, data_key=data_key, children_key=children_key,
+                 name_key=name_key, accumulator=accumulator)
+        for child in tree[children_key].values()
+    ])
 
 
 def dictify(obj):
