@@ -7,7 +7,7 @@
 import os
 from shutil import rmtree
 
-from .network.network import Network
+from .network import Network
 from .save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
 from .user_config import INPUT_DIR, NEST_SEED, OUTPUT_DIR, PYTHON_SEED

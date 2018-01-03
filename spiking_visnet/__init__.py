@@ -10,7 +10,7 @@ import os
 import time
 from .parameters import Params
 from .simulation import Simulation
-from .network.network import Network
+from .network import Network
 from .save import load_yaml
 
 from .utils import misc
