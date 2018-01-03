@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # preprocess/__init__.py
+
 """Preprocess all raw stimuli."""
 
 from .. import load_params as _load_params
