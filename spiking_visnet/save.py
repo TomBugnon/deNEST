@@ -7,7 +7,7 @@
 
 import os
 import pickle
-from os.path import exists, isdir, isfile, join, abspath
+from os.path import abspath, exists, isdir, isfile, join
 
 import numpy as np
 import scipy.sparse
