@@ -17,7 +17,6 @@ During a `spiking_visnet.run()` call, the following parameters are combined
     optional arguments.
 - ``USER_OVERRIDES``: Tree-like overrides defined in `user_config.py`. (highest precedence)
 
-
 ## Inputs to the network
 
 __Note__: the stimuli dimension (resolution and number of filters) should be
@@ -36,7 +35,9 @@ should contain the name of a file existing in the 'stimuli' subdirectory of
 
 ##### For 'Stimulus set' input (as opposed to numpy): (TODO update)
 
-###### Preprocessing stimuli  TODO: Update
+###### Preprocessing stimuli
+
+TODO: Update
 
 To preprocess, run
 ```bash
@@ -55,6 +56,7 @@ python3 -m spiking_visnet.preprocess \
 See `spiking_visnet/preprocess/README.md` for details.
 
 ###### Change the session's stimuli
+
 Manually modify the session parameters so that sessions use stimulus sequences
 compatible with the network's dimensions. You can use the default stimulus
 sequence created during preprocessing; _e.g._ put the following in
@@ -68,8 +70,7 @@ session_stims: 'stim_df_set_df_res_100x100_contrastnorm_filter_o2.yml'
 
 #### To run **from Python** (_e.g._ in a Jupyter notebook):
 
-
-###### Using the ``Simulation`` object to run the simulation step by step:
+**Using the ``Simulation`` object to run the simulation step by step:**
 
 ```python
 import spiking_visnet
@@ -98,11 +99,11 @@ sim.run()
 
 # Save the results, dump the connections, etc.
 sim.save()
-# sim.dump()
-
+sim.dump()
 ```
 
-###### Using the ``__init__.run()`` function to run the full simulation at once:
+**Using the ``spiking_visnet.run()`` function to run the full simulation at
+once:**
 
 ```python
 import spiking_visnet
@@ -115,16 +116,18 @@ overrides = []
 
 spiking_visnet.run(params_path, *overrides, input_dir=None, output_dir=None)
 ```
+
 Note:
-- `DEFAULT_PARAMS_PATH` and `USER_OVERRIDES` parameters are applied
+- `DEFAULT_PARAMS_PATH` and `USER_OVERRIDES` parameters are applied.
 - Control which stimulation steps are ran in the simulation parameters.
 
 
 #### To run directly **from the command line**:
+
 ```bash
 python -m spiking_visnet <param_file.yml> [-i <input>] [-o <output>]
 ```
 
 Note:
-- `DEFAULT_PARAMS_PATH` and `USER_OVERRIDES` parameters are applied
-- Equivalent to running `__init__.run()`
+- `DEFAULT_PARAMS_PATH` and `USER_OVERRIDES` parameters are applied.
+- Calls `spiking_visnet.run()`.
