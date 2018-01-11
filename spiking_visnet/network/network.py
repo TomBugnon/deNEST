@@ -235,14 +235,14 @@ class Network:
 
             for layer in layers:
 
-                gids_to_change = self.get_gids_subset(
+                gids_to_change = get_gids_subset(
                     layer.gids(population=changes.get('population',
                                                       None)),
                     proportion
                 )
 
-                self.apply_unit_changes(gids_to_change,
-                                        changes)
+                apply_unit_changes(gids_to_change,
+                                   changes['params'])
         self._changed = True
 
     def reset(self):
@@ -360,3 +360,17 @@ def synapse_sorting_map(synapse_change):
     """Map by (synapse_model, params_items) for sorting."""
     return (synapse_change['synapse_model'],
             sorted(synapse_change['params'].items()))
+
+def get_gids_subset(gids_list, proportion):
+    """Return a proportion of gids picked randomly from a list."""
+    return [gids_list[i] for i
+            in sorted(
+                random.sample(
+                    range(len(gids_list)),
+                    int(len(gids_list) * proportion))
+                    )]
+
+def apply_unit_changes(gids_to_change, changes_dict):
+    """Change the state of a list of units."""
+    import nest
+    nest.SetStatus(gids_to_change, changes_dict)
