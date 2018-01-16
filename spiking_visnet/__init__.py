@@ -105,31 +105,31 @@ def run(path, *overrides, output_dir=None, input_dir=None):
     print('\n...done initializing simulation...', flush=True, end=SEPARATOR)
 
     # Simulate
-    if not params.c['simulation'].get('dry_run', False):
+    if not params.get(('simulation', 'dry_run'), False):
         print('Run simulation...\n', flush=True)
         sim.run()
         print('\n...done running simulation...', flush=True, end=SEPARATOR)
 
     # Save simulation
-    if params.c['simulation'].get('save_simulation', True):
+    if params.get(('simulation', 'save_simulation'), True):
         print('Save simulation...\n', flush=True)
         sim.save()
         print('\n...done saving simulation...', flush=True, end=SEPARATOR)
 
     # Dump network's connections
-    if params.c['simulation'].get('dump_connections', False):
+    if params.get(('simulation', 'dump_connections'), False):
         print('Dump connections...\n', flush=True)
         sim.dump_connections()
         print('\n...done dumping connections...', flush=True, end=SEPARATOR)
 
     # Plot network's connections
-    if params.c['simulation'].get('plot_connections', False):
+    if params.get(('simulation', 'plot_connections'), False):
         print('Plot connections...\n', flush=True)
         sim.plot_connections()
         print('\n...done plotting connections...', flush=True, end=SEPARATOR)
 
     # Dump network's incoming connection numbers per layer
-    if params.c['simulation'].get('dump_connection_numbers', False):
+    if params.get(('simulation', 'dump_connection_numbers'), False):
         sim.dump_connection_numbers()
 
     # Drop git hash
