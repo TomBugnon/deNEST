@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# network/__init__.py
+# network/network.py
+
 """Provide a class to construct a network from independent parameters."""
 
 import os
@@ -17,6 +18,7 @@ from .utils import if_not_created, log
 
 # pylint: disable=too-few-public-methods
 
+
 LAYER_TYPES = {
     None: Layer,
     'InputLayer': InputLayer,
@@ -30,6 +32,7 @@ CONNECTION_TYPES = {
 
 
 class Network:
+
     def __init__(self, params):
         self._created = False
         self._changed = False
@@ -50,25 +53,27 @@ class Network:
         self.connection_models = self.build_named_leaves_dict(
             ConnectionModel, self.params.c['connection_models'])
         # Connections must be built last
-        self.connections = sorted([
-            self.build_connection(connection)
-            for connection in self.params.c['topology']['connections']
-        ])
+        self.connections = sorted(
+            [self.build_connection(connection)
+             for connection in self.params.c['topology']['connections']]
+        )
         # Populations are represented as a list
         self.populations = sorted(
-            self.build_named_leaves_list(self.build_population,
-                                         self.params.c['populations']))
+            self.build_named_leaves_list(
+                self.build_population,
+                self.params.c['populations']
+                )
+            )
 
     @staticmethod
     def build_named_leaves_dict(constructor, node):
-        return {
-            name: constructor(name, leaf)
-            for name, leaf in node.named_leaves()
-        }
+        return {name: constructor(name, leaf)
+                for name, leaf in node.named_leaves()}
 
     @staticmethod
     def build_named_leaves_list(constructor, node):
-        return [constructor(name, leaf) for name, leaf in node.named_leaves()]
+        return [constructor(name, leaf)
+                for name, leaf in node.named_leaves()]
 
     def build_connection(self, params):
         source = self.layers[params['source_layer']]
@@ -100,25 +105,20 @@ class Network:
 
     def _layer_get(self, attr_name, layer_type=None):
         """Get an attribute from each layer."""
-        return tuple(
-            getattr(layer, attr_name)
-            for layer in self._get_layers(layer_type=layer_type))
+        return tuple(getattr(layer, attr_name)
+                     for layer in self._get_layers(layer_type=layer_type))
 
     def _get_layers(self, layer_type=None):
         if layer_type is None:
             return sorted(self.layers.values())
-        return [
-            l for l in sorted(self.layers.values())
-            if type(l).__name__ == layer_type
-        ]
+        return [l for l in sorted(self.layers.values())
+                if type(l).__name__ == layer_type]
 
     def _get_synapses(self, synapse_type=None):
         if synapse_type is None:
             return sorted(self.synapse_models.values())
-        return [
-            syn for syn in sorted(self.synapse_models.values())
-            if syn.type == synapse_type
-        ]
+        return [syn for syn in sorted(self.synapse_models.values())
+                if syn.type == synapse_type]
 
     @property
     def input_shapes(self):
@@ -151,7 +151,8 @@ class Network:
             print('Dry run: -> not creating recorders.')
 
     def dump_connections(self, output_dir):
-        for connection in tqdm(self.connections, desc='Dumping connections'):
+        for connection in tqdm(self.connections,
+                               desc='Dumping connections'):
             connection.dump(output_dir)
 
     def change_synapse_states(self, synapse_changes):
@@ -168,12 +169,12 @@ class Network:
                 all synapses of a given model.
         """
         import nest
-        for changes in tqdm(
-                sorted(synapse_changes, key=synapse_sorting_map),
-                desc="-> Changing synapses's state."):
+        for changes in tqdm(sorted(synapse_changes, key=synapse_sorting_map),
+                            desc="-> Changing synapses's state."):
             nest.SetStatus(
                 nest.GetConnections(synapse_model=changes['synapse_model']),
-                changes['params'])
+                changes['params']
+            )
 
     def change_unit_states(self, unit_changes):
         """Change parameters for some units of a population.
@@ -209,9 +210,8 @@ class Network:
                 ``'params'`` (default {}) is the dictionary of parameter changes
                     applied to the selected units.
         """
-        for changes in tqdm(
-                sorted(unit_changes, key=unit_sorting_map),
-                desc="-> Changing units' state"):
+        for changes in tqdm(sorted(unit_changes, key=unit_sorting_map),
+                            desc="-> Changing units' state"):
             # Pass if no parameter dictionary.
             if not changes['params']:
                 continue
@@ -228,17 +228,19 @@ class Network:
             # Iterate on all layers of a given subtype or on a specific layer
             change_layer = changes.get('layer', None)
             if change_layer is None:
-                layers = self._get_layers(
-                    layer_type=changes.get('layer_type', None))
+                layers = self._get_layers(layer_type=changes.get('layer_type',
+                                                                 None))
             else:
                 layers = [self.layers[change_layer]]
 
             for layer in layers:
+
                 gids_to_change = get_gids_subset(
                     layer.gids(population=changes.get('population',
                                                       None)),
                     proportion
                 )
+
                 apply_unit_changes(gids_to_change,
                                    changes['params'])
         self._changed = True
@@ -261,7 +263,8 @@ class Network:
             population.save(output_dir, with_rasters=with_rasters)
 
     def plot_connections(self, output_dir):
-        for conn in tqdm(self.connections, desc='Creating connection plots'):
+        for conn in tqdm(self.connections,
+                         desc='Creating connection plots'):
             conn.save_plot(output_dir)
 
     @staticmethod
@@ -278,17 +281,20 @@ class Network:
         """Return a dictionary of the form {'gid': (layer_name, pop_name)}."""
         all_pops = {}
         for layer in self._get_layers(layer_type=layer_type):
-            all_pops.update({
-                gid: (layer.name, population)
-                for gid, population in layer._populations.items()
-            })
+            all_pops.update(
+                {
+                    gid: (layer.name, population)
+                    for gid, population
+                    in layer._populations.items()
+                }
+            )
         return all_pops
 
     def dump_connection_numbers(self, ratio_dump_dir):
         """Count the incoming connections by population and synapse type."""
         from ..save import save_as_yaml
         from os.path import join
-        from ..utils.autodict import AutoDict, dictify
+        from ..autodict import AutoDict, dictify
         import nest
 
         def increase_autodict_count(autodict, keys):
@@ -301,12 +307,14 @@ class Network:
 
         all_connections = nest.GetStatus(nest.GetConnections())
         all_populations_by_gid = self.populations_by_gids(
-            layer_type='Layer')  #{gid: (layer, pop)}
+            layer_type='Layer'
+        ) #{gid: (layer, pop)}
 
         # Use an autodict for easy deep modification with tuples
         connection_summary = AutoDict({})
 
-        for conn in tqdm(all_connections, desc='Dumping connection numbers'):
+        for conn in tqdm(all_connections,
+                         desc='Dumping connection numbers'):
             layer, pop = all_populations_by_gid.get(conn['target'],
                                                     (None, None))
             if layer is None:
@@ -326,16 +334,17 @@ class Network:
             elif syn_type < 0:
                 increase_autodict_count(connection_summary, (layer, pop, 'inh'))
 
+
         # Dictify now that we're done with deep modifications
         connection_summary = dictify(connection_summary)
         # Update exc/inh ratio in place
         for layer_numbers in connection_summary.values():
             for pop_numbers in layer_numbers.values():
-                pop_numbers['exc_inh_ratio'] = (
-                    pop_numbers.get('exc', 0.) / pop_numbers.get('inh', 1e-9))
+                pop_numbers['exc_inh_ratio'] = (pop_numbers.get('exc', 0.)
+                                                / pop_numbers.get('inh', 1e-9))
 
-        save_as_yaml(
-            join(ratio_dump_dir, 'synapse_numbers.yml'), connection_summary)
+        save_as_yaml(join(ratio_dump_dir, 'synapse_numbers.yml'),
+                     connection_summary)
 
 
 def unit_sorting_map(unit_change):
@@ -351,7 +360,6 @@ def synapse_sorting_map(synapse_change):
     """Map by (synapse_model, params_items) for sorting."""
     return (synapse_change['synapse_model'],
             sorted(synapse_change['params'].items()))
-
 
 def get_gids_subset(gids_list, proportion):
     """Return a proportion of gids picked randomly from a list."""
