@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/connections.py
-
 """Connection classes."""
 
 import csv
@@ -19,6 +18,7 @@ from .. import save
 from .layers import InputLayer
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
+
 
 # Matched substrings when scaling masks.
 SCALED_MASK_SUBSTRINGS = ['radius', 'lower_left', 'upper_right']
@@ -59,8 +59,10 @@ class ConnectionModel(NestObject):
     def scale_factor(self):
         return self._scale_factor
 
+
 class BaseConnection(NestObject):
     """Base class for all connection types."""
+
     def __init__(self, source, target, model, params):
         super().__init__(model.name, params)
         self.model = model

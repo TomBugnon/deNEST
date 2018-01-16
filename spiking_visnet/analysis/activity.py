@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # input_encoding.py
-"""Utility functions to get statistics about units' activity"""
+"""Utility functions to get statistics about units' activity."""
 
 import itertools
 import warnings
