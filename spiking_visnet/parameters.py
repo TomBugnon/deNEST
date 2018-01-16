@@ -235,19 +235,25 @@ class Params(Scope):
 
         Values can be set similarly:
 
-        >>> parameters = Params(
-        ...     {'c1': {'c2': {'params': {'last_key': 'value'}}}}
-        ... )
         >>> parameters[('c1', 'c2', 'last_key')] = 'new_value'
         >>> parameters[('c1', 'c2', 'last_key')]
         'new_value'
+
+        This also works with ``get()`` and ``in``:
+
+        >>> parameters.get(('c1', 'c2', 'last_key'))
+        True
+        >>> parameters.get(('c1', 'c2', 'not_there'), 'default_value')
+        'default_value'
+        >>> ('c1', 'c2', 'last_key') in parameters
+        True
     """
 
     DEFAULT_DATA_KEY = 'params'
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
-            return self.get_node(*key)
+            return self.get_node(*key[:-1])[key[-1]]
         return super().__getitem__(key)
 
     def __setitem__(self, key, value):
@@ -255,3 +261,18 @@ class Params(Scope):
             self[key[:-1]][key[-1]] = value
         else:
             super().__setitem__(key, value)
+
+    def __contains__(self, key):
+        if isinstance(key, tuple):
+            try:
+                return key[-1] in self.get_node(*key[:-1])
+            except KeyError:
+                return False
+        return super().__getitem__(key)
+
+    def get(self, key, default=None):
+        """See dict.get()."""
+        try:
+            return self[key]
+        except KeyError:
+            return default
