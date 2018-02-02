@@ -502,3 +502,8 @@ To run a simulation from the command line:
 ```bash
 python -m nets <param_file.yml> [-i <input>] [-o <output>]
 ```
+
+## Outputs of the simulation
+
+All the simulations outputs are saved in subdirectories of the directory
+specified in the `output_dir` simulation parameter.
