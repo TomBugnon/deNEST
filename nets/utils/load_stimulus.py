@@ -41,14 +41,14 @@ def load_raw_stimulus(input_path, session_stim_yaml):
     return load_stim_from_yaml(input_path, session_stim_yaml)
 
 
-def load_stim_from_yaml(input_path, session_stims_filename):
+def load_stim_from_yaml(input_path, session_input_filename):
     """Load and concatenate a sequence of movie stimuli from a 'stim' yaml file.
 
     Load only files that exist and are of non - null size. Concatenate along the
     first dimension(time).
 
     Args:
-        <session_stims_path> (str): Path to the session's stimulus file.
+        <session_input_path> (str): Path to the session's stimulus file.
 
     Return:
         (tuple): (<stim> , <frame_filenames>, <stim_metadata> ) where:
@@ -62,7 +62,7 @@ def load_stim_from_yaml(input_path, session_stims_filename):
     # of filenames.
     stimulus_params = load_yaml(join(input_path,
                                     INPUT_SUBDIRS['stimuli'],
-                                    session_stims_filename))
+                                    session_input_filename))
 
     # Load all the movies in a list of arrays, while saving the label for each
     # frame
