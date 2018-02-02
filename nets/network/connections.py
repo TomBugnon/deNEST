@@ -330,11 +330,11 @@ class TopoConnection(BaseConnection):
         # Get connection-specific scaling factor, taking in account whether the
         # connection is convergent or divergent
         if (nest_params['connection_type'] == 'convergent'
-                and self.source.params.get('scale_kernels_masks', True)):
+                and self.source.params.get('scale_kernels_masks_to_extent', True)):
             # For convergent connections, the pooling layer is the source
             self.scale_factor = self.source.extent_units(self.scale_factor)
         elif (nest_params['connection_type'] == 'divergent'
-                and self.target.params.get('scale_kernels_masks', True)):
+                and self.target.params.get('scale_kernels_masks_to_extent', True)):
             # For convergent connections, the pooling layer is the target
             self.scale_factor = self.target.extent_units(self.scale_factor)
 

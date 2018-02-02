@@ -300,10 +300,10 @@ be defined in the final parameter tree.
             InputLayers)
         - `weight_gain`: Scaling factor for the weight of connections of which
             the considered layer is the _source_. (default 1.)
-        - `scale_kernels_masks`: Whether the kernels and masks of connections of
-            which the considered layer is the pooling layer are considered to be
-            expressed in 'number of units', rather than physical extent.
-            (default True).
+        - `scale_kernels_masks_to_extent`: Whether the kernels and masks of
+            connections of which the considered layer is the pooling layer are
+            considered to be expressed in 'number of units', rather than
+            physical extent. (default True).
             - __Important__: Please note that by default the kernel and masks
             are interpreted as being expressed in 'number of units' rather than
             physical extent and are accordingly scaled before being passed to
@@ -347,10 +347,10 @@ be defined in the final parameter tree.
             'from_file', and interpreted similarly in 'rescaled connections' as
             in topological connections.
         - __Important__:
-            - For each connection model, if the  `scale_kernels_masks` parameter
-            of the pooling layer is true, the masks and kernel sizes specified
-            in the parameters (and scaled by the `scale_factor`) are interpreted
-            as "number_of_units" rather than physical extent.
+            - For each connection model, if the  `scale_kernels_masks_to_extent`
+            parameter of the pooling layer is true, the masks and kernel sizes
+            specified in the parameters (and scaled by the `scale_factor`) are
+            interpreted as "number_of_units" rather than physical extent.
     - `topology` (leaf): Should contain a `connection` parameter consisting in
         a list of individual population(/layer)-to-population(/layer)
         connections. Each individual connection should be a dictionary with the

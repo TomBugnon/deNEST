@@ -9,7 +9,7 @@ network:
       weight_gain: 0.66
       input_area_name: input_area
       scale_input_weights: true
-      scale_kernels_masks: true
+      scale_kernels_masks_to_extent: true
     input_area:
       params:
         filters:
