@@ -1,5 +1,4 @@
 numpy
-pynest
 pyyaml
 tqdm
 docopt
