@@ -10,7 +10,8 @@ from shutil import rmtree
 from .network import Network
 from .save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
-from .user_config import INPUT_PATH, NEST_SEED, OUTPUT_DIR, PYTHON_SEED
+from .constants import (DEFAULT_INPUT_PATH, NEST_SEED, DEFAULT_OUTPUT_DIR,
+                        PYTHON_SEED)
 
 
 class Simulation:
@@ -160,7 +161,7 @@ class Simulation:
             input_path = self.params.c['simulation'].get('input_path', False)
         # If not specified by USER, get default from config
         if not input_path:
-            input_path = INPUT_PATH
+            input_path = DEFAULT_INPUT_PATH
             self.params.c['simulation']['input_path'] = input_path
         # Cast to session params as well as simulation params
         self.params.c['sessions']['input_path'] = input_path

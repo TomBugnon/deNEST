@@ -109,15 +109,6 @@
 
 ## Parameters
 
-
-##### config.py and user_config.py
-
-Some constant parameters used in the program are imported from the
-`user_config.py` file. `user_config.py` sources `config.py` and can be used to
-set your defaults. I know that's not the best way to do it but it does the trick
-for now.
-
-
 ##### `Params` parameter trees
 
 We define parameters as ``Params`` tree-like objects. The tree is a concise way

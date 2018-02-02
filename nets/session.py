@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # session.py
-
-
 """Represent a sequence of stimuli."""
+
 
 import time
 from os.path import join
@@ -12,7 +11,6 @@ from pprint import pformat
 import numpy as np
 
 from . import save
-from .user_config import INPUT_PATH
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
 

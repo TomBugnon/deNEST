@@ -8,12 +8,11 @@ import warnings
 from os import makedirs
 from os.path import exists, isdir, isfile, join
 
-import numpy as np
 from tqdm import tqdm
-from user_config import INPUT_SUBDIRS, METADATA_FILENAME
 
 from . import filt, normalize, resize
 from ..save import load_as_numpy, save_array, save_as_yaml
+from ..constants import INPUT_SUBDIRS, METADATA_FILENAME
 
 PREPROCESS_MAPPING = {
     'resize': resize.resize,

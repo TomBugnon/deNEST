@@ -14,7 +14,6 @@ from .network import Network
 from .save import load_yaml
 
 from .utils import misc
-from .user_config import USER_OVERRIDES, DEFAULT_PARAMS_PATH
 
 __all__ = ['load_params', 'run', 'Simulation', 'Network']
 
@@ -85,11 +84,7 @@ def run(path, *overrides, output_dir=None, input_path=None):
 
     # Load parameters
     print('Load params...\n')
-    params = load_params(path, *overrides, USER_OVERRIDES)
-    if DEFAULT_PARAMS_PATH is not None:
-        default_params = load_params(DEFAULT_PARAMS_PATH)
-        print('Merging default and simulation params...')
-        params = Params.merge(params, default_params)
+    params = load_params(path, *overrides)
     # Incorporate kwargs in params
     if output_dir is not None:
         print(f'Overriding output directory: {output_dir}')

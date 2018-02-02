@@ -7,7 +7,7 @@ from os.path import basename, isdir, isfile, join
 import numpy as np
 
 from ..save import load_as_numpy, load_yaml
-from ..user_config import INPUT_SUBDIRS, METADATA_FILENAME
+from ..constants import INPUT_SUBDIRS, METADATA_FILENAME
 
 
 def load_raw_stimulus(input_path, session_stim_yaml):

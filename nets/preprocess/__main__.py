@@ -24,9 +24,9 @@ import sys
 
 from config import PYTHON_SEED
 from docopt import docopt
-from user_config import INPUT_PATH
 
 from . import run
+from ..constants import DEFAULT_INPUT_PATH
 from ..utils.autodict import AutoDict
 from ..utils.structures import dictify
 
@@ -47,7 +47,7 @@ def main():
     # Get command-line args from docopt.
     arguments = docopt(__doc__, argv=argv)
     if not arguments['--input']:
-        arguments['--input'] = INPUT_PATH
+        arguments['--input'] = DEFAULT_INPUT_PATH
     sim_overrides = dictify(
         AutoDict({
             _SIM_CLI_ARG_MAP[key]: value
