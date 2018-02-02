@@ -265,8 +265,10 @@ be defined in the final parameter tree.
         (default [])
     - `reset_network` (bool): Whether to call `nest.ResetNetwork()` before
         running the session (default false)
-    - `session_input` (bool): Name of the stimulus yaml file. Ignored if
-        the `input_dir` parameter is a path to a numpy array. (default None)
+    - `session_input` (bool): Absolute or relative path to a numpy array
+        defining the stimulus for that session. Possibly ignored if the
+        `input_path` session parameter points to a numpy array. Please refer to
+        the 'Inputs' paragraph. (default None)
     - `time_per_frame` (float): Number of milliseconds during which each
         'frame' of the input movie is shown to the network. (default 1.)
     - `max_session_sim_time` (float): Maximum duration of the session, in ms.
