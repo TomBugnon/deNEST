@@ -3,7 +3,7 @@ network:
     params:
       nrows: 5
       ncols: 5
-      max_input_rate: 200
+      input_rate_scale_factor: 200
       edge_wrap: true
       visSize: 8.0
       weight_gain: 0.66

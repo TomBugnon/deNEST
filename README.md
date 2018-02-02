@@ -295,7 +295,7 @@ be defined in the final parameter tree.
             (keys) and the number of units of that model at each grid location
             (values). (mandatory)
         - `area` (str): Area of the layer. (default None)
-        - `max_input_rate` (float or int): Scaling factor for the poisson rate
+        - `input_rate_scale_factor` (float or int): Scaling factor for the poisson rate
             applied to an InputLayer to reflect a stimulus. (mandatory for
             InputLayers)
         - `weight_gain`: Scaling factor for the weight of connections of which

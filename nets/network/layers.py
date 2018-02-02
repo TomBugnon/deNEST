@@ -326,15 +326,15 @@ class InputLayer(AbstractLayer):
         return flatten(self._layer_call('location', *args))
 
     def set_input(self, stimulus, start_time=0.):
-        max_input_rate = float(self.params['max_input_rate'])
-        effective_max = max_input_rate * np.max(stimulus['movie'])
+        input_rate_scale_factor = float(self.params['input_rate_scale_factor'])
+        effective_max = input_rate_scale_factor * np.max(stimulus['movie'])
         print(f'-> Setting input for `{self.name}`.')
-        print(f'--> Rate scaling factor: {str(max_input_rate)}')
+        print(f'--> Rate scaling factor: {str(input_rate_scale_factor)}')
         print(f'--> Max instantaneous rate: {str(effective_max)}Hz')
         for layer in tqdm(self.layers):
             # TODO: Input layers should be able to see different filters
             layer_index = 0
-            layer_rates = (max_input_rate
+            layer_rates = (input_rate_scale_factor
                            * stimulus['movie'][:, layer_index, :, :])
             if self.stimulator_type == 'poisson_generator':
                 # Use only first frame
