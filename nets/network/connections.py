@@ -19,7 +19,6 @@ from .layers import InputLayer
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
 
-
 # Matched substrings when scaling masks.
 SCALED_MASK_SUBSTRINGS = ['radius', 'lower_left', 'upper_right']
 

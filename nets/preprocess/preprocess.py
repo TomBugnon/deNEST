@@ -11,8 +11,8 @@ from os.path import exists, isdir, isfile, join
 from tqdm import tqdm
 
 from . import filt, normalize, resize
-from ..save import load_as_numpy, save_array, save_as_yaml
 from ..constants import INPUT_SUBDIRS, METADATA_FILENAME
+from ..save import load_as_numpy, save_array, save_as_yaml
 
 PREPROCESS_MAPPING = {
     'resize': resize.resize,
