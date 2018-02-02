@@ -1,5 +1,0 @@
-preprocessing: ['resize', 'filter'] # pipeline
-# below, parameters for each of the preprocessing steps
-resize: {}
-normalize: {}
-filter: {}
