@@ -33,7 +33,7 @@ from .utils.autodict import AutoDict
 # Maps CLI options to their corresponding path in the parameter tree.
 _CLI_ARG_MAP = {
     '<param_file.yml>': ('simulation', 'params', 'param_file_path'),
-    '--input': ('simulation', 'params', 'input_dir'),
+    '--input': ('simulation', 'params', 'input_path'),
     '--output': ('simulation', 'params', 'output_dir'),
 }
 

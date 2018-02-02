@@ -22,11 +22,11 @@ PREPROCESS_MAPPING = {
 }
 
 
-def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
+def preprocess_all(input_path, prepro_subdir_str, network, prepro_params):
     """Preprocess all raw movies and create the corresponding sets.
 
     Args:
-        input_dir (str): Path to USER's input directory.
+        input_path (str): Path to USER's input directory.
         prepro_subdir_str (str): String describing preprocessing pipeline.
         network (Network): Network this preprocessing is effected for.
         prepro_params (dict): Preprocessing parameter tree.
@@ -35,8 +35,8 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
     # Preprocess files
 
     # Get dirs
-    raw_dir = join(input_dir, INPUT_SUBDIRS['raw_input'])
-    prepro_dir = join(input_dir, INPUT_SUBDIRS['preprocessed_input'],
+    raw_dir = join(input_path, INPUT_SUBDIRS['raw_input'])
+    prepro_dir = join(input_path, INPUT_SUBDIRS['preprocessed_input'],
                       prepro_subdir_str)
 
     # Make preprocessed_input dir for this pipeline
@@ -64,21 +64,21 @@ def preprocess_all(input_dir, prepro_subdir_str, network, prepro_params):
     create_metadata(prepro_dir, prepro_params, network)
 
     # Create file sets for this preprocessing pipeline
-    update_sets(input_dir, prepro_subdir_str)
+    update_sets(input_path, prepro_subdir_str)
 
     # Create a default stimulus file for this preprocessing pipeline
-    create_default_stim_yaml(input_dir, prepro_subdir_str)
+    create_default_stim_yaml(input_path, prepro_subdir_str)
 
     print('... done.')
 
 
-def create_default_stim_yaml(input_dir, prepro_subdir_str):
+def create_default_stim_yaml(input_path, prepro_subdir_str):
     """Create a default stimulus yaml for the new preprocessing pipeline.
 
     The created default stimulus yaml points towards the newly preprocessed set
     named DEFAULT_SET (= 'set_1'). The stimulus sequence is the list of unique
     files in the default set.
-    The file created by this function in <input_dir>/stimuli has name:
+    The file created by this function in <input_path>/stimuli has name:
         DEFAULT_STIM_NAME+DEFAULT_SET+<prepro_subdir_str>+'.yml'
     and is of the form:
     "
@@ -96,11 +96,11 @@ def create_default_stim_yaml(input_dir, prepro_subdir_str):
     default_stim_filename = (
         DEFAULT_STIM_NAME + '_' + DEFAULT_SET + '_' + prepro_subdir_str +
         '.yml')
-    stim_dir_path = join(input_dir, INPUT_SUBDIRS['stimuli'])
+    stim_dir_path = join(input_path, INPUT_SUBDIRS['stimuli'])
     default_stim_path = join(stim_dir_path, default_stim_filename)
 
     default_set_name = (DEFAULT_SET + '_' + prepro_subdir_str)
-    default_set_path = join(input_dir, INPUT_SUBDIRS['preprocessed_input_sets'],
+    default_set_path = join(input_path, INPUT_SUBDIRS['preprocessed_input_sets'],
                             default_set_name)
 
     # Check existence of a default set
@@ -120,7 +120,7 @@ def create_default_stim_yaml(input_dir, prepro_subdir_str):
         })
 
 
-def update_sets(input_dir, prepro_subdir_str):
+def update_sets(input_path, prepro_subdir_str):
     """Create preprocessed input sets.
 
     For all the input subsets in raw_input_sets, use symlinks to create the
@@ -129,7 +129,7 @@ def update_sets(input_dir, prepro_subdir_str):
 
     """
     print('Update sets')
-    setdir = join(input_dir, INPUT_SUBDIRS['raw_input_sets'])
+    setdir = join(input_path, INPUT_SUBDIRS['raw_input_sets'])
 
     all_setnames = [
         setname for setname in os.listdir(setdir)
@@ -138,13 +138,13 @@ def update_sets(input_dir, prepro_subdir_str):
 
     # Create sets of files + metadata
     for setname in all_setnames:
-        create_set(input_dir, setname, prepro_subdir_str)
+        create_set(input_path, setname, prepro_subdir_str)
 
 
-def create_set(input_dir, setname, prepro_subdir_str):
+def create_set(input_path, setname, prepro_subdir_str):
     """Create a given preprocessed input subset from a raw input set."""
-    raw_set_dir = join(input_dir, INPUT_SUBDIRS['raw_input_sets'], setname)
-    prepro_set_dir = join(input_dir, INPUT_SUBDIRS['preprocessed_input_sets'],
+    raw_set_dir = join(input_path, INPUT_SUBDIRS['raw_input_sets'], setname)
+    prepro_set_dir = join(input_path, INPUT_SUBDIRS['preprocessed_input_sets'],
                           preprocessed_set_name(setname, prepro_subdir_str))
 
     # Create prepro_set dir

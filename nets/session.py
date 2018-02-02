@@ -12,7 +12,7 @@ from pprint import pformat
 import numpy as np
 
 from . import save
-from .user_config import INPUT_DIR
+from .user_config import INPUT_PATH
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
 
@@ -103,7 +103,7 @@ class Session:
 
     def load_stim(self, crop_shape=None):
         # Input path can be either to a file or to the structured input dir
-        input_path = self.params['input_dir']
+        input_path = self.params['input_path']
         session_stim_filename = self.params['session_stimulus']
         (raw_movie,
          raw_labels,

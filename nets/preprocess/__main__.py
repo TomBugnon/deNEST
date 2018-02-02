@@ -7,7 +7,7 @@ preprocessing.
 ~~~~~~~~~~~~~~
 
 Usage:
-    python -m nets.preprocess <preprocessing_params> <sim_params> [-i <input_dir>]
+    python -m nets.preprocess <preprocessing_params> <sim_params> [-i <input_path>]
     python -m nets.preprocess -h | --help
 
 Arguments:
@@ -15,7 +15,7 @@ Arguments:
     <sim_params>            Relative path to full simulation parameter file
 
 Options:
-    -i --input=<input_dir>  Input directory. If not specified, uses INPUT_DIR from config.
+    -i --input=<input_path>  Input directory. If not specified, uses INPUT_PATH from config.
     -h --help               Show this
 """
 
@@ -24,7 +24,7 @@ import sys
 
 from config import PYTHON_SEED
 from docopt import docopt
-from user_config import INPUT_DIR
+from user_config import INPUT_PATH
 
 from . import run
 from ..utils.autodict import AutoDict
@@ -47,7 +47,7 @@ def main():
     # Get command-line args from docopt.
     arguments = docopt(__doc__, argv=argv)
     if not arguments['--input']:
-        arguments['--input'] = INPUT_DIR
+        arguments['--input'] = INPUT_PATH
     sim_overrides = dictify(
         AutoDict({
             _SIM_CLI_ARG_MAP[key]: value

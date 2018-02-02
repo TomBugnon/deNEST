@@ -6,7 +6,7 @@ If you write in user_config.py, please add it to your global .gitignore
 
 import os.path
 
-INPUT_DIR = os.path.abspath('input')
+INPUT_PATH = os.path.abspath('input')
 OUTPUT_DIR = os.path.abspath('output')
 INPUT_SUBDIRS = {
     'raw_input': 'raw_input',

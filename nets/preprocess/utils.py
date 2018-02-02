@@ -28,10 +28,10 @@ def preprocessing_subdir(prepro_params, network):
     return subdir.strip('_')
 
 
-def create_set(input_dir, setname, filenames):
+def create_set(input_path, setname, filenames):
     """Create a raw input set of symlinks to elements of filenames."""
     assert (isinstance(filenames, list))
-    set_dir = os.path.join(input_dir, 'raw_input_sets', setname)
+    set_dir = os.path.join(input_path, 'raw_input_sets', setname)
     os.makedirs(set_dir, exist_ok=True)
     # Create symlinks
     for filename in filenames:

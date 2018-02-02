@@ -23,15 +23,15 @@ __Note__: the stimuli dimension (resolution and number of filters) should be
 compatible with (i.e., greater than the dimensions of) your network. The
 expected dimension of the arrays is: __time x nfilters x nrows x ncols__.
 
-The `input_dir` simulation parameter can be either of the following:
+The `input_path` simulation parameter can be either of the following:
 - A path to an array file: In which case this is the stimulus showed to the
 network for all the sessions.
 - A path to a directory: In which case the movie presented to the network during
 a session is a 'stimulus set', the concatenation of arrays whose paths are
 obtained from the `session_stims` session parameter. The input directory
-`input_dir` should then have the expected structure and the `session_stims` key
+`input_path` should then have the expected structure and the `session_stims` key
 should contain the name of a file existing in the 'stimuli' subdirectory of
-`input_dir`
+`input_path`
 
 ##### For 'Stimulus set' input (as opposed to numpy): (TODO update)
 
@@ -44,7 +44,7 @@ To preprocess, run
 python3 -m nets.preprocess \
         -p <preprocessing_params> \
         -n <simulation_params> \
-        [-input <input_dir>]
+        [-input <input_path>]
 ```
 For example:
 ```bash
@@ -87,12 +87,12 @@ params = nets.load_params(params_path, *overrides)
 # You can override the input and output settings in the parameter file by
 # passing them when you create the simulation:
 
-input_dir = None  # Path to an input directory. NOTE: This can also be a path
+input_path = None  # Path to an input directory. NOTE: This can also be a path
                   # to a saved NumPy array.
 output_dir = None # Path to output directory.
 
 # Create the simulation.
-sim = nets.Simulation(params, input_dir=input_dir, output_dir=output_dir)
+sim = nets.Simulation(params, input_path=input_path, output_dir=output_dir)
 
 # Run the simulation.
 sim.run()
@@ -114,7 +114,7 @@ params_path = 'params/default.yml'
 # User defined list of tree-like overrides
 overrides = []
 
-nets.run(params_path, *overrides, input_dir=None, output_dir=None)
+nets.run(params_path, *overrides, input_path=None, output_dir=None)
 ```
 
 Note:

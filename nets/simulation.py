@@ -10,7 +10,7 @@ from shutil import rmtree
 from .network import Network
 from .save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
-from .user_config import INPUT_DIR, NEST_SEED, OUTPUT_DIR, PYTHON_SEED
+from .user_config import INPUT_PATH, NEST_SEED, OUTPUT_DIR, PYTHON_SEED
 
 
 class Simulation:
@@ -22,13 +22,13 @@ class Simulation:
     Args:
         params (dict-like): full parameter tree
     """
-    def __init__(self, params, input_dir=None, output_dir=None):
+    def __init__(self, params, input_path=None, output_dir=None):
         """Initialize simulation."""
         self.params = params
         # Get output dir and nest raw output_dir
         self.output_dir = self.get_output_dirs(output_dir)
         # Get input dir
-        self.input_dir = self.get_input_dir(input_dir)
+        self.input_path = self.get_input_path(input_path)
         # set python seeds
         print('Set python seed...', flush=True)
         self.set_python_seeds()
@@ -154,17 +154,17 @@ class Simulation:
         self.params.c['simulation']['nest_output_dir'] = nest_output_dir
         return output_dir
 
-    def get_input_dir(self, input_dir=None):
+    def get_input_path(self, input_path=None):
         """Get input dir from params or defaults and cast to session params."""
-        if input_dir is None:
-            input_dir = self.params.c['simulation'].get('input_dir', False)
+        if input_path is None:
+            input_path = self.params.c['simulation'].get('input_path', False)
         # If not specified by USER, get default from config
-        if not input_dir:
-            input_dir = INPUT_DIR
-            self.params.c['simulation']['input_dir'] = input_dir
+        if not input_path:
+            input_path = INPUT_PATH
+            self.params.c['simulation']['input_path'] = input_path
         # Cast to session params as well as simulation params
-        self.params.c['sessions']['input_dir'] = input_dir
-        return input_dir
+        self.params.c['sessions']['input_path'] = input_path
+        return input_path
 
     def total_time(self):
         import nest

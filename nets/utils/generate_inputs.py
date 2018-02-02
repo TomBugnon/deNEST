@@ -72,12 +72,12 @@ def sinusoidal_grating(nrows=9, ncols=9, mean=0.5, amplitude=0.5, phase=0,
     return array
 
 
-def create_movie(raw_input_dir, res, t, stim_type, path_type='default', nrows=9,
+def create_movie(raw_input_path, res, t, stim_type, path_type='default', nrows=9,
                  ncols=9, width=3, save=False):
     """Create, possibly save, and return a movie (3D np-array).
 
     Args:
-        raw_input_dir (str): path to the `raw_input` subdirectory of the
+        raw_input_path (str): path to the `raw_input` subdirectory of the
             USER's input directory
         res (tuple): Dimension of each frame.
         t (int): Number of frames.
@@ -88,7 +88,7 @@ def create_movie(raw_input_dir, res, t, stim_type, path_type='default', nrows=9,
         nrows (int): vertical size (first dimension) of the stimulus
         ncols (int): horizontal size (second dimension) of the stimulus
         width (int): width of the stimulus
-        save (bool): If true, saves the created movie in INPUT_DIR/raw_inputs
+        save (bool): If true, saves the created movie in INPUT_PATH/raw_inputs
 
     Returns:
         np-array: (nframes*nrows*ncols)-numpy array
@@ -101,8 +101,8 @@ def create_movie(raw_input_dir, res, t, stim_type, path_type='default', nrows=9,
     if save:
         savestr = generate_movie_str(stim_type, path_type, res, t, nrows, ncols,
                                      width)
-        makedirs(raw_input_dir, exist_ok=True)
-        save_array(join(raw_input_dir, savestr), movie)
+        makedirs(raw_input_path, exist_ok=True)
+        save_array(join(raw_input_path, savestr), movie)
 
     return movie
 

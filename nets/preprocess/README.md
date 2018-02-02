@@ -3,14 +3,14 @@
 To run from the command line:
 ```bash
 python3 -m nets.preprocess \
-        [-i <input_dir>] \
+        [-i <input_path>] \
         -p <preprocessing_params> \
         -n <simulation_params>
 ```
 
 ### Arguments
 
-- `<input_dir>`: Path to the directory in which all the movie inputs are saved.
+- `<input_path>`: Path to the directory in which all the movie inputs are saved.
   The directory must contain the subdirectory `raw_input`.  
 - `<preprocessing_params>`: Path to the YAML file containing the preprocessing parameters.
   _Example:_ `'preprocess/params/default.yml'`
@@ -22,23 +22,23 @@ python3 -m nets.preprocess \
 ### Effects
 
 The command above
-1. Preprocesses all the input in `<input_dir>/raw_input`  
+1. Preprocesses all the input in `<input_path>/raw_input`  
 2. Saves the results in
-   `<input_dir>/preprocessed_input/<preprocessing_subdir>`, where
+   `<input_path>/preprocessed_input/<preprocessing_subdir>`, where
    `<preprocessing_subdir>` is a string describing the preprocessing pipeline
-   that was used. If `<input_dir>/preprocessed_input/<preprocessing_dir>`
+   that was used. If `<input_path>/preprocessed_input/<preprocessing_dir>`
    already exists, the preprocessing is only done on the input that hasn't
    already been processed.
-3. If input sets are defined in `<input_dir>/raw_input_sets`, the corresponding
-   sets are created in `<input_dir>/preprocessed_input_sets`.
+3. If input sets are defined in `<input_path>/raw_input_sets`, the corresponding
+   sets are created in `<input_path>/preprocessed_input_sets`.
 4. Finally, a default stimulus YAML file is created for this preprocessing
-   pipeline in `<input_dir>/stimuli` that defines the input during a session.
+   pipeline in `<input_path>/stimuli` that defines the input during a session.
 
 ### Example
 
 ```bash
 python3 -m nets.preprocess \
-        -i input_dir nets/preprocess/params/default.yml \
+        -i input_path nets/preprocess/params/default.yml \
         -n params/default.yml
 ```
 

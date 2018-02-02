@@ -42,6 +42,6 @@ input
             sequence of stimuli, all drawn from the same given stimulus set, and
             corresponds to a “session”.
             Each entry is a yaml file containing keys:
-                - set_name (str) <- subdirectory in `input_dir`/'preprocessed_input_sets'.
+                - set_name (str) <- subdirectory in `input_path`/'preprocessed_input_sets'.
                 - sequence (list) <- list of filenames in the set directory.
 ```

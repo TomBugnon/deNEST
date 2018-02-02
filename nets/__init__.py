@@ -72,7 +72,7 @@ def load_params(path, *overrides):
     )
 
 
-def run(path, *overrides, output_dir=None, input_dir=None):
+def run(path, *overrides, output_dir=None, input_path=None):
     """Run the simulation described by the params at ``path``.
 
     Args:
@@ -94,9 +94,9 @@ def run(path, *overrides, output_dir=None, input_dir=None):
     if output_dir is not None:
         print(f'Overriding output directory: {output_dir}')
         params.c['simulation']['output_dir'] = output_dir
-    if input_dir is not None:
-        print(f'Overriding input: {input_dir}')
-        params.c['simulation']['input_dir'] = input_dir
+    if input_path is not None:
+        print(f'Overriding input: {input_path}')
+        params.c['simulation']['input_path'] = input_path
     print('\n...done loading params.', flush=True, end=SEPARATOR)
 
     # Initialize simulation
