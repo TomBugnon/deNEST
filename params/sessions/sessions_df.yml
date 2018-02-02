@@ -4,12 +4,12 @@ sessions:
     reset_network: False
   warmup:
     params:
-      session_input: 'noise_256x256.yml'
+      session_input: 'noise_256x256x1x1.npy'
       time_per_frame: 500.
       max_session_sim_time: 500.
       reset_network: True
   grating:
     params:
-      session_input: 'sinusoidal_grating_0_degrees_100picks.yml'
+      session_input: 'sinusoidal_grating_0_degrees_40x40x1x40.npy'
       time_per_frame: 30
       max_session_sim_time: 500.
