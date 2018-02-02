@@ -114,11 +114,13 @@ class Session:
             raw_movie = raw_movie[:, :, :crop_shape[0], :crop_shape[1]]
 
         # Expand from frame to timesteps
-        labels = frames_to_time(raw_labels, self.params['time_per_frame'])
-        movie = frames_to_time(raw_movie, self.params['time_per_frame'])
+        labels = frames_to_time(raw_labels, self.params.get('time_per_frame',
+                                                            1.))
+        movie = frames_to_time(raw_movie, self.params.get('time_per_frame', 1.))
 
         simulation_time = int(min(np.size(movie, axis=0),
-                                  self.params['max_session_sim_time']))
+                                  self.params.get('max_session_sim_time',
+                                                  float('inf'))))
 
         return {'movie': movie[:simulation_time],
                 'labels': labels[:simulation_time],

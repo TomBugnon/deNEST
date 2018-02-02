@@ -45,7 +45,7 @@ class Simulation:
         print('...done\n', flush=True)
         # Create sessions
         print('Create sessions...', flush=True)
-        self.order = self.params.c['sessions']['order']
+        self.order = self.params.c['sessions'].get('order', [])
         self.sessions = {
             name: Session(name, session_params)
             for name, session_params in self.params.c['sessions'].named_leaves()

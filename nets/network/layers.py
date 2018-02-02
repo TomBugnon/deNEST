@@ -123,7 +123,7 @@ class Layer(AbstractLayer):
             'rows': self.params['nrows'],
             'columns': self.params['ncols'],
             'extent': [self.params['visSize']] * 2,
-            'edge_wrap': self.params['edge_wrap'],
+            'edge_wrap': self.params.get('edge_wrap', False),
             'elements': self.build_elements(),
         }
         # TODO: implement
@@ -144,6 +144,7 @@ class Layer(AbstractLayer):
         This converts the parameters to such a list.
         """
         populations = self.params['populations']
+        assert populations
         # Map types to numbers
         return flatten([population, number]
                        for population, number in populations.items())
