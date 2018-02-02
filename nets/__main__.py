@@ -6,9 +6,9 @@ Spiking VisNet
 ~~~~~~~~~~~~~~
 
 Usage:
-    python -m spiking_visnet <param_file.yml> [options]
-    python -m spiking_visnet -h | --help
-    python -m spiking_visnet -v | --version
+    python -m nets <param_file.yml> [options]
+    python -m nets -h | --help
+    python -m nets -v | --version
 
 Arguments:
     <param_file.yml>  YAML file containing simulation parameters.
@@ -41,8 +41,8 @@ _CLI_ARG_MAP = {
 def main():
     """Run Spiking VisNet from the command line."""
     # Construct a new argument list to allow docopt's parser to work with the
-    # `python -m spiking_visnet` calling pattern.
-    argv = ['-m', 'spiking_visnet'] + sys.argv[1:]
+    # `python -m nets` calling pattern.
+    argv = ['-m', 'nets'] + sys.argv[1:]
     # Get command-line args from docopt.
     arguments = docopt(__doc__, argv=argv, version=__version__)
     # Get parameter overrides from the CLI options.

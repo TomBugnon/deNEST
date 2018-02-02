@@ -14,7 +14,7 @@ with open('README.md') as f:
     readme = f.read()
 
 about = {}
-with open('./spiking_visnet/__about__.py') as f:
+with open('./nets/__about__.py') as f:
     exec(f.read(), about)
 
 with open('./requirements.txt') as f:
@@ -24,7 +24,7 @@ setup(
     name=about['__title__'],
     version=about['__version__'],
     long_description=readme,
-    packages=['spiking_visnet'],
+    packages=['nets'],
     zip_safe=False,
     install_requires=install_requires,
     classifiers=[

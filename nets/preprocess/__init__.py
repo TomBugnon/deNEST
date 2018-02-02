@@ -34,7 +34,7 @@ def run(args, sim_overrides=None, prepro_overrides=None):
 def load_preprocessing_params(path, overrides=None):
     """Load Params from yaml containing a tree.
 
-    Difference from spiking_visnet.parameters.load_params() is that the
+    Difference from nets.parameters.load_params() is that the
     simulation parameter path points to a yaml containing a list of files to
     merge, whereas the preprocessing parameters path points directly to the
     parameters yaml.

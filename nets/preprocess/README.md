@@ -2,7 +2,7 @@
 
 To run from the command line:
 ```bash
-python3 -m spiking_visnet.preprocess \
+python3 -m nets.preprocess \
         [-i <input_dir>] \
         -p <preprocessing_params> \
         -n <simulation_params>
@@ -37,8 +37,8 @@ The command above
 ### Example
 
 ```bash
-python3 -m spiking_visnet.preprocess \
-        -i input_dir spiking_visnet/preprocess/params/default.yml \
+python3 -m nets.preprocess \
+        -i input_dir nets/preprocess/params/default.yml \
         -n params/default.yml
 ```
 

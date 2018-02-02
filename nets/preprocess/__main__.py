@@ -7,8 +7,8 @@ preprocessing.
 ~~~~~~~~~~~~~~
 
 Usage:
-    python -m spiking_visnet.preprocess <preprocessing_params> <sim_params> [-i <input_dir>]
-    python -m spiking_visnet.preprocess -h | --help
+    python -m nets.preprocess <preprocessing_params> <sim_params> [-i <input_dir>]
+    python -m nets.preprocess -h | --help
 
 Arguments:
     <preprocessing_params>  Relative path to preprocessing parameter yaml file
@@ -42,8 +42,8 @@ _PREPRO_CLI_ARG_MAP = {}
 def main():
     """Preprocess inputs from the command line."""
     # Construct a new argument list to allow docopt's parser to work with the
-    # `python -m spiking_visnet` calling pattern.
-    argv = ['-m', 'spiking_visnet.preprocess'] + sys.argv[1:]
+    # `python -m nets` calling pattern.
+    argv = ['-m', 'nets.preprocess'] + sys.argv[1:]
     # Get command-line args from docopt.
     arguments = docopt(__doc__, argv=argv)
     if not arguments['--input']:

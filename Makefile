@@ -1,4 +1,4 @@
-src = spiking_visnet
+src = nets
 test = test
 
 IGNORE = '\033[0;30m'
@@ -20,6 +20,6 @@ watch: test
 test:
 	py.test test -v
 
-# python -m spiking_visnet params/default.yml -i input.npy -o output
+# python -m nets params/default.yml -i input.npy -o output
 # echo "$(IGNORE)"
 # colordiff params_old.yml output/params.yaml && echo "$(SUCCESS)" || echo "$(FAILURE)"

@@ -12,7 +12,7 @@ import os
 import yaml
 import pytest
 
-from spiking_visnet.parameters import Params
+from nets.parameters import Params
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))

@@ -34,7 +34,7 @@ logging.config.dictConfig({
         }
     },
     'loggers': {
-        'spiking_visnet': {
+        'nets': {
             'level': 'INFO',
             'handlers': ['stdout'],
         }
