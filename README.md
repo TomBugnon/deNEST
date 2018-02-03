@@ -365,8 +365,6 @@ defined in the final parameter tree.
 
 ## Inputs to the network
 
-### Input array
-
 The input 'shown' to the network (that is, used to set the firing rates during a
 forecoming session) is a NumPy array of dimensions compatible with the network's
 `InputLayer`'s dimension. The NumPy array should be 4D with the following
@@ -378,8 +376,20 @@ dimensions: `(rows, columns, filters, frames)`
   This dimension would correspond to different filters to be applied to an image
   to mimic different 'filterings' by the retina, LGN, V1 etc in an object
   recognition network.
-- _frames_ : Successive 'frames' are shown to the InputLayer, each for a certain
-  duration.
+- _frames_ : If the stimulators are spike_generators, successive 'frames' are
+    shown to the InputLayer, each for a certain duration. If the stimulators
+    are poisson_generators, only the first frame is shown to the network.
+
+##### From input arrays to firing rates
+
+If InputLayer stimulators are poisson generators, the rates are set according
+proportionally to the first 'frame' of the input array. The other frames are
+ignored.
+If InputLayer stimulators are spike generators, the instantaneous rates at each
+time are set proportionally to the frame corresponding to that time. Each frame
+is 'shown' to the layer for a certain duration (`time_per_frame` parameter).
+In both cases the scaling factor from np-array values to rates is given by the
+'input_rate_scale_factor' parameter of the InputLayer.
 
 ### Loading of the input arrays
 
