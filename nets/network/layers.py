@@ -263,7 +263,8 @@ class InputLayer(AbstractLayer):
         # Make a duplicate sublayer for each filter
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         names = filter_suffixes.get_expanded_names(self.name,
-                                                   self.params.get('filters'))
+                                                   self.params.get('filters',
+                                                                   {}))
         self.layers = [Layer(name, self.params) for name in names]
         # TODO: Possibly scale the weights of all input connections by the
         # number of input layers
