@@ -1,29 +1,35 @@
 network:
   layers:
     params:
+      type: null
       nrows: 5
       ncols: 5
-      input_rate_scale_factor: 200
-      edge_wrap: true
       visSize: 8.0
-      weight_gain: 0.66
-      input_area_name: input_area
+      input_rate_scale_factor: 50
+      edge_wrap: true
+      weight_gain: 1.0
       scale_input_weights: true
       scale_kernels_masks_to_extent: true
+    # Areas
     input_area:
       params:
-        filters:
-          # There is one input layer for each filter.
-          # The filters are defined along the following dimensions:
-          dimensions:
-            spatial_frequencies: 1
-            orientations: 2
-            signs: 1
-          suffixes:
-            # The name of the layer corresponding to a given combination of
-            # layer dimensions is eg: base_layer_name_sf1o3s2.
-            # If there is only one filter value along a given dimension, this
-            # dimension is omitted in the prefix: eg base_layer_name_o3s2
-            spatial_frequencies: sf
-            orientations: o
-            signs: s
+        # Layers in this area will be of type `InputLayer`
+        type: 'InputLayer'
+      input_layer:
+        params:
+          populations:
+            input_exc: 1
+    l1_area:
+      l1:
+        params:
+          populations:
+            l1_exc: 2
+            l1_inh: 1
+    l2_area:
+      params:
+        area: l2_area
+      l2:
+        params:
+          populations:
+            l2_exc: 2
+            l2_inh: 1

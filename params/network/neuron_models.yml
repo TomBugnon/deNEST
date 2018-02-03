@@ -13,9 +13,9 @@ network:
         g_peak_NMDA: 0.15
         g_peak_GABA_A: 0.33
         g_peak_GABA_B: 0.0132
-        instant_unblock_NMDA: true  # old NEST defaults
-        S_act_NMDA: 0.4             # old NEST defaults
-        V_act_NMDA: -58.0           # old NEST defaults
+        instant_unblock_NMDA: true
+        S_act_NMDA: 0.4
+        V_act_NMDA: -58.0
       cortical_excitatory:
         params:
           theta_eq: -51.0

@@ -1,12 +1,18 @@
 sessions:
   params:
-    order: ['warmup', 'grating']
+    order: ['warmup', 'noise', 'grating']
     reset_network: False
   warmup:
     params:
       session_input: 'noise_256x256x1x1.npy'
-      time_per_frame: 500.
+      time_per_frame: 1000.
       max_session_sim_time: 500.
+      reset_network: True
+  noise:
+    params:
+      session_input: 'noise_256x256x1x1.npy'
+      time_per_frame: 1000.
+      max_session_sim_time: 2000.
       reset_network: True
   grating:
     params:

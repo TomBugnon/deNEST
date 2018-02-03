@@ -35,7 +35,7 @@ network:
             radius: 7.0 # scaled during init
         kernel:
           gaussian:
-            p_center: 0.25 # TODO: much stronger than excitatory -> check
+            p_center: 0.25
             sigma: 7.5 # scaled during init
         weights: 1.0 # scaled during init
         delays:

@@ -1,8 +1,6 @@
 network:
   synapse_models:
     # NOTE:
-    # - 'format_synapse_params()' needs modification if any parameters are
-    #   added here
     # - If you define a 'receptor_type' field you need a 'target_neuron'
     #   field as well.
     ht_synapse:
