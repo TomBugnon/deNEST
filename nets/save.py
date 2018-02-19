@@ -144,8 +144,22 @@ def load_session_stim(output_dir, session_name, filt=0):
 
 
 def load_activity(output_dir, layer, population, variable='spikes',
-                  session=None, all_units=False):
-    """Load activity of a given variable for a population."""
+                  session=None, all_units=False, start_trim=None,
+                  end_trim=None):
+    """Load activity of a given variable for a population.
+
+        Args:
+            - `output_dir` (str): Output directory,
+            - `layer`, `population` (str): Population name,
+            - `variable` (str): Loaded variable (default 'spikes'),
+            - `session` (str): Session for which the activity is loaded. Loads
+                all sessions if None. (default None)
+            - `all_units` (bool): Return activity only for one unit at each grid
+                location if False (default False)
+            - `start_trim`, `end_trim` (int): Duration of activity trimmed at
+                the start or the end of the recording (applied after selecting
+                activity of a given session)
+    """
     # Get all filenames for that population (one per unit index)
     recorders_dir = output_subdir(output_dir, 'recorders')
     unit_index = None if all_units else 0
@@ -169,11 +183,17 @@ def load_activity(output_dir, layer, population, variable='spikes',
                  f"...in directory: ``{abspath(recorders_dir)}``")
         print(error)
         raise e
-    # Possibly extract the times for a specific session
-    if session is None:
-        return  all_sessions_activity
-    session_times = load_session_times(output_dir)
-    return all_sessions_activity[session_times[session]]
+    # Possibly extract the times corresponding to a specific session
+    if session is not None:
+        times = load_session_times(output_dir)[session]
+    else:
+        times = range(len(all_sessions_activity))
+    # Possibly trim the beginning and the end, after selecting for session
+    if start_trim is not None:
+        times = range(min(times) + int(start_trim), max(times))
+    if end_trim is not None:
+        times = range(min(times), max(times) - int(end_trim))
+    return all_sessions_activity[times]
 
 
 def load_labels(output_dir, session_name):
