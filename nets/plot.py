@@ -248,8 +248,9 @@ def show_activity_raster(activity, plot_cols=None, figsize=(40, 10), xmin=None,
     col_activity = np.reshape(activity[:, :, plot_cols],
                               (ntimesteps, nrows * len(plot_cols)),
                               order='F')
-    subp.matshow(np.transpose(col_activity), interpolation=interpolation,
+    im = subp.matshow(np.transpose(col_activity), interpolation=interpolation,
                       aspect='auto', vmin=xmin, vmax=xmax)
+    cbar = plt.colorbar(im)
     if show:
         plt.show()
         plt.close()
