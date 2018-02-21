@@ -27,6 +27,7 @@ OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
                   'session_times': ('sessions',),
                   'rasters': ('rasters',),
                   'params': (),
+                  'plots': ('plots',),
 }
 
 # Subdirectories that are cleared if the simulation parameter 'clear_output_dir'
@@ -255,6 +256,13 @@ def recorder_filename(layer, pop, unit_index=None, variable='spikes'):
                   + str(unit_index))
     return base_filename + suffix
 
+def save_plot(fig, output_dir, filename, overwrite=False):
+    """Save matplotlib figure in 'plot' subdirectory."""
+    path = join(output_subdir(output_dir, 'plots'), filename)
+    if os.path.exists(path) and not overwrite:
+        print(f'Not overwriting file at {path}')
+        return
+    fig.savefig(path)
 
 def movie_filename(session_name):
     return 'session_' + session_name + '_movie'
