@@ -200,7 +200,7 @@ def load_activity(output_dir, layer, population, variable='spikes',
 def load_labels(output_dir, session_name):
     """Load labels of a session."""
     return np.load(join(output_subdir(output_dir, 'sessions'),
-                        output_filename('labels', 'session_name')))
+                        output_filename('labels', session_name)))
 
 
 def save_sparse(path, array):
