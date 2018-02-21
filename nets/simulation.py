@@ -146,7 +146,7 @@ class Simulation:
             output_dir = self.params.c['simulation'].get('output_dir', False)
         # If not specified by USER, get default from config
         if not output_dir:
-            output_dir = OUTPUT_DIR
+            output_dir = DEFAULT_OUTPUT_DIR
             # Save output dir in params
             self.params.c['simulation']['output_dir'] = output_dir
         # Tell NEST kernel where to save the raw recorder files

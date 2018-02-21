@@ -100,12 +100,18 @@ class Session:
         return self._simulation_time
 
     def load_stim(self, crop_shape=None):
+        """Load and return the session's input movie.
+
+        See README.md and `load_raw_stimulus` function about how the input is
+        loaded from the `input_path` simulation parameter and the
+        `session_input` session parameter.
+        """
         # Input path can be either to a file or to the structured input dir
         input_path = self.params['input_path']
-        session_stim_filename = self.params['session_input']
+        session_input = self.params['session_input']
         (raw_movie,
          raw_labels,
-         metadata) = load_raw_stimulus(input_path, session_stim_filename)
+         metadata) = load_raw_stimulus(input_path, session_input)
 
         # Crop to adjust to network's input layer shape
         if crop_shape is not None:

@@ -396,18 +396,20 @@ In both cases the scaling factor from np-array values to rates is given by the
 The input stimulus "shown" to the network is loaded using the following steps
 during the initialization of each session:
 
-1. If the `input_path` simulation parameter is an absolute path pointing towards
-   a NumPy array, this array will be loaded for all sessions. Otherwise...
-2. If the `session_input` session parameter for the considered session is an
-   absolute path pointing towards a NumPy array, it will be loaded for that
-   session. Otherwise...
-3. If the `input_path` simulation parameter is a path pointing towards a
-   directory, and the `session_input` session parameter can be interpreted as a
-   relative path, from the `input_path` directory, pointing towards a NumPy
-   array, it will be loaded for the session.
-4. Just for reference, there is another type of loading that is specific to our
-   usage and doesn't need to be developed upon right now. We will probably
-   migrate the corresponding code outside of the package in the future.
+1. (option 1): If the `input_path` simulation parameter is an absolute path
+    pointing towards a NumPy array, this array will be loaded for all sessions.
+    Otherwise...
+2. (option 2): If the `session_input` session parameter for the considered
+    session is an absolute path pointing towards a NumPy array, it will be
+    loaded for that session. Otherwise...
+3. (option 3): If the `input_path` simulation parameter is a path pointing
+    towards a directory, and the `session_input` session parameter can be
+    interpreted as a relative path, from the `input_path` directory, pointing
+    towards a NumPy array, it will be loaded for the session.
+4. (option 4): Just for reference, there is another type of loading that is
+    specific to our usage and doesn't need to be developed upon right now. We
+    will probably migrate the corresponding code outside of the package in the
+    future.
 
 In summary, if an absolute path to an array is specified in the command line
 `input` optional argument, it will be used for all sessions. Otherwise, a good
