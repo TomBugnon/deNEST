@@ -125,7 +125,9 @@ def run(path, *overrides, output_dir=None, input_path=None):
 
     # Dump network's incoming connection numbers per layer
     if params.get(('simulation', 'dump_connection_numbers'), False):
+        print('Dumping connection numbers...\n', flush=True)
         sim.dump_connection_numbers()
+        print('\n...done dumping conn numbers...', flush=True, end=SEPARATOR)
 
     # Drop git hash
     misc.drop_git_hash(sim.output_dir)

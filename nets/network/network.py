@@ -305,7 +305,12 @@ class Network:
                 # type Autodict of not yet created
                 autodict[keys] = 1
 
-        all_connections = nest.GetStatus(nest.GetConnections())
+        print('Query all connections. This might take a while...')
+        # We don't call nest.GetStatus() on all the connections at once since
+        # the resulting object is so monstruous.
+        all_connections = nest.GetConnections()
+        print(f'Yes! We got them all! They are {len(all_connections}!')
+
         all_populations_by_gid = self.populations_by_gids(
             layer_type='Layer'
         ) #{gid: (layer, pop)}
@@ -315,18 +320,23 @@ class Network:
 
         for conn in tqdm(all_connections,
                          desc='Dumping connection numbers'):
-            layer, pop = all_populations_by_gid.get(conn['target'],
+
+            conn_dict = nest.GetStatus((conn,))[0]
+            layer, pop = all_populations_by_gid.get(conn_dict['target'],
                                                     (None, None))
             if layer is None:
                 # We're not interested in InputLayers
                 continue
-            synapse_name = str(conn['synapse_model'])
+            synapse_name = str(conn_dict['synapse_model'])
             keys = (layer, pop, synapse_name)
             # Add to 'synapse' count.
             increase_autodict_count(connection_summary, keys)
 
-            # Add to 'exc' or 'inh' count
-            syn_type = self.synapse_models[synapse_name].type
+            # Add to 'exc' or 'inh' count for the user-defined synapses that
+            # have a recognizable type.
+            syn_type = None
+            if synapse_name in synapse_models
+                syn_type = self.synapse_models[synapse_name].type
             if syn_type is None:
                 pass
             elif syn_type > 0:

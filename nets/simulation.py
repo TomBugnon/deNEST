@@ -75,6 +75,7 @@ class Simulation:
         self.network.plot_connections(self.output_dir)
 
     def dump_connection_numbers(self):
+        """Dump connection numbers."""
         self.network.dump_connection_numbers(self.output_dir)
 
     def save(self):
