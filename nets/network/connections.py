@@ -120,10 +120,11 @@ class BaseConnection(NestObject):
         except ValueError:
             print((f"Not plotting targets: the center unit {ctr[0]} has no "
                     + f"target within connection {self.__str__}"))
-        plt.title(f"Target units' pop: {self.target.name},"
-                  f"{str(self.source_population)} (targets in red),\n"
+        plt.title(f"Plot of targets of a single source unit.\n"
+                  f"Target units' pop: {self.target.name},"
+                  f"{str(self.target_population)} (targets in red),\n"
                   f"Source unit's population: {self.source.name},"
-                  f"{str(self.target_population)}\n"
+                  f"{str(self.source_population)}\n"
                   f"Connection name: {self.name},\n", fontsize=7)
         footnote = ("NB: The actual connection probability might be smaller "
                     "than it seems if there is multiple units per grid position"

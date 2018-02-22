@@ -213,7 +213,9 @@ class Layer(AbstractLayer):
     def find_center_element(self, population=None):
         center_loc = (int(self.shape[0]/2),
                       int(self.shape[1]/2))
-        return self.gids(location=center_loc, population=population)[0:1]
+        center_gid = self.gids(location=center_loc, population=population)[0:1]
+        assert len(center_gid) == 1
+        return center_gid
 
     @if_created
     def set_state(self, variable, values, population=None):
