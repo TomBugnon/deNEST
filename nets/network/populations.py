@@ -72,18 +72,35 @@ class Population(NestObject):
         self.save_recorders(output_dir)
 
     def save_recorders(self, output_dir):
+        """Save the formatted activity of recorders.
+
+        NB: Since we load and manipulate the activity for all variables recorded
+        by a recorder at once (for speed), this can get hard on memory when many
+        variables are recorded. If you experience memory issues, a possiblity is
+        to create separate recorders for each variable.
+        """
         import nest
         # NB: We only sample at 1ms !
         ntimesteps = int(nest.GetKernelStatus('time'))
         formatted_shape = (ntimesteps,) + self.layer.shape
-        for unit_index, recorder in product(range(self.number),
-                                            self.recorders):
-            for variable in recorder.variables:
-                activity = recorder.formatted_data(
-                    formatted_shape=formatted_shape,
-                    variable=variable,
-                    unit_index=unit_index
-                )
+        for recorder in self.recorders:
+
+            all_unit_indices = range(self.number)
+            all_variables = recorder.variables
+
+            # Get formatted arrays for each variable and each unit_index.
+            # all_recorder_activity = {'var1': [activity_unit_0,
+            #                                  activity_unit_1,...]}
+            all_recorder_activity = recorder.formatted_data(
+                formatted_shape=formatted_shape,
+                all_variables=all_variables,
+                all_unit_indices=all_unit_indices
+            )
+
+            # Save the formatted arrays separately for each var and unit_index
+            for variable, unit_index in product(all_variables,
+                                                all_unit_indices):
+
                 recorder_path = save.output_path(
                     output_dir,
                     'recorders',
@@ -92,7 +109,9 @@ class Population(NestObject):
                     unit_index=unit_index,
                     variable=variable
                 )
-                save.save_array(recorder_path, activity)
+                save.save_array(recorder_path,
+                                all_recorder_activity[variable][unit_index])
+
 
     def save_rasters(self, output_dir):
         for recorder in [rec for rec in self.recorders
@@ -179,8 +198,8 @@ class Recorder(NestObject):
     def type(self):
         return self._type
 
-    def formatted_data(self, formatted_shape=None, variable=None,
-                       unit_index=0):
+    def formatted_data(self, formatted_shape=None, all_variables=('V_m',),
+                       all_unit_indices=(0,)):
         # Throw a warning if the interval is below the millisecond as that won't
         # be taken in account during formatting.
         import nest
@@ -194,8 +213,8 @@ class Recorder(NestObject):
             recorder_type=self.type,
             shape=formatted_shape,
             locations=self.locations,
-            variable=variable,
-            unit_index=unit_index
+            all_variables=all_variables,
+            all_unit_indices=all_unit_indices
         )
 
     def get_nest_raster(self):

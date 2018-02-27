@@ -14,49 +14,85 @@ import nest
 import numpy as np
 
 
-def format_recorder(gid, recorder_type=None, shape=None, locations=None,
-                    variable=None, unit_index=None):
+def format_recorder(gid,
+                    recorder_type=None,
+                    shape=None,
+                    locations=None,
+                    all_variables=None,
+                    all_unit_indices=None):
+    """Return the formatted activity of the recorder for all vars and units.
+
+    Return:
+        (dict): Dict of the form::
+            {`var_1`: [`formatted_activity_unit_index_0`,
+                       `formatted_activity_unit_index_1`, ...],
+             `var_2`: ...
+            }
+            where the formatted arrays have the dimensions `shape`.
+    """
 
     if recorder_type == 'multimeter':
 
-        time, sender_gid, activity = gather_raw_data(gid, variable,
-                                                     recorder_type='multimeter')
-        activity_array = format_mm_data(sender_gid, time, activity, locations,
-                                        shape=shape, unit_index=unit_index)
+        # mm_data = {'var_i': `activity_list`, ...}
+        time, sender_gid, mm_data = gather_raw_data(
+            gid, all_variables=all_variables, recorder_type='multimeter')
+        all_recorder_activity = format_mm_data(
+            sender_gid,
+            time,
+            mm_data,
+            locations,
+            shape=shape,
+            all_variables=all_variables,
+            all_unit_indices=all_unit_indices)
 
     if recorder_type == 'spike_detector':
         time, sender_gid = gather_raw_data(gid, recorder_type='spike_detector')
-        activity_array = format_sd_data(sender_gid, time, locations,
-                                        shape=shape, unit_index=unit_index)
+        all_recorder_activity = format_sd_data(
+            sender_gid,
+            time,
+            locations,
+            shape=shape,
+            all_unit_indices=all_unit_indices)
 
-    return activity_array
+    return all_recorder_activity
 
 
-def format_mm_data(sender_gid, time, activity, location_by_gid, shape=None,
-                   unit_index=0):
-    """Return (t, row, col)-np.array from non-formatted multimeter data."""
-    activity_array = np.zeros(shape)
+def format_mm_data(sender_gid,
+                   time,
+                   mm_data,
+                   location_by_gid,
+                   shape=None,
+                   all_variables=("V_m", ),
+                   all_unit_indices=(0, )):
+    """Return dict containiing all formatted (t, row, col)-np.arrays."""
+    all_recorder_activity = {
+        var: [np.zeros(shape) for i in all_unit_indices]
+        for var in all_variables
+    }
     for (i, t) in enumerate(time):
         row, col, index = location_by_gid[int(sender_gid[i])]
-        if index == unit_index:
-            activity_array[int(t) - 1, row, col] = activity[i]
+        for var in all_variables:
+            all_recorder_activity[var][index][int(t) - 1, row, col] = \
+                mm_data[var][i]
+    return all_recorder_activity
 
-    return activity_array
 
-
-def format_sd_data(sender_gid, time, location_by_gid, shape=None, unit_index=0):
-    """Return (t, row, col)-np.array from non-formatted spike_detector data."""
-    activity_array = np.zeros(shape)
-
+def format_sd_data(sender_gid,
+                   time,
+                   location_by_gid,
+                   shape=None,
+                   all_unit_indices=(0, )):
+    """Return dict containing all formatted (t, row, col)-np.arrays."""
+    all_recorder_activity = {
+        'spikes': [np.zeros(shape) for i in all_unit_indices]
+    }
     for (i, t) in enumerate(time):
         row, col, index = location_by_gid[int(sender_gid[i])]
-        if index == unit_index:
-            activity_array[int(t) - 1, row, col] = 1
-
-    return activity_array
+        all_recorder_activity['spikes'][index][int(t) - 1, row, col] = 1.0
+    return all_recorder_activity
 
 
-def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
+def gather_raw_data(rec_gid, all_variables=('V_m', ), recorder_type=None):
     """Return non - formatted activity of a given variable saved by the recorder.
 
     Args:
@@ -66,9 +102,11 @@ def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
         recorder_type(str): 'multimeter' or 'spike_detector'
 
     Returns:
-        tuple: Tuple of 1d np.arrays of the form
-            - ( < time > , < sender_gid > , < activity > ) for a multimeter, where
-                activity is that of the variable < variable > .
+        tuple: Tuple of the form
+            - ( < time > , < sender_gid > , < mm_data > ) for a multimeter, where
+                <time> and <sender_gid> are 1D arrays and <mm_data> is a dict
+                of 1D arrays containing the activity for each variable in
+                `all_variables`.
             - (< time > , < sender_gid > ) for a spike detector.
 
     """
@@ -81,8 +119,8 @@ def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
         sender_gid = data['senders']
 
         if recorder_type == 'multimeter':
-            activity = data[variable]
-            return (time, sender_gid, activity)
+            mm_data = {var: data[var] for var in all_variables}
+            return (time, sender_gid, mm_data)
         elif recorder_type == 'spike_detector':
             return (time, sender_gid)
 
@@ -93,11 +131,12 @@ def gather_raw_data(rec_gid, variable='V_m', recorder_type=None):
         sender_gid = data[:, 0]
 
         if recorder_type == 'multimeter':
-            # Get proper column
-            all_variables = nest.GetStatus(rec_gid, 'record_from')[0]
-            variable_col = 2 + all_variables.index(variable)
-            activity = data[:, variable_col]
-            return (time, sender_gid, activity)
+            all_recorded_variables = nest.GetStatus(rec_gid, 'record_from')[0]
+            mm_data = {}
+            for var in all_variables:
+                variable_col = 2 + all_recorded_variables.index(var)
+                mm_data[var] = data[:, variable_col]
+            return (time, sender_gid, mm_data)
         elif recorder_type == 'spike_detector':
             return (time, sender_gid)
 
