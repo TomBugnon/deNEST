@@ -255,10 +255,15 @@ class Network:
         # Save synapses
         for conn in self.connections:
             conn.save(output_dir)
-        # Save recorders
+        # Save population rasters
+        if with_rasters:
+            for population in tqdm(self.populations,
+                                   desc='Saving recorder raster plots'):
+                population.save_rasters(output_dir)
+        # Save population rasters
         for population in tqdm(self.populations,
-                               desc='Saving formatted recorders'):
-            population.save(output_dir, with_rasters=with_rasters)
+                               desc='Format and save recorder data'):
+            population.save_rasters(output_dir)
 
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections, desc='Creating connection plots'):
