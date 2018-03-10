@@ -112,6 +112,10 @@ class Network:
             if type(l).__name__ == layer_type
         ]
 
+    def _get_recorders(self, recorder_type=None):
+        for population in self.populations:
+            yield from population.get_recorders(recorder_type=recorder_type)
+
     def _get_synapses(self, synapse_type=None):
         if synapse_type is None:
             return sorted(self.synapse_models.values())
@@ -257,13 +261,13 @@ class Network:
             conn.save(output_dir)
         # Save population rasters
         if with_rasters:
-            for population in tqdm(self.populations,
-                                   desc='Saving recorder raster plots'):
-                population.save_rasters(output_dir)
-        # Save population rasters
-        for population in tqdm(self.populations,
-                               desc='Format and save recorder data'):
-            population.save_rasters(output_dir)
+            for recorder in tqdm(self._get_recorders(),
+                                 desc='Saving recorder raster plots'):
+                recorder.save_raster(output_dir)
+        # Format and save recorders
+        for recorder in tqdm(self._get_recorders(),
+                             desc='Saving formatted recorders'):
+            recorder.save(output_dir)
 
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections, desc='Creating connection plots'):
