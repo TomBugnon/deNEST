@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/populations.py
-
 """Provides the ``Population`` and ``Recorder`` classes."""
 
 from itertools import product
@@ -23,14 +22,17 @@ class Population(NestObject):
     A population is defined by a (`layer_name`, `population_name`) tuple and
     contains a list of Recorder objects.
     """
+
     # def __init__(self, pop_name, layer_name, gids, locations, params):
     def __init__(self, name, layer, params):
         super().__init__(name, params)
         self.layer = layer
         self.params = params
-        self.recorders = [Recorder(recorder_type, recorder_params)
-                          for recorder_type, recorder_params
-                          in params.get('recorders', {}).items()]
+        self.recorders = [
+            Recorder(recorder_type, recorder_params)
+            for recorder_type, recorder_params in params.get('recorders', {})
+            .items()
+        ]
         self.number = self.layer.params['populations'][self.name]
         # 3D location by gid mapping
         self._locations = None
@@ -56,10 +58,10 @@ class Population(NestObject):
             # Get locations of each gids as a (row, number, unit) tuple
             self._locations = {}
             for location in self.layer:
-                location_gids = self.layer.gids(population=self.name,
-                                                location=location)
+                location_gids = self.layer.gids(
+                    population=self.name, location=location)
                 for unit, gid in enumerate(location_gids):
-                    self._locations[gid] = location + (unit,)
+                    self._locations[gid] = location + (unit, )
             population_params = {
                 "gids": gids,
                 "locations": self._locations,
