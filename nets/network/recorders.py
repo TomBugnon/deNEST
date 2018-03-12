@@ -15,7 +15,34 @@ from .nest_object import NestObject
 from .utils import if_created, if_not_created
 
 
-class PopulationRecorder(NestObject):
+class BaseRecorder(NestObject):
+    """Base class for all recorder classes."""
+
+    def __init__(self, name, params):
+        super().__init__(name, params)
+        # Attributes below are taken from NEST kernel after creation
+        # Population object during `create()` call
+        self._gid = None # gid of recorder node
+        self._files = None # files of recorded data (None if to memory)
+        self._record_to = None # eg ['memory', 'file']
+        self._record_from = None # list of variables for mm, or ['spikes']
+        self._type = None # 'spike detector' or 'multimeter'
+
+    @property
+    @if_created
+    def gid(self):
+        return self._gid
+
+    @property
+    @if_created
+    def variables(self):
+        return self._record_from
+
+    @property
+    def type(self):
+        return self._type
+
+class PopulationRecorder(BaseRecorder):
     """Represent a recorder node. Connects to a single population.
 
     Handles connecting the recorder node to the population, formatting the
@@ -26,12 +53,6 @@ class PopulationRecorder(NestObject):
 
     def __init__(self, name, params):
         super().__init__(name, params)
-        # Attributes below are taken from NEST kernel after creation
-        # Population object during `create()` call
-        self._gid = None # gid of recorder node
-        self._files = None # files of recorded data (None if to memory)
-        self._record_to = None # eg ['memory', 'file']
-        self._record_from = None # list of variables for mm, or ['spikes']
         # Attributes below are necessary for formatting and are passed by the
         # Population object during `create()` call
         self._gids = None # all gids of recorded nodes
@@ -77,11 +98,6 @@ class PopulationRecorder(NestObject):
 
     @property
     @if_created
-    def gid(self):
-        return self._gid
-
-    @property
-    @if_created
     def gids(self):
         return self._gids
 
@@ -89,15 +105,6 @@ class PopulationRecorder(NestObject):
     @if_created
     def locations(self):
         return self._locations
-
-    @property
-    @if_created
-    def variables(self):
-        return self._record_from
-
-    @property
-    def type(self):
-        return self._type
 
     def save_raster(self, output_dir):
         if self.type == 'spike_detector':
