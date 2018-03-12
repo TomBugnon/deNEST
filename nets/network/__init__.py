@@ -6,6 +6,7 @@
 import os
 import random
 
+from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from .connections import (ConnectionModel, FromFileConnection,
@@ -27,6 +28,10 @@ CONNECTION_TYPES = {
     'rescaled': RescaledConnection,
     'from_file': FromFileConnection
 }
+
+
+def worker(recorder, output_dir):
+    recorder.save(output_dir)
 
 
 class Network:
@@ -264,10 +269,12 @@ class Network:
             for recorder in tqdm(self._get_recorders(),
                                  desc='Saving recorder raster plots'):
                 recorder.save_raster(output_dir)
-        # Format and save recorders
-        for recorder in tqdm(self._get_recorders(),
-                             desc='Saving formatted recorders'):
-            recorder.save(output_dir)
+        # Format and save recorders using joblib
+        args_list = [(recorder, output_dir)
+                     for recorder in self._get_recorders()]
+        Parallel(n_jobs=-1, verbose=100, batch_size=1)(
+            delayed(worker)(*args) for args in args_list
+        )
 
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections, desc='Creating connection plots'):

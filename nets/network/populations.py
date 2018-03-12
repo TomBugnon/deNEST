@@ -183,7 +183,7 @@ class Recorder(NestObject):
                 plt.close()
             else:
                 print(f'Not saving raster for population:'
-                      f' {str(self.population_name)}:')
+                      f' {str(self._population_name)}:')
                 print(f'-> {error_msg}\n')
 
     def save(self, output_dir):
