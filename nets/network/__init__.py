@@ -75,11 +75,12 @@ class Network:
     def build_named_leaves_list(constructor, node):
         return [constructor(name, leaf) for name, leaf in node.named_leaves()]
 
-    def build_connection(self, params):
-        source = self.layers[params['source_layer']]
-        target = self.layers[params['target_layer']]
-        model = self.connection_models[params['connection']]
-        return CONNECTION_TYPES[model.type](source, target, model, params)
+    def build_connection(self, connection_dict):
+        source = self.layers[connection_dict['source_layer']]
+        target = self.layers[connection_dict['target_layer']]
+        model = self.connection_models[connection_dict['connection']]
+        return CONNECTION_TYPES[model.type](source, target, model,
+                                            connection_dict)
 
     def build_population(self, pop_name, pop_params):
         # Get the gids and locations for the population from the layer object.
