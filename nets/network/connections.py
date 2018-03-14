@@ -315,7 +315,7 @@ class BaseConnection(NestObject):
                            })
 
     def nest_synapse_model_name(self):
-        return f"{self.synapse_model}_{self.__str__}"
+        return f"{self.synapse_model}-{self.__str__}"
 
     def update_nest_params(self):
         pass
