@@ -347,7 +347,7 @@ class BaseConnection(NestObject):
         targets = [conn.params['target'] for conn in all_conns]
         params = {'weight': [conn.params['weight'] for conn in all_conns],
                   'delay': [conn.params['delay'] for conn in all_conns],
-                  'model': self.synapse_model}
+                  'model': self.nest_synapse_model}
         return sources, targets, params
 
     # Connection loading from file
@@ -375,6 +375,8 @@ class BaseConnection(NestObject):
                 conns[driver_gid] = (conns.get(driver_gid, [])
                                            + [unitconn])
         # Return a connection list (possibly empty) for each driver gid
+        import warnings
+        warnings.warn('Double check the synapse models vs nest_synapse_model')
         return {driver: conns.get(driver, [])
                 for driver in self.driver_gids()}
 
@@ -397,12 +399,14 @@ class BaseConnection(NestObject):
             conns = nest.GetConnections(
                 source=self.source.gids(population=self.source_population),
                 target=self.target.gids(population=self.target_population),
-                synapse_model=self.synapse_model)
+                synapse_model=self.nest_synapse_model)
             # We save: source_gid, target_gid, synapse_model, weight, delay
             with open(join(save.output_subdir(output_dir, 'dump'),
                            self.__str__), 'w') as f:
                 writer = csv.writer(f, delimiter='\t')
                 writer.writerows(self.format_dump(conns))
+        import warnings
+        warnings.warn('Double check the synapse models vs nest_synapse_model')
 
     @staticmethod
     def format_dump(conns):
