@@ -24,13 +24,14 @@ network:
           target_layer: l1
           target_population: l1_exc
           connection: input_connection
-          save: ['weight']
+          params:
+            recorders:
+              weight_recorder: {}
         - source_layer: input_layer
           source_population: parrot_neuron
           target_layer: l1
           target_population: l1_inh
           connection: input_connection
-          save: ['weight']
 
 
         ### Source area: l1 ###

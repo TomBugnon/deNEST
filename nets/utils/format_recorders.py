@@ -141,6 +141,49 @@ def gather_raw_data(rec_gid, all_variables=('V_m', ), recorder_type=None):
             return (time, sender_gid)
 
 
+def gather_raw_data_connrec(rec_gid):
+    """Return non - formatted activity of a ConnectionRecorder.
+
+    Args:
+        rec_gid(tuple): Recorder's NEST GID. Singleton tuple of int.
+
+    Returns:
+        dict: Dictionary of the form:
+            {
+                'sender_gid': <sender_gid_list>,
+                'target_gid': <target_gid_list>,
+                'time': <time_list>,
+                'weight': <weight_list,
+            }
+
+    TODO: Return receptor and port (useful? )
+    """
+    record_to = nest.GetStatus(rec_gid, 'record_to')[0]
+
+    if 'memory' in record_to:
+
+        data = nest.GetStatus(rec_gid, 'events')[0]
+
+        return {
+            'senders': data['senders'],
+            'targets': data['targets'],
+            'times': data['times'],
+            'weights': data['weights']
+        }
+
+    elif 'file' in record_to:
+
+        recorder_files = nest.GetStatus(rec_gid, 'filenames')[0]
+        data = load_and_combine(recorder_files)
+
+        return {
+            'senders': data[:, 0],
+            'targets': data[:, 1],
+            'times': data[:, -2],
+            'weights': data[:, -1]
+        }
+
+
 def load_and_combine(recorder_files_list):
     """Load the recorder data from files.
 

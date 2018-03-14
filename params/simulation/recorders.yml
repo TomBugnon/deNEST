@@ -12,3 +12,9 @@ network:
     spike_detector:
       params:
         nest_model: spike_detector
+    weight_recorder:
+      params:
+        nest_model: weight_recorder
+        record_to: ['file', 'memory']
+        withport: False
+        withrport: True

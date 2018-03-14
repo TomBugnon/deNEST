@@ -19,6 +19,7 @@ sparse_format = scipy.sparse.lil_matrix
 # Modify along with FILENAME_FUNCS dict (see end of file)
 OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
                   'recorders': ('recorders',), # Formatted recorder data
+                  'connectionrecorders': ('connection_recorders',),
                   'connections': ('connections',), # NEST connection plots
                   'dump': ('dump',), # Network dump
                   'movie': ('sessions',),
@@ -93,6 +94,16 @@ def save_array(path, array):
     except TypeError:
         np.save(path, array)
 
+def save_dict(path, dictionary):
+    """Save a big dic with pickle."""
+    with open(path, 'wb') as f:
+        pickle.dump(dictionary, f)
+
+def load_dict(path):
+    """Load a big dic with pickle."""
+    with open(path, 'rb') as f:
+        return pickle.load(f)
+
 
 def load_as_numpy(path):
     """Load as numpy a file saved with ``save_array`` or ``np.save``."""
@@ -143,6 +154,11 @@ def load_session_stim(output_dir, session_name, filt=0):
         return movie
     return movie[:, filt]
 
+def load_weight_recorder(output_dir, conn_name):
+    path = output_path(output_dir,
+                       'connectionrecorders',
+                       conn_name)
+    return load_dict(path)
 
 def load_activity(output_dir, layer, population, variable='spikes',
                   session=None, all_units=False, start_trim=None,
@@ -256,6 +272,10 @@ def recorder_filename(layer, pop, unit_index=None, variable='spikes'):
                   + str(unit_index))
     return base_filename + suffix
 
+def connrecorder_filename(connection_name):
+    """Return filename for a ConnectionRecorder."""
+    return connection_name
+
 def save_plot(fig, output_dir, filename, overwrite=False):
     """Save matplotlib figure in 'plot' subdirectory."""
     path = join(output_subdir(output_dir, 'plots'), filename)
@@ -294,5 +314,6 @@ FILENAME_FUNCS = {'params': params_filename,
                   'labels': labels_filename,
                   'movie': movie_filename,
                   'recorders': recorder_filename,
+                  'connectionrecorders': connrecorder_filename,
                   'rasters': rasters_filename
 }

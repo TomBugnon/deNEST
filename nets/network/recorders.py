@@ -51,6 +51,8 @@ class PopulationRecorder(BaseRecorder):
     formatting (shape, locations, etc).
     """
 
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, name, params):
         super().__init__(name, params)
         # Attributes below are necessary for formatting and are passed by the
@@ -194,3 +196,67 @@ class PopulationRecorder(BaseRecorder):
                              f'--> Exception message: {e}\n'
                              f'--> Recorder status: {nest.GetStatus(self.gid)}')
         return raster, error_msg
+
+
+class ConnectionRecorder(BaseRecorder):
+    """Represent a weight_recorder node. Connects to synapses.
+
+    ConnectionRecorders are connected to synapses of at most one `Connection()`
+    object (that is, population-to-population projection of a certain synapse
+    type)
+    Handles connecting the weight_recorder node to the synapses.
+    """
+
+    def __init__(self, name, params):
+        super().__init__(name, params)
+        # Attributes below are necessary for connecting and saving and are
+        # passed by the # Connection object during `create()` call
+        self._connection_name = None
+        self._src_layer_name = None
+        self._src_population_name = None
+        self._src_gids = None
+        self._tgt_layer_name = None
+        self._tgt_population_name = None
+        self._tgt_gids = None
+        ##
+        self._type = None # 'weight_recorder'
+        if self.name in ['weight_recorder']:
+            self._type = self.name
+        else:
+            # TODO: access somehow the base nest model from which the recorder
+            # model inherits.
+            raise Exception('The weight recorder type is not recognized.')
+
+    @if_not_created
+    def create(self, conn_parameters):
+        """Get the Connection necessary attributes and create node.
+
+        The synapses from the specific connection will send spikes to this
+        specific weight_recorder by defining a different "nest_synapse_model"
+        with the GID of this recorder as parameter."""
+        import nest
+        # Get population and layer-wide attributes
+        self._connection_name = conn_parameters['connection_name']
+        self._src_layer_name = conn_parameters['src_layer_name']
+        self._src_population_name = conn_parameters['src_population_name']
+        self._src_gids = conn_parameters['src_gids']
+        self._tgt_layer_name = conn_parameters['tgt_layer_name']
+        self._tgt_population_name = conn_parameters['tgt_population_name']
+        self._tgt_gids = conn_parameters['tgt_gids']
+        # Update the parameters Create node
+        self._gid = nest.Create(self.name, params=self.params)
+        # Get node parameters from nest (possibly nest defaults)
+        self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
+
+    def save(self, output_dir):
+
+        import ipdb; ipdb.set_trace()
+        data = format_recorders.gather_raw_data_connrec(self.gid)
+
+        recorder_path = save.output_path(
+            output_dir,
+            'connectionrecorders',
+            self._connection_name
+        )
+
+        save.save_dict(recorder_path, data)

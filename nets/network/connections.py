@@ -17,6 +17,7 @@ from . import topology
 from .. import save
 from .layers import InputLayer
 from .nest_object import NestObject
+from .recorders import ConnectionRecorder
 from .utils import if_created, if_not_created
 
 # Matched substrings when scaling masks.
@@ -33,7 +34,7 @@ NON_NEST_CONNECTION_PARAMS = {
     'scale_factor': 1.0, # Scaling of mask and kernel
     'dump_connection': False,
     'plot_connection': False,
-    'recorders': [],
+    'recorders': {},
     'save': [],
 }
 
@@ -75,6 +76,9 @@ class ConnectionModel(NestObject):
 class BaseConnection(NestObject):
     """Base class for all population-to-population connections.
 
+    A Connection consists in synapses between two populations that have a
+    specific synapse model.
+
     Population-to-population connections are described by a dictionnary of the
     following form::
     {
@@ -100,6 +104,24 @@ class BaseConnection(NestObject):
     The parameters that shouldn't be considered as NEST parameters (and should
     therefore be removed from the parameters during initialization or creation)
     are listed in the global variable `NON_NEST_CONNECTION_PARAMS`.
+
+    Connection weights can be recorded by 'weight_recorder' devices. Because
+    the weight recorder device's GID must be specified in a synapse model's
+    default parameters (using nest.SetDefaults or nest.CopyModel), the actual
+    NEST synapse model used when connecting might differ from the one specified
+    in the network's synapse models.
+
+    The workflow for creating connections and their respective recorders is as
+    follows:
+        1- Initialize the Connection object and possibly its Recorder object
+        2- Create the Recorder object.
+        3- Get the GID of the Recorder object and create a new NEST synapse
+            model that will send the spikes to the recorder. The name of the
+            synapse model is saved in self.nest_synapse_model.
+        4- Create the connection with the self.nest_synapse_model model.
+    self.nest_synapse_model is only used to communicate with the kernel. The
+    Connection is still denoted by its source and target population and its
+    "base" synapse model (saved in self.synapse_model)
     """
 
     # pylint: disable=too-many-instance-attributes
@@ -152,20 +174,29 @@ class BaseConnection(NestObject):
         self.driver_layer = self.source
         self.driver_population = self.source_population
         ##
-        # Synapse model is retrieved either from nest_params or UnitConns
+        # Synapse model is retrieved either from nest_params or UnitConns.
+        # The synapse model used in NEST might have a different name since we
+        # need to change the default parameters of a synapse to specify the
+        # weight recorder
         self._synapse_model = None
+        self._nest_synapse_model = None
         # Initialize the recorders
         self.recorders = [
-            ConnectionRecorder(recorder_type, recorder_params)
-            for recorder_type, recorder_params in self.params['recorders']
+            ConnectionRecorder(recorder_name, recorder_params)
+            for recorder_name, recorder_params
+            in self.params['recorders'].items()
         ]
+        assert len(self.recorders) < 2 # Only a single recorder type so far...
         self.check()
 
     # Properties:
-    @if_created
     @property
     def synapse_model(self):
         return self._synapse_model
+
+    @property
+    def nest_synapse_model(self):
+        return self._nest_synapse_model
 
     @property
     def dump_connection(self):
@@ -177,15 +208,7 @@ class BaseConnection(NestObject):
 
     @property
     def scale_factor(self):
-        return self.params['scale_factor']
-
-    @property
-    def save(self):
-        return self.params['save']
-
-    @property
-    def save(self):
-        return self.params['save']
+        return self._scale_factor
 
     @property
     def __str__(self):
@@ -207,7 +230,95 @@ class BaseConnection(NestObject):
     def pool_gids(self):
         return self.pool_layer.gids(population=self.pool_population)
 
+    def source_gids(self):
+        return self.source.gids(population=self.source_population)
+
+    def target_gids(self):
+        return self.target.gids(population=self.target_population)
+
     # Creation and connection
+
+    def create(self):
+        """Create the connections in NEST and the connection recorders.
+
+        Should use in order the following steps:
+            1- create recorders
+            2- create nest_synapse_model
+            3- connect
+        """
+        # Get the UnitConns (does nothing for topological conns)
+        self.get_connections()
+        # Get the base synapse model from the list of UnitConns or the
+        # nest_params
+        self.get_synapse_model()
+        # Create recorder objects
+        self.create_recorders()
+        # Get the NEST synapse model (different from synapse model if we record
+        # the connection
+        self.create_nest_synapse_model()
+        # Update the nest_parameters to set the proper nest_synapse_model,
+        # possibly rescale, etc
+        self.update_nest_params()
+        # Actually create the connections in NEST
+        self._connect()
+
+    def get_connections(self):
+        """Get the UnitConns from file (for Rescaled and FromFile conns."""
+        pass
+
+    def get_synapse_model(self):
+        """Get synapse model either from nest params or conns list."""
+        # Nasty hack to access the synapse model for FromFileConnections
+        synapse_model = None
+        try:
+            synapse_model = self.nest_params['synapse_model']
+        except (AttributeError, KeyError):
+            # Get the synapse model of any UnitConn.
+            for conn in self.conns.values():
+                if conn:
+                    synapse_model = conn[0].params['synapse_model']
+                    break
+        if synapse_model is None:
+            #TODO
+            import warnings
+            warnings.warn('Could not determine synapse model since there was'
+                            ' no dumped connection')
+        self._synapse_model = synapse_model
+
+    def create_recorders(self):
+        """Create and connect the connection recorders."""
+        conn_params = {
+            "connection_name": self.__str__,
+            "src_layer_name": self.source.name,
+            "src_population_name": self.source_population,
+            "src_gids": self.source_gids(),
+            "tgt_layer_name": self.target.name,
+            "tgt_population_name": self.target_population,
+            "tgt_gids": self.target_gids(),
+            "synapse_model": self.synapse_model,
+        }
+        for recorder in self.recorders:
+            recorder.create(conn_params)
+
+    def create_nest_synapse_model(self):
+        """Create a new synapse model that sends spikes to the recorder."""
+        import nest
+        if not self.recorders:
+            self._nest_synapse_model = self.synapse_model
+        else:
+            recorder = self.recorders[0]
+            assert recorder.type == 'weight_recorder'
+            self._nest_synapse_model = self.nest_synapse_model_name()
+            nest.CopyModel(self.synapse_model, self._nest_synapse_model,
+                           {
+                               recorder.type: recorder.gid[0]
+                           })
+
+    def nest_synapse_model_name(self):
+        return f"{self.synapse_model}_{self.__str__}"
+
+    def update_nest_params(self):
+        pass
 
     def _connect(self):
         """Call nest.Connect() to create all unit connections.
@@ -229,19 +340,100 @@ class BaseConnection(NestObject):
                      conn_spec='one_to_one',
                      syn_spec=params)
 
-    def create(self):
-        """Create the connections in NEST and the connection recorders."""
+    def format_conns(self):
+        """Format the self.conns() dict in a form suitable for nest.Connect."""
+        all_conns = list(itertools.chain(*self.conns.values()))
+        sources = [conn.params['source'] for conn in all_conns]
+        targets = [conn.params['target'] for conn in all_conns]
+        params = {'weight': [conn.params['weight'] for conn in all_conns],
+                  'delay': [conn.params['delay'] for conn in all_conns],
+                  'model': self.synapse_model}
+        return sources, targets, params
 
-    def create_recorders(self):
-        """Create and connect the connection recorders."""
-        pass
+    # Connection loading from file
 
-    # Saving and dumping
+    def load_conns(self):
+        """Return a dictionary of model connections. Keys are driver gids.
+
+        The returned dictionary is of the form::
+            {
+                <driver_gid>: <UnitConn_list>
+            }
+        Where <UnitConn_list> is a list of UnitConn single connections for the
+        considered driver unit.
+
+        NB: By default (ie, if the connection is not topological) the driver
+        layer is considered to be the source.
+        """
+        conns = {}
+        with open(join(self.model.source_dir, self.__str__), 'r') as f:
+            reader = csv.reader(f, delimiter='\t')
+            for line in reader:
+                params = self.format_dumped_line(line)
+                unitconn = UnitConn(params['synapse_model'], params)
+                driver_gid = unitconn.params[self.driver]
+                conns[driver_gid] = (conns.get(driver_gid, [])
+                                           + [unitconn])
+        # Return a connection list (possibly empty) for each driver gid
+        return {driver: conns.get(driver, [])
+                for driver in self.driver_gids()}
+
+    @staticmethod
+    def format_dumped_line(line):
+        return {
+            'source': int(line[0]),
+            'target': int(line[1]),
+            'synapse_model': str(line[2]),
+            'weight': float(line[3]),
+            'delay': float(line[4])
+        }
+
+    # Connection dumping  to file
+
+    def dump(self, output_dir):
+        # TODO: Query using synapse labels to identify connections with same
+        # source pop, target pop and synapse model
+        if self.dump_connection:
+            conns = nest.GetConnections(
+                source=self.source.gids(population=self.source_population),
+                target=self.target.gids(population=self.target_population),
+                synapse_model=self.synapse_model)
+            # We save: source_gid, target_gid, synapse_model, weight, delay
+            with open(join(save.output_subdir(output_dir, 'dump'),
+                           self.__str__), 'w') as f:
+                writer = csv.writer(f, delimiter='\t')
+                writer.writerows(self.format_dump(conns))
+
+    @staticmethod
+    def format_dump(conns):
+        import nest
+        formatted = []
+        for conn in conns:
+            status = nest.GetStatus((conn,))[0]
+            formatted.append((status['source'],
+                              status['target'],
+                              str(status['synapse_model']),
+                              status['weight'],
+                              status['delay']))
+        return sorted(formatted)
+
+    # Save and plot stuff
 
     def save(self, output_dir):
-        # TODO
-        for field in self.save:
+        self.save_recorders(output_dir)
+        self.save_synapse_state(output_dir)
+
+    def save_recorders(self, output_dir):
+        """Save recorders' data."""
+        for recorder in self.recorders:
+            recorder.save(output_dir)
+
+    def save_synapse_state(self, output_dir):
+        """Save using a GetConnections() call."""
+        for field in self.params['save']:
+            # TODO
             print('TODO: save connection ', field, ' in ', output_dir)
+
 
     def save_plot(self, output_dir):
         if self.plot_connection:
@@ -295,99 +487,6 @@ class BaseConnection(NestObject):
             ha='right', va='top')
         return fig
 
-    def load_conns(self):
-        """Return a dictionary of model connections. Keys are driver gids.
-
-        The returned dictionary is of the form::
-            {
-                <driver_gid>: <UnitConn_list>
-            }
-        Where <UnitConn_list> is a list of UnitConn single connections for the
-        considered driver unit.
-
-        NB: By default (ie, if the connection is not topological) the driver
-        layer is considered to be the source.
-        """
-        conns = {}
-        with open(join(self.model.source_dir, self.__str__), 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
-            for line in reader:
-                params = self.format_dumped_line(line)
-                unitconn = UnitConn(params['synapse_model'], params)
-                driver_gid = unitconn.params[self.driver]
-                conns[driver_gid] = (conns.get(driver_gid, [])
-                                           + [unitconn])
-        # Return a connection list (possibly empty) for each driver gid
-        return {driver: conns.get(driver, [])
-                for driver in self.driver_gids()}
-
-    def dump(self, output_dir):
-        # TODO: Query using synapse labels to identify connections with same
-        # source pop, target pop and synapse model
-        if self.dump_connection:
-            conns = nest.GetConnections(
-                source=self.source.gids(population=self.source_population),
-                target=self.target.gids(population=self.target_population),
-                synapse_model=self.synapse_model)
-            # We save: source_gid, target_gid, synapse_model, weight, delay
-            with open(join(save.output_subdir(output_dir, 'dump'),
-                           self.__str__), 'w') as f:
-                writer = csv.writer(f, delimiter='\t')
-                writer.writerows(self.format_dump(conns))
-
-    @staticmethod
-    def format_dump(conns):
-        import nest
-        formatted = []
-        for conn in conns:
-            status = nest.GetStatus((conn,))[0]
-            formatted.append((status['source'],
-                              status['target'],
-                              str(status['synapse_model']),
-                              status['weight'],
-                              status['delay']))
-        return sorted(formatted)
-
-    @staticmethod
-    def format_dumped_line(line):
-        return {
-            'source': int(line[0]),
-            'target': int(line[1]),
-            'synapse_model': str(line[2]),
-            'weight': float(line[3]),
-            'delay': float(line[4])
-        }
-
-    def get_synapse_model(self):
-        """Get synapse model either from nest params or conns list."""
-        # Nasty hack to access the synapse model for FromFileConnections
-        synapse_model = None
-        try:
-            synapse_model = self.nest_params['synapse_model']
-        except (AttributeError, KeyError):
-            # Get the synapse model of any UnitConn.
-            for conn in self.conns.values():
-                if conn:
-                    synapse_model = conn[0].params['synapse_model']
-                    break
-        if synapse_model is None:
-            #TODO
-            import warnings
-            warnings.warn('Could not determine synapse model since there was'
-                            ' no dumped connection')
-        return synapse_model
-
-    def format_conns(self):
-        """Format the self.conns() dict in a form suitable for nest.Connect."""
-        # import ipdb; ipdb.set_trace()
-        all_conns = list(itertools.chain(*self.conns.values()))
-        sources = [conn.params['source'] for conn in all_conns]
-        targets = [conn.params['target'] for conn in all_conns]
-        params = {'weight': [conn.params['weight'] for conn in all_conns],
-                  'delay': [conn.params['delay'] for conn in all_conns],
-                  'model': self.synapse_model}
-        return sources, targets, params
-
     def check(self):
         """Check the connection to avoid bad errors.
 
@@ -412,17 +511,11 @@ class FromFileConnection(BaseConnection):
     def __init__(self, source, target, model, params):
         super().__init__(source, target, model, params)
         self.conns = None
-        self._synapse_model = None
 
-    def create(self):
-        # Get connections
+    # Creation functions not inherited from BaseConnection
+
+    def get_connections(self):
         self.conns = self.load_conns()
-        # Get synapse model from connections
-        self._synapse_model = self.get_synapse_model()
-        # Create connections
-        self._connect()
-        # Create recorders
-        self.create_recorders()
 
 
 class TopoConnection(BaseConnection):
@@ -430,14 +523,42 @@ class TopoConnection(BaseConnection):
 
     def __init__(self, source, target, model, conn_dict):
         super().__init__(source, target, model, conn_dict)
-        self._scale_factor = self.scale_factor
-        self.update_nest_params()
-        self._synapse_model = self.get_synapse_model()
+        self._scale_factor = self.params['scale_factor']
+
+    # Creation functions not inherited from BaseConnection
+
+    def get_connections(self):
+        pass
 
     def update_nest_params(self):
-        """Update in place self.nest_params to scale kernels and set pops."""
+        """Update in place self.nest_params.
+
+        - Scale kernels,
+        - Scale masks,
+        - Scale weights,
+        - Set source and target populations,
+        - Set NEST synapse model (possibly different from self.synapse_model)
+        """
         # TODO: Get a view of the kernel, mask, and weights inherited from the
         # connection model
+        self.scale_nest_params()
+        self.set_populations_nest_params()
+        self.set_synapse_model_nest_params()
+
+    def set_synapse_model_nest_params(self):
+        """Update the synapse_model given to NEST."""
+        self.nest_params['synapse_model'] = self.nest_synapse_model
+
+
+    def set_populations_nest_params(self):
+        """Set the source and target populations in self.nest_params."""
+        if self.source_population:
+            self.nest_params['sources'] = {'model': self.source_population}
+        if self.target_population:
+            self.nest_params['targets'] = {'model': self.target_population}
+
+    def scale_nest_params(self):
+        """Update self._scale_factor and scale kernels, masks and weights."""
 
         # Get connection-specific scaling factor, taking in account whether the
         # connection is convergent or divergent
@@ -456,11 +577,6 @@ class TopoConnection(BaseConnection):
             'mask': self.scale_mask(self.nest_params.get('mask', {})),
             'weights': self.scale_weights(self.nest_params['weights']),
         })
-        # Set source populations if available
-        if self.source_population:
-            self.nest_params['sources'] = {'model': self.source_population}
-        if self.target_population:
-            self.nest_params['targets'] = {'model': self.target_population}
 
     def scale_kernel(self, kernel):
         """Return a new kernel scaled by ``scale_factor``.
@@ -524,11 +640,8 @@ class TopoConnection(BaseConnection):
         gain = self.source.params.get('weight_gain', 1.0)
         return weights * gain
 
-    @if_not_created
-    def create(self):
+    def _connect(self):
         self.source._connect(self.target, self.nest_params)
-        # Create recorders
-        self.create_recorders()
 
 
 class RescaledConnection(TopoConnection):
@@ -553,19 +666,16 @@ class RescaledConnection(TopoConnection):
         # Both are dictionaries: {'driver_gid': [UnitConn, ...]}
         self.model_conns = None
         self.conns = None
-        self._synapse_model = None
         # TODO: same for InputLayer connections. ( or !just.don't.care!)
         if isinstance(self.source, InputLayer):
             raise NotImplementedError
 
-    def create(self):
+    # Creation functions not inherited from BaseConnection
+
+    def get_connections(self):
         # Load and rescale connections
         self.model_conns = self.load_conns()
         self.conns = self.redraw_conns()
-        # Get synapse model from connections
-        self._synapse_model = self.get_synapse_model()
-        # Create connections
-        self._connect()
 
     def redraw_conns(self):
         """Redraw pool gids according to topological parameters."""
@@ -606,6 +716,8 @@ class UnitConn(NestObject):
     def __init__(self, name, params):
         super().__init__(name, params)
         self._synapse_model = None
+        #TODO Check that we use the nest_synapse_model and not synapse_model
+        self._nest_synapse_model = None
         self._weight = None
         self._delay = None
         self._source = None

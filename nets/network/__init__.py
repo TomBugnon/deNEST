@@ -262,9 +262,6 @@ class Network:
                          layer_type='InputLayer')
 
     def save(self, output_dir, with_rasters=True):
-        # Save synapses
-        for conn in self.connections:
-            conn.save(output_dir)
         # Save population rasters
         if with_rasters:
             for recorder in tqdm(self._get_recorders(),
@@ -276,6 +273,10 @@ class Network:
         Parallel(n_jobs=-1, verbose=100, batch_size=1)(
             delayed(worker)(*args) for args in args_list
         )
+        # Save synapses
+        for conn in tqdm(self.connections,
+                         desc='Saving synapse data'):
+            conn.save(output_dir)
 
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections, desc='Creating connection plots'):
