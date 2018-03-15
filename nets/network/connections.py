@@ -236,6 +236,13 @@ class BaseConnection(NestObject):
     def target_gids(self):
         return self.target.gids(population=self.target_population)
 
+    # Query stuff
+
+    def get_recorders(self, recorder_type=None):
+        for recorder in self.recorders:
+            if recorder_type is None or recorder.type == recorder_type:
+                yield recorder
+
     # Creation and connection
 
     def create(self):

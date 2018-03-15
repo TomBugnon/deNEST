@@ -250,7 +250,6 @@ class ConnectionRecorder(BaseRecorder):
 
     def save(self, output_dir):
 
-        import ipdb; ipdb.set_trace()
         data = format_recorders.gather_raw_data_connrec(self.gid)
 
         recorder_path = save.output_path(

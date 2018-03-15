@@ -122,6 +122,10 @@ class Network:
         for population in self.populations:
             yield from population.get_recorders(recorder_type=recorder_type)
 
+    def _get_connection_recorders(self, recorder_type=None):
+        for connection in self.connections:
+            yield from connection.get_recorders(recorder_type=recorder_type)
+
     def _get_synapses(self, synapse_type=None):
         if synapse_type is None:
             return sorted(self.synapse_models.values())
@@ -273,10 +277,16 @@ class Network:
         Parallel(n_jobs=-1, verbose=100, batch_size=1)(
             delayed(worker)(*args) for args in args_list
         )
-        # Save synapses
+        # Save synapse states
         for conn in tqdm(self.connections,
                          desc='Saving synapse data'):
-            conn.save(output_dir)
+            conn.save_synapse_state(output_dir)
+        # Save synapse recorders using joblib
+        args_list = [(connrecorder, output_dir)
+                     for connrecorder in self._get_connection_recorders()]
+        Parallel(n_jobs=-1, verbose=100, batch_size=1)(
+            delayed(worker)(*args) for args in args_list
+        )
 
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections, desc='Creating connection plots'):
