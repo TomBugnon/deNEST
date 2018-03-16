@@ -56,7 +56,7 @@ def generate_output_subdir(main_output_dir, label=None,
     N = 1 if not all_subdirs_N else max(all_subdirs_N) + 1
 
     # Get time string
-    timestr = '{date:%Y-%m-%d--%H-%M}'.format(date = datetime.datetime.now())
+    timestr = '{date:%Y-%m-%d}'.format(date = datetime.datetime.now())
 
     # label string
     labelstr = '' if label is None else '_' + label
