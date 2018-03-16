@@ -5,6 +5,7 @@
 """Layer objects."""
 
 import itertools
+import random
 
 import numpy as np
 from tqdm import tqdm
@@ -29,6 +30,8 @@ class AbstractLayer(NestObject):
         self._populations = None
         self.shape = params['nrows'], params['ncols']
         self.extent = (params['visSize'],) * 2
+        # Record if we change some of the layer units' state probabilistically
+        self._prob_changed = False
 
     def __iter__(self):
         yield from itertools.product(range(self.shape[0]),
@@ -112,6 +115,40 @@ class AbstractLayer(NestObject):
             tuple[str]: Returns a tuple the population names of the GID(s).
         """
         raise NotImplementedError
+
+    def change_unit_states(self, changes_dict, population=None, proportion=1.0):
+        """Call nest.SetStatus for a proportion of units."""
+        if not changes_dict:
+            return
+        if self._prob_changed and proportion != 1.0:
+            raise Exception("Attempting to change probabilistically some "
+                            "units' state multiple times.")
+            return
+        gids_to_change = self.get_gids_subset(
+            self.gids(population=population),
+            proportion
+        )
+        self.apply_unit_changes(gids_to_change, changes_dict)
+        self._prob_changed = True
+
+    @staticmethod
+    def apply_unit_changes(gids_to_change, changes_dict):
+        """Change the state of a list of units."""
+        import nest
+        nest.SetStatus(gids_to_change, changes_dict)
+
+    @staticmethod
+    def get_gids_subset(gids_list, proportion):
+        """Return a proportion of gids picked randomly from a list."""
+        return [gids_list[i] for i
+                in sorted(
+                    random.sample(
+                        range(len(gids_list)),
+                        int(len(gids_list) * proportion))
+                        )]
+
+
+
 
 
 class Layer(AbstractLayer):

@@ -4,7 +4,6 @@
 """Provide a class to construct a network from independent parameters."""
 
 import os
-import random
 
 from joblib import Parallel, delayed
 from tqdm import tqdm
@@ -230,12 +229,6 @@ class Network:
             if not changes['params']:
                 continue
 
-            proportion = changes.get('proportion', 1)
-            # Avoid probabilistic changes in multiple sessions.
-            if self._changed and proportion != 1:
-                raise Exception("Attempting to change probabilistically some "
-                                "units' state multiple times.")
-
             # Verbose
             print('--> Applying unit changes dictionary: ', changes)
 
@@ -248,14 +241,9 @@ class Network:
                 layers = [self.layers[change_layer]]
 
             for layer in layers:
-                gids_to_change = get_gids_subset(
-                    layer.gids(population=changes.get('population',
-                                                      None)),
-                    proportion
-                )
-                apply_unit_changes(gids_to_change,
-                                   changes['params'])
-        self._changed = True
+                layer.change_unit_states(changes['params'],
+                                         changes.get('population', None),
+                                         changes.get('proportion', 1.))
 
     def reset(self):
         import nest
@@ -393,18 +381,3 @@ def synapse_sorting_map(synapse_change):
     """Map by (synapse_model, params_items) for sorting."""
     return (synapse_change['synapse_model'],
             sorted(synapse_change['params'].items()))
-
-
-def get_gids_subset(gids_list, proportion):
-    """Return a proportion of gids picked randomly from a list."""
-    return [gids_list[i] for i
-            in sorted(
-                random.sample(
-                    range(len(gids_list)),
-                    int(len(gids_list) * proportion))
-                    )]
-
-def apply_unit_changes(gids_to_change, changes_dict):
-    """Change the state of a list of units."""
-    import nest
-    nest.SetStatus(gids_to_change, changes_dict)
