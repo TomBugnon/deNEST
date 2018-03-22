@@ -105,6 +105,11 @@ class Session:
         See README.md and `load_raw_stimulus` function about how the input is
         loaded from the `input_path` simulation parameter and the
         `session_input` session parameter.
+
+        The stimulus movie loaded from file is scaled by the session parameter
+        `input_rate_scale_factor` (default 1.0). The session stimulus movie
+        will be further scaled by the Network-wide Layer parameter
+        `input_rate_scale_factor`
         """
         # Input path can be either to a file or to the structured input dir
         input_path = self.params['input_path']
@@ -116,6 +121,11 @@ class Session:
         # Crop to adjust to network's input layer shape
         if crop_shape is not None:
             raw_movie = raw_movie[:, :, :crop_shape[0], :crop_shape[1]]
+
+        # Scale the raw input by the session's scaling factor.
+        scale_factor = self.params.get('input_rate_scale_factor', 1.0)
+        raw_movie = raw_movie * scale_factor
+        print(f'--> Apply session input_rate_scale_factor: {scale_factor}')
 
         # Expand from frame to timesteps
         labels = frames_to_time(raw_labels, self.params.get('time_per_frame',
