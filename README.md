@@ -323,12 +323,19 @@ defined in the final parameter tree.
     - `plot_connection` (bool): Whether connections of that connection model
       should be plotted during a `Simulation.plot_connections()` call. (default
       `True`)
+    - `weight_gain` (float): Scales the connection's synapse model's default
+        weight. The actual connection weight is equal to the synapse defaults,
+        multiplied by this parameter and possibly the source layer's
+        `weight_gain` parameter.
     - The other parameters define the topological or rescaled (topological)
       connections and will be passed to nest.topology.ConnectLayers() (for
-      topological) connections, possibly after weight, kernel and mask scaling.
+      topological) connections, possibly after kernel and mask scaling.
       These parameters are ignored in the case of connections 'from_file', and
       interpreted similarly in 'rescaled connections' as in topological
       connections.
+    - **Important**: There shouldn't be a `weight` entry in these parameters!
+        The weight is set from the synapse defaults and scaled by the source
+        Layer's and the Connection's `weight_gain` parameters.
     - **Important**: For each connection model, if the
       `scale_kernels_masks_to_extent` parameter of the pooling layer is true,
       the masks and kernel sizes specified in the parameters (and scaled by the

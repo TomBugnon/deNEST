@@ -32,6 +32,7 @@ NON_NEST_CONNECTION_PARAMS = {
     'type': 'topological', # 'Topological', 'Rescaled' or 'FromFile'
     'source_dir': None, # Where to find the data for 'FromFile' and 'Rescaled' conns.
     'scale_factor': 1.0, # Scaling of mask and kernel
+    'weight_gain': 1.0, # Scaling of synapse default weight
     'dump_connection': False,
     'plot_connection': False,
     'recorders': {},
@@ -57,6 +58,12 @@ class ConnectionModel(NestObject):
         params = {}
         for non_nest_param, default in NON_NEST_CONNECTION_PARAMS.items():
             params[non_nest_param] = nest_params.pop(non_nest_param, default)
+        # Check that there is no 'weight' parameter (refactor `weight` in
+        # `weight_gain`)
+        error_msg = ("`weights` is not an acceptable parameter. Please use the"
+                     " parameter `weight_gain` which will scale the synapse"
+                     " default.")
+        assert ('weights' not in nest_params), error_msg
         # We now save the params and nest_params dictionaries as attributes
         super().__init__(name, params)
         self.nest_params = nest_params
@@ -263,8 +270,9 @@ class BaseConnection(NestObject):
         # Get the NEST synapse model (different from synapse model if we record
         # the connection
         self.create_nest_synapse_model()
-        # Update the nest_parameters to set the proper nest_synapse_model,
-        # possibly rescale, etc
+        # Update the nest_parameters to get the proper connection weight, set
+        # the proper nest_synapse_model, possibly rescale kernels and weights,
+        # etc
         self.update_nest_params()
         # Actually create the connections in NEST
         self._connect()
@@ -544,22 +552,23 @@ class TopoConnection(BaseConnection):
     def update_nest_params(self):
         """Update in place self.nest_params.
 
-        - Scale kernels,
-        - Scale masks,
-        - Scale weights,
         - Set source and target populations,
         - Set NEST synapse model (possibly different from self.synapse_model)
+        - Set connection weight: Scale synapse default by Connection and Layer
+            `weight_gain` params
+        - Scale kernels,
+        - Scale masks,
         """
         # TODO: Get a view of the kernel, mask, and weights inherited from the
         # connection model
-        self.scale_nest_params()
         self.set_populations_nest_params()
         self.set_synapse_model_nest_params()
+        self.set_connection_weight()
+        self.scale_kernel_mask()
 
     def set_synapse_model_nest_params(self):
         """Update the synapse_model given to NEST."""
         self.nest_params['synapse_model'] = self.nest_synapse_model
-
 
     def set_populations_nest_params(self):
         """Set the source and target populations in self.nest_params."""
@@ -568,8 +577,29 @@ class TopoConnection(BaseConnection):
         if self.target_population:
             self.nest_params['targets'] = {'model': self.target_population}
 
-    def scale_nest_params(self):
-        """Update self._scale_factor and scale kernels, masks and weights."""
+    def set_connection_weight(self):
+        """Set connection weight in nest_params from synapse default.
+
+        The Connection's weight is equal to the synapse model's default weight,
+        scaled by the Connection's `weight_gain` parameter, and by the source
+        layer's `weight_gain` parameter.
+        """
+        synapse_df_weight = nest.GetDefaults(self.nest_params['synapse_model'],
+                                             'weight')
+        scaled_weight = self.scale_weights(synapse_df_weight)
+        if synapse_df_weight != 1.0:
+            print(f'NB: Connection weights scale synapse default:'
+                  f'{self.__str__}: weights = {scaled_weight}')
+        self.nest_params['weights'] = scaled_weight
+
+    def scale_weights(self, weights):
+        """Scale the synapse weight by Connection and Layer's weight gain."""
+        connection_gain = self.params['weight_gain']
+        layer_gain = self.source.params.get('weight_gain', 1.0)
+        return weights * connection_gain * layer_gain
+
+    def scale_kernel_mask(self):
+        """Update self._scale_factor and scale kernels and masks."""
 
         # Get connection-specific scaling factor, taking in account whether the
         # connection is convergent or divergent
@@ -586,7 +616,6 @@ class TopoConnection(BaseConnection):
         self.nest_params.update({
             'kernel': self.scale_kernel(self.nest_params.get('kernel', {})),
             'mask': self.scale_mask(self.nest_params.get('mask', {})),
-            'weights': self.scale_weights(self.nest_params['weights']),
         })
 
     def scale_kernel(self, kernel):
@@ -645,11 +674,6 @@ class TopoConnection(BaseConnection):
                     # If entry is float, scale it
                     mask[mask_type][key] *= self.scale_factor
         return mask
-
-    def scale_weights(self, weights):
-        # Default to no scaling
-        gain = self.source.params.get('weight_gain', 1.0)
-        return weights * gain
 
     def _connect(self):
         self.source._connect(self.target, self.nest_params)
