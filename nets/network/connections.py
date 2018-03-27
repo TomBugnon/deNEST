@@ -613,10 +613,10 @@ class TopoConnection(BaseConnection):
             self._scale_factor = self.target.extent_units(self.scale_factor)
 
         # Set kernel, mask, and weights, scaling if necessary
-        self.nest_params.update({
-            'kernel': self.scale_kernel(self.nest_params.get('kernel', {})),
-            'mask': self.scale_mask(self.nest_params.get('mask', {})),
-        })
+        if 'kernel' in self.nest_params:
+            self.nest_params['kernel'] = self.scale_kernel(self.nest_params['kernel'])
+        if 'mask' in self.nest_params:
+            self.nest_params['mask'] = self.scale_mask(self.nest_params['mask'])
 
     def scale_kernel(self, kernel):
         """Return a new kernel scaled by ``scale_factor``.
@@ -655,8 +655,6 @@ class TopoConnection(BaseConnection):
         'upper_right' (for rectangular or box masks.)
         You can modify the list of scaled field by changing the
         ``SCALED_MASK_SUBSTRINGS`` constant.
-
-        Return ``{}`` if ``mask`` is empty.
         """
         mask = deepcopy(mask)
         mask_type, mask_params = list(mask.items())[0]
