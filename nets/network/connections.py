@@ -655,8 +655,12 @@ class TopoConnection(BaseConnection):
         'upper_right' (for rectangular or box masks.)
         You can modify the list of scaled field by changing the
         ``SCALED_MASK_SUBSTRINGS`` constant.
+
+        If mask is empty, return {}
         """
         mask = deepcopy(mask)
+        if not mask:
+            return mask
         mask_type, mask_params = list(mask.items())[0]
         # Iterate on all the parameters of the mask
         for key in mask_params:
