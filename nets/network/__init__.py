@@ -262,6 +262,7 @@ class Network:
         # Format and save recorders using joblib
         args_list = [(recorder, output_dir)
                      for recorder in self._get_recorders()]
+        print(f'Formatting {len(args_list)} recorders using joblib')
         Parallel(n_jobs=-1, verbose=100, batch_size=1)(
             delayed(worker)(*args) for args in args_list
         )
@@ -272,6 +273,7 @@ class Network:
         # Save synapse recorders using joblib
         args_list = [(connrecorder, output_dir)
                      for connrecorder in self._get_connection_recorders()]
+        print(f'Formatting {len(args_list)} connection recorders using joblib')
         Parallel(n_jobs=-1, verbose=100, batch_size=1)(
             delayed(worker)(*args) for args in args_list
         )
