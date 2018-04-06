@@ -10,10 +10,7 @@ network:
         #       All populations if no key of not __bool__
         # - 'source_population' (str or None):
         #       All populations if no key of not __bool__
-        # - 'nest_params' (Mapping or None):
-        #       Takes precedence on connection model if specified)
-        # - 'save' (list of str or None):
-        #       Save each field in list.
+        # - 'params': Combined with connection_model params
 
 
         ### Source area: input area ###
@@ -23,7 +20,7 @@ network:
           source_population: parrot_neuron
           target_layer: l1
           target_population: l1_exc
-          connection: input_connection
+          connection: input_connection_AMPA
           params:
             recorders:
               weight_recorder: {}
@@ -31,7 +28,20 @@ network:
           source_population: parrot_neuron
           target_layer: l1
           target_population: l1_inh
-          connection: input_connection
+          connection: input_connection_AMPA
+          params:
+            synapse_label: 10010
+        - source_layer: input_layer
+          source_population: parrot_neuron
+          target_layer: l1
+          target_population: l1_inh
+          connection: input_connection_NMDA
+          params:
+            query_synapse_label: 10010
+            synapse_label: 10011
+            recorders:
+                weight_recorder: {}
+
 
 
         ### Source area: l1 ###
