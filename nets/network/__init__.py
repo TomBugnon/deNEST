@@ -9,7 +9,8 @@ from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from .connections import (ConnectionModel, FromFileConnection,
-                          RescaledConnection, TopoConnection)
+                          MultiSynapseConnection, RescaledConnection,
+                          TopoConnection)
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
 from .populations import Population
@@ -25,7 +26,8 @@ LAYER_TYPES = {
 CONNECTION_TYPES = {
     'topological': TopoConnection,
     'rescaled': RescaledConnection,
-    'from_file': FromFileConnection
+    'from_file': FromFileConnection,
+    'multisynapse': MultiSynapseConnection,
 }
 
 
@@ -54,7 +56,7 @@ class Network:
         self.connection_models = self.build_named_leaves_dict(
             ConnectionModel, self.params.c['connection_models'])
         # Connections must be built last
-        self.connections = sorted([
+        self.connections = self.sort_connections([
             self.build_connection(connection)
             for connection in self.params.c['topology']['connections']
         ])
@@ -69,6 +71,14 @@ class Network:
             name: constructor(name, leaf)
             for name, leaf in node.named_leaves()
         }
+
+    @staticmethod
+    def sort_connections(connection_list):
+        """Sort connections making sure that the `multisynapse` are last."""
+        return (sorted([conn for conn in connection_list
+                        if not conn.params['type'] == 'multisynapse'])
+                + sorted([conn for conn in connection_list
+                        if conn.params['type'] == 'multisynapse']))
 
     @staticmethod
     def build_named_leaves_list(constructor, node):
