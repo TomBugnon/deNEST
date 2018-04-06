@@ -15,6 +15,9 @@ from .nest_object import NestObject
 from .utils import if_created, if_not_created
 
 
+POP_RECORDER_TYPES = ['multimeter', 'spike_detector']
+
+
 class BaseRecorder(NestObject):
     """Base class for all recorder classes."""
 
@@ -65,12 +68,24 @@ class PopulationRecorder(BaseRecorder):
         self._units_number = None # Number of nodes per grid position for pop
         ##
         self._type = None # 'spike detector' or 'multimeter'
-        if self.name in ['multimeter', 'spike_detector']:
+        if self.name in POP_RECORDER_TYPES:
             self._type = self.name
         else:
-            # TODO: access somehow the base nest model from which the recorder
-            # model inherits.
-            raise Exception('The recorder type is not recognized.')
+            # We try to guess the recorder type from its name
+            self._type = self.guess_rec_type()
+            print(f'Guessing type for recorder `{self.name}`:'
+                  f' `{self._type}`')
+
+    def guess_rec_type(self):
+        """Guess recorder type from recorder name."""
+        # TODO: add to doc
+        # TODO: access somehow the base nest model from which the recorder
+        # model inherits rather than guessing
+        for rec_type in POP_RECORDER_TYPES:
+            if rec_type in self.name:
+                return rec_type
+        raise Exception("The type of recorder {self.name} couldn't be guessed")
+
 
     @if_not_created
     def create(self, population_params):
