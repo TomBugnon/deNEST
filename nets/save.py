@@ -154,11 +154,18 @@ def load_session_stim(output_dir, session_name, filt=0):
         return movie
     return movie[:, filt]
 
-def load_weight_recorder(output_dir, conn_name):
+def load_weight_recorder(output_dir, conn_name, start_trim=None):
     path = output_path(output_dir,
                        'connectionrecorders',
                        conn_name)
-    return load_dict(path)
+    w_dict = load_dict(path)
+    if start_trim is None:
+        return w_dict
+    time_i = [i for i, t in enumerate(w_dict['times']) if t >= start_trim]
+    return {
+        key: data[time_i]
+        for key, data in w_dict.items()
+    }
 
 def load_activity(output_dir, layer, population, variable='spikes',
                   session=None, all_units=False, start_trim=None,
