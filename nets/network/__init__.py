@@ -232,9 +232,7 @@ class Network:
                 ``'params'`` (default {}) is the dictionary of parameter changes
                     applied to the selected units.
         """
-        for changes in tqdm(
-                sorted(unit_changes, key=unit_sorting_map),
-                desc="-> Changing units' state"):
+        for changes in sorted(unit_changes, key=unit_sorting_map):
             # Pass if no parameter dictionary.
             if not changes['params']:
                 continue
@@ -250,7 +248,7 @@ class Network:
             else:
                 layers = [self.layers[change_layer]]
 
-            for layer in layers:
+            for layer in tqdm(layers, desc="---> Apply change dict on layers"):
                 layer.change_unit_states(changes['params'],
                                          changes.get('population', None),
                                          changes.get('proportion', 1.))
