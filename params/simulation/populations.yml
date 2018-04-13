@@ -4,6 +4,7 @@ network:
       recorders:
         spike_detector: {}
         multimeter: {}
+      number_formatted: None
     input_layer:
       params:
         layer: input_layer

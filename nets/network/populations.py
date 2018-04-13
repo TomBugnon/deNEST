@@ -27,7 +27,13 @@ class Population(NestObject):
             for recorder_type, recorder_params in params.get('recorders', {})
             .items()
         ]
-        self.number = self.layer.params['populations'][self.name]
+        # Number of units per layer position
+        self.number = int(self.layer.params['populations'][self.name])
+        # Index of units at each grid position for which recorder data is
+        # formatted
+        self.number_formatted = params.get('number_formatted', None)
+        if self.number_formatted is None:
+            self.number_formatted = int(self.number)
         # 3D location by gid mapping
         self._locations = None
         self._created = False
@@ -63,6 +69,7 @@ class Population(NestObject):
                 "layer_name": self.layer.name,
                 "layer_shape": self.layer.shape,
                 "units_number": self.number,
+                "number_formatted": self.number_formatted,
             }
 
             # Create the recorders and pass along the formatting parameters

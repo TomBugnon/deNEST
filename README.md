@@ -372,6 +372,9 @@ defined in the final parameter tree.
       recorders that will be created and connected to that population, and the
       values are dictionary (possibly empty) containing overriding parameters
       for the corresponding recorder.
+    - `number_formatted` (int): Number of units per grid location that are
+      for which recorder data is formatted. All units are formatted if None.
+      (default None)
     - **NB**: Make sure that no population is missing compared to the `'layer'`
       parameters.
 

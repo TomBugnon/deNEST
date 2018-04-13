@@ -66,6 +66,8 @@ class PopulationRecorder(BaseRecorder):
         self._layer_name = None # Name of recorded (parent) pop's layer
         self._layer_shape = None # (nrows, cols) for recorded pop
         self._units_number = None # Number of nodes per grid position for pop
+        self._formatted_unit_indices = None # Index of nodes per grid position
+            # for which data is formatted
         ##
         self._type = None # 'spike detector' or 'multimeter'
         if self.name in POP_RECORDER_TYPES:
@@ -98,6 +100,8 @@ class PopulationRecorder(BaseRecorder):
         self._layer_name = population_params['layer_name']
         self._layer_shape = population_params['layer_shape']
         self._units_number = population_params['units_number']
+        self._formatted_unit_indices = \
+            range(population_params['number_formatted'])
         # Create node
         self._gid = nest.Create(self.name, params=self.params)
         # Get node parameters from nest (possibly nest defaults)
@@ -155,7 +159,7 @@ class PopulationRecorder(BaseRecorder):
 
         # Save the formatted arrays separately for each var and unit_index
         for variable, unit_index in product(self.variables,
-                                            range(self._units_number)):
+                                            self._formatted_unit_indices):
 
             recorder_path = save.output_path(
                 output_dir,
@@ -188,7 +192,7 @@ class PopulationRecorder(BaseRecorder):
             shape=formatted_shape,
             locations=self._locations,
             all_variables=self.variables,
-            all_unit_indices=range(self._units_number)
+            formatted_unit_indices=self._formatted_unit_indices,
         )
 
     def get_nest_raster(self):
