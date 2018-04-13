@@ -98,7 +98,14 @@ class Simulation:
             # Save network
             with_rasters = self.params.c['simulation'].get('save_nest_raster',
                                                            True)
-            self.network.save(self.output_dir, with_rasters=with_rasters)
+            parallel = self.params.c['simulation'].get('parallel',
+                                                       True)
+            n_jobs = self.params.c['simulation'].get('n_jobs',
+                                                     -1)
+            self.network.save(self.output_dir,
+                              with_rasters=with_rasters,
+                              parallel=parallel,
+                              n_jobs=n_jobs)
         # Delete nest temporary directory
         if self.params.c['simulation'].get('delete_raw_dir', True):
             rmtree(self.params.c['simulation']['nest_output_dir'])

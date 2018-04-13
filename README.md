@@ -228,6 +228,10 @@ defined in the final parameter tree.
           update the `CLEAR_SUBDIRS` variable accordingly.
     - `save_simulation` (bool): If true, `Simulation.save()` is called in
       `__init__.run()` (default `True`)
+    - `parallel` (bool): If true, recorders are formatted using joblib
+      (default True)
+    - `n_jobs` (int): Number of cores to use if we format recorders in parallel
+      (default -1)
     - `delete_raw_dir` (bool): If true, the raw data output by NEST is deleted
       during a `Simulation.save()` call. (default `False`)
     - `save_nest_raster` (bool): If true, NEST raster plots are generated during
