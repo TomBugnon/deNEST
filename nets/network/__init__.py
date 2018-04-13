@@ -4,7 +4,6 @@
 """Provide a class to construct a network from independent parameters."""
 
 import os
-import random
 
 from joblib import Parallel, delayed
 from tqdm import tqdm
@@ -75,11 +74,12 @@ class Network:
     def build_named_leaves_list(constructor, node):
         return [constructor(name, leaf) for name, leaf in node.named_leaves()]
 
-    def build_connection(self, params):
-        source = self.layers[params['source_layer']]
-        target = self.layers[params['target_layer']]
-        model = self.connection_models[params['connection']]
-        return CONNECTION_TYPES[model.type](source, target, model, params)
+    def build_connection(self, connection_dict):
+        source = self.layers[connection_dict['source_layer']]
+        target = self.layers[connection_dict['target_layer']]
+        model = self.connection_models[connection_dict['connection']]
+        return CONNECTION_TYPES[model.type](source, target, model,
+                                            connection_dict)
 
     def build_population(self, pop_name, pop_params):
         # Get the gids and locations for the population from the layer object.
@@ -120,6 +120,10 @@ class Network:
     def _get_recorders(self, recorder_type=None):
         for population in self.populations:
             yield from population.get_recorders(recorder_type=recorder_type)
+
+    def _get_connection_recorders(self, recorder_type=None):
+        for connection in self.connections:
+            yield from connection.get_recorders(recorder_type=recorder_type)
 
     def _get_synapses(self, synapse_type=None):
         if synapse_type is None:
@@ -225,12 +229,6 @@ class Network:
             if not changes['params']:
                 continue
 
-            proportion = changes.get('proportion', 1)
-            # Avoid probabilistic changes in multiple sessions.
-            if self._changed and proportion != 1:
-                raise Exception("Attempting to change probabilistically some "
-                                "units' state multiple times.")
-
             # Verbose
             print('--> Applying unit changes dictionary: ', changes)
 
@@ -243,14 +241,9 @@ class Network:
                 layers = [self.layers[change_layer]]
 
             for layer in layers:
-                gids_to_change = get_gids_subset(
-                    layer.gids(population=changes.get('population',
-                                                      None)),
-                    proportion
-                )
-                apply_unit_changes(gids_to_change,
-                                   changes['params'])
-        self._changed = True
+                layer.change_unit_states(changes['params'],
+                                         changes.get('population', None),
+                                         changes.get('proportion', 1.))
 
     def reset(self):
         import nest
@@ -260,11 +253,8 @@ class Network:
         self._layer_call('set_input', stimulus, start_time,
                          layer_type='InputLayer')
 
-    def save(self, output_dir, with_rasters=True):
-        # Save synapses
-        for conn in self.connections:
-            conn.save(output_dir)
-        # Save population rasters
+    def save(self, output_dir, with_rasters=True, parallel=True, n_jobs=-1):
+            # Save population rasters
         if with_rasters:
             for recorder in tqdm(self._get_recorders(),
                                  desc='Saving recorder raster plots'):
@@ -272,9 +262,32 @@ class Network:
         # Format and save recorders using joblib
         args_list = [(recorder, output_dir)
                      for recorder in self._get_recorders()]
-        Parallel(n_jobs=-1, verbose=100, batch_size=1)(
-            delayed(worker)(*args) for args in args_list
-        )
+        if parallel:
+            print(f'Formatting {len(args_list)} recorders using joblib')
+            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
+                delayed(worker)(*args) for args in args_list
+            )
+        else:
+            for args in tqdm(args_list,
+                             desc=(f'Formatting {len(args_list)} recorders '
+                                   f'without joblib')):
+                worker(*args)
+        # Save synapse states
+        for conn in tqdm(self.connections,
+                         desc='Saving synapse data'):
+            conn.save_synapse_state(output_dir)
+        # Save synapse recorders using joblib
+        args_list = [(connrecorder, output_dir)
+                     for connrecorder in self._get_connection_recorders()]
+        if parallel:
+            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
+                delayed(worker)(*args) for args in args_list
+            )
+        else:
+            for args in tqdm(args_list,
+                             desc=(f'Formatting {len(args_list)} connection '
+                                   f'recorders without joblib')):
+                worker(*args)
 
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections, desc='Creating connection plots'):
@@ -381,18 +394,3 @@ def synapse_sorting_map(synapse_change):
     """Map by (synapse_model, params_items) for sorting."""
     return (synapse_change['synapse_model'],
             sorted(synapse_change['params'].items()))
-
-
-def get_gids_subset(gids_list, proportion):
-    """Return a proportion of gids picked randomly from a list."""
-    return [gids_list[i] for i
-            in sorted(
-                random.sample(
-                    range(len(gids_list)),
-                    int(len(gids_list) * proportion))
-                    )]
-
-def apply_unit_changes(gids_to_change, changes_dict):
-    """Change the state of a list of units."""
-    import nest
-    nest.SetStatus(gids_to_change, changes_dict)

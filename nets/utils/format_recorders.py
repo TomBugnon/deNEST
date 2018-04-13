@@ -19,7 +19,7 @@ def format_recorder(gid,
                     shape=None,
                     locations=None,
                     all_variables=None,
-                    all_unit_indices=None):
+                    formatted_unit_indices=None):
     """Return the formatted activity of the recorder for all vars and units.
 
     Return:
@@ -43,7 +43,7 @@ def format_recorder(gid,
             locations,
             shape=shape,
             all_variables=all_variables,
-            all_unit_indices=all_unit_indices)
+            formatted_unit_indices=formatted_unit_indices)
 
     if recorder_type == 'spike_detector':
         time, sender_gid = gather_raw_data(gid, recorder_type='spike_detector')
@@ -52,7 +52,7 @@ def format_recorder(gid,
             time,
             locations,
             shape=shape,
-            all_unit_indices=all_unit_indices)
+            formatted_unit_indices=formatted_unit_indices)
 
     return all_recorder_activity
 
@@ -63,17 +63,18 @@ def format_mm_data(sender_gid,
                    location_by_gid,
                    shape=None,
                    all_variables=("V_m", ),
-                   all_unit_indices=(0, )):
+                   formatted_unit_indices=(0, )):
     """Return dict containiing all formatted (t, row, col)-np.arrays."""
     all_recorder_activity = {
-        var: [np.zeros(shape) for i in all_unit_indices]
+        var: [np.zeros(shape) for i in formatted_unit_indices]
         for var in all_variables
     }
     for (i, t) in enumerate(time):
         row, col, index = location_by_gid[int(sender_gid[i])]
-        for var in all_variables:
-            all_recorder_activity[var][index][int(t) - 1, row, col] = \
-                mm_data[var][i]
+        if index in formatted_unit_indices:
+            for var in all_variables:
+                all_recorder_activity[var][index][int(t) - 1, row, col] = \
+                    mm_data[var][i]
     return all_recorder_activity
 
 
@@ -81,14 +82,15 @@ def format_sd_data(sender_gid,
                    time,
                    location_by_gid,
                    shape=None,
-                   all_unit_indices=(0, )):
+                   formatted_unit_indices=(0, )):
     """Return dict containing all formatted (t, row, col)-np.arrays."""
     all_recorder_activity = {
-        'spikes': [np.zeros(shape) for i in all_unit_indices]
+        'spikes': [np.zeros(shape) for i in formatted_unit_indices]
     }
     for (i, t) in enumerate(time):
         row, col, index = location_by_gid[int(sender_gid[i])]
-        all_recorder_activity['spikes'][index][int(t) - 1, row, col] = 1.0
+        if index in formatted_unit_indices:
+            all_recorder_activity['spikes'][index][int(t) - 1, row, col] = 1.0
     return all_recorder_activity
 
 
@@ -139,6 +141,49 @@ def gather_raw_data(rec_gid, all_variables=('V_m', ), recorder_type=None):
             return (time, sender_gid, mm_data)
         elif recorder_type == 'spike_detector':
             return (time, sender_gid)
+
+
+def gather_raw_data_connrec(rec_gid):
+    """Return non - formatted activity of a ConnectionRecorder.
+
+    Args:
+        rec_gid(tuple): Recorder's NEST GID. Singleton tuple of int.
+
+    Returns:
+        dict: Dictionary of the form:
+            {
+                'sender_gid': <sender_gid_list>,
+                'target_gid': <target_gid_list>,
+                'time': <time_list>,
+                'weight': <weight_list,
+            }
+
+    TODO: Return receptor and port (useful? )
+    """
+    record_to = nest.GetStatus(rec_gid, 'record_to')[0]
+
+    if 'memory' in record_to:
+
+        data = nest.GetStatus(rec_gid, 'events')[0]
+
+        return {
+            'senders': data['senders'],
+            'targets': data['targets'],
+            'times': data['times'],
+            'weights': data['weights']
+        }
+
+    elif 'file' in record_to:
+
+        recorder_files = nest.GetStatus(rec_gid, 'filenames')[0]
+        data = load_and_combine(recorder_files)
+
+        return {
+            'senders': data[:, 0],
+            'targets': data[:, 1],
+            'times': data[:, -2],
+            'weights': data[:, -1]
+        }
 
 
 def load_and_combine(recorder_files_list):

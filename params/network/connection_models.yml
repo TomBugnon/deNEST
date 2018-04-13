@@ -20,7 +20,7 @@ network:
           gaussian:
             p_center: 0.05
             sigma: 7.5  # scaled during init
-        weights: 1.0  # scaled during init
+        weight_gain: 2.0 # Scales synapse default
         delays:
           uniform:
             min: 1.75
@@ -37,7 +37,7 @@ network:
           gaussian:
             p_center: 0.25
             sigma: 7.5 # scaled during init
-        weights: 1.0 # scaled during init
+        weight_gain: 1.0 # Scales synapse default
         delays:
           uniform:
             min: 1.75
@@ -51,7 +51,7 @@ network:
           circular:
             radius: 12.0 # scaled during init
         kernel: 0.8
-        weights: 1.0 # ... * weight gain during init
+        weight_gain: 1.0 # Scales synapse default
         delays:
           uniform:
             min: 1.75
@@ -65,7 +65,7 @@ network:
           circular:
             radius: 12.0 # scaled during init
         kernel: 0.8
-        weights: 1.0 # scaled during init
+        weight_gain: 2.0 # Scales synapse default
         delays:
           uniform:
             min: 1.75

@@ -46,11 +46,14 @@ def all_cv(activity):
     """Return array of coefficients of variation. CV = sd(ISI)/mean(ISI)."""
     _, nrows, ncols = activity.shape
     if not activity.any():
-        warnings.warn('Activity array is all 0s. Not computing CV')
-        return
+        warnings.warn('Activity array is all 0s. No CV computed. Return zeros')
+        return np.zeros((nrows, ncols))
     cvs = np.zeros((nrows, ncols))
     for row, col in itertools.product(range(nrows), range(ncols)):
         inter_spike_list = isi(activity[:, row, col])
-        cvs[row, col] = (
-            float(np.std(inter_spike_list)) / float(np.mean(inter_spike_list)))
+        if not inter_spike_list:
+            cvs[row, col] = 0.0
+        else:
+            cvs[row, col] = (
+                float(np.std(inter_spike_list)) / float(np.mean(inter_spike_list)))
     return cvs
