@@ -2,14 +2,16 @@ network:
   populations:
     params:
       recorders:
-        spike_detector: {}
-        multimeter: {}
-      number_formatted: None
+        spike_detector:
+          formatting_interval: 1.0
+        multimeter: {} # Formatting interval = recorder's interval
+      number_formatted: null
     input_layer:
       params:
         layer: input_layer
         recorders:
-          spike_detector: {}
+          spike_detector:
+            formatting_interval: 1.0
       input_exc:
     l1:
       params:

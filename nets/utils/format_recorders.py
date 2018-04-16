@@ -19,7 +19,8 @@ def format_recorder(gid,
                     shape=None,
                     locations=None,
                     all_variables=None,
-                    formatted_unit_indices=None):
+                    formatted_unit_indices=None,
+                    formatting_interval=None):
     """Return the formatted activity of the recorder for all vars and units.
 
     Return:
@@ -28,7 +29,8 @@ def format_recorder(gid,
                        `formatted_activity_unit_index_1`, ...],
              `var_2`: ...
             }
-            where the formatted arrays have the dimensions `shape`.
+            where the formatted arrays have the dimensions `shape` and have
+            slices corresponding to `formatting_interval` time intervals.
     """
 
     if recorder_type == 'multimeter':
@@ -43,7 +45,8 @@ def format_recorder(gid,
             locations,
             shape=shape,
             all_variables=all_variables,
-            formatted_unit_indices=formatted_unit_indices)
+            formatted_unit_indices=formatted_unit_indices,
+            formatting_interval=formatting_interval)
 
     if recorder_type == 'spike_detector':
         time, sender_gid = gather_raw_data(gid, recorder_type='spike_detector')
@@ -52,7 +55,8 @@ def format_recorder(gid,
             time,
             locations,
             shape=shape,
-            formatted_unit_indices=formatted_unit_indices)
+            formatted_unit_indices=formatted_unit_indices,
+            formatting_interval=formatting_interval)
 
     return all_recorder_activity
 
@@ -63,7 +67,8 @@ def format_mm_data(sender_gid,
                    location_by_gid,
                    shape=None,
                    all_variables=("V_m", ),
-                   formatted_unit_indices=(0, )):
+                   formatted_unit_indices=(0, ),
+                   formatting_interval=None):
     """Return dict containiing all formatted (t, row, col)-np.arrays."""
     all_recorder_activity = {
         var: [np.zeros(shape) for i in formatted_unit_indices]
@@ -73,8 +78,10 @@ def format_mm_data(sender_gid,
         row, col, index = location_by_gid[int(sender_gid[i])]
         if index in formatted_unit_indices:
             for var in all_variables:
-                all_recorder_activity[var][index][int(t) - 1, row, col] = \
-                    mm_data[var][i]
+                all_recorder_activity[var][index][
+                    int((t - 1)/formatting_interval),
+                    row,
+                    col] = mm_data[var][i]
     return all_recorder_activity
 
 
@@ -82,7 +89,8 @@ def format_sd_data(sender_gid,
                    time,
                    location_by_gid,
                    shape=None,
-                   formatted_unit_indices=(0, )):
+                   formatted_unit_indices=(0, ),
+                   formatting_interval=None):
     """Return dict containing all formatted (t, row, col)-np.arrays."""
     all_recorder_activity = {
         'spikes': [np.zeros(shape) for i in formatted_unit_indices]
@@ -90,7 +98,10 @@ def format_sd_data(sender_gid,
     for (i, t) in enumerate(time):
         row, col, index = location_by_gid[int(sender_gid[i])]
         if index in formatted_unit_indices:
-            all_recorder_activity['spikes'][index][int(t) - 1, row, col] = 1.0
+            all_recorder_activity['spikes'][index][
+                int((t - 1) / formatting_interval),
+                row,
+                col] = 1.0
     return all_recorder_activity
 
 
