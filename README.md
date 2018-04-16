@@ -371,7 +371,15 @@ defined in the final parameter tree.
     - `recorders` (dict): Dictionary of which the keys are the models of
       recorders that will be created and connected to that population, and the
       values are dictionary (possibly empty) containing overriding parameters
-      for the corresponding recorder.
+      for the corresponding recorder. All overriding parameters are interpreted
+        as `nest_parameters` except the following:
+          - `formatting_interval` (int or None): Time interval between
+            consecutive slices in the formatted (time x row x col) recorder
+            arrays. The value of a slice and default formatting intervals are:
+              - for spike detectors: 1 if there is a spike during the interval,
+                0 otherwise. default value is 1.0
+              - for multimeters: the value of a random timestep within the
+                slice. default value is equal to the `interval` nest_parameter.
     - `number_formatted` (int): Number of units per grid location that are
       for which recorder data is formatted. All units are formatted if None.
       (default None)

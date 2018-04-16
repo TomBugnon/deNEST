@@ -269,7 +269,8 @@ def connection_filename(connection):
     pass
 
 
-def recorder_filename(layer, pop, unit_index=None, variable='spikes'):
+def recorder_filename(layer, pop, unit_index=None, variable='spikes',
+                      formatting_interval=None):
     """Return filename for a population x unit_index."""
     base_filename = (layer + '_' + pop + '_'
                      + variable)
@@ -277,6 +278,8 @@ def recorder_filename(layer, pop, unit_index=None, variable='spikes'):
     if unit_index is not None:
         suffix = ('_' + 'units' + '_'
                   + str(unit_index))
+    if formatting_interval is not None:
+        suffix = suffix + ('_' + 'interval' + '_' + str(formatting_interval))
     return base_filename + suffix
 
 def connrecorder_filename(connection_name):
