@@ -5,6 +5,7 @@
 """Create and save population and connection recorder objects."""
 
 from itertools import product
+from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import pylab
@@ -14,22 +15,43 @@ from ..utils import format_recorders
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
 
+# TODO: Right now, the recorder models are created separately and the classes
+
 
 POP_RECORDER_TYPES = ['multimeter', 'spike_detector']
 
+# Parameters that are recognized and not passed as NEST parameters. These
+# parameters are set in `populations.yml` rather than `recorders.yml`
+NON_NEST_PARAMS = {
+    'formatting_interval': None, # Effective default is multimeter's `interval`
+                                 # parameter, or 1.0ms for spike detector
+}
 
 class BaseRecorder(NestObject):
-    """Base class for all recorder classes."""
+    """Base class for all recorder classes. Represent nodes (not models).
 
-    def __init__(self, name, params):
+    NB: The recorder models are created separately !!! All the parameters
+    passed to these classes originate not from the `recorder` parameters
+    (`recorders.yml`) but from the population parameters !
+
+    TODO: Don't create the recorder models separately so we can define
+    "non_nest" parameters in `recorder.yml`.
+    """
+    def __init__(self, name, all_params):
+        # Pop off the params that shouldn't be considered as NEST parameters
+        nest_params = deepcopy(dict(all_params))
+        params = {}
+        for non_nest_param, default in NON_NEST_PARAMS.items():
+            params[non_nest_param] = nest_params.pop(non_nest_param, default)
+        # We now save the params and nest_params dictionaries as attributes
         super().__init__(name, params)
-        # Attributes below are taken from NEST kernel after creation
-        # Population object during `create()` call
+        self.nest_params = nest_params
+        # Attributes below may depend on NEST default and are derived after
+        # creation
         self._gid = None # gid of recorder node
         self._files = None # files of recorded data (None if to memory)
         self._record_to = None # eg ['memory', 'file']
         self._record_from = None # list of variables for mm, or ['spikes']
-        self._type = None # 'spike detector' or 'multimeter'
 
     @property
     @if_created
@@ -66,6 +88,7 @@ class PopulationRecorder(BaseRecorder):
         self._layer_name = None # Name of recorded (parent) pop's layer
         self._layer_shape = None # (nrows, cols) for recorded pop
         self._units_number = None # Number of nodes per grid position for pop
+        #
         self._formatted_unit_indices = None # Index of nodes per grid position
             # for which data is formatted
         ##
@@ -77,6 +100,11 @@ class PopulationRecorder(BaseRecorder):
             self._type = self.guess_rec_type()
             print(f'Guessing type for recorder `{self.name}`:'
                   f' `{self._type}`')
+        # Attributes below may depend on NEST default and are updated after
+        # creation
+        self._interval = None # Sampling interval. Only for multimeter
+        self._formatting_interval = self.params['formatting_interval'] #
+            #Interval between two consecutive "slices" of the formatted array.
 
     def guess_rec_type(self):
         """Guess recorder type from recorder name."""
@@ -103,14 +131,20 @@ class PopulationRecorder(BaseRecorder):
         self._formatted_unit_indices = \
             range(population_params['number_formatted'])
         # Create node
-        self._gid = nest.Create(self.name, params=self.params)
-        # Get node parameters from nest (possibly nest defaults)
+        self._gid = nest.Create(self.name, params=self.nest_params)
+        # Get attributes after creation (may depend on nest defaults)
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
         if self.type == 'multimeter':
             self._record_from = [str(variable) for variable
                                  in nest.GetStatus(self.gid, 'record_from')[0]]
+            self._interval = nest.GetStatus(self.gid, 'interval')[0]
+            if self._formatting_interval is None:
+                self._formatting_interval = self._interval
+            assert self._formatting_interval > self._interval
         elif self.type == 'spike_detector':
             self._record_from = ['spikes']
+            if self._formatting_interval is None:
+                self._formatting_interval = 1.0
         # Connect population
         if self.type == 'multimeter':
             nest.Connect(self.gid, self.gids)
@@ -167,7 +201,8 @@ class PopulationRecorder(BaseRecorder):
                 self._layer_name,
                 self._population_name,
                 unit_index=unit_index,
-                variable=variable
+                variable=variable,
+                formatting_interval=self._formatting_interval,
             )
             save.save_array(recorder_path,
                             all_recorder_activity[variable][unit_index])
@@ -176,15 +211,14 @@ class PopulationRecorder(BaseRecorder):
         # Throw a warning if the interval is below the millisecond as that won't
         # be taken in account during formatting.
         import nest
-
-        # NB: We only sample at 1ms !
-        ntimesteps = int(nest.GetKernelStatus('time'))
-        formatted_shape = (ntimesteps,) + self._layer_shape
+        nslices = int(nest.GetKernelStatus('time')/self._formatting_interval)
+        formatted_shape = (nslices,) + self._layer_shape
         if (self.type == 'multimeter'
-            and nest.GetStatus(self.gid, 'interval')[0] < 1):
+            and self._interval != self._formatting_interval):
             import warnings
-            warnings.warn('NB: The multimeter interval is below 1msec, but we'
-                          'only format at the msec scale!')
+            warnings.warn(f'NB: The multimeter interval is {self._interval},'
+                          f'but the formatting interval is '
+                          f'{self._formatting_interval}!')
 
         return format_recorders.format_recorder(
             self.gid,
@@ -193,6 +227,7 @@ class PopulationRecorder(BaseRecorder):
             locations=self._locations,
             all_variables=self.variables,
             formatted_unit_indices=self._formatted_unit_indices,
+            formatting_interval=self._formatting_interval,
         )
 
     def get_nest_raster(self):
@@ -227,6 +262,7 @@ class ConnectionRecorder(BaseRecorder):
     """
 
     def __init__(self, name, params):
+        # params in self.params, nest_params in self.nest_params
         super().__init__(name, params)
         # Attributes below are necessary for connecting and saving and are
         # passed by the # Connection object during `create()` call
@@ -263,7 +299,7 @@ class ConnectionRecorder(BaseRecorder):
         self._tgt_population_name = conn_parameters['tgt_population_name']
         self._tgt_gids = conn_parameters['tgt_gids']
         # Update the parameters Create node
-        self._gid = nest.Create(self.name, params=self.params)
+        self._gid = nest.Create(self.name, params=self.nest_params)
         # Get node parameters from nest (possibly nest defaults)
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
 
