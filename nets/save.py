@@ -169,7 +169,7 @@ def load_weight_recorder(output_dir, conn_name, start_trim=None):
 
 def load_activity(output_dir, layer, population, variable='spikes',
                   session=None, all_units=False, start_trim=None,
-                  end_trim=None):
+                  end_trim=None, interval=1.0):
     """Load activity of a given variable for a population.
 
         Args:
@@ -183,6 +183,7 @@ def load_activity(output_dir, layer, population, variable='spikes',
             - `start_trim`, `end_trim` (int): Duration of activity trimmed at
                 the start or the end of the recording (applied after selecting
                 activity of a given session)
+            - `interval` (int or float): time between two consecutive slices
     """
     # Get all filenames for that population (one per unit index)
     recorders_dir = output_subdir(output_dir, 'recorders')
@@ -209,15 +210,18 @@ def load_activity(output_dir, layer, population, variable='spikes',
         raise e
     # Possibly extract the times corresponding to a specific session
     if session is not None:
-        times = load_session_times(output_dir)[session]
+        session_times = load_session_times(output_dir)[session]
+        min_slice = int(min(session_times) / interval)
+        max_slice = int(max(session_times) / interval)
     else:
-        times = range(len(all_sessions_activity))
+        min_slice, max_slice = 0, len(all_sessions_activity)
     # Possibly trim the beginning and the end, after selecting for session
-    if start_trim is not None:
-        times = range(min(times) + int(start_trim), max(times))
-    if end_trim is not None:
-        times = range(min(times), max(times) - int(end_trim))
-    return all_sessions_activity[times]
+    if start_trim is not None and start_trim > 0:
+        min_slice = max(min_slice, int(start_trim / interval))
+    if end_trim is not None and end_trim > 0:
+        end_trim_slice = len(all_sessions_activity) - int(end_trim / interval)
+        max_slice = min(max_slice, end_trim_slice)
+    return all_sessions_activity[min_slice:max_slice]
 
 
 def load_labels(output_dir, session_name):
