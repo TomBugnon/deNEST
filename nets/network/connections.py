@@ -38,6 +38,7 @@ NON_NEST_CONNECTION_PARAMS = {
     'recorders': {},
     'synapse_label': None, # (int or None). Only for *_lbl synapse models
     'query_synapse_label': None, # Used in MultiSynapseConnection only
+    'make_symmetric': False, # Used in MultiSynapseConnection only
     'save': [],
 }
 
@@ -593,10 +594,11 @@ class MultiSynapseConnection(BaseConnection):
     neurons multiple times. See
     https://github.com/nest/nest-simulator/issues/904
 
-    There are two parameters that we have control onto with these type of
+    There are three parameters that we have control onto with these type of
     connections: weight (obtained the same way as for topological connections)
-    and synapse model (for which we can set labels and recorders similarly as
-    for topological connections).
+    ,synapse model (for which we can set labels and recorders similarly as
+    for topological connections), and finally the `make_symmetric` flag
+    necessary for gap junctions.
 
     Usage:
         Say we want to duplicate the specific connection `proj1`, which uses the
@@ -619,6 +621,8 @@ class MultiSynapseConnection(BaseConnection):
         super().__init__(source, target, model, params)
         # Label used to query the connections
         self.query_synapse_label = self.params['query_synapse_label']
+        # Make symmetric flag is passed during the nest.Connect() call
+        self.make_symmetric = self.params['make_symmetric']
         assert self.query_synapse_label is not None
 
     def get_connections(self):
@@ -642,7 +646,7 @@ class MultiSynapseConnection(BaseConnection):
         nest.Connect(
             srcs,
             tgts,
-            'one_to_one',
+            {'rule': 'one_to_one', 'make_symmetric': self.make_symmetric},
             {'model': self.nest_synapse_model,
              'weight': self.nest_params['weights']}
         )
