@@ -29,6 +29,7 @@ OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
                   'rasters': ('rasters',),
                   'params': (),
                   'plots': ('plots',),
+                  'measures': ('measures',),
 }
 
 # Subdirectories that are cleared if the simulation parameter 'clear_output_dir'
@@ -229,6 +230,31 @@ def load_labels(output_dir, session_name):
     return np.load(join(output_subdir(output_dir, 'sessions'),
                         output_filename('labels', session_name)))
 
+def load_measure(output_dir, measure_name, session=None, start_trim=None,
+                 end_trim=None):
+    """Load previously saved measure (eg LFP)"""
+    measure_dir = join(output_subdir(output_dir, 'measures'))
+    filenames = [f for f in os.listdir(measure_dir)
+                 if f.startswith(measure_name)]
+    assert len(filenames) == 1
+    measure = load_as_numpy(join(measure_dir, filenames[0]))
+    # Possibly extract the times corresponding to a specific session
+    if session is not None:
+        times = load_session_times(output_dir)[session]
+    else:
+        times = range(len(measure))
+    # Possibly trim the beginning and the end, after selecting for session
+    if start_trim is not None:
+        times = range(min(times) + int(start_trim), max(times))
+    if end_trim is not None:
+        times = range(min(times), max(times) - int(end_trim))
+    return measure[times]
+
+def save_measure(output_dir, measure, measure_name):
+    """Save measure as np-array (eg LFP)."""
+    path = join(output_subdir(output_dir, 'measures'), measure_name)
+    np.save(path, measure)
+    return path
 
 def save_sparse(path, array):
     """Save an array in a sparse format."""
