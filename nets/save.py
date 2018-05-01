@@ -318,6 +318,7 @@ def connrecorder_filename(connection_name):
 
 def save_plot(fig, output_dir, filename, overwrite=False):
     """Save matplotlib figure in 'plot' subdirectory."""
+    filename = filename.replace('.', ',')
     path = join(output_subdir(output_dir, 'plots'), filename)
     if os.path.exists(path) and not overwrite:
         print(f'Not overwriting file at {path}')
