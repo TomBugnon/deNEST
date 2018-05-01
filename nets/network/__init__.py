@@ -253,8 +253,14 @@ class Network:
         self._layer_call('set_input', stimulus, start_time,
                          layer_type='InputLayer')
 
-    def save(self, output_dir, with_rasters=True, parallel=True, n_jobs=-1):
-            # Save population rasters
+    def save_metadata(self, output_dir):
+        """Save network metadata."""
+        # TODO: Save gids-position mappings
+        pass
+
+    def save_data(self, output_dir, with_rasters=True, parallel=True,
+                  n_jobs=-1):
+        # Save population rasters
         if with_rasters:
             for recorder in tqdm(self._get_recorders(),
                                  desc='Saving recorder raster plots'):

@@ -88,6 +88,8 @@ class Simulation:
         # Save params
         save_as_yaml(output_path(self.output_dir, 'params'),
                      self.params)
+        # Save network metadata
+        self.network.save_metadata(self.output_dir)
 
     def save_data(self):
         """Save data after the simulation has been run."""
@@ -105,10 +107,10 @@ class Simulation:
                                                        True)
             n_jobs = self.params.c['simulation'].get('n_jobs',
                                                      -1)
-            self.network.save(self.output_dir,
-                              with_rasters=with_rasters,
-                              parallel=parallel,
-                              n_jobs=n_jobs)
+            self.network.save_data(self.output_dir,
+                                   with_rasters=with_rasters,
+                                   parallel=parallel,
+                                   n_jobs=n_jobs)
         # Delete nest temporary directory
         if self.params.c['simulation'].get('delete_raw_dir', True):
             rmtree(self.params.c['simulation']['nest_output_dir'])
