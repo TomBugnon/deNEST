@@ -47,24 +47,29 @@ class Simulation:
         # Create sessions
         print('Create sessions...', flush=True)
         self.order = self.params.c['sessions'].get('order', [])
-        self.sessions = {
-            name: Session(name, session_params)
-            for name, session_params in self.params.c['sessions'].named_leaves()
+        session_params = {
+            session_name: session_params
+            for session_name, session_params
+            in self.params.c['sessions'].named_leaves()
         }
+        self.sessions = [
+            Session(self.make_session_name(session_name, i),
+                    session_params[session_name])
+            for i, session_name in enumerate(self.order)
+        ]
         self.session_times = None
         print(f'-> Session order: {self.order}')
         print('Done...\n', flush=True)
 
     def run(self):
         """Run each of the sessions in order."""
-        for name in self.order:
-            print(f'Running session `{name}`...')
-            self.sessions[name].run(self.network)
+        for session in self.sessions:
+            print(f'Running session: `{session.name}`...')
+            session.run(self.network)
         # Get session times
         self.session_times = {
-            session_name: session.duration
-            for session_name, session in self.sessions.items()
-            }
+            session.name: session.duration for session in self.sessions
+        }
 
     def dump_connections(self):
         """Dump network connections."""
@@ -95,7 +100,7 @@ class Simulation:
         """Save data after the simulation has been run."""
         if not self.params.c['simulation']['dry_run']:
             # Save sessions
-            for session in self.sessions.values():
+            for session in self.sessions:
                 session.save(self.output_dir)
             # Save session times
             save_as_yaml(output_path(self.output_dir, 'session_times'),
@@ -201,3 +206,8 @@ class Simulation:
                 print(f'Module {module_name} is already loaded.')
                 return
             raise
+
+    @staticmethod
+    def make_session_name(name, index):
+        """Return a formatted session name comprising the session index."""
+        return str(index).zfill(2) + '_' + name
