@@ -99,16 +99,21 @@ def run(path, *overrides, output_dir=None, input_path=None):
     sim = Simulation(params)
     print('\n...done initializing simulation...', flush=True, end=SEPARATOR)
 
+    # Save simulation metadata
+    print('Save simulation metadata...\n', flush=True)
+    sim.save_metadata()
+    print('\n...done saving simulation metadata...', flush=True, end=SEPARATOR)
+
     # Simulate
     if not params.get(('simulation', 'dry_run'), False):
         print('Run simulation...\n', flush=True)
         sim.run()
         print('\n...done running simulation...', flush=True, end=SEPARATOR)
 
-    # Save simulation
+    # Save data after all sessions have been run.
     if params.get(('simulation', 'save_simulation'), True):
         print('Save simulation...\n', flush=True)
-        sim.save()
+        sim.save_data()
         print('\n...done saving simulation...', flush=True, end=SEPARATOR)
 
     # Dump network's connections
