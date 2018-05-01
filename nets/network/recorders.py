@@ -140,7 +140,7 @@ class PopulationRecorder(BaseRecorder):
             self._interval = nest.GetStatus(self.gid, 'interval')[0]
             if self._formatting_interval is None:
                 self._formatting_interval = self._interval
-            assert self._formatting_interval > self._interval
+            assert self._formatting_interval >= self._interval
         elif self.type == 'spike_detector':
             self._record_from = ['spikes']
             if self._formatting_interval is None:

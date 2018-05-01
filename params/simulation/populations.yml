@@ -5,7 +5,7 @@ network:
         spike_detector:
           formatting_interval: 1.0
         multimeter: {} # Formatting interval = recorder's interval
-      number_formatted: None
+      number_formatted: null
     input_layer:
       params:
         layer: input_layer
