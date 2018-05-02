@@ -332,16 +332,16 @@ def save_plot(fig, output_dir, filename, overwrite=False):
         return
     fig.savefig(path)
 
-def movie_filename(session_name):
-    return 'session_' + session_name + '_movie'
+def movie_filename():
+    return 'movie'
 
 
-def labels_filename(session_name):
-    return 'session_' + session_name + '_labels'
+def labels_filename():
+    return 'labels'
 
 
-def metadata_filename(session_name):
-    return 'session_' + session_name + '_metadata'
+def metadata_filename():
+    return 'metadata'
 
 
 def session_times_filename():

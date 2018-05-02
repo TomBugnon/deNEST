@@ -79,12 +79,17 @@ class Session:
     def save(self, output_dir):
         """Save full stim (per timestep), labels (per timestep) and metadata."""
         if self.params.get('save_stim', True) and self._stimulus is not None:
-            save.save_array(save.output_path(output_dir, 'movie', self.name),
+            save.save_array(save.output_path(output_dir,
+                                             'movie',
+                                             session_name=self.name),
                             self.stimulus['movie'])
-            save.save_array(save.output_path(output_dir, 'labels', self.name),
+            save.save_array(save.output_path(output_dir,
+                                             'labels',
+                                             session_name=self.name),
                             self.stimulus['labels'])
-            save.save_as_yaml(save.output_path(output_dir, 'metadata',
-                                               self.name),
+            save.save_as_yaml(save.output_path(output_dir,
+                                               'metadata',
+                                               session_name=self.name),
                               self.stimulus['metadata'])
 
     @property
