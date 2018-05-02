@@ -32,6 +32,8 @@ class Session:
         self._simulation_time = None
         # Initialize _stim dictionary
         self._stimulus = None
+        # Whether we inactivate all recorders
+        self._record = self.params.get('record', True)
 
     def __repr__(self):
         return '{classname}({name}, {params})'.format(
@@ -62,6 +64,27 @@ class Session:
 
         # Set input spike times in the future.
         network.set_input(self.stimulus, start_time=self._start)
+
+        # Inactivate all the recorders and connection_recorders for
+        # `self._simulation_time`
+        if not self._record:
+            self.inactivate_recorders(network)
+
+    def inactivate_recorders(self, network):
+        """Set 'start' of all (connection_)recorders at the end of session."""
+        # TODO: We need to do this differently if we start playing with the
+        # `origin` flag of recorders, eg to repeat experiments. Hence the
+        # safeguard:
+        import nest
+        for recorder in network._get_recorders():
+            assert nest.GetStatus(recorder.gid, 'origin')[0] == 0.
+        # Verbose
+        print(f'Inactivating all recorders for session {self.name}:')
+        # Set start time in the future
+        network._recorder_call(
+            'set_status',
+            {'start': nest.GetKernelStatus('time') + self._simulation_time}
+        )
 
     def run(self, network):
         """Initialize and run session."""

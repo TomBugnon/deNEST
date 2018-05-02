@@ -82,6 +82,12 @@ class BaseRecorder(NestObject):
                 except FileNotFoundError:
                     pass
 
+    def set_status(self, params):
+        """Call nest.SetStatus to set recorder params."""
+        import nest
+        print(f'--> Setting status for recorder {self.name}: {params}')
+        nest.SetStatus(self.gid, params)
+
 
 class PopulationRecorder(BaseRecorder):
     """Represent a recorder node. Connects to a single population.
