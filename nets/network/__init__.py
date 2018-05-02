@@ -114,9 +114,23 @@ class Network:
             if type(l).__name__ == layer_type
         ]
 
+    def _recorder_call(self, method_name, *args, recorder_type=None, **kwargs):
+        """Call a method on each recorder."""
+        for recorder in self._get_recorders(recorder_type=recorder_type):
+            method = getattr(recorder, method_name)
+            method(*args, **kwargs)
+
     def _get_recorders(self, recorder_type=None):
         for population in self.populations:
             yield from population.get_recorders(recorder_type=recorder_type)
+
+    def _connection_recorder_call(self, method_name, *args, recorder_type=None,
+        **kwargs):
+        """Call a method on each connection recorder."""
+        recorders = self._get_connection_recorders(recorder_type=recorder_type)
+        for recorder in recorders:
+            method = getattr(recorder, method_name)
+            method(*args, **kwargs)
 
     def _get_connection_recorders(self, recorder_type=None):
         for connection in self.connections:
