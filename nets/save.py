@@ -37,7 +37,7 @@ OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
 CLEAR_SUBDIRS = [(), ('recorders',), ('sessions'), ('connections',), ('dump',),
                  ('rasters',)]
 
-def output_subdir(output_dir, data_keyword):
+def output_subdir(output_dir, data_keyword, session_name=None):
     """Create and return the output subdirectory where a data type is saved.
 
     Args:
@@ -45,8 +45,13 @@ def output_subdir(output_dir, data_keyword):
         data_keyword (str): String designating the type of data for which we
             return an output subdirectory. Should be a key of the OUTPUT_SUBDIRS
             dictionary.
+        session_name (str or None): If a session is provided, data is organized
+            by subdirectories with that session's name.
     """
-    subdir = join(output_dir, *OUTPUT_SUBDIRS[data_keyword])
+    if session_name is None:
+        subdir = join(output_dir, *OUTPUT_SUBDIRS[data_keyword])
+    else:
+        subdir = join(output_dir, *OUTPUT_SUBDIRS[data_keyword], session_name)
     os.makedirs(subdir, exist_ok=True)
     return subdir
 
@@ -63,8 +68,10 @@ def output_filename(data_keyword, *args, **kwargs):
     return FILENAME_FUNCS[data_keyword](*args, **kwargs)
 
 
-def output_path(output_dir, data_keyword, *args, **kwargs):
-    return join(output_subdir(output_dir, data_keyword),
+def output_path(output_dir, data_keyword, *args, session_name=None, **kwargs):
+    return join(output_subdir(output_dir,
+                              data_keyword,
+                              session_name=session_name),
                 output_filename(data_keyword, *args, **kwargs))
 
 
