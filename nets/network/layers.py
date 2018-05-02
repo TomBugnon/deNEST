@@ -53,13 +53,17 @@ class AbstractLayer(NestObject):
         raise NotImplementedError
 
     @property
+    def populations(self):
+        return self._populations
+
+    @property
     @if_created
     def gid(self):
-        """The NEST global ID (GID) of the layer."""
+        """Return the NEST global ID (GID) of the layer."""
         return self._gid
 
     @if_created
-    def _connect(self, target, nest_params):
+    def connect(self, target, nest_params):
         # NOTE: Don't use this method directly; use a Connection instead
         from nest import topology as tp
         tp.ConnectLayers(self.gid, target.gid, nest_params)

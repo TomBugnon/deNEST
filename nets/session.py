@@ -76,12 +76,12 @@ class Session:
         # `origin` flag of recorders, eg to repeat experiments. Hence the
         # safeguard:
         import nest
-        for recorder in network._get_recorders():
+        for recorder in network.get_recorders():
             assert nest.GetStatus(recorder.gid, 'origin')[0] == 0.
         # Verbose
         print(f'Inactivating all recorders for session {self.name}:')
         # Set start time in the future
-        network._recorder_call(
+        network.recorder_call(
             'set_status',
             {'start': nest.GetKernelStatus('time') + self._simulation_time}
         )
@@ -116,7 +116,7 @@ class Session:
         # Format and save recorders using joblib
         args_list = [(recorder, output_dir)
                      for recorder
-                     in network._get_recorders(recorder_class="population")]
+                     in network.get_recorders(recorder_class="population")]
         if parallel:
             print(f'Formatting {len(args_list)} population recorders using'
                   f'joblib')
@@ -131,7 +131,7 @@ class Session:
         # Save synapse recorders using joblib
         args_list = [(connrecorder, output_dir)
                      for connrecorder
-                     in network._get_recorders(recorder_class="connection")]
+                     in network.get_recorders(recorder_class="connection")]
         if parallel:
             Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
                 delayed(worker)(*args, **kwargs) for args in args_list

@@ -678,7 +678,7 @@ class TopoConnection(BaseConnection):
         return mask
 
     def _connect(self):
-        self.source._connect(self.target, self.nest_params)
+        self.source.connect(self.target, self.nest_params)
 
 
 class RescaledConnection(TopoConnection):
