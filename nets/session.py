@@ -3,17 +3,21 @@
 # session.py
 """Represent a sequence of stimuli."""
 
-
 import time
 from os.path import join
 from pprint import pformat
 
 import numpy as np
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
 from . import save
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
 
+
+def worker(recorder, output_dir, **kwargs):
+    recorder.save(output_dir, **kwargs)
 
 class Session:
     """Represents a sequence of stimuli."""
@@ -76,8 +80,44 @@ class Session:
               f"{pretty_time(start_time)}...\n")
         self._end = int(nest.GetKernelStatus('time'))
 
-    def save(self, output_dir):
-        """Save full stim (per timestep), labels (per timestep) and metadata."""
+    def save_data(self, output_dir, network, parallel=True, n_jobs=-1,
+                  clear_memory=True):
+        """Save network's activity and clear memory."""
+        parallel = False
+        kwargs = {
+            'session_name': self.name,
+            'start_time': self._start,
+            'end_time': self._end,
+            'clear_memory': clear_memory,
+        }
+        # Format and save recorders using joblib
+        args_list = [(recorder, output_dir)
+                     for recorder in network._get_recorders()]
+        if parallel:
+            print(f'Formatting {len(args_list)} recorders using joblib')
+            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
+                delayed(worker)(*args, **kwargs) for args in args_list
+            )
+        else:
+            for args in tqdm(args_list,
+                             desc=(f'Formatting {len(args_list)} recorders '
+                                   f'without joblib')):
+                worker(*args, **kwargs)
+        # Save synapse recorders using joblib
+        args_list = [(connrecorder, output_dir)
+                     for connrecorder in network._get_connection_recorders()]
+        if parallel:
+            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
+                delayed(worker)(*args, **kwargs) for args in args_list
+            )
+        else:
+            for args in tqdm(args_list,
+                             desc=(f'Formatting {len(args_list)} connection '
+                                   f'recorders without joblib')):
+                worker(*args, **kwargs)
+
+    def save_metadata(self, output_dir):
+        """Save session metadata (stimuli, ...)."""
         if self.params.get('save_stim', True) and self._stimulus is not None:
             save.save_array(save.output_path(output_dir,
                                              'movie',

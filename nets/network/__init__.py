@@ -5,7 +5,6 @@
 
 import os
 
-from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from .connections import (ConnectionModel, FromFileConnection,
@@ -29,8 +28,6 @@ CONNECTION_TYPES = {
 }
 
 
-def worker(recorder, output_dir):
-    recorder.save(output_dir)
 
 
 class Network:
@@ -258,42 +255,16 @@ class Network:
         # TODO: Save gids-position mappings
         pass
 
-    def save_data(self, output_dir, with_rasters=True, parallel=True,
-                  n_jobs=-1):
+    def save_data(self, output_dir, with_rasters=True):
         # Save population rasters
         if with_rasters:
             for recorder in tqdm(self._get_recorders(),
                                  desc='Saving recorder raster plots'):
                 recorder.save_raster(output_dir)
-        # Format and save recorders using joblib
-        args_list = [(recorder, output_dir)
-                     for recorder in self._get_recorders()]
-        if parallel:
-            print(f'Formatting {len(args_list)} recorders using joblib')
-            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
-                delayed(worker)(*args) for args in args_list
-            )
-        else:
-            for args in tqdm(args_list,
-                             desc=(f'Formatting {len(args_list)} recorders '
-                                   f'without joblib')):
-                worker(*args)
         # Save synapse states
         for conn in tqdm(self.connections,
                          desc='Saving synapse data'):
             conn.save_synapse_state(output_dir)
-        # Save synapse recorders using joblib
-        args_list = [(connrecorder, output_dir)
-                     for connrecorder in self._get_connection_recorders()]
-        if parallel:
-            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
-                delayed(worker)(*args) for args in args_list
-            )
-        else:
-            for args in tqdm(args_list,
-                             desc=(f'Formatting {len(args_list)} connection '
-                                   f'recorders without joblib')):
-                worker(*args)
 
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections, desc='Creating connection plots'):

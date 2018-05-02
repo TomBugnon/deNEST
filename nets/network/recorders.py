@@ -4,8 +4,9 @@
 
 """Create and save population and connection recorder objects."""
 
-from itertools import product
+import os
 from copy import deepcopy
+from itertools import product
 
 import matplotlib.pyplot as plt
 import pylab
@@ -66,6 +67,21 @@ class BaseRecorder(NestObject):
     @property
     def type(self):
         return self._type
+
+    def clear_memory(self):
+        import nest
+        if 'memory' in self._record_to:
+            # Clear events by setting n_events = 0
+            nest.SetStatus(self.gid, {'n_events': 0})
+        if 'file' in self._record_to:
+            # delete the raw files
+            files = nest.GetStatus(self.gid, 'filenames')[0]
+            for file in files:
+                try:
+                    os.remove(file)
+                except FileNotFoundError:
+                    pass
+
 
 class PopulationRecorder(BaseRecorder):
     """Represent a recorder node. Connects to a single population.
@@ -178,7 +194,8 @@ class PopulationRecorder(BaseRecorder):
                       f' {str(self._population_name)}:')
                 print(f'-> {error_msg}\n')
 
-    def save(self, output_dir):
+    def save(self, output_dir, session_name=None, start_time=None,
+        end_time=None, clear_memory=True):
         """Save the formatted activity of recorders.
 
         NB: Since we load and manipulate the activity for all variables recorded
@@ -189,7 +206,8 @@ class PopulationRecorder(BaseRecorder):
         # Get formatted arrays for each variable and each unit_index.
         # all_recorder_activity = {'var1': [activity_unit_0,
         #                                   activity_unit_1,...]}
-        all_recorder_activity = self.formatted_data()
+        all_recorder_activity = self.formatted_data(start_time=start_time,
+                                                    end_time=end_time)
 
         # Save the formatted arrays separately for each var and unit_index
         for variable, unit_index in product(self.variables,
@@ -200,6 +218,7 @@ class PopulationRecorder(BaseRecorder):
                 'recorders',
                 self._layer_name,
                 self._population_name,
+                session_name=session_name,
                 unit_index=unit_index,
                 variable=variable,
                 formatting_interval=self._formatting_interval,
@@ -207,11 +226,15 @@ class PopulationRecorder(BaseRecorder):
             save.save_array(recorder_path,
                             all_recorder_activity[variable][unit_index])
 
-    def formatted_data(self):
+        if clear_memory:
+            self.clear_memory()
+
+    def formatted_data(self, start_time=None, end_time=None):
         # Throw a warning if the interval is below the millisecond as that won't
         # be taken in account during formatting.
         import nest
-        nslices = int(nest.GetKernelStatus('time')/self._formatting_interval)
+        duration = end_time - start_time
+        nslices = int(duration/self._formatting_interval)
         formatted_shape = (nslices,) + self._layer_shape
         if (self.type == 'multimeter'
             and self._interval != self._formatting_interval):
@@ -228,6 +251,8 @@ class PopulationRecorder(BaseRecorder):
             all_variables=self.variables,
             formatted_unit_indices=self._formatted_unit_indices,
             formatting_interval=self._formatting_interval,
+            start_time=start_time,
+            end_time=end_time
         )
 
     def get_nest_raster(self):
@@ -303,14 +328,21 @@ class ConnectionRecorder(BaseRecorder):
         # Get node parameters from nest (possibly nest defaults)
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
 
-    def save(self, output_dir):
+    def save(self, output_dir, session_name=None, start_time=None,
+        end_time=None, clear_memory=True):
 
-        data = format_recorders.gather_raw_data_connrec(self.gid)
+        data = format_recorders.gather_raw_data_connrec(self.gid,
+                                                        start_time=start_time,
+                                                        end_time=end_time)
 
         recorder_path = save.output_path(
             output_dir,
             'connectionrecorders',
-            self._connection_name
+            self._connection_name,
+            session_name=session_name,
         )
 
         save.save_dict(recorder_path, data)
+
+        if clear_memory:
+            self.clear_memory()

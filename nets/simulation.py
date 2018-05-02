@@ -62,14 +62,20 @@ class Simulation:
         print('Done...\n', flush=True)
 
     def run(self):
-        """Run each of the sessions in order."""
+        """Run and save each of the sessions in order."""
+        # Get list of recorders and formatting parameters
+        recorders = self.network._get_recorders()
+        parallel = self.params.c['simulation'].get('parallel',
+                                                   True)
+        n_jobs = self.params.c['simulation'].get('n_jobs',
+                                                 -1)
         for session in self.sessions:
             print(f'Running session: `{session.name}`...')
             session.run(self.network)
-        # Get session times
-        self.session_times = {
-            session.name: session.duration for session in self.sessions
-        }
+            session.save_data(self.output_dir,
+                              self.network,
+                              parallel=parallel,
+                              n_jobs=n_jobs)
 
     def dump_connections(self):
         """Dump network connections."""
@@ -101,21 +107,18 @@ class Simulation:
         if not self.params.c['simulation']['dry_run']:
             # Save sessions
             for session in self.sessions:
-                session.save(self.output_dir)
+                session.save_metadata(self.output_dir)
             # Save session times
+            self.session_times = {
+                session.name: session.duration for session in self.sessions
+            }
             save_as_yaml(output_path(self.output_dir, 'session_times'),
                          self.session_times)
             # Save network
             with_rasters = self.params.c['simulation'].get('save_nest_raster',
                                                            True)
-            parallel = self.params.c['simulation'].get('parallel',
-                                                       True)
-            n_jobs = self.params.c['simulation'].get('n_jobs',
-                                                     -1)
             self.network.save_data(self.output_dir,
-                                   with_rasters=with_rasters,
-                                   parallel=parallel,
-                                   n_jobs=n_jobs)
+                                   with_rasters=with_rasters)
         # Delete nest temporary directory
         if self.params.c['simulation'].get('delete_raw_dir', True):
             rmtree(self.params.c['simulation']['nest_output_dir'])
