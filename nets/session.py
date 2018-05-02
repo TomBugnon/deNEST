@@ -115,7 +115,8 @@ class Session:
         }
         # Format and save recorders using joblib
         args_list = [(recorder, output_dir)
-                     for recorder in network._get_population_recorders()]
+                     for recorder
+                     in network._get_recorders(recorder_class="population")]
         if parallel:
             print(f'Formatting {len(args_list)} population recorders using'
                   f'joblib')
@@ -129,7 +130,8 @@ class Session:
                 worker(*args, **kwargs)
         # Save synapse recorders using joblib
         args_list = [(connrecorder, output_dir)
-                     for connrecorder in network._get_connection_recorders()]
+                     for connrecorder
+                     in network._get_recorders(recorder_class="connection")]
         if parallel:
             Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
                 delayed(worker)(*args, **kwargs) for args in args_list
