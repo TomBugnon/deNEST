@@ -92,9 +92,10 @@ class Session:
         }
         # Format and save recorders using joblib
         args_list = [(recorder, output_dir)
-                     for recorder in network._get_recorders()]
+                     for recorder in network._get_population_recorders()]
         if parallel:
-            print(f'Formatting {len(args_list)} recorders using joblib')
+            print(f'Formatting {len(args_list)} population recorders using'
+                  f'joblib')
             Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
                 delayed(worker)(*args, **kwargs) for args in args_list
             )

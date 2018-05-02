@@ -114,13 +114,16 @@ class Network:
             if type(l).__name__ == layer_type
         ]
 
-    def _recorder_call(self, method_name, *args, recorder_type=None, **kwargs):
-        """Call a method on each recorder."""
-        for recorder in self._get_recorders(recorder_type=recorder_type):
+    def _population_recorder_call(self, method_name, *args, recorder_type=None,
+                                  **kwargs):
+        """Call a method on each population recorder."""
+        for recorder in self._get_population_recorders(
+            recorder_type=recorder_type):
             method = getattr(recorder, method_name)
             method(*args, **kwargs)
 
-    def _get_recorders(self, recorder_type=None):
+    def _get_population_recorders(self, recorder_type=None):
+        """Generator to get each population recorder."""
         for population in self.populations:
             yield from population.get_recorders(recorder_type=recorder_type)
 
@@ -133,8 +136,22 @@ class Network:
             method(*args, **kwargs)
 
     def _get_connection_recorders(self, recorder_type=None):
+        """Generator to get each population recorder."""
         for connection in self.connections:
             yield from connection.get_recorders(recorder_type=recorder_type)
+
+    def _recorder_call(self, method_name, *args, recorder_type=None,
+                                  **kwargs):
+        """Call a method on each population and connection recorder."""
+        for recorder in self._get_recorders(
+            recorder_type=recorder_type):
+            method = getattr(recorder, method_name)
+            method(*args, **kwargs)
+
+    def _get_recorders(self, recorder_type=None):
+        """Generator to get each recorder (population and connection)."""
+        yield from self._get_population_recorders(recorder_type=recorder_type)
+        yield from self._get_connection_recorders(recorder_type=recorder_type)
 
     def _get_synapses(self, synapse_type=None):
         if synapse_type is None:
@@ -272,7 +289,7 @@ class Network:
     def save_data(self, output_dir, with_rasters=True):
         # Save population rasters
         if with_rasters:
-            for recorder in tqdm(self._get_recorders(),
+            for recorder in tqdm(self._get_population_recorders(),
                                  desc='Saving recorder raster plots'):
                 recorder.save_raster(output_dir)
         # Save synapse states
