@@ -12,6 +12,7 @@ from .constants import (DEFAULT_INPUT_PATH, DEFAULT_OUTPUT_DIR, NEST_SEED,
 from .network import Network
 from .save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
+from .utils import misc
 
 # pylint:disable=missing-docstring
 
@@ -95,6 +96,8 @@ class Simulation:
         # Save params
         save_as_yaml(output_path(self.output_dir, 'params'),
                      self.params)
+        # Drop git hash
+        misc.drop_git_hash(self.output_dir)
         # Save network metadata
         self.network.save_metadata(self.output_dir)
 

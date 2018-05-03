@@ -134,9 +134,6 @@ def run(path, *overrides, output_dir=None, input_path=None):
         sim.dump_connection_numbers()
         print('\n...done dumping conn numbers...', flush=True, end=SEPARATOR)
 
-    # Drop git hash
-    misc.drop_git_hash(sim.output_dir)
-
     # Conclusive remarks
     print('\nThis simulation is a great success.\n')
     print(f"Total simulation virtual time: {sim.total_time()}ms")
