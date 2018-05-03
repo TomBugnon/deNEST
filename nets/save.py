@@ -5,6 +5,8 @@
 
 """Save and load movies, networks, activity and simulation parameters."""
 
+# pylint: disable=missing-docstring,ungrouped-imports
+
 import os
 import pickle
 from os.path import abspath, exists, isdir, isfile, join
@@ -14,7 +16,7 @@ import scipy.sparse
 import yaml
 
 # Use LIL as the default sparse format
-sparse_format = scipy.sparse.lil_matrix
+sparse_format = scipy.sparse.lil_matrix # pylint:disable=invalid-name
 
 # Modify along with FILENAME_FUNCS dict (see end of file)
 OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
@@ -133,9 +135,9 @@ def load_yaml(*args):
 
     Return empty list if the file doesn't exist.
     """
-    path = join(*args)
+    path = join(*args) # pylint:disable=no-value-for-parameter
     if exists(path):
-        with open(join(*args), 'rt') as f:
+        with open(join(*args), 'rt') as f: # pylint:disable=no-value-for-parameter
             return yaml.load(f)
     else:
         return []
@@ -194,6 +196,10 @@ def load_activity(output_dir, layer, population, variable='spikes',
                 activity of a given session)
             - `interval` (int or float): time between two consecutive slices
     """
+
+    # TODO: Split in simpler functions
+    # pylint: disable=too-many-arguments,too-many-locals
+
     # Get all filenames for that population (one per unit index)
     recorders_dir = output_subdir(output_dir, 'recorders')
     unit_index = None if all_units else 0
@@ -212,11 +218,10 @@ def load_activity(output_dir, layer, population, variable='spikes',
              for filename in all_filenames],
             axis=1
         )
-    except ValueError as e:
+    except ValueError:
         error = (f"Couldn't load filenames with prefix: ``{filename_prefix}``\n"
                  f"...in directory: ``{abspath(recorders_dir)}``")
-        print(error)
-        raise e
+        raise Exception(error)
     # Possibly extract the times corresponding to a specific session
     if session is not None:
         session_times = load_session_times(output_dir)[session]
@@ -302,7 +307,7 @@ def load_sparse(path):
 
 
 # TODO
-def connection_filename(connection):
+def connection_filename(connection): # pylint:disable=unused-argument
     """Generate string describing a population-to-population connection."""
     pass
 

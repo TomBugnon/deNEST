@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # save_synapses.py
 
+# TODO: Fix that module
+# pylint:disable=all
 
 def save_synapses(network, sim_savedir):
     """Save synapses' values.

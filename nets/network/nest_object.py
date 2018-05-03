@@ -9,7 +9,6 @@ from pprint import pformat
 
 @functools.total_ordering
 class NestObject:
-
     """Base class for a named NEST object.
 
     Args:
@@ -18,6 +17,8 @@ class NestObject:
 
     Objects are ordered and hashed by name.
     """
+
+    # pylint: disable=too-few-public-methods
 
     def __init__(self, name, params):
         self.name = name

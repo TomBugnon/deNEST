@@ -14,12 +14,15 @@ from ..utils import filter_suffixes, spike_times
 from .nest_object import NestObject
 from .utils import flatten, if_created, if_not_created
 
+# pylint:disable=missing-docstring
 
 class AbstractLayer(NestObject):
     """Abstract base class for a layer.
 
     Defines the layer interface.
     """
+
+    #pylint:disable=too-many-instance-attributes
 
     def __init__(self, name, params):
         super().__init__(name, params)
@@ -127,7 +130,6 @@ class AbstractLayer(NestObject):
         if self._prob_changed and proportion != 1.0:
             raise Exception("Attempting to change probabilistically some "
                             "units' state multiple times.")
-            return
         gids_to_change = self.get_gids_subset(
             self.gids(population=population),
             proportion
@@ -218,6 +220,7 @@ class Layer(AbstractLayer):
 
     @if_created
     def gids(self, population=None, location=None):
+        # pylint:disable=function-redefined
         pop_filt = None
         if population is not None:
             def pop_filt(gid):
@@ -238,7 +241,8 @@ class Layer(AbstractLayer):
         return tuple(self._locations[gid] for gid in args)
 
     @if_created
-    def position(self, *args):
+    @staticmethod
+    def position(*args):
         import nest.topology as tp
         return tp.GetPosition(args)
 

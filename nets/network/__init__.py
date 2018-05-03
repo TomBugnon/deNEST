@@ -28,10 +28,13 @@ CONNECTION_TYPES = {
 }
 
 
-
-
 class Network:
+    """Represent a full network."""
+
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, params):
+        """Initialize the network object without creating it in NEST."""
         self._created = False
         self._changed = False
         self.params = params
@@ -90,7 +93,8 @@ class Network:
     def __str__(self):
         return repr(self)
 
-    def _create_all(self, objects):
+    @staticmethod
+    def _create_all(objects):
         for obj in tqdm(objects):
             obj.create()
 
@@ -183,7 +187,8 @@ class Network:
         for connection in tqdm(self.connections, desc='Dumping connections'):
             connection.dump(output_dir)
 
-    def change_synapse_states(self, synapse_changes):
+    @staticmethod
+    def change_synapse_states(synapse_changes):
         """Change parameters for some connections of a population.
 
         Args:
@@ -261,7 +266,8 @@ class Network:
                                          changes.get('population', None),
                                          changes.get('proportion', 1.))
 
-    def reset(self):
+    @staticmethod
+    def reset():
         import nest
         nest.ResetNetwork()
 
@@ -305,7 +311,7 @@ class Network:
         for layer in self._get_layers(layer_type=layer_type):
             all_pops.update({
                 gid: (layer.name, population)
-                for gid, population in layer._populations.items()
+                for gid, population in layer.populations.items()
             })
         return all_pops
 

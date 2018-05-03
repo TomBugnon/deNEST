@@ -4,6 +4,8 @@
 
 """Create and save population and connection recorder objects."""
 
+# pylint:disable=missing-docstring
+
 import os
 from copy import deepcopy
 from itertools import product
@@ -15,9 +17,6 @@ from .. import save
 from ..utils import format_recorders
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
-
-# TODO: Right now, the recorder models are created separately and the classes
-
 
 POP_RECORDER_TYPES = ['multimeter', 'spike_detector']
 
@@ -202,6 +201,7 @@ class PopulationRecorder(BaseRecorder):
 
     def save(self, output_dir, session_name=None, start_time=None,
         end_time=None, clear_memory=True):
+        # pylint:disable=too-many-arguments
         """Save the formatted activity of recorders.
 
         NB: Since we load and manipulate the activity for all variables recorded
@@ -238,7 +238,6 @@ class PopulationRecorder(BaseRecorder):
     def formatted_data(self, start_time=None, end_time=None):
         # Throw a warning if the interval is below the millisecond as that won't
         # be taken in account during formatting.
-        import nest
         duration = end_time - start_time
         nslices = int(duration/self._formatting_interval)
         formatted_shape = (nslices,) + self._layer_shape
@@ -265,20 +264,20 @@ class PopulationRecorder(BaseRecorder):
         """Return the nest_raster plot and possibly error message."""
         import nest
         from nest import raster_plot
-        assert (self.type == 'spike_detector')
+        assert self.type == 'spike_detector'
         raster, error_msg = None, None
         if 'memory' not in self._record_to:
             error_msg = 'Data was not saved to memory.'
-        elif not len(nest.GetStatus(self.gid)[0]['events']['senders']):
+        elif not len(nest.GetStatus(self.gid)[0]['events']['senders']): # pylint: disable=len-as-condition
             error_msg = 'No events were recorded.'
         elif len(nest.GetStatus(self.gid)[0]['events']['senders']) == 1:
             error_msg = 'There was only one sender'
         else:
             try:
                 raster = raster_plot.from_device(self.gid, hist=True)
-            except Exception as e:
+            except Exception as exception: # pylint: disable=broad-except
                 error_msg = (f'Uncaught exception when generating raster.\n'
-                             f'--> Exception message: {e}\n'
+                             f'--> Exception message: {exception}\n'
                              f'--> Recorder status: {nest.GetStatus(self.gid)}')
         return raster, error_msg
 
@@ -291,6 +290,8 @@ class ConnectionRecorder(BaseRecorder):
     type)
     Handles connecting the weight_recorder node to the synapses.
     """
+
+    # pylint:disable=too-many-instance-attributes
 
     def __init__(self, name, params):
         # params in self.params, nest_params in self.nest_params
@@ -336,11 +337,12 @@ class ConnectionRecorder(BaseRecorder):
 
     def save(self, output_dir, session_name=None, start_time=None,
         end_time=None, clear_memory=True):
+        """Save unformatted weight-recorder data."""
+        # pylint:disable=too-many-arguments
 
         data = format_recorders.gather_raw_data_connrec(self.gid,
                                                         start_time=start_time,
                                                         end_time=end_time)
-
         recorder_path = save.output_path(
             output_dir,
             'connectionrecorders',

@@ -9,6 +9,7 @@ from .nest_object import NestObject
 from .recorders import PopulationRecorder
 from .utils import if_created, if_not_created
 
+# pylint: disable=missing-docstring
 
 class Population(NestObject):
     """Represent a population.

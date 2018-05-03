@@ -11,6 +11,7 @@ from collections import UserDict
 
 from .structures import dictify
 
+# pylint:disable=missing-docstring
 
 class AutoDict(UserDict):
 

@@ -4,7 +4,6 @@
 """Represent a sequence of stimuli."""
 
 import time
-from os.path import join
 from pprint import pformat
 
 import numpy as np
@@ -15,6 +14,7 @@ from . import save
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
 
+# pylint:disable=missing-docstring
 
 def worker(recorder, output_dir, **kwargs):
     recorder.save(output_dir, **kwargs)
@@ -105,8 +105,9 @@ class Session:
 
     def save_data(self, output_dir, network, parallel=True, n_jobs=-1,
                   clear_memory=True):
+        # TODO: Pass all simulation parameters rather than kwarg by kwarg?
+        # pylint:disable=too-many-arguments
         """Save network's activity and clear memory."""
-        parallel = False
         kwargs = {
             'session_name': self.name,
             'start_time': self._start,

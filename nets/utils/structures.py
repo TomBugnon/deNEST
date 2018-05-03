@@ -28,9 +28,9 @@ def chaintree(tree_list, children_key='children'):
 
     # Remove empty stuff from the list
     tree_list = [tree for tree in tree_list if bool(tree)]
-    if len(tree_list) == 1:
+    if len(tree_list) == 1: # pylint:disable=len-as-condition
         return tree_list[0]
-    if len(tree_list) == 0:
+    if len(tree_list) == 0: # pylint:disable=len-as-condition
         return {}
 
     # Combine horizontally the values in all trees under each key except
@@ -47,7 +47,7 @@ def chaintree(tree_list, children_key='children'):
         for tree in tree_list
         if (children_key in tree and tree[children_key])
     ])
-    if len(children_tups) > 0:
+    if len(children_tups) > 0: # pylint:disable=len-as-condition
         combined_subtrees = {
             child_key: chaintree(child_subtrees_list, children_key='children')
             for (child_key, child_subtrees_list) in children_tups
@@ -78,6 +78,8 @@ def combine_values(values):
     return values[0]
 
 
+# TODO: Check dangeraous-default-value pylint warning
+# pylint:disable=dangerous-default-value
 def all_key_values(dict_list, omit_keys=[]):
     """Combine entries across a list of dictionaries.
 
@@ -95,6 +97,7 @@ def all_key_values(dict_list, omit_keys=[]):
     return [(key, [d[key] for d in dict_list if key in d]) for key in all_keys]
 
 
+# pylint:disable=invalid-name
 def invert_dict(d, inversion_key):
     """Invert a dictionary.
 
@@ -121,6 +124,8 @@ def invert_dict(d, inversion_key):
     }
 
 
+# TODO: Check dangeraous-default-value pylint warning
+# pylint:disable=dangerous-default-value
 def deepcopy_dict(source_dict, diffs={}):
     """Return a deep copy of <source_dict> updated with <diffs>."""
     result = cp.deepcopy(source_dict)

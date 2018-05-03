@@ -13,6 +13,8 @@ from .network import Network
 from .save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
 
+# pylint:disable=missing-docstring
+
 
 class Simulation:
     """Represents a simulation.
@@ -145,10 +147,10 @@ class Simulation:
              'resolution': resolution,
              'overwrite_files': kernel_params.get('overwrite_files', True),
              'data_path': raw_dir})
-        N_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
+        n_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
         nest.SetKernelStatus({
-            'grng_seed': msd + N_vp,
-            'rng_seeds': range(msd + N_vp + 1, msd + 2 * N_vp + 1),
+            'grng_seed': msd + n_vp,
+            'rng_seeds': range(msd + n_vp + 1, msd + 2 * n_vp + 1),
             'print_time': kernel_params['print_time'],
         })
 
@@ -187,7 +189,8 @@ class Simulation:
         self.params.c['sessions']['input_path'] = input_path
         return input_path
 
-    def total_time(self):
+    @staticmethod
+    def total_time():
         import nest
         return nest.GetKernelStatus('time')
 
@@ -203,8 +206,8 @@ class Simulation:
         import nest
         try:
             nest.Install(module_name)
-        except nest.NESTError as e:
-            if 'loaded already' in str(e):
+        except nest.NESTError as exception:
+            if 'loaded already' in str(exception):
                 print(f'Module {module_name} is already loaded.')
                 return
             raise

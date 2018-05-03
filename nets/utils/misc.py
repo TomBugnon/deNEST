@@ -3,6 +3,8 @@
 # utils/misc.py
 """Miscellaneous utils."""
 
+# pylint:disable=missing-docstring
+
 import subprocess
 import time
 from os.path import join
@@ -41,6 +43,9 @@ def generate_output_subdir(main_output_dir, label=None,
         subdirectories of `main_output_dir`
         - `date` is of the form yyyy/mm/dd/hh:mm
     """
+
+    # pylint:disable=invalid-name
+
     import datetime
     import os
     import os.path
@@ -60,7 +65,7 @@ def generate_output_subdir(main_output_dir, label=None,
     N = 1 if not all_subdirs_N else max(all_subdirs_N) + 1
 
     # Get time string
-    timestr = '{date:%Y-%m-%d}'.format(date = datetime.datetime.now())
+    timestr = '{date:%Y-%m-%d}'.format(date=datetime.datetime.now())
 
     # label string
     labelstr = '' if label is None else '_' + label

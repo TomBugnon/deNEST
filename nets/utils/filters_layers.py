@@ -4,7 +4,8 @@
 """Map between filters used in preprocessing and input layers of a network."""
 
 
-# TODO
+# TODO: Implement
+# pylint:disable=unused-argument,no-else-return
 def filter_index(input_layer_name, stim_metadata=None):
     """Return the index of the filter associated to an input layer.
 

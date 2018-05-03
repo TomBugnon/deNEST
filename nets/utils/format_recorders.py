@@ -35,6 +35,8 @@ def format_recorder(gid,
             slices corresponding to `formatting_interval` time intervals.
     """
 
+    # pylint:disable=too-many-arguments
+
     if recorder_type == 'multimeter':
 
         # mm_data = {'var_i': `activity_list`, ...}
@@ -78,6 +80,9 @@ def format_mm_data(sender_gid,
                    start_time=None,
                    end_time=None):
     """Return dict containiing all formatted (t, row, col)-np.arrays."""
+
+    # pylint:disable=too-many-arguments, too-many-locals
+
     all_recorder_activity = {
         var: [np.zeros(shape) for i in formatted_unit_indices]
         for var in all_variables
@@ -104,6 +109,9 @@ def format_sd_data(sender_gid,
                    start_time=None,
                    end_time=None):
     """Return dict containing all formatted (t, row, col)-np.arrays."""
+
+    # pylint:disable=too-many-arguments
+
     all_recorder_activity = {
         'spikes': [np.zeros(shape) for i in formatted_unit_indices]
     }

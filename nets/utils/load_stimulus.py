@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 # session.py
 
-from os.path import basename, isdir, isfile, join
+"""Load raw session's stimulus from file."""
+
+# pylint:disable=missing-docstring
+
+from os.path import basename, isfile, join
 
 import numpy as np
 
@@ -84,7 +88,7 @@ def load_raw_stimulus(input_path, session_input):
         print(f"-> Loading input from stimulus file `{session_input}` ... at"
               f" formatted input directory `{input_path}`.. (loading option 4)")
         return stim
-    except (FileNotFoundError, AssertionError) as e:
+    except (FileNotFoundError, AssertionError):
         pass
     error_string = (f"Couldn't load an input stimulus with: \n`input_path`"
                     f"simulation parameter: {input_path} and \n`session_input`"

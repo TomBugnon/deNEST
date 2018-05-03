@@ -13,6 +13,7 @@ import numpy as np
 
 from ..save import save_array
 
+# pylint: disable=missing-docstring,too-many-arguments,invalid-name
 
 def vertical_cross(nrows=9, ncols=9, width=3):
     """Return nrows * ncols np.array containing a centered cross of width."""

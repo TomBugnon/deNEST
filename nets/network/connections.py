@@ -3,14 +3,14 @@
 # network/connections.py
 """Connection classes."""
 
+# pylint:disable=missing-docstring
+
 import csv
 import itertools
 from collections import ChainMap
 from copy import deepcopy
 from os.path import join
 
-import nest
-import numpy as np
 from tqdm import tqdm
 
 from . import topology
@@ -18,7 +18,6 @@ from .. import save
 from .layers import InputLayer
 from .nest_object import NestObject
 from .recorders import ConnectionRecorder
-from .utils import if_created, if_not_created
 
 # Matched substrings when scaling masks.
 SCALED_MASK_SUBSTRINGS = ['radius', 'lower_left', 'upper_right']
@@ -131,7 +130,8 @@ class BaseConnection(NestObject):
     "base" synapse model (saved in self.synapse_model)
     """
 
-    # pylint: disable=too-many-instance-attributes
+    # TODO: Make some methods private?
+    # pylint: disable=too-many-instance-attributes,too-many-public-methods
 
     def __init__(self, source, target, model, connection_dict):
         """Initialize Connection object from model and overrides.
@@ -350,6 +350,7 @@ class BaseConnection(NestObject):
                 <model>: <synapse_model>
             }
         """
+        import nest
         sources, targets, params = self.format_conns()
         nest.Connect(sources, targets,
                      conn_spec='one_to_one',
@@ -410,6 +411,7 @@ class BaseConnection(NestObject):
     def dump(self, output_dir):
         # TODO: Query using synapse labels to identify connections with same
         # source pop, target pop and synapse model
+        import nest
         if self.dump_connection:
             conns = nest.GetConnections(
                 source=self.source.gids(population=self.source_population),
@@ -467,7 +469,7 @@ class BaseConnection(NestObject):
         # TODO: Get our own version so we can plot convergent connections
         import nest.topology as tp
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots() # pylint:disable=invalid-name
         tp.PlotLayer(self.target.gid, fig)
         ctr = self.source.find_center_element(population=self.source_population)
         # Plot the kernel and mask if the connection is topological or rescaled.
@@ -514,14 +516,14 @@ class BaseConnection(NestObject):
         - if the source is an ``InputLayer``, the source population is a parrot
         neuron (otherwise we can't record the input layer).
         """
-        assert(type(self.target).__name__ != 'InputLayer')
+        assert type(self.target).__name__ != 'InputLayer'
         if (type(self.source).__name__ == 'InputLayer'
             and self.source_population != self.source.PARROT_MODEL):
-                import warnings
-                warn_str = (f'\n\nCareful! The Input population for connection:'
-                            f'\n{self.__str__}\n is not a parrot '
-                            'neuron! This might throw a bad NEST error.\n\n\n')
-                warnings.warn(warn_str)
+            import warnings
+            warn_str = (f'\n\nCareful! The Input population for connection:'
+                        f'\n{self.__str__}\n is not a parrot '
+                        'neuron! This might throw a bad NEST error.\n\n\n')
+            warnings.warn(warn_str)
 
 
 class FromFileConnection(BaseConnection):
@@ -584,6 +586,7 @@ class TopoConnection(BaseConnection):
         scaled by the Connection's `weight_gain` parameter, and by the source
         layer's `weight_gain` parameter.
         """
+        import nest
         synapse_df_weight = nest.GetDefaults(self.nest_params['synapse_model'],
                                              'weight')
         scaled_weight = self.scale_weights(synapse_df_weight)
@@ -684,6 +687,8 @@ class TopoConnection(BaseConnection):
 class RescaledConnection(TopoConnection):
     """Represent a rescaled topological connection from a dump."""
 
+    # pylint:disable=too-many-instance-attributes
+
     def __init__(self, source, target, model, conn_dict):
         super().__init__(source, target, model, conn_dict)
         if self.nest_params['connection_type'] == 'convergent':
@@ -716,9 +721,9 @@ class RescaledConnection(TopoConnection):
 
     def redraw_conns(self):
         """Redraw pool gids according to topological parameters."""
-        PARALLEL = True
+        # TODO: Use simulation `parallel` parameter
+        PARALLEL = True # pylint: disable=invalid-name,
         drivers = self.driver_gids()
-        # TODO: Parallelize
         # Draw the model's number of pooled gids for each driving unit
         if PARALLEL:
             from joblib import Parallel, delayed
@@ -743,12 +748,14 @@ class RescaledConnection(TopoConnection):
                 # profile?
         return conns
 
-    def draw_pool_gids(self, driver_gid, N=1):
+    def draw_pool_gids(self, driver_gid, N=1): # pylint:disable=invalid-name
         return topology.draw_pool_gids(self, driver_gid, N=N)
 
 
 class UnitConn(NestObject):
     """Represent a single connection between two neurons."""
+
+    # pylint:disable=too-few-public-methods
 
     def __init__(self, name, params):
         super().__init__(name, params)
