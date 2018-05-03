@@ -103,11 +103,19 @@ class Session:
               f"{pretty_time(start_time)}...\n")
         self._end = int(nest.GetKernelStatus('time'))
 
-    def save_data(self, output_dir, network, parallel=True, n_jobs=-1,
-                  clear_memory=True):
-        # TODO: Pass all simulation parameters rather than kwarg by kwarg?
-        # pylint:disable=too-many-arguments
-        """Save network's activity and clear memory."""
+    def save_data(self, output_dir, network, sim_params):
+        """Save network's activity and clear memory.
+
+        Args:
+            output_dir (str):
+            network (Network object):
+            sim_params (Params object): Simulation parameters.
+        """
+        # Get relevant params from sim_params
+        parallel = sim_params.get('parallel', True)
+        n_jobs = sim_params.get('n_jobs', -1)
+        clear_memory = sim_params.get('clear_memory', False)
+        # Make kwargs dict that is passed to Recorder.save
         kwargs = {
             'session_name': self.name,
             'start_time': self._start,

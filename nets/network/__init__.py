@@ -280,7 +280,8 @@ class Network:
         # TODO: Save gids-position mappings
         pass
 
-    def save_data(self, output_dir, with_rasters=True):
+    def save_data(self, output_dir, sim_params):
+        with_rasters = sim_params.get('with_rasters')
         # Save population rasters
         if with_rasters:
             for recorder in tqdm(self.get_recorders(recorder_class="population"),

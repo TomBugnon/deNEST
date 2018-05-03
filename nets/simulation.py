@@ -66,17 +66,12 @@ class Simulation:
     def run(self):
         """Run and save each of the sessions in order."""
         # Get list of recorders and formatting parameters
-        parallel = self.params.c['simulation'].get('parallel',
-                                                   True)
-        n_jobs = self.params.c['simulation'].get('n_jobs',
-                                                 -1)
         for session in self.sessions:
             print(f'Running session: `{session.name}`...')
             session.run(self.network)
             session.save_data(self.output_dir,
                               self.network,
-                              parallel=parallel,
-                              n_jobs=n_jobs)
+                              self.params.c['simulation'])
 
     def dump_connections(self):
         """Dump network connections."""
@@ -116,10 +111,8 @@ class Simulation:
             save_as_yaml(output_path(self.output_dir, 'session_times'),
                          self.session_times)
             # Save network
-            with_rasters = self.params.c['simulation'].get('save_nest_raster',
-                                                           True)
             self.network.save_data(self.output_dir,
-                                   with_rasters=with_rasters)
+                                   self.params.c['simulation'])
         # Delete nest temporary directory
         if self.params.c['simulation'].get('delete_raw_dir', True):
             rmtree(self.params.c['simulation']['nest_output_dir'])
