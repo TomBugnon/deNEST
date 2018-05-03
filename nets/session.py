@@ -127,34 +127,26 @@ class Session:
             'clear_memory': clear_memory,
             'with_raster': with_raster
         }
-        # save recorders using joblib
+        # save all recorders (population and connection), possibly using joblib
         args_list = [(recorder, output_dir)
                      for recorder
-                     in network.get_recorders(recorder_class="population")]
-        if parallel:
-            print(f'Formatting {len(args_list)} population recorders using'
-                  f'joblib')
-            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
-                delayed(worker)(*args, **kwargs) for args in args_list
-            )
-        else:
-            for args in tqdm(args_list,
-                             desc=(f'Formatting {len(args_list)} recorders '
-                                   f'without joblib')):
-                worker(*args, **kwargs)
-        # Save synapse recorders using joblib
-        args_list = [(connrecorder, output_dir)
-                     for connrecorder
-                     in network.get_recorders(recorder_class="connection")]
+                     in network.get_recorders(recorder_class=None)]
+        # Verbose
+        msg = (f"Formatting {len(args_list)} population/connection recorders:\n"
+               f" - {'using' if parallel else 'without'} joblib, \n"
+               f" - {'with' if with_raster else 'without'} raster plots \n"
+               f" - {'with' if clear_memory else 'without'} clearing memory\n"
+               f"...")
+        print(msg)
         if parallel:
             Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
                 delayed(worker)(*args, **kwargs) for args in args_list
             )
         else:
             for args in tqdm(args_list,
-                             desc=(f'Formatting {len(args_list)} connection '
-                                   f'recorders without joblib')):
+                             desc=''):
                 worker(*args, **kwargs)
+        print('... done \n')
 
     def save_metadata(self, output_dir):
         """Save session metadata (stimuli, ...)."""
