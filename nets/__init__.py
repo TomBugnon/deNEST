@@ -104,7 +104,7 @@ def run(path, *overrides, output_dir=None, input_path=None):
     sim.save_metadata()
     print('\n...done saving simulation metadata...', flush=True, end=SEPARATOR)
 
-    # Simulate
+    # Simulate and save
     if not params.get(('simulation', 'dry_run'), False):
         print('Run simulation...\n', flush=True)
         sim.run()
