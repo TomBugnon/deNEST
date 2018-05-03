@@ -281,8 +281,9 @@ class Network:
         pass
 
     def save_data(self, output_dir, sim_params):
-        with_rasters = sim_params.get('with_rasters')
-        # Save population rasters
+        # Save population rasters if they haven't been saved already
+        clear_memory = sim_params.get('clear_memory', False)
+        with_rasters = sim_params.get('with_rasters', True) and not clear_memory
         if with_rasters:
             for recorder in tqdm(self.get_recorders(recorder_class="population"),
                                  desc='Saving recorder raster plots'):

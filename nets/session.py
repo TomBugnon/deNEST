@@ -115,14 +115,19 @@ class Session:
         parallel = sim_params.get('parallel', True)
         n_jobs = sim_params.get('n_jobs', -1)
         clear_memory = sim_params.get('clear_memory', False)
+        # We save the rasters only if we clear memory at the end of each
+        # session. Otherwise we save them once at the end of the whole
+        # simulation
+        with_raster = sim_params.get('with_raster', True) and clear_memory
         # Make kwargs dict that is passed to Recorder.save
         kwargs = {
             'session_name': self.name,
             'start_time': self._start,
             'end_time': self._end,
             'clear_memory': clear_memory,
+            'with_raster': with_raster
         }
-        # Format and save recorders using joblib
+        # save recorders using joblib
         args_list = [(recorder, output_dir)
                      for recorder
                      in network.get_recorders(recorder_class="population")]

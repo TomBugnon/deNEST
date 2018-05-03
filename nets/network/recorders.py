@@ -182,7 +182,7 @@ class PopulationRecorder(BaseRecorder):
     def locations(self):
         return self._locations
 
-    def save_raster(self, output_dir):
+    def save_raster(self, output_dir, session_name=None):
         if self.type == 'spike_detector':
             raster, error_msg = self.get_nest_raster()
             if raster is not None:
@@ -191,7 +191,8 @@ class PopulationRecorder(BaseRecorder):
                 f.set_size_inches(15, 9)
                 f.savefig(save.output_path(output_dir, 'rasters',
                                            self._layer_name,
-                                           self._population_name),
+                                           self._population_name,
+                                           session_name=session_name),
                           dpi=100)
                 plt.close()
             else:
@@ -200,15 +201,16 @@ class PopulationRecorder(BaseRecorder):
                 print(f'-> {error_msg}\n')
 
     def save(self, output_dir, session_name=None, start_time=None,
-        end_time=None, clear_memory=True):
+        end_time=None, clear_memory=True, with_raster=True):
         # pylint:disable=too-many-arguments
-        """Save the formatted activity of recorders.
+        """Save the activity of recorders.
 
         NB: Since we load and manipulate the activity for all variables recorded
         by a recorder at once (for speed), this can get hard on memory when many
         variables are recorded. If you experience memory issues, a possiblity is
         to create separate recorders for each variable.
         """
+
         # Get formatted arrays for each variable and each unit_index.
         # all_recorder_activity = {'var1': [activity_unit_0,
         #                                   activity_unit_1,...]}
@@ -232,8 +234,12 @@ class PopulationRecorder(BaseRecorder):
             save.save_array(recorder_path,
                             all_recorder_activity[variable][unit_index])
 
+        if with_raster:
+            self.save_raster(output_dir, session_name=session_name)
+
         if clear_memory:
             self.clear_memory()
+
 
     def formatted_data(self, start_time=None, end_time=None):
         # Throw a warning if the interval is below the millisecond as that won't
@@ -336,7 +342,7 @@ class ConnectionRecorder(BaseRecorder):
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
 
     def save(self, output_dir, session_name=None, start_time=None,
-        end_time=None, clear_memory=True):
+        end_time=None, clear_memory=True, with_raster=False):
         """Save unformatted weight-recorder data."""
         # pylint:disable=too-many-arguments
 
@@ -351,6 +357,13 @@ class ConnectionRecorder(BaseRecorder):
         )
 
         save.save_dict(recorder_path, data)
+
+        if with_raster:
+            # TODO: I keep this kwarg only so that Recorder.save and
+            # ConnectionRecorder.save have the same signature and can be called
+            # in the same Parallel loop. There should be a better way of doing
+            # this.
+            pass
 
         if clear_memory:
             self.clear_memory()
