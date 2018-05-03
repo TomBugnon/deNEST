@@ -7,6 +7,8 @@ import subprocess
 import time
 from os.path import join
 
+from .. import save
+
 
 def pretty_time(start_time):
     minutes, seconds = divmod(time.time() - start_time, 60)
@@ -16,7 +18,9 @@ def pretty_time(start_time):
 
 def drop_git_hash(output_dir):
     git_hash = git_head_hash()
-    with open(join(output_dir, 'git_hash'), 'wb') as f:
+    path = join(save.output_subdir(output_dir, 'git_hash'),
+                save.output_filename('git_hash'))
+    with open(path, 'wb') as f:
         f.write(git_hash)
 
 

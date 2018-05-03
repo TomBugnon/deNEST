@@ -30,6 +30,7 @@ OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
                   'params': (),
                   'plots': ('plots',),
                   'measures': ('measures',),
+                  'git_hash': (),
 }
 
 # Subdirectories that are cleared if the simulation parameter 'clear_output_dir'
@@ -355,6 +356,9 @@ def params_filename():
 def rasters_filename(layer, pop):
     return 'spikes_raster_' + layer + '_' + pop + '.png'
 
+def git_hash_filename():
+    return 'git_hash'
+
 
 FILENAME_FUNCS = {'params': params_filename,
                   'session_times': session_times_filename,
@@ -363,5 +367,6 @@ FILENAME_FUNCS = {'params': params_filename,
                   'movie': movie_filename,
                   'recorders': recorder_filename,
                   'connectionrecorders': connrecorder_filename,
-                  'rasters': rasters_filename
+                  'rasters': rasters_filename,
+                  'git_hash': git_hash_filename,
 }
