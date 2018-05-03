@@ -9,6 +9,7 @@
 
 import os
 import pickle
+import shutil
 from os.path import abspath, exists, isdir, isfile, join
 
 import numpy as np
@@ -37,8 +38,10 @@ OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
 
 # Subdirectories that are cleared if the simulation parameter 'clear_output_dir'
 # is set to true.
-CLEAR_SUBDIRS = [(), ('recorders',), ('sessions'), ('connections',), ('dump',),
-                 ('rasters',)]
+CLEAR_SUBDIRS = [
+    (), ('recorders',), ('connection_recorders',), ('sessions'),
+    ('connections',), ('dump',), ('rasters',)
+]
 
 def output_subdir(output_dir, data_keyword, session_name=None):
     """Create and return the output subdirectory where a data type is saved.
@@ -78,25 +81,49 @@ def output_path(output_dir, data_keyword, *args, session_name=None, **kwargs):
                 output_filename(data_keyword, *args, **kwargs))
 
 
-def make_output_dir(output_dir, clear_output_dir):
+def make_output_dir(output_dir, clear_output_dir=True,
+                    delete_subdirs_list=None):
     """Create and possibly clear output directory.
 
-    Create the directory if it doesn't exist and delete the files in the
-    subdirectories specified in CLEAR_SUBDIRS if ``clear_output_dir`` is
-    True.
+    Create the directory if it doesn't exist.
+    If `clear_output_dir` is True, we clear the directory. We iterate over all
+    the subdirectories specified in CLEAR_SUBDIRS, and for each of those we:
+        - delete all the files
+        - delete all the directories whose name is in the `delete_subdirs` list.
+
+    Args:
+        output_dir (str):
+        clear_output_dir (bool): Whether we clear the CLEAR_SUBDIRS
+        delete_subdirs_list (list of str or None): List of subdirectories of
+            CLEAR_SUBDIRS that we delete.
     """
-    # clear_output_dir = False
+    if delete_subdirs_list is None:
+        delete_subdirs_list = []
     os.makedirs(output_dir, exist_ok=True)
     if clear_output_dir:
         for clear_dir in [join(output_dir, *subdir)
                           for subdir in CLEAR_SUBDIRS
                           if isdir(join(output_dir, *subdir))]:
             print(f'-> Clearing {clear_dir}')
-            for f in os.listdir(clear_dir):
-                path = join(clear_dir, f)
-                if os.path.isfile(path):
-                    os.remove(path)
+            # Delete files in the CLEAR_SUBDIRS
+            delete_files(clear_dir)
+            # Delete the contents of all the delete_subdirs we encounter
+            delete_subdirs(clear_dir, delete_subdirs_list)
 
+
+def delete_files(clear_dir):
+    """Delete all files in a directory."""
+    for f in os.listdir(clear_dir):
+        path = join(clear_dir, f)
+        if os.path.isfile(path):
+            os.remove(path)
+
+def delete_subdirs(clear_dir, delete_subdirs_list):
+    """Delete some subdirectories in a directory."""
+    for f in os.listdir(clear_dir):
+        path = join(clear_dir, f)
+        if os.path.isdir(path) and f in delete_subdirs_list:
+            shutil.rmtree(path)
 
 def save_array(path, array):
     """Save array either as dense or sparse depending on data type."""
