@@ -205,6 +205,36 @@ def load_weight_recorder(output_dir, conn_name, start_trim=None):
         for key, data in w_dict.items()
     }
 
+
+def load_files(directory, filename_prefix):
+    """Load all files with prefix and concatenate along the second dimension."""
+    all_filenames = [f for f in os.listdir(directory)
+                     if f.startswith(filename_prefix)
+                     and isfile(join(directory, f))]
+    # Load the activity arrays and concatenate along the second dimension.
+    try:
+        return np.concatenate(
+            [load_as_numpy(join(directory, filename))
+             for filename in all_filenames],
+            axis=1
+        )
+    except ValueError:
+        error = (f"Couldn't load filenames with prefix: ``{filename_prefix}``\n"
+                 f"...in directory: ``{abspath(directory)}``")
+        raise Exception(error)
+
+def load_session_activity(output_dir, layer, population, variable='spikes',
+                          session=None, all_units=False):
+    # Get all filenames for that population (one per unit index)
+    recorders_dir = output_subdir(output_dir, 'recorders',
+                                  session_name=session)
+    unit_index = None if all_units else 0
+    filename_prefix = output_filename('recorders', layer, population,
+                                      variable=variable,
+                                      unit_index=unit_index)
+    return load_files(recorders_dir, filename_prefix)
+
+
 def load_activity(output_dir, layer, population, variable='spikes',
                   session=None, all_units=False, start_trim=None,
                   end_trim=None, interval=1.0):
@@ -223,40 +253,27 @@ def load_activity(output_dir, layer, population, variable='spikes',
                 activity of a given session)
             - `interval` (int or float): time between two consecutive slices
     """
+    # pylint: disable=too-many-arguments
 
-    # TODO: Split in simpler functions
-    # pylint: disable=too-many-arguments,too-many-locals
-
-    # Get all filenames for that population (one per unit index)
-    recorders_dir = output_subdir(output_dir, 'recorders')
-    unit_index = None if all_units else 0
-    filename_prefix = output_filename('recorders', layer, population,
-                                      variable=variable,
-                                      unit_index=unit_index)
-    all_filenames = [f for f in os.listdir(recorders_dir)
-                     if f.startswith(filename_prefix)
-                     and isfile(join(recorders_dir, f))]
-    # Load the activity for the required unit indices and concatenate along the
-    # first dimension.
-    # Concatenate along first dimension (row)
-    try:
-        all_sessions_activity = np.concatenate(
-            [load_as_numpy(join(recorders_dir, filename))
-             for filename in all_filenames],
-            axis=1
-        )
-    except ValueError:
-        error = (f"Couldn't load filenames with prefix: ``{filename_prefix}``\n"
-                 f"...in directory: ``{abspath(recorders_dir)}``")
-        raise Exception(error)
-    # Possibly extract the times corresponding to a specific session
-    if session is not None:
-        session_times = load_session_times(output_dir)[session]
-        min_slice = int(min(session_times) / interval)
-        max_slice = int(max(session_times) / interval)
+    # Get list of sessions that we load
+    if session is None:
+        all_session_times = load_session_times(output_dir)
+        all_sessions = sorted(list(all_session_times.keys()))
     else:
-        min_slice, max_slice = 0, len(all_sessions_activity)
+        all_sessions = [session]
+
+    all_sessions_activity = np.concatenate(
+        [
+            load_session_activity(output_dir, layer, population,
+                                  variable=variable, session=session,
+                                  all_units=all_units)
+            for session in all_sessions
+        ],
+        axis=0
+    )
+
     # Possibly trim the beginning and the end, after selecting for session
+    min_slice, max_slice = 0, len(all_sessions_activity)
     if start_trim is not None and start_trim > 0:
         min_slice = max(min_slice, int(start_trim / interval))
     if end_trim is not None and end_trim > 0:
