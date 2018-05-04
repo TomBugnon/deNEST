@@ -235,7 +235,16 @@ class PopulationRecorder(BaseRecorder):
                             all_recorder_activity[variable][unit_index])
 
 
+    # TODO: Figure out a way to get all the data
     def formatted_data(self, start_time=None, end_time=None):
+        """Get formatted data.
+
+        NB: TODO: Because the last event recorded has timestamp `end_time` - 1 (where
+        `end_time` is the kernel time at the end of a session), the last frame
+        of formatted arrays is always filled with 0 and the data between
+        `end_time` - 1 and `end_time` is lost.
+        """
+        # Get shape of formatted array.
         duration = end_time - start_time
         nslices = int(duration/self._formatting_interval)
         formatted_shape = (nslices,) + self._layer_shape

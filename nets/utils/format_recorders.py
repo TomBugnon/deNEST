@@ -88,7 +88,7 @@ def format_mm_data(sender_gid,
         for var in all_variables
     }
     for (i, t) in enumerate(time):
-        if not start_time <= t <= end_time:
+        if not start_time < t <= end_time:
             continue
         row, col, index = location_by_gid[int(sender_gid[i])]
         if index in formatted_unit_indices:
@@ -116,7 +116,7 @@ def format_sd_data(sender_gid,
         'spikes': [np.zeros(shape) for i in formatted_unit_indices]
     }
     for (i, t) in enumerate(time):
-        if not start_time <= t <= end_time:
+        if not start_time < t <= end_time:
             continue
         row, col, index = location_by_gid[int(sender_gid[i])]
         if index in formatted_unit_indices:
