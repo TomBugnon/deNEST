@@ -103,6 +103,8 @@ class Session:
               f"{pretty_time(start_time)}...\n")
         self._end = int(nest.GetKernelStatus('time'))
 
+    # TODO: Format only if the session has been recorded and figure out a way to
+    # load the data properly
     def save_data(self, output_dir, network, sim_params):
         """Save network's activity and clear memory.
 
