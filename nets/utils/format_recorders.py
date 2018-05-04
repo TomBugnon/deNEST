@@ -14,6 +14,12 @@ import nest
 import numpy as np
 
 
+def unfilled_array(shape):
+    """Return array of NaN of a given shape."""
+    array = np.empty(shape)
+    array[:] = np.nan
+    return array
+
 def format_recorder(gid,
                     recorder_type=None,
                     shape=None,
@@ -84,7 +90,7 @@ def format_mm_data(sender_gid,
     # pylint:disable=too-many-arguments, too-many-locals
 
     all_recorder_activity = {
-        var: [np.zeros(shape) for i in formatted_unit_indices]
+        var: [unfilled_array(shape) for i in formatted_unit_indices]
         for var in all_variables
     }
     for (i, t) in enumerate(time):
@@ -113,7 +119,7 @@ def format_sd_data(sender_gid,
     # pylint:disable=too-many-arguments
 
     all_recorder_activity = {
-        'spikes': [np.zeros(shape) for i in formatted_unit_indices]
+        'spikes': [unfilled_array(shape) for i in formatted_unit_indices]
     }
     for (i, t) in enumerate(time):
         if not start_time < t <= end_time:
