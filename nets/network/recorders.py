@@ -4,8 +4,11 @@
 
 """Create and save population and connection recorder objects."""
 
-from itertools import product
+# pylint:disable=missing-docstring
+
+import os
 from copy import deepcopy
+from itertools import product
 
 import matplotlib.pyplot as plt
 import pylab
@@ -14,9 +17,6 @@ from .. import save
 from ..utils import format_recorders
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
-
-# TODO: Right now, the recorder models are created separately and the classes
-
 
 POP_RECORDER_TYPES = ['multimeter', 'spike_detector']
 
@@ -66,6 +66,27 @@ class BaseRecorder(NestObject):
     @property
     def type(self):
         return self._type
+
+    def clear_memory(self):
+        import nest
+        if 'memory' in self._record_to:
+            # Clear events by setting n_events = 0
+            nest.SetStatus(self.gid, {'n_events': 0})
+        if 'file' in self._record_to:
+            # delete the raw files
+            files = nest.GetStatus(self.gid, 'filenames')[0]
+            for file in files:
+                try:
+                    os.remove(file)
+                except FileNotFoundError:
+                    pass
+
+    def set_status(self, params):
+        """Call nest.SetStatus to set recorder params."""
+        import nest
+        print(f'--> Setting status for recorder {self.name}: {params}')
+        nest.SetStatus(self.gid, params)
+
 
 class PopulationRecorder(BaseRecorder):
     """Represent a recorder node. Connects to a single population.
@@ -161,7 +182,7 @@ class PopulationRecorder(BaseRecorder):
     def locations(self):
         return self._locations
 
-    def save_raster(self, output_dir):
+    def save_raster(self, output_dir, session_name=None):
         if self.type == 'spike_detector':
             raster, error_msg = self.get_nest_raster()
             if raster is not None:
@@ -170,7 +191,8 @@ class PopulationRecorder(BaseRecorder):
                 f.set_size_inches(15, 9)
                 f.savefig(save.output_path(output_dir, 'rasters',
                                            self._layer_name,
-                                           self._population_name),
+                                           self._population_name,
+                                           session_name=session_name),
                           dpi=100)
                 plt.close()
             else:
@@ -178,7 +200,9 @@ class PopulationRecorder(BaseRecorder):
                       f' {str(self._population_name)}:')
                 print(f'-> {error_msg}\n')
 
-    def save(self, output_dir):
+    def save(self, output_dir, session_name=None, start_time=None,
+        end_time=None):
+        # pylint:disable=too-many-arguments
         """Save the formatted activity of recorders.
 
         NB: Since we load and manipulate the activity for all variables recorded
@@ -186,10 +210,12 @@ class PopulationRecorder(BaseRecorder):
         variables are recorded. If you experience memory issues, a possiblity is
         to create separate recorders for each variable.
         """
+
         # Get formatted arrays for each variable and each unit_index.
         # all_recorder_activity = {'var1': [activity_unit_0,
         #                                   activity_unit_1,...]}
-        all_recorder_activity = self.formatted_data()
+        all_recorder_activity = self.formatted_data(start_time=start_time,
+                                                    end_time=end_time)
 
         # Save the formatted arrays separately for each var and unit_index
         for variable, unit_index in product(self.variables,
@@ -200,6 +226,7 @@ class PopulationRecorder(BaseRecorder):
                 'recorders',
                 self._layer_name,
                 self._population_name,
+                session_name=session_name,
                 unit_index=unit_index,
                 variable=variable,
                 formatting_interval=self._formatting_interval,
@@ -207,11 +234,19 @@ class PopulationRecorder(BaseRecorder):
             save.save_array(recorder_path,
                             all_recorder_activity[variable][unit_index])
 
-    def formatted_data(self):
-        # Throw a warning if the interval is below the millisecond as that won't
-        # be taken in account during formatting.
-        import nest
-        nslices = int(nest.GetKernelStatus('time')/self._formatting_interval)
+
+    # TODO: Figure out a way to get all the data
+    def formatted_data(self, start_time=None, end_time=None):
+        """Get formatted data.
+
+        NB: TODO: Because the last event recorded has timestamp `end_time` - 1 (where
+        `end_time` is the kernel time at the end of a session), the last frame
+        of formatted arrays is always filled with 0 and the data between
+        `end_time` - 1 and `end_time` is lost.
+        """
+        # Get shape of formatted array.
+        duration = end_time - start_time
+        nslices = int(duration/self._formatting_interval)
         formatted_shape = (nslices,) + self._layer_shape
         if (self.type == 'multimeter'
             and self._interval != self._formatting_interval):
@@ -228,26 +263,28 @@ class PopulationRecorder(BaseRecorder):
             all_variables=self.variables,
             formatted_unit_indices=self._formatted_unit_indices,
             formatting_interval=self._formatting_interval,
+            start_time=start_time,
+            end_time=end_time
         )
 
     def get_nest_raster(self):
         """Return the nest_raster plot and possibly error message."""
         import nest
         from nest import raster_plot
-        assert (self.type == 'spike_detector')
+        assert self.type == 'spike_detector'
         raster, error_msg = None, None
         if 'memory' not in self._record_to:
             error_msg = 'Data was not saved to memory.'
-        elif not len(nest.GetStatus(self.gid)[0]['events']['senders']):
+        elif not len(nest.GetStatus(self.gid)[0]['events']['senders']): # pylint: disable=len-as-condition
             error_msg = 'No events were recorded.'
         elif len(nest.GetStatus(self.gid)[0]['events']['senders']) == 1:
             error_msg = 'There was only one sender'
         else:
             try:
                 raster = raster_plot.from_device(self.gid, hist=True)
-            except Exception as e:
+            except Exception as exception: # pylint: disable=broad-except
                 error_msg = (f'Uncaught exception when generating raster.\n'
-                             f'--> Exception message: {e}\n'
+                             f'--> Exception message: {exception}\n'
                              f'--> Recorder status: {nest.GetStatus(self.gid)}')
         return raster, error_msg
 
@@ -260,6 +297,8 @@ class ConnectionRecorder(BaseRecorder):
     type)
     Handles connecting the weight_recorder node to the synapses.
     """
+
+    # pylint:disable=too-many-instance-attributes
 
     def __init__(self, name, params):
         # params in self.params, nest_params in self.nest_params
@@ -303,14 +342,29 @@ class ConnectionRecorder(BaseRecorder):
         # Get node parameters from nest (possibly nest defaults)
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
 
-    def save(self, output_dir):
+    def save(self, output_dir, session_name=None, start_time=None,
+        end_time=None, clear_memory=True, with_raster=False):
+        """Save unformatted weight-recorder data."""
+        # pylint:disable=too-many-arguments
 
-        data = format_recorders.gather_raw_data_connrec(self.gid)
-
+        data = format_recorders.gather_raw_data_connrec(self.gid,
+                                                        start_time=start_time,
+                                                        end_time=end_time)
         recorder_path = save.output_path(
             output_dir,
             'connectionrecorders',
-            self._connection_name
+            self._connection_name,
+            session_name=session_name,
         )
 
         save.save_dict(recorder_path, data)
+
+        if with_raster:
+            # TODO: I keep this kwarg only so that Recorder.save and
+            # ConnectionRecorder.save have the same signature and can be called
+            # in the same Parallel loop. There should be a better way of doing
+            # this.
+            pass
+
+        if clear_memory:
+            self.clear_memory()

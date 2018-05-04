@@ -3,17 +3,21 @@
 # session.py
 """Represent a sequence of stimuli."""
 
-
 import time
-from os.path import join
 from pprint import pformat
 
 import numpy as np
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
 from . import save
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
 
+# pylint:disable=missing-docstring
+
+def worker(recorder, output_dir, **kwargs):
+    recorder.save(output_dir, **kwargs)
 
 class Session:
     """Represents a sequence of stimuli."""
@@ -28,6 +32,8 @@ class Session:
         self._simulation_time = None
         # Initialize _stim dictionary
         self._stimulus = None
+        # Whether we inactivate all recorders
+        self._record = self.params.get('record', True)
 
     def __repr__(self):
         return '{classname}({name}, {params})'.format(
@@ -59,6 +65,27 @@ class Session:
         # Set input spike times in the future.
         network.set_input(self.stimulus, start_time=self._start)
 
+        # Inactivate all the recorders and connection_recorders for
+        # `self._simulation_time`
+        if not self._record:
+            self.inactivate_recorders(network)
+
+    def inactivate_recorders(self, network):
+        """Set 'start' of all (connection_)recorders at the end of session."""
+        # TODO: We need to do this differently if we start playing with the
+        # `origin` flag of recorders, eg to repeat experiments. Hence the
+        # safeguard:
+        import nest
+        for recorder in network.get_recorders():
+            assert nest.GetStatus(recorder.gid, 'origin')[0] == 0.
+        # Verbose
+        print(f'Inactivating all recorders for session {self.name}:')
+        # Set start time in the future
+        network.recorder_call(
+            'set_status',
+            {'start': nest.GetKernelStatus('time') + self._simulation_time}
+        )
+
     def run(self, network):
         """Initialize and run session."""
         import nest
@@ -76,15 +103,81 @@ class Session:
               f"{pretty_time(start_time)}...\n")
         self._end = int(nest.GetKernelStatus('time'))
 
-    def save(self, output_dir):
-        """Save full stim (per timestep), labels (per timestep) and metadata."""
+    # TODO: Format only if the session has been recorded and figure out a way to
+    # load the data properly
+    def save_data(self, output_dir, network, sim_params):
+        """Save network's activity and clear memory.
+
+        1- Formats recorders (possibly in parallel)
+        2- Possibly creates raster plots (must be in series)
+        3- Possibly clears memory
+
+        Args:
+            output_dir (str):
+            network (Network object):
+            sim_params (Params object): Simulation parameters.
+        """
+        # Get relevant params from sim_params
+        parallel = sim_params.get('parallel', True)
+        n_jobs = sim_params.get('n_jobs', -1)
+        clear_memory = sim_params.get('clear_memory', False)
+        # We save the rasters only if we clear memory at the end of each
+        # session. Otherwise we save them once at the end of the whole
+        # simulation
+        save_nest_rasters = sim_params.get('save_nest_rasters', True) and clear_memory
+        # Make kwargs dict that is passed to Recorder.save
+        kwargs = {
+            'session_name': self.name,
+            'start_time': self._start,
+            'end_time': self._end,
+        }
+        all_recorders = network.get_recorders(recorder_class=None)
+        ###
+        # Format all recorders (population and connection), possibly using joblib
+        args_list = [(recorder, output_dir)
+                     for recorder in all_recorders]
+        # Verbose
+        msg = (f"Saving {len(args_list)} population/connection recorders:\n"
+               f" - format {'using' if parallel else 'without'} joblib, \n"
+               f" - {'with' if save_nest_rasters else 'without'} raster plots \n"
+               f" - {'with' if clear_memory else 'without'} clearing memory\n"
+               f"...")
+        print(msg)
+        if parallel:
+            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
+                delayed(worker)(*args, **kwargs) for args in args_list
+            )
+        else:
+            for args in tqdm(args_list,
+                             desc=''):
+                worker(*args, **kwargs)
+        ###
+        # Save the rasters for population recorders (must be in series)
+        if save_nest_rasters:
+            print('Saving rasters...')
+            network.recorder_call('save_raster', output_dir, self.name,
+                                  recorder_class='population')
+        ##
+        # Clear memory for all recorders
+        if clear_memory:
+            print('Clearing memory...')
+            network.recorder_call('clear_memory', recorder_class=None)
+            print('... done \n')
+
+    def save_metadata(self, output_dir):
+        """Save session metadata (stimuli, ...)."""
         if self.params.get('save_stim', True) and self._stimulus is not None:
-            save.save_array(save.output_path(output_dir, 'movie', self.name),
+            save.save_array(save.output_path(output_dir,
+                                             'movie',
+                                             session_name=self.name),
                             self.stimulus['movie'])
-            save.save_array(save.output_path(output_dir, 'labels', self.name),
+            save.save_array(save.output_path(output_dir,
+                                             'labels',
+                                             session_name=self.name),
                             self.stimulus['labels'])
-            save.save_as_yaml(save.output_path(output_dir, 'metadata',
-                                               self.name),
+            save.save_as_yaml(save.output_path(output_dir,
+                                               'metadata',
+                                               session_name=self.name),
                               self.stimulus['metadata'])
 
     @property

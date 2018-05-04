@@ -12,6 +12,9 @@ from .constants import (DEFAULT_INPUT_PATH, DEFAULT_OUTPUT_DIR, NEST_SEED,
 from .network import Network
 from .save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
+from .utils import misc
+
+# pylint:disable=missing-docstring
 
 
 class Simulation:
@@ -47,24 +50,30 @@ class Simulation:
         # Create sessions
         print('Create sessions...', flush=True)
         self.order = self.params.c['sessions'].get('order', [])
-        self.sessions = {
-            name: Session(name, session_params)
-            for name, session_params in self.params.c['sessions'].named_leaves()
+        session_params = {
+            session_name: session_params
+            for session_name, session_params
+            in self.params.c['sessions'].named_leaves()
         }
+        self.sessions = [
+            Session(self.make_session_name(session_name, i),
+                    session_params[session_name])
+            for i, session_name in enumerate(self.order)
+        ]
         self.session_times = None
         print(f'-> Session order: {self.order}')
         print('Done...\n', flush=True)
 
     def run(self):
-        """Run each of the sessions in order."""
-        for name in self.order:
-            print(f'Running session `{name}`...')
-            self.sessions[name].run(self.network)
-        # Get session times
-        self.session_times = {
-            session_name: session.duration
-            for session_name, session in self.sessions.items()
-            }
+        """Run and save each of the sessions in order."""
+        # Get list of recorders and formatting parameters
+        for session in self.sessions:
+            print(f'Running session: `{session.name}`...\n')
+            session.run(self.network)
+            session.save_data(self.output_dir,
+                              self.network,
+                              self.params.c['simulation'])
+            print(f'Done running session `{session.name}`\n\n')
 
     def dump_connections(self):
         """Dump network connections."""
@@ -78,34 +87,39 @@ class Simulation:
         """Dump connection numbers."""
         self.network.dump_connection_numbers(self.output_dir)
 
-    def save(self):
-        """Save simulation"""
+    def save_metadata(self):
+        """Save simulation metadata before running the simulation."""
         # Initialize output dir (create and clear)
         print(f'Creating output_dir: {self.output_dir}')
         clear_output_dir = self.params.c['simulation'].get('clear_output_dir',
                                         False)
-        make_output_dir(self.output_dir, clear_output_dir)
+        # Delete the `session` subdirs
+        delete_subdirs_list = [session.name for session in self.sessions]
+        make_output_dir(self.output_dir, clear_output_dir,
+                        delete_subdirs_list=delete_subdirs_list)
         # Save params
         save_as_yaml(output_path(self.output_dir, 'params'),
                      self.params)
+        # Drop git hash
+        misc.drop_git_hash(self.output_dir)
+        # Save network metadata
+        self.network.save_metadata(self.output_dir)
+
+    def save_data(self):
+        """Save data after the simulation has been run."""
         if not self.params.c['simulation']['dry_run']:
             # Save sessions
-            for session in self.sessions.values():
-                session.save(self.output_dir)
+            for session in self.sessions:
+                session.save_metadata(self.output_dir)
             # Save session times
+            self.session_times = {
+                session.name: session.duration for session in self.sessions
+            }
             save_as_yaml(output_path(self.output_dir, 'session_times'),
                          self.session_times)
             # Save network
-            with_rasters = self.params.c['simulation'].get('save_nest_raster',
-                                                           True)
-            parallel = self.params.c['simulation'].get('parallel',
-                                                       True)
-            n_jobs = self.params.c['simulation'].get('n_jobs',
-                                                     -1)
-            self.network.save(self.output_dir,
-                              with_rasters=with_rasters,
-                              parallel=parallel,
-                              n_jobs=n_jobs)
+            self.network.save_data(self.output_dir,
+                                   self.params.c['simulation'])
         # Delete nest temporary directory
         if self.params.c['simulation'].get('delete_raw_dir', True):
             rmtree(self.params.c['simulation']['nest_output_dir'])
@@ -133,10 +147,10 @@ class Simulation:
              'resolution': resolution,
              'overwrite_files': kernel_params.get('overwrite_files', True),
              'data_path': raw_dir})
-        N_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
+        n_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
         nest.SetKernelStatus({
-            'grng_seed': msd + N_vp,
-            'rng_seeds': range(msd + N_vp + 1, msd + 2 * N_vp + 1),
+            'grng_seed': msd + n_vp,
+            'rng_seeds': range(msd + n_vp + 1, msd + 2 * n_vp + 1),
             'print_time': kernel_params['print_time'],
         })
 
@@ -175,7 +189,8 @@ class Simulation:
         self.params.c['sessions']['input_path'] = input_path
         return input_path
 
-    def total_time(self):
+    @staticmethod
+    def total_time():
         import nest
         return nest.GetKernelStatus('time')
 
@@ -191,8 +206,13 @@ class Simulation:
         import nest
         try:
             nest.Install(module_name)
-        except nest.NESTError as e:
-            if 'loaded already' in str(e):
+        except nest.NESTError as exception:
+            if 'loaded already' in str(exception):
                 print(f'Module {module_name} is already loaded.')
                 return
             raise
+
+    @staticmethod
+    def make_session_name(name, index):
+        """Return a formatted session name comprising the session index."""
+        return str(index).zfill(2) + '_' + name

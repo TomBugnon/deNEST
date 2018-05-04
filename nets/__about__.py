@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __about__.py
 """
-Spiking VisNet metadata.
+NETS metadata.
 """
 
 __title__ = 'nets'

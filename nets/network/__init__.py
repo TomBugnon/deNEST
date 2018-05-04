@@ -5,7 +5,6 @@
 
 import os
 
-from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from .connections import (ConnectionModel, FromFileConnection,
@@ -31,12 +30,13 @@ CONNECTION_TYPES = {
 }
 
 
-def worker(recorder, output_dir):
-    recorder.save(output_dir)
-
-
 class Network:
+    """Represent a full network."""
+
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, params):
+        """Initialize the network object without creating it in NEST."""
         self._created = False
         self._changed = False
         self.params = params
@@ -103,7 +103,8 @@ class Network:
     def __str__(self):
         return repr(self)
 
-    def _create_all(self, objects):
+    @staticmethod
+    def _create_all(objects):
         for obj in tqdm(objects):
             obj.create()
 
@@ -127,13 +128,32 @@ class Network:
             if type(l).__name__ == layer_type
         ]
 
-    def _get_recorders(self, recorder_type=None):
-        for population in self.populations:
-            yield from population.get_recorders(recorder_type=recorder_type)
+    def recorder_call(self, method_name, *args, recorder_class=None,
+                       recorder_type=None, **kwargs):
+        """Call a method on population and/or connection recorders.
 
-    def _get_connection_recorders(self, recorder_type=None):
-        for connection in self.connections:
-            yield from connection.get_recorders(recorder_type=recorder_type)
+        Args:
+            method_name (str): Name of method of Recorder objects.
+            recorder_class (str or None): Class of recorders: "population",
+                "connection" or None. Passed to self.get_recorders()
+            recorder_type (str or None): Passed to self.get_recorders()
+        """
+        for recorder in self.get_recorders(
+            recorder_class=recorder_class,
+            recorder_type=recorder_type):
+            method = getattr(recorder, method_name)
+            method(*args, **kwargs)
+
+    def get_recorders(self, recorder_class=None, recorder_type=None):
+        """Generator to get each pop and/or conn recorder of a certain type."""
+        assert recorder_class in ["population", "connection", None], \
+            "Unrecognized recorder class"
+        if recorder_class == 'population' or recorder_class is None:
+            for population in self.populations:
+                yield from population.get_recorders(recorder_type=recorder_type)
+        if recorder_class == 'connection' or recorder_class is None:
+            for connection in self.connections:
+                yield from connection.get_recorders(recorder_type=recorder_type)
 
     def _get_synapses(self, synapse_type=None):
         if synapse_type is None:
@@ -177,7 +197,8 @@ class Network:
         for connection in tqdm(self.connections, desc='Dumping connections'):
             connection.dump(output_dir)
 
-    def change_synapse_states(self, synapse_changes):
+    @staticmethod
+    def change_synapse_states(synapse_changes):
         """Change parameters for some connections of a population.
 
         Args:
@@ -253,7 +274,8 @@ class Network:
                                          changes.get('population', None),
                                          changes.get('proportion', 1.))
 
-    def reset(self):
+    @staticmethod
+    def reset():
         import nest
         nest.ResetNetwork()
 
@@ -261,41 +283,23 @@ class Network:
         self._layer_call('set_input', stimulus, start_time,
                          layer_type='InputLayer')
 
-    def save(self, output_dir, with_rasters=True, parallel=True, n_jobs=-1):
-            # Save population rasters
+    def save_metadata(self, output_dir):
+        """Save network metadata."""
+        # TODO: Save gids-position mappings
+        pass
+
+    def save_data(self, output_dir, sim_params):
+        # Save population rasters if they haven't been saved already
+        clear_memory = sim_params.get('clear_memory', False)
+        with_rasters = sim_params.get('with_rasters', True) and not clear_memory
         if with_rasters:
-            for recorder in tqdm(self._get_recorders(),
+            for recorder in tqdm(self.get_recorders(recorder_class="population"),
                                  desc='Saving recorder raster plots'):
                 recorder.save_raster(output_dir)
-        # Format and save recorders using joblib
-        args_list = [(recorder, output_dir)
-                     for recorder in self._get_recorders()]
-        if parallel:
-            print(f'Formatting {len(args_list)} recorders using joblib')
-            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
-                delayed(worker)(*args) for args in args_list
-            )
-        else:
-            for args in tqdm(args_list,
-                             desc=(f'Formatting {len(args_list)} recorders '
-                                   f'without joblib')):
-                worker(*args)
         # Save synapse states
         for conn in tqdm(self.connections,
                          desc='Saving synapse data'):
             conn.save_synapse_state(output_dir)
-        # Save synapse recorders using joblib
-        args_list = [(connrecorder, output_dir)
-                     for connrecorder in self._get_connection_recorders()]
-        if parallel:
-            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
-                delayed(worker)(*args) for args in args_list
-            )
-        else:
-            for args in tqdm(args_list,
-                             desc=(f'Formatting {len(args_list)} connection '
-                                   f'recorders without joblib')):
-                worker(*args)
 
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections, desc='Creating connection plots'):
@@ -317,7 +321,7 @@ class Network:
         for layer in self._get_layers(layer_type=layer_type):
             all_pops.update({
                 gid: (layer.name, population)
-                for gid, population in layer._populations.items()
+                for gid, population in layer.populations.items()
             })
         return all_pops
 

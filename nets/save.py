@@ -5,8 +5,11 @@
 
 """Save and load movies, networks, activity and simulation parameters."""
 
+# pylint: disable=missing-docstring,ungrouped-imports
+
 import os
 import pickle
+import shutil
 from os.path import abspath, exists, isdir, isfile, join
 
 import numpy as np
@@ -14,7 +17,7 @@ import scipy.sparse
 import yaml
 
 # Use LIL as the default sparse format
-sparse_format = scipy.sparse.lil_matrix
+sparse_format = scipy.sparse.lil_matrix # pylint:disable=invalid-name
 
 # Modify along with FILENAME_FUNCS dict (see end of file)
 OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
@@ -30,14 +33,17 @@ OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
                   'params': (),
                   'plots': ('plots',),
                   'measures': ('measures',),
+                  'git_hash': (),
 }
 
 # Subdirectories that are cleared if the simulation parameter 'clear_output_dir'
 # is set to true.
-CLEAR_SUBDIRS = [(), ('recorders',), ('sessions'), ('connections',), ('dump',),
-                 ('rasters',)]
+CLEAR_SUBDIRS = [
+    (), ('recorders',), ('connection_recorders',), ('sessions'),
+    ('connections',), ('dump',), ('rasters',)
+]
 
-def output_subdir(output_dir, data_keyword):
+def output_subdir(output_dir, data_keyword, session_name=None):
     """Create and return the output subdirectory where a data type is saved.
 
     Args:
@@ -45,8 +51,13 @@ def output_subdir(output_dir, data_keyword):
         data_keyword (str): String designating the type of data for which we
             return an output subdirectory. Should be a key of the OUTPUT_SUBDIRS
             dictionary.
+        session_name (str or None): If a session is provided, data is organized
+            by subdirectories with that session's name.
     """
-    subdir = join(output_dir, *OUTPUT_SUBDIRS[data_keyword])
+    if session_name is None:
+        subdir = join(output_dir, *OUTPUT_SUBDIRS[data_keyword])
+    else:
+        subdir = join(output_dir, *OUTPUT_SUBDIRS[data_keyword], session_name)
     os.makedirs(subdir, exist_ok=True)
     return subdir
 
@@ -63,30 +74,56 @@ def output_filename(data_keyword, *args, **kwargs):
     return FILENAME_FUNCS[data_keyword](*args, **kwargs)
 
 
-def output_path(output_dir, data_keyword, *args, **kwargs):
-    return join(output_subdir(output_dir, data_keyword),
+def output_path(output_dir, data_keyword, *args, session_name=None, **kwargs):
+    return join(output_subdir(output_dir,
+                              data_keyword,
+                              session_name=session_name),
                 output_filename(data_keyword, *args, **kwargs))
 
 
-def make_output_dir(output_dir, clear_output_dir):
+def make_output_dir(output_dir, clear_output_dir=True,
+                    delete_subdirs_list=None):
     """Create and possibly clear output directory.
 
-    Create the directory if it doesn't exist and delete the files in the
-    subdirectories specified in CLEAR_SUBDIRS if ``clear_output_dir`` is
-    True.
+    Create the directory if it doesn't exist.
+    If `clear_output_dir` is True, we clear the directory. We iterate over all
+    the subdirectories specified in CLEAR_SUBDIRS, and for each of those we:
+        - delete all the files
+        - delete all the directories whose name is in the `delete_subdirs` list.
+
+    Args:
+        output_dir (str):
+        clear_output_dir (bool): Whether we clear the CLEAR_SUBDIRS
+        delete_subdirs_list (list of str or None): List of subdirectories of
+            CLEAR_SUBDIRS that we delete.
     """
-    # clear_output_dir = False
+    if delete_subdirs_list is None:
+        delete_subdirs_list = []
     os.makedirs(output_dir, exist_ok=True)
     if clear_output_dir:
         for clear_dir in [join(output_dir, *subdir)
                           for subdir in CLEAR_SUBDIRS
                           if isdir(join(output_dir, *subdir))]:
             print(f'-> Clearing {clear_dir}')
-            for f in os.listdir(clear_dir):
-                path = join(clear_dir, f)
-                if os.path.isfile(path):
-                    os.remove(path)
+            # Delete files in the CLEAR_SUBDIRS
+            delete_files(clear_dir)
+            # Delete the contents of all the delete_subdirs we encounter
+            delete_subdirs(clear_dir, delete_subdirs_list)
 
+
+def delete_files(clear_dir):
+    """Delete all files in a directory."""
+    for f in os.listdir(clear_dir):
+        path = join(clear_dir, f)
+        if os.path.isfile(path):
+            os.remove(path)
+
+def delete_subdirs(clear_dir, delete_subdirs_list):
+    """Delete some subdirectories in a directory."""
+    for f in os.listdir(clear_dir):
+        path = join(clear_dir, f)
+        if os.path.isdir(path) and f in delete_subdirs_list:
+            shutil.rmtree(path)
 
 def save_array(path, array):
     """Save array either as dense or sparse depending on data type."""
@@ -125,9 +162,9 @@ def load_yaml(*args):
 
     Return empty list if the file doesn't exist.
     """
-    path = join(*args)
+    path = join(*args) # pylint:disable=no-value-for-parameter
     if exists(path):
-        with open(join(*args), 'rt') as f:
+        with open(join(*args), 'rt') as f: # pylint:disable=no-value-for-parameter
             return yaml.load(f)
     else:
         return []
@@ -168,6 +205,36 @@ def load_weight_recorder(output_dir, conn_name, start_trim=None):
         for key, data in w_dict.items()
     }
 
+
+def load_files(directory, filename_prefix):
+    """Load all files with prefix and concatenate along the second dimension."""
+    all_filenames = [f for f in os.listdir(directory)
+                     if f.startswith(filename_prefix)
+                     and isfile(join(directory, f))]
+    # Load the activity arrays and concatenate along the second dimension.
+    try:
+        return np.concatenate(
+            [load_as_numpy(join(directory, filename))
+             for filename in all_filenames],
+            axis=1
+        )
+    except ValueError:
+        error = (f"Couldn't load filenames with prefix: ``{filename_prefix}``\n"
+                 f"...in directory: ``{abspath(directory)}``")
+        raise Exception(error)
+
+def load_session_activity(output_dir, layer, population, variable='spikes',
+                          session=None, all_units=False):
+    # Get all filenames for that population (one per unit index)
+    recorders_dir = output_subdir(output_dir, 'recorders',
+                                  session_name=session)
+    unit_index = None if all_units else 0
+    filename_prefix = output_filename('recorders', layer, population,
+                                      variable=variable,
+                                      unit_index=unit_index)
+    return load_files(recorders_dir, filename_prefix)
+
+
 def load_activity(output_dir, layer, population, variable='spikes',
                   session=None, all_units=False, start_trim=None,
                   end_trim=None, interval=1.0):
@@ -186,37 +253,27 @@ def load_activity(output_dir, layer, population, variable='spikes',
                 activity of a given session)
             - `interval` (int or float): time between two consecutive slices
     """
-    # Get all filenames for that population (one per unit index)
-    recorders_dir = output_subdir(output_dir, 'recorders')
-    unit_index = None if all_units else 0
-    filename_prefix = output_filename('recorders', layer, population,
-                                      variable=variable,
-                                      unit_index=unit_index)
-    all_filenames = [f for f in os.listdir(recorders_dir)
-                     if f.startswith(filename_prefix)
-                     and isfile(join(recorders_dir, f))]
-    # Load the activity for the required unit indices and concatenate along the
-    # first dimension.
-    # Concatenate along first dimension (row)
-    try:
-        all_sessions_activity = np.concatenate(
-            [load_as_numpy(join(recorders_dir, filename))
-             for filename in all_filenames],
-            axis=1
-        )
-    except ValueError as e:
-        error = (f"Couldn't load filenames with prefix: ``{filename_prefix}``\n"
-                 f"...in directory: ``{abspath(recorders_dir)}``")
-        print(error)
-        raise e
-    # Possibly extract the times corresponding to a specific session
-    if session is not None:
-        session_times = load_session_times(output_dir)[session]
-        min_slice = int(min(session_times) / interval)
-        max_slice = int(max(session_times) / interval)
+    # pylint: disable=too-many-arguments
+
+    # Get list of sessions that we load
+    if session is None:
+        all_session_times = load_session_times(output_dir)
+        all_sessions = sorted(list(all_session_times.keys()))
     else:
-        min_slice, max_slice = 0, len(all_sessions_activity)
+        all_sessions = [session]
+
+    all_sessions_activity = np.concatenate(
+        [
+            load_session_activity(output_dir, layer, population,
+                                  variable=variable, session=session,
+                                  all_units=all_units)
+            for session in all_sessions
+        ],
+        axis=0
+    )
+
     # Possibly trim the beginning and the end, after selecting for session
+    min_slice, max_slice = 0, len(all_sessions_activity)
     if start_trim is not None and start_trim > 0:
         min_slice = max(min_slice, int(start_trim / interval))
     if end_trim is not None and end_trim > 0:
@@ -294,7 +351,7 @@ def load_sparse(path):
 
 
 # TODO
-def connection_filename(connection):
+def connection_filename(connection): # pylint:disable=unused-argument
     """Generate string describing a population-to-population connection."""
     pass
 
@@ -325,16 +382,16 @@ def save_plot(fig, output_dir, filename, overwrite=False):
         return
     fig.savefig(path)
 
-def movie_filename(session_name):
-    return 'session_' + session_name + '_movie'
+def movie_filename():
+    return 'movie'
 
 
-def labels_filename(session_name):
-    return 'session_' + session_name + '_labels'
+def labels_filename():
+    return 'labels'
 
 
-def metadata_filename(session_name):
-    return 'session_' + session_name + '_metadata'
+def metadata_filename():
+    return 'metadata'
 
 
 def session_times_filename():
@@ -348,6 +405,9 @@ def params_filename():
 def rasters_filename(layer, pop):
     return 'spikes_raster_' + layer + '_' + pop + '.png'
 
+def git_hash_filename():
+    return 'git_hash'
+
 
 FILENAME_FUNCS = {'params': params_filename,
                   'session_times': session_times_filename,
@@ -356,5 +416,6 @@ FILENAME_FUNCS = {'params': params_filename,
                   'movie': movie_filename,
                   'recorders': recorder_filename,
                   'connectionrecorders': connrecorder_filename,
-                  'rasters': rasters_filename
+                  'rasters': rasters_filename,
+                  'git_hash': git_hash_filename,
 }
