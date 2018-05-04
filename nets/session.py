@@ -106,6 +106,10 @@ class Session:
     def save_data(self, output_dir, network, sim_params):
         """Save network's activity and clear memory.
 
+        1- Formats recorders (possibly in parallel)
+        2- Possibly creates raster plots (must be in series)
+        3- Possibly clears memory
+
         Args:
             output_dir (str):
             network (Network object):
@@ -118,23 +122,22 @@ class Session:
         # We save the rasters only if we clear memory at the end of each
         # session. Otherwise we save them once at the end of the whole
         # simulation
-        with_raster = sim_params.get('with_raster', True) and clear_memory
+        save_nest_rasters = sim_params.get('save_nest_rasters', True) and clear_memory
         # Make kwargs dict that is passed to Recorder.save
         kwargs = {
             'session_name': self.name,
             'start_time': self._start,
             'end_time': self._end,
-            'clear_memory': clear_memory,
-            'with_raster': with_raster
         }
-        # save all recorders (population and connection), possibly using joblib
+        all_recorders = network.get_recorders(recorder_class=None)
+        ###
+        # Format all recorders (population and connection), possibly using joblib
         args_list = [(recorder, output_dir)
-                     for recorder
-                     in network.get_recorders(recorder_class=None)]
+                     for recorder in all_recorders]
         # Verbose
         msg = (f"Formatting {len(args_list)} population/connection recorders:\n"
                f" - {'using' if parallel else 'without'} joblib, \n"
-               f" - {'with' if with_raster else 'without'} raster plots \n"
+               f" - {'with' if save_nest_rasters else 'without'} raster plots \n"
                f" - {'with' if clear_memory else 'without'} clearing memory\n"
                f"...")
         print(msg)
@@ -146,7 +149,18 @@ class Session:
             for args in tqdm(args_list,
                              desc=''):
                 worker(*args, **kwargs)
-        print('... done \n')
+        ###
+        # Save the rasters for population recorders (must be in series)
+        if save_nest_rasters:
+            print('Saving rasters...')
+            network.recorder_call('save_raster', output_dir, self.name,
+                                  recorder_class='population')
+        ##
+        # Clear memory for all recorders
+        if clear_memory:
+            print('Clearing memory...')
+            network.recorder_call('clear_memory', recorder_class=None)
+            print('... done \n')
 
     def save_metadata(self, output_dir):
         """Save session metadata (stimuli, ...)."""

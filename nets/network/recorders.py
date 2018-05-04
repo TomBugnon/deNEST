@@ -201,9 +201,9 @@ class PopulationRecorder(BaseRecorder):
                 print(f'-> {error_msg}\n')
 
     def save(self, output_dir, session_name=None, start_time=None,
-        end_time=None, clear_memory=True, with_raster=True):
+        end_time=None):
         # pylint:disable=too-many-arguments
-        """Save the activity of recorders.
+        """Save the formatted activity of recorders.
 
         NB: Since we load and manipulate the activity for all variables recorded
         by a recorder at once (for speed), this can get hard on memory when many
@@ -233,12 +233,6 @@ class PopulationRecorder(BaseRecorder):
             )
             save.save_array(recorder_path,
                             all_recorder_activity[variable][unit_index])
-
-        if with_raster:
-            self.save_raster(output_dir, session_name=session_name)
-
-        if clear_memory:
-            self.clear_memory()
 
 
     def formatted_data(self, start_time=None, end_time=None):
