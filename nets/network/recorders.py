@@ -236,8 +236,6 @@ class PopulationRecorder(BaseRecorder):
 
 
     def formatted_data(self, start_time=None, end_time=None):
-        # Throw a warning if the interval is below the millisecond as that won't
-        # be taken in account during formatting.
         duration = end_time - start_time
         nslices = int(duration/self._formatting_interval)
         formatted_shape = (nslices,) + self._layer_shape
