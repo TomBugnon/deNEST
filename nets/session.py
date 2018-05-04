@@ -135,8 +135,8 @@ class Session:
         args_list = [(recorder, output_dir)
                      for recorder in all_recorders]
         # Verbose
-        msg = (f"Formatting {len(args_list)} population/connection recorders:\n"
-               f" - {'using' if parallel else 'without'} joblib, \n"
+        msg = (f"Saving {len(args_list)} population/connection recorders:\n"
+               f" - format {'using' if parallel else 'without'} joblib, \n"
                f" - {'with' if save_nest_rasters else 'without'} raster plots \n"
                f" - {'with' if clear_memory else 'without'} clearing memory\n"
                f"...")
