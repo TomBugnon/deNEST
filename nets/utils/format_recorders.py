@@ -242,7 +242,7 @@ def load_and_combine(recorder_files_list):
 
     """
     file_data_list = [
-        np.loadtxt(filepath, dtype=float, ndmin=2)
+        load_recorder_file(filepath)
         for filepath in recorder_files_list
         if isfile(filepath) and not stat(filepath).st_size == 0
     ]
@@ -250,3 +250,8 @@ def load_and_combine(recorder_files_list):
     if file_data_list:
         return np.concatenate(file_data_list, axis=0)
     return np.empty((0, 10))
+
+def load_recorder_file(filepath):
+    """Load data from a recorder file into a numpy array of floats.
+    """
+    return np.loadtxt(filepath, dtype=float, ndmin=2)
