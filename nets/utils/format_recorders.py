@@ -242,7 +242,7 @@ def load_and_combine(recorder_files_list):
 
     """
     file_data_list = [
-        np.loadtxt(filepath, dtype=float, ndmin=2)
+        load_recorder_file(filepath)
         for filepath in recorder_files_list
         if isfile(filepath) and not stat(filepath).st_size == 0
     ]
@@ -250,3 +250,24 @@ def load_and_combine(recorder_files_list):
     if file_data_list:
         return np.concatenate(file_data_list, axis=0)
     return np.empty((0, 10))
+
+def load_recorder_file(filepath):
+    """Load data from a recorder file into a numpy array of floats.
+
+    NB: As a temporary workaround to issues arising when clearing recorders'
+    data from file before the end of the simulation, we first strip potential
+    hidden characters from the start of the file before loading it into numpy.
+    """
+    # We remove from the first column from "^" and "@"
+    remove_leading_null_chars(filepath)
+    return np.loadtxt(filepath, dtype=float, ndmin=2)
+
+def remove_leading_null_chars(filepath):
+    """Strip the first line of a file from "@" and "^" characters."""
+    print(f'removing shit in {filepath}')
+    with open(filepath, 'rb') as fin:
+        first_line = fin.readline().lstrip(b'\x00') # Remove all the @ and ^ from first
+        lines = fin.readlines()
+    with open(filepath, 'wb') as fout:
+        fout.write(first_line)
+        fout.writelines(lines)

@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import pylab
 
 from .. import save
-from ..utils import format_recorders
+from ..utils import format_recorders, misc
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
 
@@ -68,6 +68,10 @@ class BaseRecorder(NestObject):
         return self._type
 
     def clear_memory(self):
+        """Clear memory and disk from recorder data.
+
+        NB: We clear the contents of files rather than deleting it !!! Otherwise
+        NEST doesn't write anymore."""
         import nest
         if 'memory' in self._record_to:
             # Clear events by setting n_events = 0
@@ -76,10 +80,7 @@ class BaseRecorder(NestObject):
             # delete the raw files
             files = nest.GetStatus(self.gid, 'filenames')[0]
             for file in files:
-                try:
-                    os.remove(file)
-                except FileNotFoundError:
-                    pass
+                misc.delete_contents(file)
 
     def set_status(self, params):
         """Call nest.SetStatus to set recorder params."""
