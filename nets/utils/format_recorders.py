@@ -264,7 +264,6 @@ def load_recorder_file(filepath):
 
 def remove_leading_null_chars(filepath):
     """Strip the first line of a file from "@" and "^" characters."""
-    print(f'removing shit in {filepath}')
     with open(filepath, 'rb') as fin:
         first_line = fin.readline().lstrip(b'\x00') # Remove all the @ and ^ from first
         lines = fin.readlines()
