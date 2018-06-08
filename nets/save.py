@@ -11,7 +11,6 @@ import os
 import pickle
 import shutil
 from os.path import abspath, exists, isdir, isfile, join
-from warnings
 
 import numpy as np
 import scipy.sparse
