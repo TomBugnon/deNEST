@@ -11,6 +11,7 @@ import os
 import pickle
 import shutil
 from os.path import abspath, exists, isdir, isfile, join
+from warnings
 
 import numpy as np
 import scipy.sparse
@@ -132,10 +133,16 @@ def save_array(path, array):
     except TypeError:
         np.save(path, array)
 
+# TODO: fix pickle.dump failure for large files
 def save_dict(path, dictionary):
     """Save a big dic with pickle."""
-    with open(path, 'wb') as f:
-        pickle.dump(dictionary, f)
+    try:
+        with open(path, 'wb') as f:
+            pickle.dump(dictionary, f)
+    except OSError as e:
+        msg = (f"Could not save data at {f}! \n"
+               f"... Ignoring the following error: {str(e)}`")
+        warnings.warn(msg)
 
 def load_dict(path):
     """Load a big dic with pickle."""
@@ -313,6 +320,7 @@ def save_measure(output_dir, measure, measure_name):
     np.save(path, measure)
     return path
 
+# TODO: fix pickle.dump failure for large files
 def save_sparse(path, array):
     """Save an array in a sparse format."""
     # Normalize file extension
@@ -324,9 +332,14 @@ def save_sparse(path, array):
     # Save
     data = {'shape': shape,
             'data': sparse_format(array)}
-    with open(path, 'wb') as f:
-        pickle.dump(data, f)
-    return True
+    try:
+        with open(path, 'wb') as f:
+            pickle.dump(data, f)
+        return True
+    except OSError as e:
+        msg = (f"Could not save data at {f}! \n"
+               f"... Ignoring the following error: {str(e)}`")
+        warnings.warn(msg)
 
 
 def ensure_ext(path, ext='.pkl'):
