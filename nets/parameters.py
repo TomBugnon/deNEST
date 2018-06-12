@@ -268,7 +268,7 @@ class Params(Scope):
                 return key[-1] in self.get_node(*key[:-1])
             except KeyError:
                 return False
-        return super().__getitem__(key)
+        return super().__contains__(key)
 
     def get(self, key, default=None):
         """See dict.get()."""
