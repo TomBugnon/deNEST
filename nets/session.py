@@ -16,6 +16,9 @@ from .utils.misc import pretty_time
 
 # pylint:disable=missing-docstring
 
+# Simulation time if self.params['max_session_sim_time'] == float('inf')
+MAX_SIM_TIME_NO_INPUT = 10000.
+
 def worker(recorder, output_dir, **kwargs):
     recorder.save(output_dir, **kwargs)
 
@@ -44,16 +47,17 @@ class Session:
     def initialize(self, network):
         """Initialize session.
 
-        1- Load stimuli
-        2- Reset Network
-        3- Change network's dynamic variables.
-        4- Set input spike times or input rates.
-
+        1- Reset Network
+        2- Change network's dynamic variables.
+        If there are InputLayers:
+            3- Load stimuli
+            4- Get simulation time from stimulus length and max simulation time
+            5- Set input spike times or input rates.
+        else:
+            3- Set simulation time as 'max_session_sim_time' session parameter
+                or MAX_SIM_TIME_NO_INPUT if 'max_session_sim_time' is not
+                defined
         """
-        # Load stimuli
-        self._stimulus = self.load_stim(crop_shape=network.max_input_shape)
-        self._simulation_time = float(np.size(self.stimulus['movie'], axis=0))
-
         # Reset network
         if self.params.get('reset_network', False):
             network.reset()
@@ -62,8 +66,16 @@ class Session:
         network.change_synapse_states(self.params.get('synapse_changes', []))
         network.change_unit_states(self.params.get('unit_changes', []))
 
-        # Set input spike times in the future.
-        network.set_input(self.stimulus, start_time=self._start)
+        if network.any_inputlayer:
+            # Load stimuli
+            self._stimulus = self.load_stim(crop_shape=network.max_input_shape)
+            self._simulation_time = float(np.size(self.stimulus['movie'], axis=0))
+            # Set input spike times in the future.
+            network.set_input(self.stimulus, start_time=self._start)
+        else:
+            self._simulation_time = self.params['max_session_sim_time']
+            if self._simulation_time == float('inf'):
+                self._simulation_time = MAX_SIM_TIME_NO_INPUT
 
         # Inactivate all the recorders and connection_recorders for
         # `self._simulation_time`

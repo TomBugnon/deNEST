@@ -164,6 +164,10 @@ class Network:
         ]
 
     @property
+    def any_inputlayer(self):
+        return bool(self._get_layers(layer_type='InputLayer'))
+
+    @property
     def input_shapes(self):
         return set(self._layer_get('shape', layer_type='InputLayer'))
 
