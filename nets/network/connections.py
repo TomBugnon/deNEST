@@ -37,7 +37,7 @@ NON_NEST_CONNECTION_PARAMS = {
     'recorders': {},
     'synapse_label': None, # (int or None). Only for *_lbl synapse models
     'query_synapse_label': None, # Used in MultiSynapseConnection only
-    'make_symmetric': False, # Used in MultiSynapseConnection only
+    'make_symmetric_multisynapse': False, # Used in MultiSynapseConnection only
     'save': [],
 }
 
@@ -625,7 +625,7 @@ class MultiSynapseConnection(BaseConnection):
         # Label used to query the connections
         self.query_synapse_label = self.params['query_synapse_label']
         # Make symmetric flag is passed during the nest.Connect() call
-        self.make_symmetric = self.params['make_symmetric']
+        self.make_symmetric = self.params['make_symmetric_multisynapse']
         assert self.query_synapse_label is not None
 
     def get_connections(self):
