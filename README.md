@@ -89,11 +89,12 @@
   3. Save network metadata (gid/location mappings, ...) (TODO)
 3. **Run each session** in turn. For each session:
   1. Initialize the session:
-    1. Load the stimulus
-    2. (Possibly) reset the network
-    3. Change the network's dynamic variables
-    4. Set the input spike times or input rates to emulate the forecoming
-       session stimulus.
+    1. (Possibly) reset the network
+    2. Change the network's dynamic variables
+    3. If there are any InputLayer in the network:
+      1. Load the stimulus
+      2. Set the input spike times or input rates to emulate the forecoming
+         session stimulus.
   2. Call `nest.Simulate()`.
   3. Save the session's data:
     1. Format the recorders
@@ -273,9 +274,7 @@ defined in the final parameter tree.
     (default `None`)
   - `time_per_frame` (float): Number of milliseconds during which each 'frame'
     of the input movie is shown to the network. (default `1.0`)
-  - `max_session_sim_time` (float): Maximum duration of the session, in ms.
-    Actual simulation time of the session is the minimum between this parameter
-    and the total duration of the input movie (nframes x time_per_frame).
+  - `max_session_sim_time` (float): Maximum duration of the session, in ms
     (default `float('inf')`)
   - `unit_changes` (list): List of dictionaries describing the parameter changes
     to apply to a proportion of units of specific populations. (default `[]`)
@@ -453,6 +452,20 @@ approach is to specify the absolute path to an 'input directory' in the
 nets.constants, leave the `'input_path'` simulation parameter otherwise
 unspecified and specify the relative path (from the `'input directory'`) to each
 session's input in the session parameters.
+
+### Duration of session
+
+The simulation time of each session is decided differently depending on whether
+there are InputLayers (and corresponding stimuli) in the network or not:
+  - if there are input layers:
+      The simulation time is equal to the  minimum between the
+      'max_session_sim_time' session parameter and the total duration of the
+      input movie (nframes x time_per_frame).
+  - if there are no input layers:
+      The simulation time is equal to the 'max_session_sim_time' session
+      parameter or to the default MAX_SIM_TIME_NO_INPUT variable in sessions.py
+      if 'max_session_sim_time' is not specified.
+
 
 ## Run the simulation
 
