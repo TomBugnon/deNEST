@@ -172,7 +172,7 @@ class Simulation:
             # Save output dir in params
             self.params.c['simulation']['output_dir'] = output_dir
         # Tell NEST kernel where to save the raw recorder files
-        nest_output_dir = output_subdir(output_dir, 'raw')
+        nest_output_dir = output_subdir(output_dir, 'raw_data')
         self.params.c['kernel']['data_path'] = nest_output_dir
         self.params.c['simulation']['nest_output_dir'] = nest_output_dir
         return output_dir

@@ -245,7 +245,7 @@ class PopulationRecorder(BaseRecorder):
 
             recorder_path = save.output_path(
                 output_dir,
-                'recorders',
+                'recorders_formatted',
                 self._layer_name,
                 self._population_name,
                 session_name=session_name,
@@ -395,7 +395,7 @@ class ConnectionRecorder(BaseRecorder):
                                                         end_time=end_time)
         recorder_path = save.output_path(
             output_dir,
-            'connectionrecorders',
+            'connection_recorders',
             self._connection_name,
             session_name=session_name,
         )
