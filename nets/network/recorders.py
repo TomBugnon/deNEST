@@ -33,6 +33,9 @@ class BaseRecorder(NestObject):
     NB: The recorder models are created separately !!! All the parameters
     passed to these classes originate not from the `recorder` parameters
     (`recorders.yml`) but from the population parameters !
+    IMPORTANT: The parameters from the recorder models ('recorders.yml') are set
+    as defaults of the NEST model, and the parameters of the instances of this
+    class overwrite those defaults at creation.
 
     TODO: Don't create the recorder models separately so we can define
     "non_nest" parameters in `recorder.yml`.
