@@ -52,6 +52,7 @@ class BaseRecorder(NestObject):
         self._filename_prefix = None
         self._record_to = None # eg ['memory', 'file']
         self._withtime = None
+        self._label = None # Only affects raw data filenames.
 
     @property
     @if_created
@@ -66,6 +67,11 @@ class BaseRecorder(NestObject):
     @property
     def type(self):
         return self._type
+
+    @property
+    @if_created
+    def __str__(self):
+        raise NotImplementedError
 
     def clear_memory(self):
         """Clear memory and disk from recorder data.
@@ -110,7 +116,6 @@ class PopulationRecorder(BaseRecorder):
         self._layer_name = None # Name of recorded (parent) pop's layer
         self._layer_shape = None # (nrows, cols) for recorded pop
         self._units_number = None # Number of nodes per grid position for pop
-        #
         self._formatted_unit_indices = None # Index of nodes per grid position
             # for which data is formatted
         ##
@@ -171,6 +176,9 @@ class PopulationRecorder(BaseRecorder):
             self._record_from = ['spikes']
             if self._formatting_interval is None:
                 self._formatting_interval = 1.0
+        # Set the label (defines the filenames)
+        self._label = self.__str__
+        nest.SetStatus(self.gid, {'label': self._label})
         # Connect population
         if self.type == 'multimeter':
             nest.Connect(self.gid, self.gids)
@@ -186,6 +194,11 @@ class PopulationRecorder(BaseRecorder):
     @if_created
     def locations(self):
         return self._locations
+
+    @property
+    @if_created
+    def __str__(self):
+        return self.type + '_' + self._layer_name + '_' + self._population_name
 
     def save_raster(self, output_dir, session_name=None):
         if self.type == 'spike_detector':
@@ -359,7 +372,14 @@ class ConnectionRecorder(BaseRecorder):
         self._withrport = nest.GetStatus(self.gid, 'withrport')[0]
         self._withtargetgid = nest.GetStatus(self.gid, 'withtargetgid')[0]
         self._withweight = nest.GetStatus(self.gid, 'withweight')[0]
+        # Set the label (defines the filenames)
+        self._label = self.__str__
+        nest.SetStatus(self.gid, {'label': self._label})
 
+    @property
+    @if_created
+    def __str__(self):
+        return self.type + '_' + self._connection_name
 
     def save(self, output_dir, session_name=None, start_time=None,
         end_time=None, clear_memory=True, with_raster=False):
