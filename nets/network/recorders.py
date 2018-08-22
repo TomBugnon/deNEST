@@ -134,7 +134,7 @@ class PopulationRecorder(BaseRecorder):
         # Attributes below may depend on NEST default and recorder models and
         # are updated after creation
         self._record_from = None # list of variables for mm, or ['spikes']
-        self._interval = None # Sampling interval. Only for multimeter
+        self._interval = None # Sampling interval. None for spike_detector.
         self._formatting_interval = self.params['formatting_interval'] #
             #Interval between two consecutive "slices" of the formatted array.
 
