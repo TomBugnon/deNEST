@@ -46,12 +46,12 @@ class BaseRecorder(NestObject):
         # We now save the params and nest_params dictionaries as attributes
         super().__init__(name, params)
         self.nest_params = nest_params
-        # Attributes below may depend on NEST default and are derived after
-        # creation
+        # Attributes below may depend on NEST default and recorder models and
+        # are updated after creation
         self._gid = None # gid of recorder node
-        self._files = None # files of recorded data (None if to memory)
+        self._filename_prefix = None
         self._record_to = None # eg ['memory', 'file']
-        self._record_from = None # list of variables for mm, or ['spikes']
+        self._withtime = None
 
     @property
     @if_created
@@ -122,8 +122,9 @@ class PopulationRecorder(BaseRecorder):
             self._type = self.guess_rec_type()
             print(f'Guessing type for recorder `{self.name}`:'
                   f' `{self._type}`')
-        # Attributes below may depend on NEST default and are updated after
-        # creation
+        # Attributes below may depend on NEST default and recorder models and
+        # are updated after creation
+        self._record_from = None # list of variables for mm, or ['spikes']
         self._interval = None # Sampling interval. Only for multimeter
         self._formatting_interval = self.params['formatting_interval'] #
             #Interval between two consecutive "slices" of the formatted array.
@@ -154,8 +155,11 @@ class PopulationRecorder(BaseRecorder):
             range(population_params['number_formatted'])
         # Create node
         self._gid = nest.Create(self.name, params=self.nest_params)
-        # Get attributes after creation (may depend on nest defaults)
+        # Update attributes after creation (may depend on nest defaults and
+        # recorder models)
+        self._filename_prefix = None # TODO: Create function
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
+        self._withtime = nest.GetStatus(self.gid, 'withtime')[0]
         if self.type == 'multimeter':
             self._record_from = [str(variable) for variable
                                  in nest.GetStatus(self.gid, 'record_from')[0]]
@@ -321,6 +325,12 @@ class ConnectionRecorder(BaseRecorder):
             # TODO: access somehow the base nest model from which the recorder
             # model inherits.
             raise Exception('The weight recorder type is not recognized.')
+        # Attributes below may depend on NEST default and recorder models and
+        # are updated after creation
+        self._withport = None
+        self._withrport = None
+        self._withtargetgid = None
+        self._withweight = None
 
     @if_not_created
     def create(self, conn_parameters):
@@ -340,8 +350,16 @@ class ConnectionRecorder(BaseRecorder):
         self._tgt_gids = conn_parameters['tgt_gids']
         # Update the parameters Create node
         self._gid = nest.Create(self.name, params=self.nest_params)
-        # Get node parameters from nest (possibly nest defaults)
+        # Get node parameters from nest (depends on nest defaults and recorder
+        # models)
+        self._filename_prefix = None # TODO
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
+        self._withtime = nest.GetStatus(self.gid, 'withtime')[0]
+        self._withport = nest.GetStatus(self.gid, 'withport')[0]
+        self._withrport = nest.GetStatus(self.gid, 'withrport')[0]
+        self._withtargetgid = nest.GetStatus(self.gid, 'withtargetgid')[0]
+        self._withweight = nest.GetStatus(self.gid, 'withweight')[0]
+
 
     def save(self, output_dir, session_name=None, start_time=None,
         end_time=None, clear_memory=True, with_raster=False):
