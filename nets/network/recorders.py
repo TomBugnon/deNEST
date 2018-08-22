@@ -49,6 +49,7 @@ class BaseRecorder(NestObject):
         # We now save the params and nest_params dictionaries as attributes
         super().__init__(name, params)
         self.nest_params = nest_params
+        self._type = None
         # Attributes below may depend on NEST default and recorder models and
         # are updated after creation
         self._gid = None # gid of recorder node
