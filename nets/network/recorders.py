@@ -98,6 +98,53 @@ class BaseRecorder(NestObject):
         print(f'--> Setting status for recorder {self.name}: {params}')
         nest.SetStatus(self.gid, params)
 
+    def set_label(self):
+        """Set self._label attribute and set nest parameter accordingly."""
+        self._label = self.__str__
+        self.set_status({'label': self._label})
+
+    def raw_data_colnames(self):
+        """Return list of labels for columns in raw data saved by NEST."""
+        raise NotImplementedError
+
+    def raw_data_filename_prefix(self):
+        """Prefix of raw files saved by NEST.
+
+        From NEST documentation:
+            ```The name of the output file is
+            `data_path/data_prefix(label|model_name)-gid-vp.file_extension`
+
+            See /label and /file_extension for how to change the name.
+            /data_prefix is changed in the root node.```
+
+        NB: We use the prefix rather than the recorder's `filenames` key, since
+        the latter is created only after the first `Simulate` call.
+
+        NB: The label is set at creation.
+        """
+        import nest
+        # TODO: Deal with case where multimeter is only recorded to memory?
+        assert 'file' in self._record_to
+        assert self._label is not None # Check that the label has been set
+        prefix = (nest.GetKernelStatus('data_prefix')
+                  + self._label
+                  + f'-{self.gid[0]}')
+        return prefix
+
+    @if_created
+    def get_base_metadata_dict(self):
+        """Return dictionary containing metadata for all recorder types."""
+        return {
+            'type': self._type,
+            'label': self._label,
+            'colnames': self.raw_data_colnames(),
+            'filename_prefix': self.raw_data_filename_prefix(),
+        }
+
+    def save_metadata(self):
+        """Save metadata for recorder."""
+        raise NotImplementedError
+
 
 class PopulationRecorder(BaseRecorder):
     """Represent a recorder node. Connects to a single population.
@@ -166,7 +213,6 @@ class PopulationRecorder(BaseRecorder):
         self._gid = nest.Create(self.name, params=self.nest_params)
         # Update attributes after creation (may depend on nest defaults and
         # recorder models)
-        self._filename_prefix = None # TODO: Create function
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
         self._withtime = nest.GetStatus(self.gid, 'withtime')[0]
         if self.type == 'multimeter':
@@ -180,9 +226,9 @@ class PopulationRecorder(BaseRecorder):
             self._record_from = ['spikes']
             if self._formatting_interval is None:
                 self._formatting_interval = 1.0
-        # Set the label (defines the filenames)
-        self._label = self.__str__
-        nest.SetStatus(self.gid, {'label': self._label})
+        # Set the label and filename prefix
+        self.set_label()
+        self._filename_prefix = self.raw_data_filename_prefix
         # Connect population
         if self.type == 'multimeter':
             nest.Connect(self.gid, self.gids)
@@ -221,6 +267,43 @@ class PopulationRecorder(BaseRecorder):
                 print(f'Not saving raster for population:'
                       f' {str(self._population_name)}:')
                 print(f'-> {error_msg}\n')
+
+    def get_population_recorder_metadata_dict(self):
+        metadata_dict = self.get_base_metadata_dict()
+        metadata_dict.update({
+            'gids': self._gids,
+            'locations': self._locations,
+            'population_name': self._population_name,
+            'layer_name': self._layer_name,
+            'layer_shape': self._layer_shape,
+            'units_number': self._units_number,
+            'formatted_unit_indices': self._formatted_unit_indices,
+            'interval': self._interval,
+            'formatting_interval': self._formatting_interval,
+            'record_from': self._record_from,
+        })
+        return metadata_dict
+
+    def save_metadata(self, output_dir):
+        metadata_path = save.output_path(
+            output_dir,
+            'recorders_metadata',
+            self._label
+        )
+        save.save_as_yaml(metadata_path,
+                          self.get_population_recorder_metadata_dict())
+
+    def raw_data_colnames(self):
+        import nest
+        #TODO: Make sure this is necessary or find a workaround?
+        #TODO: check the parameters at creation rather than here
+        assert nest.GetStatus(self.gid, 'withtime')[0]
+        if self.type == 'multimeter':
+            return ['gid', 'time'] + self._record_from
+        elif self.type == 'spike_detector':
+            return ['gid', 'time']
+        else:
+            raise Exception
 
     def save(self, output_dir, session_name=None, start_time=None,
         end_time=None):
@@ -369,7 +452,6 @@ class ConnectionRecorder(BaseRecorder):
         self._gid = nest.Create(self.name, params=self.nest_params)
         # Get node parameters from nest (depends on nest defaults and recorder
         # models)
-        self._filename_prefix = None # TODO
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
         self._withtime = nest.GetStatus(self.gid, 'withtime')[0]
         self._withport = nest.GetStatus(self.gid, 'withport')[0]
@@ -377,8 +459,8 @@ class ConnectionRecorder(BaseRecorder):
         self._withtargetgid = nest.GetStatus(self.gid, 'withtargetgid')[0]
         self._withweight = nest.GetStatus(self.gid, 'withweight')[0]
         # Set the label (defines the filenames)
-        self._label = self.__str__
-        nest.SetStatus(self.gid, {'label': self._label})
+        self.set_label()
+        self._filename_prefix = self.raw_data_filename_prefix()
 
     @property
     @if_created
@@ -408,3 +490,44 @@ class ConnectionRecorder(BaseRecorder):
             # in the same Parallel loop. There should be a better way of doing
             # this.
             pass
+
+    def get_connection_recorder_metadata_dict(self):
+        metadata_dict = self.get_base_metadata_dict()
+        # TODO save source and target populations' location-by-gid?
+        metadata_dict.update({
+            'connection_name': self._connection_name,
+            'src_layer_name': self._src_layer_name,
+            'src_population_name': self._src_population_name,
+            'src_gids': self._src_gids,
+            'tgt_layer_name': self._tgt_layer_name,
+            'tgt_population_name': self._tgt_population_name,
+            'tgt_gids': self._tgt_gids,
+            'record_to': self._record_to,
+            'withtime': self._withtime,
+            'withport': self._withport,
+            'withrport': self._withrport,
+            'withtargetgid': self._withtargetgid,
+            'withweight': self._withweight,
+        })
+        return metadata_dict
+
+    def raw_data_colnames(self):
+        import nest
+        #TODO: Make sure this is necessary or find a workaround?
+        #TODO: check the parameters at creation rather than here
+        # assert not nest.GetStatus(self.gid, 'withport')[0]
+        # assert not nest.GetStatus(self.gid, 'withrport')[0]
+        # assert nest.GetStatus(self.gid, 'withtime')[0]
+        if self._type == 'weight_recorder':
+            # TODO
+            return None
+
+
+    def save_metadata(self, output_dir):
+        metadata_path = save.output_path(
+            output_dir,
+            'connection_recorders_metadata',
+            self._label
+        )
+        save.save_as_yaml(metadata_path,
+                          self.get_connection_recorder_metadata_dict())

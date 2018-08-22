@@ -24,7 +24,9 @@ OUTPUT_SUBDIRS = {'params': (),
                   'git_hash': (),
                   'raw_data': ('raw_data',), # Raw recorder data (NEST output)
                   'recorders_formatted': ('recorders_formatted',), # Formatted recorder data
+                  'recorders_metadata': ('recorders_metadata',), # Metadata for recorders (contains filenames and gid/location mappings)
                   'connection_recorders': ('connection_recorders',),
+                  'connection_recorders_metadata': ('connection_recorders_metadata',),
                   'session_movie': ('sessions',),
                   'session_labels': ('sessions',),
                   'session_metadata': ('sessions',),
@@ -363,13 +365,7 @@ def load_sparse(path):
     return data.reshape(shape)
 
 
-# TODO
-def connection_filename(connection): # pylint:disable=unused-argument
-    """Generate string describing a population-to-population connection."""
-    pass
-
-
-def recorder_filename(layer, pop, unit_index=None, variable='spikes',
+def recorder_formatted_filename(layer, pop, unit_index=None, variable='spikes',
                       formatting_interval=None):
     """Return filename for a population x unit_index."""
     base_filename = (layer + '_' + pop + '_'
@@ -382,9 +378,11 @@ def recorder_filename(layer, pop, unit_index=None, variable='spikes',
         suffix = suffix + ('_' + 'interval' + '_' + str(formatting_interval))
     return base_filename + suffix
 
-def connrecorder_filename(connection_name):
-    """Return filename for a ConnectionRecorder."""
-    return connection_name
+
+def recorder_metadata_filename(label):
+    """Return filename for a recorder from its label."""
+    return label
+
 
 def save_plot(fig, output_dir, filename, overwrite=False):
     """Save matplotlib figure in 'plot' subdirectory."""
@@ -423,8 +421,10 @@ def git_hash_filename():
 
 
 FILENAME_FUNCS = {'params': params_filename,
-                  'recorders_formatted': recorder_filename,
-                  'connection_recorders': connrecorder_filename,
+                  'recorders_formatted': recorder_formatted_filename,
+                  'recorders_metadata': recorder_metadata_filename,
+                  'connection_recorders': recorder_metadata_filename,
+                  'connection_recorders_metadata': recorder_metadata_filename,
                   'session_times': session_times_filename,
                   'session_metadata': metadata_filename,
                   'session_labels': labels_filename,

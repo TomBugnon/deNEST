@@ -281,8 +281,8 @@ class Network:
 
     def save_metadata(self, output_dir):
         """Save network metadata."""
-        # TODO: Save gids-position mappings
-        pass
+        # Save recorder metadata
+        self.recorder_call('save_metadata', output_dir)
 
     def save_data(self, output_dir, sim_params):
         # Save population rasters if they haven't been saved already
