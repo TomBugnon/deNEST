@@ -51,6 +51,7 @@ class AbstractLayer(NestObject):
         """Convert a value from grid units to extent units."""
         raise NotImplementedError
 
+    @if_not_created
     def create(self):
         """Create the layer in NEST."""
         raise NotImplementedError
