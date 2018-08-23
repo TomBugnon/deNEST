@@ -3,6 +3,7 @@ simulation:
     output_dir: output
     dry_run: False
     clear_output_dir: True
+    format_recorders: False
     clear_memory: False
     save_simulation: True
     parallel: True
