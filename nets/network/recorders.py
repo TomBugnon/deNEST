@@ -467,29 +467,13 @@ class ConnectionRecorder(BaseRecorder):
     def __str__(self):
         return self.type + '_' + self._connection_name
 
+    # TODO: If we want to format spike weights in 4Dxtime arrays
     def save(self, output_dir, session_name=None, start_time=None,
         end_time=None, with_raster=False):
-        """Save unformatted weight-recorder data."""
+        """Save formatted weight-recorder data."""
         # pylint:disable=too-many-arguments
+        pass
 
-        data = format_recorders.gather_raw_data_connrec(self.gid,
-                                                        start_time=start_time,
-                                                        end_time=end_time)
-        recorder_path = save.output_path(
-            output_dir,
-            'connection_recorders',
-            self._connection_name,
-            session_name=session_name,
-        )
-
-        save.save_dict(recorder_path, data)
-
-        if with_raster:
-            # TODO: I keep this kwarg only so that Recorder.save and
-            # ConnectionRecorder.save have the same signature and can be called
-            # in the same Parallel loop. There should be a better way of doing
-            # this.
-            pass
 
     def get_connection_recorder_metadata_dict(self):
         metadata_dict = self.get_base_metadata_dict()
