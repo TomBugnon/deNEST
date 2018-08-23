@@ -386,7 +386,7 @@ class ConnectionRecorder(BaseRecorder):
         return self.type + '_' + self._connection_name
 
     def save(self, output_dir, session_name=None, start_time=None,
-        end_time=None, clear_memory=True, with_raster=False):
+        end_time=None, with_raster=False):
         """Save unformatted weight-recorder data."""
         # pylint:disable=too-many-arguments
 
@@ -408,6 +408,3 @@ class ConnectionRecorder(BaseRecorder):
             # in the same Parallel loop. There should be a better way of doing
             # this.
             pass
-
-        if clear_memory:
-            self.clear_memory()
