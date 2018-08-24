@@ -345,10 +345,17 @@ class PopulationRecorder(BaseRecorder):
         """Get formatted data.
 
         NB: TODO: Because the last event recorded has timestamp `end_time` - 1 (where
-        `end_time` is the kernel time at the end of a session), the last frame
-        of formatted arrays is always filled with 0 and the data between
-        `end_time` - 1 and `end_time` is lost.
+        `end_time` is the kernel time at the end of the last `Simulate` call),
+        the last frame of formatted arrays is always filled with 0 and the data
+        between `end_time` - 1 and `end_time` is lost.
         """
+        # Set defaults values for start_time and end_time
+        if start_time is None:
+            start_time = 0
+        if end_time is None:
+            import nest
+            end_time = nest.GetKernelStatus('time')
+
         # Get shape of formatted array.
         duration = end_time - start_time
         nslices = int(duration/self._formatting_interval)

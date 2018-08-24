@@ -80,8 +80,12 @@ def format_mm_data(sender_gid,
                    start_time=None,
                    end_time=None):
     """Return dict containiing all formatted (t, row, col)-np.arrays."""
-
     # pylint:disable=too-many-arguments, too-many-locals
+
+    if start_time is None:
+        start_time = 0
+    if end_time is None:
+        end_time = float('inf')
 
     all_recorder_activity = {
         var: [np.zeros(shape) for i in formatted_unit_indices]
@@ -109,8 +113,12 @@ def format_sd_data(sender_gid,
                    start_time=None,
                    end_time=None):
     """Return dict containing all formatted (t, row, col)-np.arrays."""
-
     # pylint:disable=too-many-arguments
+
+    if start_time is None:
+        start_time = 0
+    if end_time is None:
+        end_time = float('inf')
 
     all_recorder_activity = {
         'spikes': [np.zeros(shape) for i in formatted_unit_indices]
