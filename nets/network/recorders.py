@@ -305,7 +305,7 @@ class PopulationRecorder(BaseRecorder):
         else:
             raise Exception
 
-    def save(self, output_dir, session_name=None, start_time=None,
+    def save_formatted(self, output_dir, session_name=None, start_time=None,
         end_time=None):
         # pylint:disable=too-many-arguments
         """Save the formatted activity of recorders.
@@ -468,7 +468,7 @@ class ConnectionRecorder(BaseRecorder):
         return self.type + '_' + self._connection_name
 
     # TODO: If we want to format spike weights in 4Dxtime arrays
-    def save(self, output_dir, session_name=None, start_time=None,
+    def save_formatted(self, output_dir, session_name=None, start_time=None,
         end_time=None, with_raster=False):
         """Save formatted weight-recorder data."""
         # pylint:disable=too-many-arguments

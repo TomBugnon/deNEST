@@ -238,7 +238,7 @@ def frames_to_time(list_or_array, nrepeats):
 
 
 def worker(recorder, output_dir, **kwargs):
-    recorder.save(output_dir, **kwargs)
+    recorder.save_formatted(output_dir, **kwargs)
 
 
 # TODO: Format only if the session has been recorded and figure out a way to
