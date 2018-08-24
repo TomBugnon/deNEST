@@ -77,21 +77,6 @@ class BaseRecorder(NestObject):
     def __str__(self):
         raise NotImplementedError
 
-    def clear_memory(self):
-        """Clear memory and disk from recorder data.
-
-        NB: We clear the contents of files rather than deleting it !!! Otherwise
-        NEST doesn't write anymore."""
-        import nest
-        if 'memory' in self._record_to:
-            # Clear events by setting n_events = 0
-            nest.SetStatus(self.gid, {'n_events': 0})
-        if 'file' in self._record_to:
-            # delete the raw files
-            files = nest.GetStatus(self.gid, 'filenames')[0]
-            for file in files:
-                misc.delete_contents(file)
-
     def set_status(self, params):
         """Call nest.SetStatus to set recorder params."""
         import nest
@@ -314,6 +299,13 @@ class PopulationRecorder(BaseRecorder):
         by a recorder at once (for speed), this can get hard on memory when many
         variables are recorded. If you experience memory issues, a possiblity is
         to create separate recorders for each variable.
+
+        Args:
+            output_dir (str): output directory
+            session_name (str): If not None, data is saved in a subdirectory
+                of output directory with that name.
+            start_time, end_time (int): Start and end time of data that is
+                formatted.
         """
 
         # Get formatted arrays for each variable and each unit_index.

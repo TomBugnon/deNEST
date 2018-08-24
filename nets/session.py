@@ -7,7 +7,6 @@ import time
 from pprint import pformat
 
 import numpy as np
-from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from . import save
@@ -112,56 +111,6 @@ class Session:
               f"{pretty_time(start_time)}...\n")
         self._end = int(nest.GetKernelStatus('time'))
 
-    def save_data(self, output_dir, network, sim_params):
-        """Save network's activity and clear memory.
-
-        1- Possibly formats recorders (possibly in parallel)
-        2- Possibly creates raster plots (must be in series)
-        3- Possibly clears memory
-
-        Args:
-            output_dir (str):
-            network (Network object):
-            sim_params (Params object): Simulation parameters.
-        """
-        # Get relevant params from sim_params
-        format_recorders =  sim_params.get('format_recorders', False)
-        clear_memory = sim_params.get('clear_memory', False)
-        # We save the rasters only if we clear memory at the end of each
-        # session. Otherwise we save them once at the end of the whole
-        # simulation
-        save_nest_rasters = sim_params.get('save_nest_rasters', True) and clear_memory
-
-        # Possibly format the recorders
-        if format_recorders:
-            # Make kwargs dict containing simulation parameters
-            sim_kwargs = {
-                'parallel': sim_params.get('parallel', True),
-                'n_jobs': sim_params.get('n_jobs', -1),
-            }
-            # Make kwargs dict containing session parameters (eventually passed
-            # to `Recorder.save`)
-            session_kwargs = {
-                'session_name': self.name,
-                'start_time': self._start,
-                'end_time': self._end,
-            }
-            all_recorders = network.get_recorders(recorder_class=None)
-            format_all_recorders(
-                all_recorders, output_dir, sim_kwargs, session_kwargs)
-
-        # Save the rasters for population recorders (must be in series)
-        if save_nest_rasters:
-            print('Saving rasters...')
-            network.recorder_call('save_raster', output_dir, self.name,
-                                  recorder_class='population')
-        ##
-        # Clear memory for all recorders
-        if clear_memory:
-            print('Clearing memory...')
-            network.recorder_call('clear_memory', recorder_class=None)
-            print('... done \n')
-
     def save_metadata(self, output_dir):
         """Save session metadata (stimuli, ...)."""
         if self.params.get('save_stim', True) and self._stimulus is not None:
@@ -235,34 +184,3 @@ class Session:
 def frames_to_time(list_or_array, nrepeats):
     """Repeat elements along the first dimension."""
     return np.repeat(list_or_array, nrepeats, axis=0)
-
-
-def worker(recorder, output_dir, **kwargs):
-    recorder.save_formatted(output_dir, **kwargs)
-
-
-# TODO: Format only if the session has been recorded and figure out a way to
-# load the data properly
-def format_all_recorders(all_recorders, output_dir, sim_kwargs, save_kwargs):
-    # Format all recorders (population and connection), possibly using joblib
-    args_list = [(recorder, output_dir)
-                 for recorder in all_recorders]
-    parallel = sim_kwargs['parallel']
-    n_jobs = sim_kwargs['n_jobs']
-
-    # Verbose
-    msg = (f"Formatting {len(args_list)} population/connection recorders "
-           f"{'using' if parallel else 'without'} joblib: \n"
-           f"...")
-    print(msg)
-
-    if parallel:
-        Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
-            delayed(worker)(*args, **save_kwargs) for args in args_list
-        )
-    else:
-        for args in tqdm(args_list,
-                         desc=''):
-            worker(*args, **save_kwargs)
-
-    print('...Done formatting recorders\n')

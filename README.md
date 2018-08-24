@@ -96,16 +96,12 @@
       2. Set the input spike times or input rates to emulate the forecoming
          session stimulus.
   2. Call `nest.Simulate()`.
-  3. Save the session's data:
-    1. Format the recorders
-    2. Possibly save the raster plots if we're going to clear memory
-    3. Possibly clear memory from raw recorder data (`clear_memory` simulation
-    parameter)
 4. **Do some post-processing saves**
   1. Call `sim.save_data`:
     1. Save the session's times and stimuli
     2. Call `Network.save_data`:
         - Save the population rasters if the data was not cleared
+        - Possibly format the recorders
         - Save the final state of synapses
   2. Save and plot other
     - Plot some connections
@@ -243,8 +239,6 @@ defined in the final parameter tree.
       (default True)
     - `n_jobs` (int): Number of cores to use if we format recorders in parallel
       (default -1)
-    - `clear_memory` (bool): Delete recorder data after saving it at the end of
-      each session (default False)
     - `delete_raw_data_dir` (bool): If true, the raw data output by NEST is deleted
       during a `Simulation.save()` call. (default `False`)
     - `save_nest_raster` (bool): If true, NEST raster plots are generated during

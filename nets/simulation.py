@@ -65,14 +65,11 @@ class Simulation:
         print('Done...\n', flush=True)
 
     def run(self):
-        """Run and save each of the sessions in order."""
+        """Run each of the sessions in order."""
         # Get list of recorders and formatting parameters
         for session in self.sessions:
             print(f'Running session: `{session.name}`...\n')
             session.run(self.network)
-            session.save_data(self.output_dir,
-                              self.network,
-                              self.params.c['simulation'])
             print(f'Done running session `{session.name}`\n\n')
 
     def dump_connections(self):
