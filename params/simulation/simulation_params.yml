@@ -8,7 +8,7 @@ simulation:
     save_simulation: True
     parallel: True
     n_jobs: 2
-    delete_raw_dir: True
+    delete_raw_data_dir: True
     save_nest_raster: True
     dump_connections: False
     plot_connections: False

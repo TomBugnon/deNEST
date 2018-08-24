@@ -121,7 +121,7 @@ class Simulation:
             self.network.save_data(self.output_dir,
                                    self.params.c['simulation'])
         # Delete nest temporary directory
-        if self.params.c['simulation'].get('delete_raw_dir', True):
+        if self.params.c['simulation'].get('delete_raw_data_dir', True):
             rmtree(self.params.c['simulation']['nest_output_dir'])
 
     def init_kernel(self):
