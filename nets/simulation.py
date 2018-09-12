@@ -41,12 +41,6 @@ class Simulation:
         print('Initialize NEST kernel...', flush=True)
         self.init_kernel()
         print('...done\n', flush=True)
-        # Create network
-        print('Create network...', flush=True)
-        self.network = Network(self.params.c['network'])
-        self.network.create(dry_run=self.params.c['simulation'].get('dry_run',
-                                                                    False))
-        print('...done\n', flush=True)
         # Create sessions
         print('Create sessions...', flush=True)
         self.order = self.params.c['sessions'].get('order', [])
@@ -67,8 +61,14 @@ class Simulation:
         self.session_times = {
             session.name: session.duration for session in self.sessions
         }
-        print(f'-> Session order: {self.order}')
+        print(f'-> Sessions: {self.order}')
         print('Done...\n', flush=True)
+        # Create network
+        print('Create network...', flush=True)
+        self.network = Network(self.params.c['network'])
+        self.network.create(dry_run=self.params.c['simulation'].get('dry_run',
+                                                                    False))
+        print('...done\n', flush=True)
 
     def run(self):
         """Run each of the sessions in order."""
