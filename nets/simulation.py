@@ -65,14 +65,11 @@ class Simulation:
         print('Done...\n', flush=True)
 
     def run(self):
-        """Run and save each of the sessions in order."""
+        """Run each of the sessions in order."""
         # Get list of recorders and formatting parameters
         for session in self.sessions:
             print(f'Running session: `{session.name}`...\n')
             session.run(self.network)
-            session.save_data(self.output_dir,
-                              self.network,
-                              self.params.c['simulation'])
             print(f'Done running session `{session.name}`\n\n')
 
     def dump_connections(self):
@@ -120,9 +117,6 @@ class Simulation:
             # Save network
             self.network.save_data(self.output_dir,
                                    self.params.c['simulation'])
-        # Delete nest temporary directory
-        if self.params.c['simulation'].get('delete_raw_dir', True):
-            rmtree(self.params.c['simulation']['nest_output_dir'])
 
     def init_kernel(self):
         """Initialize NEST kernel."""
@@ -172,7 +166,7 @@ class Simulation:
             # Save output dir in params
             self.params.c['simulation']['output_dir'] = output_dir
         # Tell NEST kernel where to save the raw recorder files
-        nest_output_dir = output_subdir(output_dir, 'raw')
+        nest_output_dir = output_subdir(output_dir, 'raw_data')
         self.params.c['kernel']['data_path'] = nest_output_dir
         self.params.c['simulation']['nest_output_dir'] = nest_output_dir
         return output_dir

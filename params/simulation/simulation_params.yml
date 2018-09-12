@@ -3,11 +3,10 @@ simulation:
     output_dir: output
     dry_run: False
     clear_output_dir: True
-    clear_memory: False
+    format_recorders: False
     save_simulation: True
     parallel: True
     n_jobs: 2
-    delete_raw_dir: True
     save_nest_raster: True
     dump_connections: False
     plot_connections: False

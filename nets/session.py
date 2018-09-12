@@ -7,7 +7,6 @@ import time
 from pprint import pformat
 
 import numpy as np
-from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from . import save
@@ -18,9 +17,6 @@ from .utils.misc import pretty_time
 
 # Simulation time if self.params['max_session_sim_time'] == float('inf')
 MAX_SIM_TIME_NO_INPUT = 10000.
-
-def worker(recorder, output_dir, **kwargs):
-    recorder.save(output_dir, **kwargs)
 
 class Session:
     """Represents a sequence of stimuli."""
@@ -115,80 +111,19 @@ class Session:
               f"{pretty_time(start_time)}...\n")
         self._end = int(nest.GetKernelStatus('time'))
 
-    # TODO: Format only if the session has been recorded and figure out a way to
-    # load the data properly
-    def save_data(self, output_dir, network, sim_params):
-        """Save network's activity and clear memory.
-
-        1- Formats recorders (possibly in parallel)
-        2- Possibly creates raster plots (must be in series)
-        3- Possibly clears memory
-
-        Args:
-            output_dir (str):
-            network (Network object):
-            sim_params (Params object): Simulation parameters.
-        """
-        # Get relevant params from sim_params
-        parallel = sim_params.get('parallel', True)
-        n_jobs = sim_params.get('n_jobs', -1)
-        clear_memory = sim_params.get('clear_memory', False)
-        # We save the rasters only if we clear memory at the end of each
-        # session. Otherwise we save them once at the end of the whole
-        # simulation
-        save_nest_rasters = sim_params.get('save_nest_rasters', True) and clear_memory
-        # Make kwargs dict that is passed to Recorder.save
-        kwargs = {
-            'session_name': self.name,
-            'start_time': self._start,
-            'end_time': self._end,
-        }
-        all_recorders = network.get_recorders(recorder_class=None)
-        ###
-        # Format all recorders (population and connection), possibly using joblib
-        args_list = [(recorder, output_dir)
-                     for recorder in all_recorders]
-        # Verbose
-        msg = (f"Saving {len(args_list)} population/connection recorders:\n"
-               f" - format {'using' if parallel else 'without'} joblib, \n"
-               f" - {'with' if save_nest_rasters else 'without'} raster plots \n"
-               f" - {'with' if clear_memory else 'without'} clearing memory\n"
-               f"...")
-        print(msg)
-        if parallel:
-            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
-                delayed(worker)(*args, **kwargs) for args in args_list
-            )
-        else:
-            for args in tqdm(args_list,
-                             desc=''):
-                worker(*args, **kwargs)
-        ###
-        # Save the rasters for population recorders (must be in series)
-        if save_nest_rasters:
-            print('Saving rasters...')
-            network.recorder_call('save_raster', output_dir, self.name,
-                                  recorder_class='population')
-        ##
-        # Clear memory for all recorders
-        if clear_memory:
-            print('Clearing memory...')
-            network.recorder_call('clear_memory', recorder_class=None)
-            print('... done \n')
-
     def save_metadata(self, output_dir):
         """Save session metadata (stimuli, ...)."""
         if self.params.get('save_stim', True) and self._stimulus is not None:
             save.save_array(save.output_path(output_dir,
-                                             'movie',
+                                             'session_movie',
                                              session_name=self.name),
                             self.stimulus['movie'])
             save.save_array(save.output_path(output_dir,
-                                             'labels',
+                                             'session_labels',
                                              session_name=self.name),
                             self.stimulus['labels'])
             save.save_as_yaml(save.output_path(output_dir,
-                                               'metadata',
+                                               'session_metadata',
                                                session_name=self.name),
                               self.stimulus['metadata'])
 

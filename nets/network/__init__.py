@@ -5,6 +5,7 @@
 
 import os
 
+from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from .connections import (ConnectionModel, FromFileConnection,
@@ -281,17 +282,35 @@ class Network:
 
     def save_metadata(self, output_dir):
         """Save network metadata."""
-        # TODO: Save gids-position mappings
-        pass
+        # Save recorder metadata
+        self.recorder_call('save_metadata', output_dir)
 
     def save_data(self, output_dir, sim_params):
-        # Save population rasters if they haven't been saved already
-        clear_memory = sim_params.get('clear_memory', False)
-        with_rasters = sim_params.get('with_rasters', True) and not clear_memory
+        """Save network's activity.
+
+        1- Possibly formats recorders (possibly in parallel)
+        2- Possibly creates raster plots (must be in series)
+        3- Save synapse states
+        """
+        # Possibly format the recorders
+        format_recorders =  sim_params.get('format_recorders', False)
+        if format_recorders:
+            # Make kwargs dict containing simulation parameters
+            sim_kwargs = {
+                'parallel': sim_params.get('parallel', True),
+                'n_jobs': sim_params.get('n_jobs', -1),
+            }
+            all_recorders = self.get_recorders(recorder_class=None)
+            format_all_recorders(
+                all_recorders, output_dir, sim_kwargs)
+
+        # Possibly save population rasters
+        with_rasters = sim_params.get('with_rasters', True)
         if with_rasters:
             for recorder in tqdm(self.get_recorders(recorder_class="population"),
                                  desc='Saving recorder raster plots'):
                 recorder.save_raster(output_dir)
+
         # Save synapse states
         for conn in tqdm(self.connections,
                          desc='Saving synapse data'):
@@ -402,3 +421,37 @@ def synapse_sorting_map(synapse_change):
     """Map by (synapse_model, params_items) for sorting."""
     return (synapse_change['synapse_model'],
             sorted(synapse_change['params'].items()))
+
+
+# For recorder formatting in parallel
+def worker(recorder, output_dir, **kwargs):
+    recorder.save_formatted(output_dir, **kwargs)
+
+
+# TODO: Format only if the session has been recorded and figure out a way to
+# load the data properly
+def format_all_recorders(all_recorders, output_dir, sim_kwargs):
+    # Get simulation pparameters for formatting
+    parallel = sim_kwargs['parallel']
+    n_jobs = sim_kwargs['n_jobs']
+
+    # Format all recorders (population and connection), possibly using joblib
+    args_list = [(recorder, output_dir)
+                 for recorder in all_recorders]
+
+    # Verbose
+    msg = (f"Formatting {len(args_list)} population/connection recorders "
+           f"{'using' if parallel else 'without'} joblib: \n"
+           f"...")
+    print(msg)
+
+    if parallel:
+        Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
+            delayed(worker)(*args) for args in args_list
+        )
+    else:
+        for args in tqdm(args_list,
+                         desc=''):
+            worker(*args)
+
+    print('...Done formatting recorders\n')

@@ -20,27 +20,30 @@ import yaml
 sparse_format = scipy.sparse.lil_matrix # pylint:disable=invalid-name
 
 # Modify along with FILENAME_FUNCS dict (see end of file)
-OUTPUT_SUBDIRS = {'raw': ('raw',), # Raw recorder data (NEST output)
-                  'recorders': ('recorders',), # Formatted recorder data
-                  'connectionrecorders': ('connection_recorders',),
-                  'connections': ('connections',), # NEST connection plots
-                  'dump': ('dump',), # Network dump
-                  'movie': ('sessions',),
-                  'labels': ('sessions',),
-                  'metadata': ('sessions',),
+OUTPUT_SUBDIRS = {'params': (),
+                  'git_hash': (),
+                  'raw_data': ('raw_data',), # Raw recorder data (NEST output)
+                  'recorders_formatted': ('recorders_formatted',), # Formatted recorder data
+                  'recorders_metadata': ('recorders_metadata',), # Metadata for recorders (contains filenames and gid/location mappings)
+                  'connection_recorders': ('connection_recorders',),
+                  'connection_recorders_metadata': ('connection_recorders_metadata',),
+                  'session_movie': ('sessions',),
+                  'session_labels': ('sessions',),
+                  'session_metadata': ('sessions',),
                   'session_times': ('sessions',),
+                  'connections': ('connection_plots',), # NEST connection plots
+                  'dump': ('network_dump',), # Network dump
                   'rasters': ('rasters',),
-                  'params': (),
                   'plots': ('plots',),
                   'measures': ('measures',),
-                  'git_hash': (),
 }
 
 # Subdirectories that are cleared if the simulation parameter 'clear_output_dir'
 # is set to true.
 CLEAR_SUBDIRS = [
-    (), ('recorders',), ('connection_recorders',), ('sessions'),
-    ('connections',), ('dump',), ('rasters',)
+    (), ('raw_data',), ('recorders_formatted',), ('connection_recorders',),
+    ('connection_plots',), ('network_dump'),
+    ('sessions'), ('rasters',), ('plots',), ('measures',)
 ]
 
 def output_subdir(output_dir, data_keyword, session_name=None):
@@ -189,8 +192,8 @@ def load_session_stim(output_dir, session_name, filt=0):
         session_name (str): session_name
         filt (int or None): Movie filter. Return all filters if None.
     """
-    movie_prefix = output_filename('movie', session_name)
-    sessions_dir = output_subdir(output_dir, 'movie')
+    movie_prefix = output_filename('session_movie', session_name)
+    sessions_dir = output_subdir(output_dir, 'session_movie')
     movie_filenames = [f for f in os.listdir(sessions_dir)
                        if f.startswith(movie_prefix)]
     movie = load_as_numpy(join(sessions_dir, movie_filenames[0]))
@@ -200,7 +203,7 @@ def load_session_stim(output_dir, session_name, filt=0):
 
 def load_weight_recorder(output_dir, conn_name, start_trim=None):
     path = output_path(output_dir,
-                       'connectionrecorders',
+                       'connection_recorders',
                        conn_name)
     w_dict = load_dict(path)
     if start_trim is None:
@@ -291,7 +294,7 @@ def load_activity(output_dir, layer, population, variable='spikes',
 def load_labels(output_dir, session_name):
     """Load labels of a session."""
     return np.load(join(output_subdir(output_dir, 'sessions'),
-                        output_filename('labels', session_name)))
+                        output_filename('session_labels', session_name)))
 
 def load_measure(output_dir, measure_name, session=None, start_trim=None,
                  end_trim=None):
@@ -362,13 +365,7 @@ def load_sparse(path):
     return data.reshape(shape)
 
 
-# TODO
-def connection_filename(connection): # pylint:disable=unused-argument
-    """Generate string describing a population-to-population connection."""
-    pass
-
-
-def recorder_filename(layer, pop, unit_index=None, variable='spikes',
+def recorder_formatted_filename(layer, pop, unit_index=None, variable='spikes',
                       formatting_interval=None):
     """Return filename for a population x unit_index."""
     base_filename = (layer + '_' + pop + '_'
@@ -381,9 +378,11 @@ def recorder_filename(layer, pop, unit_index=None, variable='spikes',
         suffix = suffix + ('_' + 'interval' + '_' + str(formatting_interval))
     return base_filename + suffix
 
-def connrecorder_filename(connection_name):
-    """Return filename for a ConnectionRecorder."""
-    return connection_name
+
+def recorder_metadata_filename(label):
+    """Return filename for a recorder from its label."""
+    return label
+
 
 def save_plot(fig, output_dir, filename, overwrite=False):
     """Save matplotlib figure in 'plot' subdirectory."""
@@ -395,15 +394,15 @@ def save_plot(fig, output_dir, filename, overwrite=False):
     fig.savefig(path)
 
 def movie_filename():
-    return 'movie'
+    return 'session_movie'
 
 
 def labels_filename():
-    return 'labels'
+    return 'session_labels'
 
 
 def metadata_filename():
-    return 'metadata'
+    return 'session_metadata'
 
 
 def session_times_filename():
@@ -422,12 +421,14 @@ def git_hash_filename():
 
 
 FILENAME_FUNCS = {'params': params_filename,
+                  'recorders_formatted': recorder_formatted_filename,
+                  'recorders_metadata': recorder_metadata_filename,
+                  'connection_recorders': recorder_metadata_filename,
+                  'connection_recorders_metadata': recorder_metadata_filename,
                   'session_times': session_times_filename,
-                  'metadata': metadata_filename,
-                  'labels': labels_filename,
-                  'movie': movie_filename,
-                  'recorders': recorder_filename,
-                  'connectionrecorders': connrecorder_filename,
+                  'session_metadata': metadata_filename,
+                  'session_labels': labels_filename,
+                  'session_movie': movie_filename,
                   'rasters': rasters_filename,
                   'git_hash': git_hash_filename,
 }
