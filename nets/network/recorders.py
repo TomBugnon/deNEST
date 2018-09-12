@@ -261,6 +261,7 @@ class PopulationRecorder(BaseRecorder):
             'population_name': self._population_name,
             'layer_name': self._layer_name,
             'layer_shape': self._layer_shape,
+            'population_shape': self._layer_shape + (self._units_number,),
             'units_number': self._units_number,
             'formatted_unit_indices': self._formatted_unit_indices,
             'interval': self._interval,
