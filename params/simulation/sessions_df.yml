@@ -7,17 +7,17 @@ sessions:
     params:
       session_input: 'noise_256x256x1x1.npy'
       time_per_frame: 1000.
-      max_session_sim_time: 500.
+      simulation_time: 500.
       reset_network: True
       record: False
   noise:
     params:
       session_input: 'noise_256x256x1x1.npy'
       time_per_frame: 1000.
-      max_session_sim_time: 2000.
+      simulation_time: 2000.
       input_rate_scale_factor: 2.0
   grating:
     params:
       session_input: 'sinusoidal_grating_0_degrees_40x40x1x40.npy'
       time_per_frame: 30
-      max_session_sim_time: 500.
+      simulation_time: 2000.

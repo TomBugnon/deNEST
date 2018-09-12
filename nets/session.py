@@ -21,18 +21,27 @@ MAX_SIM_TIME_NO_INPUT = 10000.
 class Session:
     """Represents a sequence of stimuli."""
 
-    def __init__(self, name, params):
+    def __init__(self, name, params, start_time=0):
         print(f'-> Creating session `{name}`')
         self.name = name
         self.params = params
         # Initialize the session start and end times
-        self._start = 0
-        self._end = 0
-        self._simulation_time = None
+        self._start = start_time
+        assert 'simulation_time' in self.params
+        self._simulation_time = int(self.params['simulation_time'])
+        self._end = self._start + self._simulation_time
         # Initialize _stim dictionary
         self._stimulus = None
         # Whether we inactivate all recorders
         self._record = self.params.get('record', True)
+
+    @property
+    def end(self):
+        return self._end
+
+    @property
+    def start(self):
+        return self._start
 
     def __repr__(self):
         return '{classname}({name}, {params})'.format(
@@ -47,12 +56,7 @@ class Session:
         2- Change network's dynamic variables.
         If there are InputLayers:
             3- Load stimuli
-            4- Get simulation time from stimulus length and max simulation time
             5- Set input spike times or input rates.
-        else:
-            3- Set simulation time as 'max_session_sim_time' session parameter
-                or MAX_SIM_TIME_NO_INPUT if 'max_session_sim_time' is not
-                defined
         """
         # Reset network
         if self.params.get('reset_network', False):
@@ -65,13 +69,8 @@ class Session:
         if network.any_inputlayer:
             # Load stimuli
             self._stimulus = self.load_stim(crop_shape=network.max_input_shape)
-            self._simulation_time = float(np.size(self.stimulus['movie'], axis=0))
             # Set input spike times in the future.
             network.set_input(self.stimulus, start_time=self._start)
-        else:
-            self._simulation_time = self.params['max_session_sim_time']
-            if self._simulation_time == float('inf'):
-                self._simulation_time = MAX_SIM_TIME_NO_INPUT
 
         # Inactivate all the recorders and connection_recorders for
         # `self._simulation_time`
@@ -97,19 +96,19 @@ class Session:
     def run(self, network):
         """Initialize and run session."""
         import nest
-        self._start = int(nest.GetKernelStatus('time'))
+        assert self.start == int(nest.GetKernelStatus('time'))
         print("Initialize session...")
         self.initialize(network)
         print("done...\n")
         print(f"Running session `{self.name}` for `{self.simulation_time}`ms")
-        start_time = time.time()
+        start_real_time = time.time()
         nest.Simulate(self.simulation_time)
         print(f"done.")
         print(f"Session `{self.name}` virtual running time: "
               f"`{self.simulation_time}`ms")
         print(f"Session `{self.name}` real running time: "
-              f"{pretty_time(start_time)}...\n")
-        self._end = int(nest.GetKernelStatus('time'))
+              f"{pretty_time(start_real_time)}...\n")
+        assert self.end == int(nest.GetKernelStatus('time'))
 
     def save_metadata(self, output_dir):
         """Save session metadata (stimuli, ...)."""
@@ -168,19 +167,29 @@ class Session:
         print(f'--> Apply session input_rate_scale_factor: {scale_factor}')
 
         # Expand from frame to timesteps
-        labels = frames_to_time(raw_labels, self.params.get('time_per_frame',
-                                                            1.))
-        movie = frames_to_time(raw_movie, self.params.get('time_per_frame', 1.))
+        labels = expand_raw_stimulus(raw_labels,
+                                self.params.get('time_per_frame', 1.),
+                                self.simulation_time)
+        movie = expand_raw_stimulus(raw_movie,
+                               self.params.get('time_per_frame', 1.),
+                               self.simulation_time)
 
-        simulation_time = int(min(np.size(movie, axis=0),
-                                  self.params.get('max_session_sim_time',
-                                                  float('inf'))))
-
-        return {'movie': movie[:simulation_time],
-                'labels': labels[:simulation_time],
+        return {'movie': movie,
+                'labels': labels,
                 'metadata': metadata}
 
 
-def frames_to_time(list_or_array, nrepeats):
-    """Repeat elements along the first dimension."""
-    return np.repeat(list_or_array, nrepeats, axis=0)
+def expand_raw_stimulus(list_or_array, nrepeats, target_length):
+    """Repeat elems along the first dimension and adjust length to target.
+
+    We first expand the array by repeating each element `nrepeats` times, and
+    then adjust to the target length by either trimming or repeating the whole
+    array.
+    """
+    extended_arr = np.repeat(list_or_array, nrepeats, axis=0)
+    n_rep, remainder = divmod(target_length, len(extended_arr))
+    return np.concatenate(
+        [extended_arr for i in range(n_rep)] \
+        + [extended_arr[:remainder]],
+        axis=0
+    )

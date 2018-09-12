@@ -55,12 +55,18 @@ class Simulation:
             for session_name, session_params
             in self.params.c['sessions'].named_leaves()
         }
-        self.sessions = [
-            Session(self.make_session_name(session_name, i),
-                    session_params[session_name])
-            for i, session_name in enumerate(self.order)
-        ]
-        self.session_times = None
+        self.sessions = []
+        session_start_time = 0
+        for i, session_name in enumerate(self.order):
+            self.sessions.append(
+                Session(self.make_session_name(session_name, i),
+                        session_params[session_name],
+                        start_time=session_start_time)
+            )
+            session_start_time = self.sessions[-1].end
+        self.session_times = {
+            session.name: session.duration for session in self.sessions
+        }
         print(f'-> Session order: {self.order}')
         print('Done...\n', flush=True)
 
@@ -109,9 +115,6 @@ class Simulation:
             for session in self.sessions:
                 session.save_metadata(self.output_dir)
             # Save session times
-            self.session_times = {
-                session.name: session.duration for session in self.sessions
-            }
             save_as_yaml(output_path(self.output_dir, 'session_times'),
                          self.session_times)
             # Save network
