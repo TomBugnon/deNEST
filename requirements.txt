@@ -9,3 +9,4 @@ watchdog
 seaborn
 pandas
 bokeh
+joblib
