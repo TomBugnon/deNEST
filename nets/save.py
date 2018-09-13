@@ -22,11 +22,11 @@ sparse_format = scipy.sparse.lil_matrix # pylint:disable=invalid-name
 # Modify along with FILENAME_FUNCS dict (see end of file)
 OUTPUT_SUBDIRS = {'params': (),
                   'git_hash': (),
-                  'raw_data': ('raw_data',), # Raw recorder data (NEST output)
-                  'recorders_formatted': ('recorders_formatted',), # Formatted recorder data
-                  'recorders_metadata': ('recorders_metadata',), # Metadata for recorders (contains filenames and gid/location mappings)
-                  'connection_recorders': ('connection_recorders',),
-                  'connection_recorders_metadata': ('connection_recorders_metadata',),
+                  'raw_data': ('data',), # Raw recorder data (NEST output)
+                  'recorders_formatted': ('data_formatted',), # Formatted recorder data
+                  'recorders_metadata': ('data',), # Metadata for recorders (contains filenames and gid/location mappings)
+                  'connection_recorders_formatted': ('connection_recorders_formatted',),
+                  'connection_recorders_metadata': ('data',),
                   'session_movie': ('sessions',),
                   'session_labels': ('sessions',),
                   'session_metadata': ('sessions',),
