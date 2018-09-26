@@ -4,32 +4,32 @@ network:
       connections:
 
         ### Recognized fields:
-        # - 'source_layer' (str): mandatory
-        # - 'target_layer' (str): mandatory
+        # - 'source_layers' (list): mandatory
+        # - 'target_layers' (list): mandatory
         # - 'source_population' (str or None):
         #       All populations if no key of not __bool__
         # - 'source_population' (str or None):
         #       All populations if no key of not __bool__
         # - 'nest_params' (Mapping or None):
         #       Takes precedence on connection model if specified)
-        # - 'save' (list of str or None):
-        #       Save each field in list.
+        # - 'params' (Mapping or None):
+        #       Takes precedence on connection model if specified
 
 
         ### Source area: input area ###
 
         # excitatory on l1 for each input population
-        - source_layer: input_layer
+        - source_layers: [input_layer]
           source_population: parrot_neuron
-          target_layer: l1
+          target_layers: [l1, ]
           target_population: l1_exc
           connection: input_connection
           params:
             recorders:
               weight_recorder: {}
-        - source_layer: input_layer
+        - source_layers: [input_layer]
           source_population: parrot_neuron
-          target_layer: l1
+          target_layers: [l1]
           target_population: l1_inh
           connection: input_connection
 
@@ -37,37 +37,37 @@ network:
         ### Source area: l1 ###
 
         # l1 excitatory horizontal
-        - source_layer: l1
+        - source_layers: [l1]
           source_population: l1_exc
-          target_layer: l1
+          target_layers: [l1]
           target_population: l1_exc
           connection: horizontal_exc
-        - source_layer: l1
+        - source_layers: [l1]
           source_population: l1_exc
-          target_layer: l1
+          target_layers: [l1]
           target_population: l1_inh
           connection: horizontal_exc
 
         # l1 inhibitory horizontal
-        - source_layer: l1
+        - source_layers: [l1]
           source_population: l1_inh
-          target_layer: l1
+          target_layers: [l1]
           target_population: l1_exc
           connection: horizontal_inh
-        - source_layer: l1
+        - source_layers: [l1]
           source_population: l1_inh
-          target_layer: l1
+          target_layers: [l1]
           target_population: l1_inh
           connection: horizontal_inh
 
         # l1 excitatory FF
-        - source_layer: l1
+        - source_layers: [l1]
           source_population: l1_exc
-          target_layer: l2
+          target_layers: [l2]
           target_population: l2_exc
           connection: FF_exc
-        - source_layer: l1
+        - source_layers: [l1]
           source_population: l1_exc
-          target_layer: l2
+          target_layers: [l2]
           target_population: l2_inh
           connection: FF_exc

@@ -4,6 +4,7 @@
 """Provide a class to construct a network from independent parameters."""
 
 import os
+import itertools
 
 from joblib import Parallel, delayed
 from tqdm import tqdm
@@ -55,10 +56,13 @@ class Network:
         self.connection_models = self.build_named_leaves_dict(
             ConnectionModel, self.params.c['connection_models'])
         # Connections must be built last
+        conn_nested_list = [
+            self.build_connection(connection_item)
+            for connection_item in self.params.c['topology']['connections']
+        ]
         self.connections = sorted([
-            self.build_connection(connection)
-            for connection in self.params.c['topology']['connections']
-        ])
+            conn for sublist in conn_nested_list for conn in sublist
+        ]) # .flatten()
         # Populations are represented as a list
         self.populations = sorted(
             self.build_named_leaves_list(self.build_population,
@@ -76,11 +80,17 @@ class Network:
         return [constructor(name, leaf) for name, leaf in node.named_leaves()]
 
     def build_connection(self, connection_dict):
-        source = self.layers[connection_dict['source_layer']]
-        target = self.layers[connection_dict['target_layer']]
+        """Return list of connections for source x target layer combinations."""
+        source_layers = [self.layers[layer]
+                         for layer in connection_dict['source_layers']]
+        target_layers = [self.layers[layer]
+                         for layer in connection_dict['target_layers']]
         model = self.connection_models[connection_dict['connection']]
-        return CONNECTION_TYPES[model.type](source, target, model,
-                                            connection_dict)
+        return [
+            CONNECTION_TYPES[model.type](source, target, model, connection_dict)
+            for source, target
+            in itertools.product(source_layers, target_layers)
+        ]
 
     def build_population(self, pop_name, pop_params):
         # Get the gids and locations for the population from the layer object.

@@ -350,17 +350,31 @@ defined in the final parameter tree.
       the masks and kernel sizes specified in the parameters (and scaled by the
       `scale_factor`) are interpreted as "number_of_units" rather than physical
       extent.
-  - `topology` (leaf): Should contain a `connection` parameter consisting in a
-    list of individual population(/layer)-to-population(/layer) connections.
-    Each individual connection should be a dictionary with the following fields:
-    - source_layer (str): source layer. (mandatory)
-    - source_population (str or None): source pop. If not specified, the
-      connection originates from all the populations in the source layer.
+  - `topology` (leaf): Should contain a `connections` parameter consisting in a
+    list of dictionary describing population(/layer)-to-population(/layer)
+    connections. Each item specifies a list of source layers and target layers.
+    Actual connections are created for all the source_layer x target_layer
+    combinations.
+    Each item should be a dictionary with the following fields:
+    - source_layers (list[str]): List of source layers. Individual connections
+      are created for all source_layer x target_layer combinations,. (mandatory)
+    - source_population (str or None): source pop for each of the source_layer x
+      target_layer combination. If not specified, each connection originates
+      from all the populations in the source layer.
       (default `None`)
-    - target_layer (str): target layer. (mandatory)
-    - target_population (str or None): Target pop. If not specified, the
-      connection targets all the populations in the target layer. (default `None`)
+    - source_layers (list[str]): List of target layers. Individual connections
+      are created for all source_layer x target_layer combinations,. (mandatory)
+    - target_population (str or None): target pop for each of the source_layer x
+      target_layer combination. If not specified, each connection targets
+      all the populations in the target layer.
+      (default `None`)
     - connection (str): Name of the connection model. (mandatory)
+    - nest_params (dict or None): NEST parameters for the specific connections
+      represented by the item. Takes precedence over the connection model's
+      NEST parameters
+    - params (dict or None): Non-NEST parameters for the specific connections
+      represented by the item. Takes precedence over the connection model's
+      non-NEST parameters
   - `recorders` (subtree): Defines recorder models. Each leaf is a recorder
     model. All parameters of a leaf are passed to ``nest.CopyModel()`` except
     the following:
