@@ -29,6 +29,9 @@ class Session:
         self._start = start_time
         assert 'simulation_time' in self.params
         self._simulation_time = int(self.params['simulation_time'])
+        assert self._simulation_time > 0, ("Session's simulation time should be"
+                                           " strictly positive (NEST kernel bug"
+                                           " otherwise)")
         self._end = self._start + self._simulation_time
         # Initialize _stim dictionary
         self._stimulus = None
