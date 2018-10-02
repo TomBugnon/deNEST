@@ -269,7 +269,36 @@ defined in the final parameter tree.
   - `max_session_sim_time` (float): Maximum duration of the session, in ms
     (default `float('inf')`)
   - `unit_changes` (list): List of dictionaries describing the parameter changes
-    to apply to a proportion of units of specific populations. (default `[]`)
+    to apply to a proportion of units of specific populations. (default `[]`).
+    Each `unit_change` dictionary should be of the form::
+        {
+            'layers': <layer_name_list>,
+            'layer_type': <layer_type>,
+            'population': <pop_name>,
+            'change_type': <change_type>,
+            'proportion': <prop>,
+            'params': {<param_name>: <param_value>,
+                       ...}
+        }
+      where:
+      ``<layer_name_list>`` (default None) is the list of name of the
+          considered layers. If not specified or empty, changes are
+          applied to all the layers of type <layer_type>.
+      ``<layer_type>`` (default None) is the name of the type of
+          layers to which the changes are applied. Should be 'Layer'
+          or 'InputLayer'. Used only if <layer_name> is None.
+      ``<population_name>`` (default None) is the name of the
+          considered population in each layer. If not specified,
+          changes are applied to all the populations.
+      ``<change_type>`` ('multiplicative' or None). If
+          'multiplicative', the set value for each parameter is the
+          product between the preexisting value and the given value.
+          Otherwise, the given value is set without regard for the
+          preexisting value.
+      ``<prop>`` (default 1) is the proportion of units of the
+          considered population for which the parameters are changed.
+      ``'params'`` (default {}) is the dictionary of parameter changes
+          applied to the selected units.
   - `synapse_changes` (list): List of dictionaries describing the parameter
     changes to apply to population-to-population connections within specific
     populations. (default `[]`)

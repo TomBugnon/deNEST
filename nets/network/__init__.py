@@ -230,7 +230,7 @@ class Network:
         Args:
             unit_changes (list): List of dictionaries each of the form::
                     {
-                        'layer': <layer_name>,
+                        'layers': <layer_name_list>,
                         'layer_type': <layer_type>,
                         'population': <pop_name>,
                         'change_type': <change_type>,
@@ -239,15 +239,15 @@ class Network:
                                    ...}
                     }
                 where:
-                ``<layer_name>`` (default None) is the name of the considered
-                    layer. If not specified, changes are applied to all the
-                    layers of type <layer_type>.
+                ``<layer_name_list>`` (default None) is the list of name of the
+                    considered layers. If not specified or empty, changes are
+                    applied to all the layers of type <layer_type>.
                 ``<layer_type>`` (default None) is the name of the type of
                     layers to which the changes are applied. Should be 'Layer'
                     or 'InputLayer'. Used only if <layer_name> is None.
                 ``<population_name>`` (default None) is the name of the
-                    considered population. If not specified, changes are applied
-                    to all the populations.
+                    considered population in each layer. If not specified,
+                    changes are applied to all the populations.
                 ``<change_type>`` ('multiplicative' or None). If
                     'multiplicative', the set value for each parameter is the
                     product between the preexisting value and the given value.
@@ -258,9 +258,7 @@ class Network:
                 ``'params'`` (default {}) is the dictionary of parameter changes
                     applied to the selected units.
         """
-        for changes in tqdm(
-                sorted(unit_changes, key=unit_sorting_map),
-                desc="-> Changing units' state"):
+        for changes in sorted(unit_changes, key=unit_sorting_map):
             # Pass if no parameter dictionary.
             if not changes['params']:
                 continue
@@ -269,14 +267,15 @@ class Network:
             print('--> Applying unit changes dictionary: ', changes)
 
             # Iterate on all layers of a given subtype or on a specific layer
-            change_layer = changes.get('layer', None)
-            if change_layer is None:
+            change_layers = changes.get('layers', [])
+            if not change_layers:
                 layers = self._get_layers(
                     layer_type=changes.get('layer_type', None))
             else:
-                layers = [self.layers[change_layer]]
+                layers = [self.layers[layer_name]
+                          for layer_name in change_layers]
 
-            for layer in layers:
+            for layer in tqdm(layers, desc="---> Apply change dict on layers"):
                 layer.change_unit_states(changes['params'],
                                          changes.get('population', None),
                                          changes.get('proportion', 1.))
@@ -420,7 +419,7 @@ class Network:
 
 def unit_sorting_map(unit_change):
     """Map by (layer, population, proportion, params_items for sorting."""
-    return (unit_change.get('layer', 'None'),
+    return (unit_change.get('layers', 'None'),
             unit_change.get('layer_type', 'None'),
             unit_change.get('population', 'None'),
             unit_change.get('proportion', '1'),
