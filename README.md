@@ -290,11 +290,11 @@ defined in the final parameter tree.
       ``<population_name>`` (default None) is the name of the
           considered population in each layer. If not specified,
           changes are applied to all the populations.
-      ``<change_type>`` ('multiplicative' or None). If
+      ``<change_type>`` ('constant' or 'multiplicative'). If
           'multiplicative', the set value for each parameter is the
           product between the preexisting value and the given value.
-          Otherwise, the given value is set without regard for the
-          preexisting value.
+          If 'constant', the given value is set without regard for the
+          preexisting value. (default: constant)
       ``<prop>`` (default 1) is the proportion of units of the
           considered population for which the parameters are changed.
       ``'params'`` (default {}) is the dictionary of parameter changes

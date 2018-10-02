@@ -124,7 +124,8 @@ class AbstractLayer(NestObject):
         """
         raise NotImplementedError
 
-    def change_unit_states(self, changes_dict, population=None, proportion=1.0):
+    def change_unit_states(self, changes_dict, population=None, proportion=1.0,
+                           change_type='constant'):
         """Call nest.SetStatus for a proportion of units."""
         if not changes_dict:
             return
@@ -135,14 +136,19 @@ class AbstractLayer(NestObject):
             self.gids(population=population),
             proportion
         )
-        self.apply_unit_changes(gids_to_change, changes_dict)
+        self.apply_unit_changes(gids_to_change, changes_dict,
+                                change_type=change_type)
         self._prob_changed = True
 
     @staticmethod
-    def apply_unit_changes(gids_to_change, changes_dict):
+    def apply_unit_changes(gids_to_change, changes_dict, change_type='constant'):
         """Change the state of a list of units."""
+        assert change_type in ['constant', 'multiplicative']
         import nest
-        nest.SetStatus(gids_to_change, changes_dict)
+        if change_type == 'constant':
+            nest.SetStatus(gids_to_change, changes_dict)
+        else:
+            raise NotImplementedError
 
     @staticmethod
     def get_gids_subset(gids_list, proportion):
