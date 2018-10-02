@@ -263,9 +263,6 @@ class Network:
             if not changes['params']:
                 continue
 
-            # Verbose
-            print('--> Applying unit changes dictionary: ', changes)
-
             # Iterate on all layers of a given subtype or on a specific layer
             change_layers = changes.get('layers', [])
             if not change_layers:
@@ -274,6 +271,10 @@ class Network:
             else:
                 layers = [self.layers[layer_name]
                           for layer_name in change_layers]
+
+            # Verbose
+            print(f'--> Applying unit changes dictionary: {changes} ... to'
+                  f' layers: {change_layers}')
 
             for layer in tqdm(layers, desc="---> Apply change dict on layers"):
                 layer.change_unit_states(changes['params'],
