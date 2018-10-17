@@ -179,7 +179,7 @@ class Network:
                 max([s[1] for s in self.input_shapes]))
 
     @if_not_created
-    def create(self, dry_run=False):
+    def create(self):
         # TODO: use progress bar from PyPhi?
         log.info('Creating neuron models...')
         self._create_all(self.neuron_models.values())
@@ -192,11 +192,8 @@ class Network:
         log.info('Connecting layers...')
         self._create_all(self.connections)
         self.print_network_size()
-        if not dry_run:
-            log.info('Creating recorders...')
-            self._create_all(self.populations)
-        else:
-            print('Dry run: -> not creating recorders.')
+        log.info('Creating recorders...')
+        self._create_all(self.populations)
 
     def dump_connections(self, output_dir):
         for connection in tqdm(self.connections, desc='Dumping connections'):

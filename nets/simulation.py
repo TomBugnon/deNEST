@@ -66,8 +66,7 @@ class Simulation:
         # Create network
         print('Create network...', flush=True)
         self.network = Network(self.params.c['network'])
-        self.network.create(dry_run=self.params.c['simulation'].get('dry_run',
-                                                                    False))
+        self.network.create()
         print('...done\n', flush=True)
 
     def run(self):
