@@ -40,11 +40,7 @@ OUTPUT_SUBDIRS = {'params': (),
 
 # Subdirectories that are cleared if the simulation parameter 'clear_output_dir'
 # is set to true.
-CLEAR_SUBDIRS = [
-    (), ('raw_data',), ('recorders_formatted',), ('connection_recorders',),
-    ('connection_plots',), ('network_dump'),
-    ('sessions'), ('rasters',), ('plots',), ('measures',)
-]
+CLEAR_SUBDIRS = [subdir for subdir in OUTPUT_SUBDIRS.values()]
 
 def output_subdir(output_dir, data_keyword, session_name=None):
     """Create and return the output subdirectory where a data type is saved.
