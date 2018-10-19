@@ -53,7 +53,7 @@ class BaseRecorder(NestObject):
         # Attributes below may depend on NEST default and recorder models and
         # are updated after creation
         self._gid = None # gid of recorder node
-        self._filename_prefix = None
+        self._filenames = None
         self._record_to = None # eg ['memory', 'file']
         self._withtime = None
         self._label = None # Only affects raw data filenames.
@@ -92,8 +92,8 @@ class BaseRecorder(NestObject):
         """Return list of labels for columns in raw data saved by NEST."""
         raise NotImplementedError
 
-    def raw_data_filename_prefix(self):
-        """Prefix of raw files saved by NEST.
+    def raw_data_filenames(self):
+        """Return names of raw data files saved by NEST.
 
         From NEST documentation:
             ```The name of the output file is
@@ -102,10 +102,13 @@ class BaseRecorder(NestObject):
             See /label and /file_extension for how to change the name.
             /data_prefix is changed in the root node.```
 
-        NB: We use the prefix rather than the recorder's `filenames` key, since
-        the latter is created only after the first `Simulate` call.
+        NB: We don't use the recorder's `filenames` key, since it is created
+        only after the first `Simulate` call.
 
         NB: The label is set at creation.
+
+        NB: There is one file per virtual process. The virtual processes are
+        numeroted from 0 and formatted with two digits
         """
         import nest
         # TODO: Deal with case where multimeter is only recorded to memory?
@@ -113,8 +116,12 @@ class BaseRecorder(NestObject):
         assert self._label is not None # Check that the label has been set
         prefix = (nest.GetKernelStatus('data_prefix')
                   + self._label
-                  + f'-{self.gid[0]}')
-        return prefix
+                  + f'-{self.gid[0]}-')
+        extension = nest.GetStatus(self.gid, 'file_extension')[0]
+        n_vp = nest.GetKernelStatus('local_num_threads')
+        # TODO: CHeck the formatting for 3 digits number of threads
+        assert n_vp <= 100
+        return [prefix + f'{str(vp).zfill(2)}.{extension}' for vp in range(n_vp)]
 
     @if_created
     def get_base_metadata_dict(self):
@@ -123,7 +130,7 @@ class BaseRecorder(NestObject):
             'type': self._type,
             'label': self._label,
             'colnames': self.raw_data_colnames(),
-            'filename_prefix': self.raw_data_filename_prefix(),
+            'filenames': self.raw_data_filenames(),
         }
 
     def save_metadata(self):
@@ -213,7 +220,7 @@ class PopulationRecorder(BaseRecorder):
                 self._formatting_interval = 1.0
         # Set the label and filename prefix
         self.set_label()
-        self._filename_prefix = self.raw_data_filename_prefix
+        self._filenames = self.raw_data_filenames
         # Connect population
         if self.type == 'multimeter':
             nest.Connect(self.gid, self.gids)
@@ -460,7 +467,7 @@ class ConnectionRecorder(BaseRecorder):
         self._withweight = nest.GetStatus(self.gid, 'withweight')[0]
         # Set the label (defines the filenames)
         self.set_label()
-        self._filename_prefix = self.raw_data_filename_prefix()
+        self._filenames = self.raw_data_filenames()
 
     @property
     @if_created
