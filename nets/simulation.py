@@ -126,12 +126,17 @@ class Simulation:
         kernel_params = self.params.c['kernel']
         nest.ResetKernel()
         # Install extension modules
+        print('->Installing external modules...', end=' ')
         for module in kernel_params.get('extension_modules', []):
             self.install_module(module)
+        print('done')
         # Create raw directory in advance
+        print('->Creating raw data directory...', end=' ')
         raw_dir = kernel_params['data_path']
         os.makedirs(raw_dir, exist_ok=True)
+        print('done')
         # Set kernel status
+        print('->Setting kernel status...', end=' ')
         num_threads = kernel_params.get('local_num_threads', 1)
         resolution = kernel_params.get('resolution', 1.)
         msd = kernel_params.get('nest_seed', NEST_SEED)
@@ -149,6 +154,7 @@ class Simulation:
             'rng_seeds': range(msd + n_vp + 1, msd + 2 * n_vp + 1),
             'print_time': kernel_params['print_time'],
         })
+        print('done')
 
     def set_python_seeds(self):
         import numpy as np
@@ -204,8 +210,13 @@ class Simulation:
             nest.Install(module_name)
         except nest.NESTError as exception:
             if 'loaded already' in str(exception):
-                print(f'Module {module_name} is already loaded.')
+                print(f'\nModule {module_name} is already loaded.')
                 return
+            if ('could not be opened' in str(exception)
+                and 'file not found' in str(exception)):
+                print(f'\nModule {module_name} could not be loaded. Did you'
+                      f' compile and install the extension module?')
+                raise exception
             raise
 
     @staticmethod
