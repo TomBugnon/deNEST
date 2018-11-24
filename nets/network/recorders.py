@@ -85,8 +85,11 @@ class BaseRecorder(NestObject):
 
     def set_label(self):
         """Set self._label attribute and set nest parameter accordingly."""
+        import nest
         self._label = self.__str__
-        self.set_status({'label': self._label})
+        # Don't use self.set_status to avoid verbose
+        # self.set_status({'label': self._label})
+        nest.SetStatus(self.gid, {'label': self._label})
 
     def raw_data_colnames(self):
         """Return list of labels for columns in raw data saved by NEST."""
