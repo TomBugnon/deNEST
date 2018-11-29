@@ -111,7 +111,8 @@ class BaseRecorder(NestObject):
         NB: The label is set at creation.
 
         NB: There is one file per virtual process. The virtual processes are
-        numeroted from 0 and formatted with two digits
+        numeroted from 0 and formatted with the same number of digits as that of
+        the number of virtual processes.
         """
         import nest
         # TODO: Deal with case where multimeter is only recorded to memory?
@@ -124,7 +125,9 @@ class BaseRecorder(NestObject):
         n_vp = nest.GetKernelStatus('local_num_threads')
         # TODO: CHeck the formatting for 3 digits number of threads
         assert n_vp <= 100
-        return [prefix + f'{str(vp).zfill(2)}.{extension}' for vp in range(n_vp)]
+        n_digits = len(str(n_vp))
+        return [prefix + f'{str(vp).zfill(n_digits)}.{extension}' for vp in range(n_vp)]
+
 
     @if_created
     def get_base_metadata_dict(self):
