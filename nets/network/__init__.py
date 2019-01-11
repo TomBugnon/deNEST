@@ -290,7 +290,7 @@ class Network:
                           for layer_name in change_layers]
 
             # Verbose
-            print(f'--> Applying unit changes dictionary: {changes} ... to'
+            print(f'\n--> Applying unit changes dictionary: {changes} ... to'
                   f' layers: {change_layers}')
 
             for layer in tqdm(layers, desc="---> Apply change dict on layers"):
@@ -301,6 +301,7 @@ class Network:
                     filter_dict=changes.get('filter', {}),
                     change_type= changes.get('change_type', 'constant')
                 )
+            print(f'\n')
 
     @staticmethod
     def reset():

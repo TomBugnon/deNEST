@@ -132,15 +132,22 @@ class AbstractLayer(NestObject):
         if self._prob_changed and proportion != 1.0:
             raise Exception("Attempting to change probabilistically some "
                             "units' state multiple times.")
-        print('Apply filter')
+        all_gids = self.gids(population=population)
+        if proportion != 1.0:
+            print(f'----> Select subset of gids (proportion = {proportion})')
         gids_to_filter = self.get_gids_subset(
-            self.gids(population=population),
+            all_gids,
             proportion
         )
+        if filter:
+            print(f'----> Apply filter on gids (filter = {filter_dict})')
         gids_to_change = self.filter_gids(
             gids_to_filter,
             filter_dict
         )
+        print(f'----> Apply "{change_type}" parameter changes on '
+              f'{len(gids_to_change)}/{len(all_gids)} units '
+              f'(layer={self.name}, population={population})')
         self.apply_unit_changes(gids_to_change, changes_dict,
                                 change_type=change_type)
         self._prob_changed = True
@@ -191,14 +198,13 @@ class AbstractLayer(NestObject):
         for parameter_name, interval in filter_dict.items():
             min_value = interval.get('min', -float('inf'))
             max_value = interval.get('max', float('inf'))
-            print(f'--> Filtering population gids: select if {parameter_name} is'
-                  f' in interval [{min_value}, {max_value}]')
+            print(f'-----> Filtering population gids: select if '
+                  f'{parameter_name} is in interval [{min_value}, {max_value}]')
             filtered_gids = [
                 gid for gid in filtered_gids
                 if (nest.GetStatus([gid], parameter_name)[0] >= min_value
                     and nest.GetStatus([gid], parameter_name)[0] <= max_value)
                 ]
-        print(len(filtered_gids))
         return filtered_gids
 
 
