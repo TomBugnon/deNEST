@@ -10,6 +10,16 @@ sessions:
       simulation_time: 500.
       reset_network: True
       record: False
+      unit_changes:
+        - layers: [l1,]
+          population: null
+          proportion: 0.5
+          filter:
+            V_m:
+              min: -.inf
+              max: .inf
+          params:
+            V_m: -70.0
   noise:
     params:
       session_input: 'noise_256x256x1x1.npy'

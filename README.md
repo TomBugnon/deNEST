@@ -280,26 +280,46 @@ defined in the final parameter tree.
             'population': <pop_name>,
             'change_type': <change_type>,
             'proportion': <prop>,
+            'filter': <filter>,
             'params': {<param_name>: <param_value>,
                        ...}
         }
-      where:
-      ``<layer_name_list>`` (default None) is the list of name of the
-          considered layers. If not specified or empty, changes are
-          applied to all the layers of type <layer_type>.
-      ``<layer_type>`` (default None) is the name of the type of
-          layers to which the changes are applied. Should be 'Layer'
-          or 'InputLayer'. Used only if <layer_name> is None.
-      ``<population_name>`` (default None) is the name of the
-          considered population in each layer. If not specified,
-          changes are applied to all the populations.
-      ``<change_type>`` ('constant' or 'multiplicative'). If
-          'multiplicative', the set value for each parameter is the
-          product between the preexisting value and the given value.
-          If 'constant', the given value is set without regard for the
-          preexisting value. (default: constant)
-      ``<prop>`` (default 1) is the proportion of units of the
-          considered population for which the parameters are changed.
+    where:
+    ``<layer_name_list>`` (default None) is the list of name of the
+        considered layers. If not specified or empty, changes are
+        applied to all the layers of type <layer_type>.
+    ``<layer_type>`` (default None) is the name of the type of
+        layers to which the changes are applied. Should be 'Layer'
+        or 'InputLayer'. Used only if <layer_name> is None.
+    ``<population_name>`` (default None) is the name of the
+        considered population in each layer. If not specified,
+        changes are applied to all the populations.
+    ``<change_type>`` ('constant' or 'multiplicative'). If
+        'multiplicative', the set value for each parameter is the
+        product between the preexisting value and the given value.
+        If 'constant', the given value is set without regard for the
+        preexisting value. (default: 'constant')
+    ``<prop>`` (default 1) is the proportion of units of the
+        considered population on which the filter is applied. The
+        changes are applied on the units that are randomly selected
+        and passed the filter.
+    ``filter`` (default {}) is a dictionary defining the filter
+        applied onto the proportion of randomly selected units of
+        the population. The filter defines an interval for any unit
+        parameter. A unit is selected if all its parameters are
+        within their respectively defined interval. The parameter
+        changes are applied only on the selected units.
+        The ``filter`` dictionary is of the form:
+            {
+                <unit_param_name_1>:
+                    'min': <float_min>
+                    'max': <float_max>
+                <unit_param_name_2>:
+                    ...
+            }
+        Where <float_min> and <float_max> define the (inclusive)
+        min and max of the filtering interval for the considered
+        parameter (default resp. -inf and +inf)
       ``'params'`` (default {}) is the dictionary of parameter changes
           applied to the selected units.
   - `synapse_changes` (list): List of dictionaries describing the parameter

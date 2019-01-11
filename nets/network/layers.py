@@ -125,16 +125,21 @@ class AbstractLayer(NestObject):
         raise NotImplementedError
 
     def change_unit_states(self, changes_dict, population=None, proportion=1.0,
-                           change_type='constant'):
-        """Call nest.SetStatus for a proportion of units."""
+                           filter_dict={}, change_type='constant'):
+        """Call nest.SetStatus for a proportion of units which pass the filter."""
         if not changes_dict:
             return
         if self._prob_changed and proportion != 1.0:
             raise Exception("Attempting to change probabilistically some "
                             "units' state multiple times.")
-        gids_to_change = self.get_gids_subset(
+        print('Apply filter')
+        gids_to_filter = self.get_gids_subset(
             self.gids(population=population),
             proportion
+        )
+        gids_to_change = self.filter_gids(
+            gids_to_filter,
+            filter_dict
         )
         self.apply_unit_changes(gids_to_change, changes_dict,
                                 change_type=change_type)
@@ -160,8 +165,41 @@ class AbstractLayer(NestObject):
                         int(len(gids_list) * proportion))
                         )]
 
+    def filter_gids(self, gids_list, filter_dict):
+        """Filter a list of gids according to their parameter values.
 
-
+        Args:
+            gids_list: list of gids
+            filter_dict: dictionary defining the filter. The filter defines an
+                interval for any unit parameter. A unit is selected if all its
+                parameters are within their respectively defined interval.
+                The ``filter_dict`` dictionary is of the form:
+                    {
+                        <unit_param_name_1>:
+                            'min': <float_min>
+                            'max': <float_max>
+                        <unit_param_name_2>:
+                            ...
+                    }
+                Where <float_min> and <float_max> define the (inclusive)
+                min and max of the filtering interval for the considered
+                parameter (default resp. -inf and +inf)
+        """
+        import nest
+        filtered_gids = gids_list
+        # Iterate over parameters that we use for filtering
+        for parameter_name, interval in filter_dict.items():
+            min_value = interval.get('min', -float('inf'))
+            max_value = interval.get('max', float('inf'))
+            print(f'--> Filtering population gids: select if {parameter_name} is'
+                  f' in interval [{min_value}, {max_value}]')
+            filtered_gids = [
+                gid for gid in filtered_gids
+                if (nest.GetStatus([gid], parameter_name)[0] >= min_value
+                    and nest.GetStatus([gid], parameter_name)[0] <= max_value)
+                ]
+        print(len(filtered_gids))
+        return filtered_gids
 
 
 class Layer(AbstractLayer):
