@@ -421,7 +421,7 @@ class Network:
             if synapse_name in self.synapse_models:
                 syn_type = self.synapse_models[synapse_name].type
             if syn_type is None:
-                break
+                continue
             elif syn_type > 0:
                 increase_autodict_count(connection_summary, (layer, pop, 'exc'))
             elif syn_type < 0:
