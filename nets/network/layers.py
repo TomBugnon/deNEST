@@ -139,7 +139,7 @@ class AbstractLayer(NestObject):
             all_gids,
             proportion
         )
-        if filter:
+        if filter_dict:
             print(f'----> Apply filter on gids (filter = {filter_dict})')
         gids_to_change = self.filter_gids(
             gids_to_filter,
