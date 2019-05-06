@@ -274,6 +274,7 @@ class Layer(AbstractLayer):
         # pylint:disable=function-redefined
         pop_filt = None
         if population is not None:
+            assert population in self.population_names()
             def pop_filt(gid):
                 return population in self._populations[gid]
         loc_filt = None
