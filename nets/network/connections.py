@@ -384,8 +384,9 @@ class BaseConnection(NestObject):
                                              'weight')
         scaled_weight = self.scale_weights(synapse_df_weight)
         if synapse_df_weight != 1.0:
-            print(f'NB: Connection weights scale synapse default:'
-                  f'{self.__str__}: weights = {scaled_weight}')
+            print(f'NB: Connection weights scale synapse default '
+                  f'({synapse_df_weight}):'
+                  f'{self.__str__}: effective weight = {scaled_weight}')
         self.nest_params['weights'] = scaled_weight
 
     def scale_weights(self, weights):
@@ -703,28 +704,6 @@ class TopoConnection(BaseConnection):
             self.nest_params['sources'] = {'model': self.source_population}
         if self.target_population:
             self.nest_params['targets'] = {'model': self.target_population}
-
-    def set_connection_weight(self):
-        """Set connection weight in nest_params from synapse default.
-
-        The Connection's weight is equal to the synapse model's default weight,
-        scaled by the Connection's `weight_gain` parameter, and by the source
-        layer's `weight_gain` parameter.
-        """
-        import nest
-        synapse_df_weight = nest.GetDefaults(self.nest_params['synapse_model'],
-                                             'weight')
-        scaled_weight = self.scale_weights(synapse_df_weight)
-        if synapse_df_weight != 1.0:
-            print(f'NB: Connection weights scale synapse default:'
-                  f'{self.__str__}: weights = {scaled_weight}')
-        self.nest_params['weights'] = scaled_weight
-
-    def scale_weights(self, weights):
-        """Scale the synapse weight by Connection and Layer's weight gain."""
-        connection_gain = self.params['weight_gain']
-        layer_gain = self.source.params.get('weight_gain', 1.0)
-        return weights * connection_gain * layer_gain
 
     def scale_kernel_mask(self):
         """Update self._scale_factor and scale kernels and masks."""
