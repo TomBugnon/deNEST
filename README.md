@@ -42,6 +42,8 @@
     from a dump from a previous simulation. This allows one to change the
     spatial profile of topological connections between two networks while
     keeping the same number of outgoing connections per node.
+  - _multisynapse connections_: TODO document. implements the workaround
+      at https://github.com/nest/nest-simulator/issues/904
 
 - We call __connection__ a specific projection between layers or populations.
   Each individual connection has a specific connection model.

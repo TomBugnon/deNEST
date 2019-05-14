@@ -30,13 +30,16 @@ SCALED_KERNEL_TYPES = ['gaussian']
 # List of Connection and ConnectionModel parameters (and their default values
 # that shouldn't be considered as 'nest_parameters'
 NON_NEST_CONNECTION_PARAMS = {
-    'type': 'topological', # 'Topological', 'Rescaled' or 'FromFile'
+    'type': 'topological', # 'Topological', 'Rescaled' or 'FromFile', or 'multisyn'
     'source_dir': None, # Where to find the data for 'FromFile' and 'Rescaled' conns.
     'scale_factor': 1.0, # Scaling of mask and kernel
     'weight_gain': 1.0, # Scaling of synapse default weight
     'dump_connection': False,
     'plot_connection': False,
     'recorders': {},
+    'synapse_label': None, # (int or None). Only for *_lbl synapse models
+    'query_synapse_label': None, # Used in MultiSynapseConnection only
+    'make_symmetric_multisynapse': False, # Used in MultiSynapseConnection only
     'save': [],
 }
 
@@ -69,7 +72,7 @@ class ConnectionModel(NestObject):
         super().__init__(name, params)
         self.nest_params = nest_params
         # Check that the connection types are recognized and nothing is missing.
-        assert self.type in ['topological', 'rescaled', 'from_file']
+        assert self.type in ['topological', 'rescaled', 'from_file', 'multisynapse']
         assert self.type != 'rescaled' or self.source_dir is not None
         assert self.type != 'from_file' or self.source_dir is not None
 
@@ -189,6 +192,11 @@ class BaseConnection(NestObject):
         # weight recorder
         self._synapse_model = None
         self._nest_synapse_model = None
+        ##
+        # Synapse label is set in the defaults of the nest synapse model in
+        # `create_nest_synapse_model` and can be used to query effectively the
+        # connections of a certain preojection.
+        self._synapse_label = None
         # Initialize the recorders
         self.recorders = [
             ConnectionRecorder(recorder_name, recorder_params)
@@ -319,24 +327,72 @@ class BaseConnection(NestObject):
             recorder.create(conn_params)
 
     def create_nest_synapse_model(self):
-        """Create a new synapse model that sends spikes to the recorder."""
+        """Create a new synapse model for the specific connection.
+
+        We can change the defaults of the new `nest_synapse_model` to either:
+        - send spikes to the recorder
+        - set a label for that synapse for easy later query.
+        """
         import nest
-        if not self.recorders:
-            self._nest_synapse_model = self.synapse_model
-        else:
+        # By default `nest_synapse_model` is just `synapse_model`
+        self._nest_synapse_model = self.synapse_model
+        if not self.recorders and self.params['synapse_label'] is None:
+            return
+        # If we either want to set a label, or record the synapse, we create a
+        # new model and change its default params accordingly
+        self._nest_synapse_model = self.nest_synapse_model_name()
+        nest.CopyModel(self.synapse_model, self._nest_synapse_model)
+        # Set the recorder
+        if self.recorders:
             recorder = self.recorders[0]
             assert recorder.type == 'weight_recorder'
-            self._nest_synapse_model = self.nest_synapse_model_name()
-            nest.CopyModel(self.synapse_model, self._nest_synapse_model,
-                           {
-                               recorder.type: recorder.gid[0]
-                           })
+            nest.SetDefaults(self._nest_synapse_model,
+                             {
+                                 recorder.type: recorder.gid[0]
+                             })
+        # Set the synapse label
+        synapse_label = self.params['synapse_label']
+        if synapse_label is not None:
+            assert type(self.params['synapse_label']) == int
+            assert 'synapse_model' in nest.GetDefaults(self._nest_synapse_model)
+            assert 'synapse_label' in nest.GetDefaults(self._nest_synapse_model), \
+                    (f'\nConnection: {self.name}: \n'
+                     'Attempting to set synapse label on a nest synapse model'
+                     ' that does not support labels. Use a *_lbl synapse model'
+                     ' (eg static_synapse_lbl)')
+            nest.SetDefaults(self._nest_synapse_model,
+                             {
+                                 'synapse_label': self.params['synapse_label']
+                             })
+            self._synapse_label = synapse_label
 
     def nest_synapse_model_name(self):
         return f"{self.synapse_model}-{self.__str__}"
 
     def update_nest_params(self):
         pass
+
+    def set_connection_weight(self):
+        """Set connection weight in nest_params from synapse default.
+
+        The Connection's weight is equal to the synapse model's default weight,
+        scaled by the Connection's `weight_gain` parameter, and by the source
+        layer's `weight_gain` parameter.
+        """
+        import nest
+        synapse_df_weight = nest.GetDefaults(self.nest_params['synapse_model'],
+                                             'weight')
+        scaled_weight = self.scale_weights(synapse_df_weight)
+        if synapse_df_weight != 1.0:
+            print(f'NB: Connection weights scale synapse default:'
+                  f'{self.__str__}: weights = {scaled_weight}')
+        self.nest_params['weights'] = scaled_weight
+
+    def scale_weights(self, weights):
+        """Scale the synapse weight by Connection and Layer's weight gain."""
+        connection_gain = self.params['weight_gain']
+        layer_gain = self.source.params.get('weight_gain', 1.0)
+        return weights * connection_gain * layer_gain
 
     def _connect(self):
         """Call nest.Connect() to create all unit connections.
@@ -540,6 +596,72 @@ class FromFileConnection(BaseConnection):
 
     def get_connections(self):
         self.conns = self.load_conns()
+
+
+class MultiSynapseConnection(BaseConnection):
+    """Replicate an existing labelled connection with different parameters.
+
+    We use this type of connection as a workaround to connect the same pairs of
+    neurons multiple times. See
+    https://github.com/nest/nest-simulator/issues/904
+
+    There are three parameters that we have control onto with these type of
+    connections: weight (obtained the same way as for topological connections)
+    ,synapse model (for which we can set labels and recorders similarly as
+    for topological connections), and finally the `make_symmetric` flag
+    necessary for gap junctions.
+
+    Usage:
+        Say we want to duplicate the specific connection `proj1`, which uses the
+        synapse AMPA, with different weights/synapse_models.
+        1 - Set the `synapse_label` parameter to a unique value for the specific
+            connection we want to duplicate (note that the synapse model must
+            accept labels, eg `static_synapse_lbl`). The connection_model of
+            `proj1` can be of any type.
+        2 - Define a connection_model of type `multisynapse`, with whatever
+            synapse and/or weight
+        3 - Define a specific connection `proj2` with the same source and target
+            population as `proj1`, and the `multisynapse` connection_model
+        4 - Set the `query_synapse_label` of `proj2` to the same value as the
+            `synapse_label` of `proj1`
+        5 - Optionally, you can still set the `recorders` or `synapse_labels` of
+            proj2.
+    """
+
+    def __init__(self, source, target, model, params):
+        super().__init__(source, target, model, params)
+        # Label used to query the connections
+        self.query_synapse_label = self.params['query_synapse_label']
+        # Make symmetric flag is passed during the nest.Connect() call
+        self.make_symmetric = self.params['make_symmetric_multisynapse']
+        assert self.query_synapse_label is not None
+
+    def get_connections(self):
+        pass
+
+    def get_synapse_model(self):
+        self._synapse_model = self.nest_params['synapse_model']
+
+    def update_nest_params(self):
+        self.set_connection_weight()
+
+    def _connect(self):
+        # Get the connections that have the proper query label
+        import nest
+        conns = nest.GetConnections(
+            synapse_label=self.query_synapse_label
+        )
+        if not conns:
+            return
+        srcs, tgts, _, _, _ = zip(*conns)
+        # Add additional connections only for those connections
+        nest.Connect(
+            srcs,
+            tgts,
+            {'rule': 'one_to_one', 'make_symmetric': self.make_symmetric},
+            {'model': self.nest_synapse_model,
+             'weight': self.nest_params['weights']}
+        )
 
 
 class TopoConnection(BaseConnection):
