@@ -168,9 +168,13 @@ class BaseConnection(NestObject):
         params = connection_dict.get('params', {})
         nest_params = connection_dict.get('nest_params', {})
         assert all([key in NON_NEST_CONNECTION_PARAMS for key in
-                    params.keys()])
+                    params.keys()]), \
+               (f'Unrecognized parameter in connection: {connection_dict}.'
+                f'\nRecognized parameters: {NON_NEST_CONNECTION_PARAMS.keys()}')
         assert not any([key in NON_NEST_CONNECTION_PARAMS for key in
-                        nest_params.keys()])
+                        nest_params.keys()]), \
+               (f'Reserved nest parameter in connection: {connection_dict}'
+                f'\"Non-nest reserved parameters: {NON_NEST_CONNECTION_PARAMS.keys()}')
         self.params = dict(ChainMap(params, model.params))
         self.nest_params = dict(ChainMap(nest_params, model.nest_params))
         super().__init__(model.name, self.params)
