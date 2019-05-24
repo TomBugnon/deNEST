@@ -42,7 +42,7 @@ OUTPUT_SUBDIRS = {'params': (),
 # is set to true.
 CLEAR_SUBDIRS = [subdir for subdir in OUTPUT_SUBDIRS.values()]
 
-def output_subdir(output_dir, data_keyword, session_name=None):
+def output_subdir(output_dir, data_keyword, session_name=None, create_dir=True):
     """Create and return the output subdirectory where a data type is saved.
 
     Args:
@@ -57,7 +57,8 @@ def output_subdir(output_dir, data_keyword, session_name=None):
         subdir = join(output_dir, *OUTPUT_SUBDIRS[data_keyword])
     else:
         subdir = join(output_dir, *OUTPUT_SUBDIRS[data_keyword], session_name)
-    os.makedirs(subdir, exist_ok=True)
+    if create_dir:
+        os.makedirs(subdir, exist_ok=True)
     return subdir
 
 
