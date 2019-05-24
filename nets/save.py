@@ -276,6 +276,24 @@ def load_as_df(names, locations, *paths, sep='\t', index_col=False,
     )
     return assign_locations(data, locations)
 
+def load_metadata_filenames(output_dir, recorder_type):
+    """Return list of all recorder filenames for a certain recorder type"""
+    assert recorder_type in ['multimeter', 'spike_detector', 'weight_recorder']
+    if recorder_type in ['multimeter', 'spike_detector']:
+        metadata_dir = output_subdir(output_dir,
+                                     'recorders_metadata',
+                                     create_dir=False)
+    elif recorder_type in ['weight_recorder']:
+        metadata_dir = output_subdir(output_dir,
+                                     'connection_recorders_metadata',
+                                     create_dir=False)
+    return sorted([
+        f for f in os.listdir(metadata_dir)
+        if recorder_type in os.path.splitext(f)[0]
+        and not os.path.splitext(f)[1] # "metadata" files are the ones without .ext
+    ])
+
+
 def load_session_times(output_dir):
     """Load session time from output dir."""
     return load_yaml(output_path(output_dir, 'session_times'))
