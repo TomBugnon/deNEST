@@ -159,6 +159,16 @@ class AbstractLayer(NestObject):
         import nest
         if change_type == 'constant':
             nest.SetStatus(gids_to_change, changes_dict)
+        elif change_type == 'multiplicative':
+            for gid, (change_key, change_ratio) in itertools.product(
+                gids_to_change,
+                changes_dict.items()
+            ):
+                current_value = nest.GetStatus((gid,), change_key)[0]
+                nest.SetStatus(
+                    (gid,),
+                    { change_key: current_value * change_ratio }
+                )
         else:
             raise NotImplementedError
 
