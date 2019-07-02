@@ -10,9 +10,10 @@
 import os
 import pickle
 import shutil
-from os.path import abspath, exists, isdir, isfile, join
+from os.path import abspath, exists, isdir, isfile, join, dirname
 
 import numpy as np
+import pandas as pd
 import scipy.sparse
 import yaml
 
@@ -175,7 +176,8 @@ def load_yaml(*args):
     else:
         return []
 
-def load(metadata_path, all_unit_indices=True, data_format='df'):
+def load(metadata_path, all_unit_indices=True, data_format='df',
+         add_locations=True):
     """Load tabular data from metadata file and return a x_array or pandas df.
 
     The data files are assumed to be in the same directory as the metadata.
@@ -191,9 +193,12 @@ def load(metadata_path, all_unit_indices=True, data_format='df'):
             grid location is returned (we index by z=0), and the array has no
             "z" dimension.
         data_format (str): 'df' or 'xarray'
+        add_locations (book): If True, add 'x', 'y' and 'z' columns containing
+            the unit locations within their layer
 
     Returns:
-        xarray.Dataset: Contains 'time', 'x', 'y' (and possibly 'z') dimensions.
+        pd.Dataset or xarray.Dataset: Contains raw data and possibly 'x', 'y',
+            'z' columns
     """
     print(f"Loading {metadata_path}")
     metadata = load_yaml(metadata_path)
@@ -208,8 +213,10 @@ def load(metadata_path, all_unit_indices=True, data_format='df'):
         return data.sel(z=0)
 
     elif data_format == 'df':
-        data = load_as_df(metadata['colnames'], metadata['locations'],
-                          *filepaths)
+        data = load_as_df(metadata['colnames'], *filepaths)
+        if not add_locations:
+            return data
+        data = assign_locations(data, metadata['locations'])
         if all_unit_indices:
             return data
         # Index by z=0
@@ -250,7 +257,7 @@ def load_as_xarray(names, locations, *paths, sep='\t', index_col=False,
     # Return as x_array
     return data.to_xarray()
 
-def load_as_df(names, locations, *paths, sep='\t', index_col=False,
+def load_as_df(names, *paths, sep='\t', index_col=False,
                **kwargs):
     """Load tabular data from one or more files and return a pandas df.
 
@@ -270,11 +277,29 @@ def load_as_df(names, locations, *paths, sep='\t', index_col=False,
             dimensions
     """
     # Read data from disk
-    data = pd.concat(
+    return pd.concat(
         pd.read_csv(path, sep=sep, names=names, index_col=index_col, **kwargs)
         for path in paths
     )
-    return assign_locations(data, locations)
+
+def get_filepaths(metadata_path):
+    metadata = load_yaml(metadata_path)
+    # Check loaded metadata
+    assert 'filenames' in metadata, \
+        (f'The metadata loaded at path: `{metadata_path}` does not have the '
+         f'correct format. Please check package versions?')
+    # We assume metadata and data are in the same directory
+    return [join(dirname(metadata_path), filename)
+            for filename in metadata['filenames']]
+
+# TODO: This step is slow ! What can we do?
+def assign_locations(df, locations):
+    """Assign x and y columns (loc in grid), and z (index at grid location)."""
+    return df.assign(
+        x = df.gid.map(lambda gid: locations[gid][0]),
+        y = df.gid.map(lambda gid: locations[gid][1]),
+        z = df.gid.map(lambda gid: locations[gid][2])
+    )
 
 def load_metadata_filenames(output_dir, recorder_type):
     """Return list of all recorder filenames for a certain recorder type"""
