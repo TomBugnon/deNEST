@@ -176,8 +176,7 @@ def load_yaml(*args):
     else:
         return []
 
-def load(metadata_path, all_unit_indices=True, data_format='df',
-         add_locations=True):
+def load(metadata_path, all_unit_indices=True, add_locations=True):
     """Load tabular data from metadata file and return a x_array or pandas df.
 
     The data files are assumed to be in the same directory as the metadata.
@@ -187,75 +186,27 @@ def load(metadata_path, all_unit_indices=True, data_format='df',
             metadata for a recorder.
 
     Kwargs:
-        all_unit_indices (bool): If True, the returned xarray possesses a third
-            spatial dimension ("z") corresponding to the index of the unit at a
-            given grid location. Otherwise, data for only a single unit at each
-            grid location is returned (we index by z=0), and the array has no
-            "z" dimension.
-        data_format (str): 'df' or 'xarray'
+        all_unit_indices (bool): If false, we index the returned array by z=0
+            where z is the unit index at a given grid location
         add_locations (book): If True, add 'x', 'y' and 'z' columns containing
             the unit locations within their layer
 
     Returns:
-        pd.Dataset or xarray.Dataset: Contains raw data and possibly 'x', 'y',
+        pd.Dataset: Contains raw data and possibly 'x', 'y',
             'z' columns
     """
     print(f"Loading {metadata_path}")
     metadata = load_yaml(metadata_path)
     filepaths = get_filepaths(metadata_path)
 
-    if data_format == 'xarray':
-        data = load_as_xarray(metadata['colnames'], metadata['locations'],
-                              *filepaths)
-        if all_unit_indices:
-            return data
-        # Index by z=0
-        return data.sel(z=0)
-
-    elif data_format == 'df':
-        data = load_as_df(metadata['colnames'], *filepaths)
-        if not add_locations:
-            return data
-        data = assign_locations(data, metadata['locations'])
-        if all_unit_indices:
-            return data
-        # Index by z=0
-        return data.loc[data['z'] == 0]
-
-    else:
-        raise Exception('Unrecognized value for `data_format` kwarg')
-
-def load_as_xarray(names, locations, *paths, sep='\t', index_col=False,
-                   **kwargs):
-    """Load tabular data from one or more files and return a x_array dataset.
-
-    Keyword arguments are passed to ``pandas.read_csv()``.
-
-    Arguments:
-        colnames (tuple[str]): The names of the columns.
-        locations (dict of int:tuple): Dictionary containing the gid to
-            (x,y,z)-positions mappings for the population. Locations are
-            3-tuples of int. First two dimensions correspond to x and y
-            location in the layer, 3rd dimension corresponds to the "unit
-            index" (if there is more than one unit per grid location)
-        *paths (filepath or buffer): The file(s) to load data from.
-
-    Returns:
-        xarray.Dataset: The loaded data. Contains 'time', 'x', 'y', 'z'
-            dimensions
-    """
-    # Read data from disk
-    data = pd.concat(
-        pd.read_csv(path, sep=sep, names=names, index_col=index_col, **kwargs)
-        for path in paths
-    )
-    # Add x,y,z spatial location information
-    data = assign_locations(data, locations)
-    # Index and sort dataframe by time and spatial location
-    data.set_index(['time', 'x', 'y', 'z'], inplace=True)
-    data = data.sort_index()
-    # Return as x_array
-    return data.to_xarray()
+    data = load_as_df(metadata['colnames'], *filepaths)
+    if not add_locations:
+        return data
+    data = assign_locations(data, metadata['locations'])
+    if all_unit_indices:
+        return data
+    # Index by z=0
+    return data.loc[data['z'] == 0].copy()
 
 def load_as_df(names, *paths, sep='\t', index_col=False,
                **kwargs):
@@ -273,7 +224,7 @@ def load_as_df(names, *paths, sep='\t', index_col=False,
         *paths (filepath or buffer): The file(s) to load data from.
 
     Returns:
-        xarray.Dataset: The loaded data. Contains 'time', 'x', 'y', 'z'
+        pd.Dataset: The loaded data. Contains 'time', 'x', 'y', 'z'
             dimensions
     """
     # Read data from disk
