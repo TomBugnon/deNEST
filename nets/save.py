@@ -24,9 +24,7 @@ sparse_format = scipy.sparse.lil_matrix # pylint:disable=invalid-name
 OUTPUT_SUBDIRS = {'params': (),
                   'git_hash': (),
                   'raw_data': ('data',), # Raw recorder data (NEST output)
-                  'recorders_formatted': ('data_formatted',), # Formatted recorder data
                   'recorders_metadata': ('data',), # Metadata for recorders (contains filenames and gid/location mappings)
-                  'connection_recorders_formatted': ('connection_recorders_formatted',),
                   'connection_recorders_metadata': ('data',),
                   'session_movie': ('sessions',),
                   'session_labels': ('sessions',),
@@ -306,82 +304,6 @@ def load_weight_recorder(output_dir, conn_name, start_trim=None):
     }
 
 
-def load_files(directory, filename_prefix):
-    """Load all files with prefix and concatenate along the second dimension."""
-    all_filenames = [f for f in os.listdir(directory)
-                     if f.startswith(filename_prefix)
-                     and isfile(join(directory, f))]
-    # Load the activity arrays and concatenate along the second dimension.
-    try:
-        return np.concatenate(
-            [load_as_numpy(join(directory, filename))
-             for filename in all_filenames],
-            axis=1
-        )
-    except ValueError:
-        error = (f"Couldn't load filenames with prefix: ``{filename_prefix}``\n"
-                 f"...in directory: ``{abspath(directory)}``")
-        raise Exception(error)
-
-def load_session_activity(output_dir, layer, population, variable='spikes',
-                          session=None, all_units=False):
-    # Get all filenames for that population (one per unit index)
-    recorders_dir = output_subdir(output_dir, 'recorders',
-                                  session_name=session)
-    unit_index = None if all_units else 0
-    filename_prefix = output_filename('recorders', layer, population,
-                                      variable=variable,
-                                      unit_index=unit_index)
-    return load_files(recorders_dir, filename_prefix)
-
-
-def load_activity(output_dir, layer, population, variable='spikes',
-                  session=None, all_units=False, start_trim=None,
-                  end_trim=None, interval=1.0):
-    """Load activity of a given variable for a population.
-
-        Args:
-            - `output_dir` (str): Output directory,
-            - `layer`, `population` (str): Population name,
-            - `variable` (str): Loaded variable (default 'spikes'),
-            - `session` (str): Session for which the activity is loaded. Loads
-                all sessions if None. (default None)
-            - `all_units` (bool): Return activity only for one unit at each grid
-                location if False (default False)
-            - `start_trim`, `end_trim` (int): Duration of activity trimmed at
-                the start or the end of the recording (applied after selecting
-                activity of a given session)
-            - `interval` (int or float): time between two consecutive slices
-    """
-    # pylint: disable=too-many-arguments
-
-    # Get list of sessions that we load
-    if session is None:
-        all_session_times = load_session_times(output_dir)
-        all_sessions = sorted(list(all_session_times.keys()))
-    else:
-        all_sessions = [session]
-
-    all_sessions_activity = np.concatenate(
-        [
-            load_session_activity(output_dir, layer, population,
-                                  variable=variable, session=session,
-                                  all_units=all_units)
-            for session in all_sessions
-        ],
-        axis=0
-    )
-
-    # Possibly trim the beginning and the end, after selecting for session
-    min_slice, max_slice = 0, len(all_sessions_activity)
-    if start_trim is not None and start_trim > 0:
-        min_slice = max(min_slice, int(start_trim / interval))
-    if end_trim is not None and end_trim > 0:
-        end_trim_slice = len(all_sessions_activity) - int(end_trim / interval)
-        max_slice = min(max_slice, end_trim_slice)
-    return all_sessions_activity[min_slice:max_slice]
-
-
 def load_labels(output_dir, session_name):
     """Load labels of a session."""
     return np.load(join(output_subdir(output_dir, 'sessions'),
@@ -430,20 +352,6 @@ def load_sparse(path):
     return data.reshape(shape)
 
 
-def recorder_formatted_filename(layer, pop, unit_index=None, variable='spikes',
-                      formatting_interval=None):
-    """Return filename for a population x unit_index."""
-    base_filename = (layer + '_' + pop + '_'
-                     + variable)
-    suffix = ''
-    if unit_index is not None:
-        suffix = ('_' + 'units' + '_'
-                  + str(unit_index))
-    if formatting_interval is not None:
-        suffix = suffix + ('_' + 'interval' + '_' + str(formatting_interval))
-    return base_filename + suffix
-
-
 def recorder_metadata_filename(label):
     """Return filename for a recorder from its label."""
     return label
@@ -486,7 +394,6 @@ def git_hash_filename():
 
 
 FILENAME_FUNCS = {'params': params_filename,
-                  'recorders_formatted': recorder_formatted_filename,
                   'recorders_metadata': recorder_metadata_filename,
                   'connection_recorders': recorder_metadata_filename,
                   'connection_recorders_metadata': recorder_metadata_filename,

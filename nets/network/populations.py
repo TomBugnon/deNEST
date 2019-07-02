@@ -30,11 +30,6 @@ class Population(NestObject):
         ]
         # Number of units per layer position
         self.number = int(self.layer.params['populations'][self.name])
-        # Index of units at each grid position for which recorder data is
-        # formatted
-        self.number_formatted = params.get('number_formatted', None)
-        if self.number_formatted is None:
-            self.number_formatted = int(self.number)
         # 3D location by gid mapping
         self._locations = None
         self._created = False
@@ -53,7 +48,7 @@ class Population(NestObject):
     def create(self):
         if self.recorders:
             # Get all the population-wide parameters necessary for recorder
-            # formatting
+            # metadata
             # Get all gids of population
             gids = self.layer.gids(population=self.name)
             # Get locations of each gids as a (row, number, unit) tuple
@@ -70,13 +65,12 @@ class Population(NestObject):
                 "layer_name": self.layer.name,
                 "layer_shape": self.layer.shape,
                 "units_number": self.number,
-                "number_formatted": self.number_formatted,
             }
 
-            # Create the recorders and pass along the formatting parameters
+            # Create the recorders and pass along the metadata parameters
             for recorder in self.recorders:
                 # Pass all the layer-wide and population-wide attributes to the
-                # recorder object that deals with data formatting
+                # recorder object that deals with creating the recorder metadata
                 recorder.create(population_params)
 
     @property

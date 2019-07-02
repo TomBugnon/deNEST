@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import pylab
 
 from .. import save
-from ..utils import format_recorders, misc
+from ..utils import misc
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
 
@@ -22,10 +22,7 @@ POP_RECORDER_TYPES = ['multimeter', 'spike_detector']
 
 # Parameters that are recognized and not passed as NEST parameters. These
 # parameters are set in `populations.yml` rather than `recorders.yml`
-NON_NEST_PARAMS = {
-    'formatting_interval': None, # Effective default is multimeter's `interval`
-                                 # parameter, or 1.0ms for spike detector
-}
+NON_NEST_PARAMS = {}
 
 class BaseRecorder(NestObject):
     """Base class for all recorder classes. Represent nodes (not models).
@@ -147,26 +144,23 @@ class BaseRecorder(NestObject):
 class PopulationRecorder(BaseRecorder):
     """Represent a recorder node. Connects to a single population.
 
-    Handles connecting the recorder node to the population, formatting the
-    recorder's data and saving the formatted data.
+    Handles connecting the recorder node to the population.
     The recorder objects contains the population and layer specs necessary for
-    formatting (shape, locations, etc).
+    creating recorder output metadata (population shape, unit locations, etc).
     """
 
     # pylint: disable=too-many-instance-attributes
 
     def __init__(self, name, params):
         super().__init__(name, params)
-        # Attributes below are necessary for formatting and are passed by the
-        # Population object during `create()` call
+        # Attributes below are necessary for creating the output metadata file
+        # and are passed by the Population object during `create()` call
         self._gids = None # all gids of recorded nodes
         self._locations = None # location by gid for recorded nodes
         self._population_name = None # Name of recorded (parent) population
         self._layer_name = None # Name of recorded (parent) pop's layer
         self._layer_shape = None # (nrows, cols) for recorded pop
         self._units_number = None # Number of nodes per grid position for pop
-        self._formatted_unit_indices = None # Index of nodes per grid position
-            # for which data is formatted
         ##
         self._type = None # 'spike detector' or 'multimeter'
         if self.name in POP_RECORDER_TYPES:
@@ -180,8 +174,6 @@ class PopulationRecorder(BaseRecorder):
         # are updated after creation
         self._record_from = None # list of variables for mm, or ['spikes']
         self._interval = None # Sampling interval. None for spike_detector.
-        self._formatting_interval = self.params['formatting_interval'] #
-            #Interval between two consecutive "slices" of the formatted array.
 
     def guess_rec_type(self):
         """Guess recorder type from recorder name."""
@@ -205,8 +197,6 @@ class PopulationRecorder(BaseRecorder):
         self._layer_name = population_params['layer_name']
         self._layer_shape = population_params['layer_shape']
         self._units_number = population_params['units_number']
-        self._formatted_unit_indices = \
-            range(population_params['number_formatted'])
         # Create node
         self._gid = nest.Create(self.name, params=self.nest_params)
         # Update attributes after creation (may depend on nest defaults and
@@ -217,13 +207,8 @@ class PopulationRecorder(BaseRecorder):
             self._record_from = [str(variable) for variable
                                  in nest.GetStatus(self.gid, 'record_from')[0]]
             self._interval = nest.GetStatus(self.gid, 'interval')[0]
-            if self._formatting_interval is None:
-                self._formatting_interval = self._interval
-            assert self._formatting_interval >= self._interval
         elif self.type == 'spike_detector':
             self._record_from = ['spikes']
-            if self._formatting_interval is None:
-                self._formatting_interval = 1.0
         # Set the label and filename prefix
         self.set_label()
         self._filenames = self.raw_data_filenames
@@ -276,9 +261,7 @@ class PopulationRecorder(BaseRecorder):
             'layer_shape': self._layer_shape,
             'population_shape': self._layer_shape + (self._units_number,),
             'units_number': self._units_number,
-            'formatted_unit_indices': self._formatted_unit_indices,
             'interval': self._interval,
-            'formatting_interval': self._formatting_interval,
             'record_from': self._record_from,
         })
         return metadata_dict
@@ -303,87 +286,6 @@ class PopulationRecorder(BaseRecorder):
             return ['gid', 'time']
         else:
             raise Exception
-
-    def save_formatted(self, output_dir, session_name=None, start_time=None,
-        end_time=None):
-        # pylint:disable=too-many-arguments
-        """Save the formatted activity of recorders.
-
-        NB: Since we load and manipulate the activity for all variables recorded
-        by a recorder at once (for speed), this can get hard on memory when many
-        variables are recorded. If you experience memory issues, a possiblity is
-        to create separate recorders for each variable.
-
-        Args:
-            output_dir (str): output directory
-            session_name (str): If not None, data is saved in a subdirectory
-                of output directory with that name.
-            start_time, end_time (int): Start and end time of data that is
-                formatted.
-        """
-
-        # Get formatted arrays for each variable and each unit_index.
-        # all_recorder_activity = {'var1': [activity_unit_0,
-        #                                   activity_unit_1,...]}
-        all_recorder_activity = self.formatted_data(start_time=start_time,
-                                                    end_time=end_time)
-
-        # Save the formatted arrays separately for each var and unit_index
-        for variable, unit_index in product(self.variables,
-                                            self._formatted_unit_indices):
-
-            recorder_path = save.output_path(
-                output_dir,
-                'recorders_formatted',
-                self._layer_name,
-                self._population_name,
-                session_name=session_name,
-                unit_index=unit_index,
-                variable=variable,
-                formatting_interval=self._formatting_interval,
-            )
-            save.save_array(recorder_path,
-                            all_recorder_activity[variable][unit_index])
-
-
-    # TODO: Figure out a way to get all the data
-    def formatted_data(self, start_time=None, end_time=None):
-        """Get formatted data.
-
-        NB: TODO: Because the last event recorded has timestamp `end_time` - 1 (where
-        `end_time` is the kernel time at the end of the last `Simulate` call),
-        the last frame of formatted arrays is always filled with 0 and the data
-        between `end_time` - 1 and `end_time` is lost.
-        """
-        # Set defaults values for start_time and end_time
-        if start_time is None:
-            start_time = 0
-        if end_time is None:
-            import nest
-            end_time = nest.GetKernelStatus('time')
-
-        # Get shape of formatted array.
-        duration = end_time - start_time
-        nslices = int(duration/self._formatting_interval)
-        formatted_shape = (nslices,) + self._layer_shape
-        if (self.type == 'multimeter'
-            and self._interval != self._formatting_interval):
-            import warnings
-            warnings.warn(f'NB: The multimeter interval is {self._interval},'
-                          f'but the formatting interval is '
-                          f'{self._formatting_interval}!')
-
-        return format_recorders.format_recorder(
-            self.gid,
-            recorder_type=self.type,
-            shape=formatted_shape,
-            locations=self._locations,
-            all_variables=self.variables,
-            formatted_unit_indices=self._formatted_unit_indices,
-            formatting_interval=self._formatting_interval,
-            start_time=start_time,
-            end_time=end_time
-        )
 
     def get_nest_raster(self):
         """Return the nest_raster plot and possibly error message."""
@@ -479,14 +381,6 @@ class ConnectionRecorder(BaseRecorder):
     @if_created
     def __str__(self):
         return self.type + '_' + self._connection_name
-
-    # TODO: If we want to format spike weights in 4Dxtime arrays
-    def save_formatted(self, output_dir, session_name=None, start_time=None,
-        end_time=None, with_raster=False):
-        """Save formatted weight-recorder data."""
-        # pylint:disable=too-many-arguments
-        pass
-
 
     def get_connection_recorder_metadata_dict(self):
         metadata_dict = self.get_base_metadata_dict()

@@ -3,7 +3,6 @@ simulation:
     output_dir: output
     dry_run: False
     clear_output_dir: True
-    format_recorders: False
     save_simulation: True
     parallel: True
     n_jobs: 2
