@@ -115,7 +115,7 @@ class Session:
 
     def save_metadata(self, output_dir):
         """Save session metadata (stimuli, ...)."""
-        if self.params.get('save_stim', True) and self._stimulus is not None:
+        if self.params.get('save_stim', False) and self._stimulus is not None:
             save.save_array(save.output_path(output_dir,
                                              'session_movie',
                                              session_name=self.name),
