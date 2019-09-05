@@ -228,9 +228,13 @@ class Network:
         for changes in tqdm(
                 sorted(synapse_changes, key=synapse_sorting_map),
                 desc="-> Changing synapses's state."):
-            nest.SetStatus(
-                nest.GetConnections(synapse_model=changes['synapse_model']),
-                changes['params'])
+            target_conns = nest.GetConnections(
+                synapse_model=changes['synapse_model']
+            )
+            change_params = changes['params']
+            print(f"Change status for N={len(target_conns)} conns of type "
+                  f"{changes['synapse_model']}. Apply dict: {change_params}")
+            nest.SetStatus(target_conns, change_params)
 
     def change_unit_states(self, unit_changes):
         """Change parameters for some units of a population.
