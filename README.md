@@ -703,4 +703,51 @@ python -m nets <param_file.yml> [-i <input>] [-o <output>]
 All the simulations outputs are saved in subdirectories of the directory
 specified in the `output_dir` simulation parameter.
 
-TODO: Document 
+The `nets.save` module contains utility functions to load the simulation outputs.
+
+The main output consists in the raw data recorded by each recorder (spike detector, multimeter or weight_recorder), as saved by NEST, and the recorder metadata which contains all the necessary information to postprocess the raw data. Both are saved by NETS in the 'data' subdirectory of the output directory. As a reminder, each recorder is paired to a single population, and the recorder metadata contains information about that population. 
+
+Below is an exemple of how to use the `nets.save` utility functions to load the recorded activity as pandas arrays after the simulation has ended:
+
+
+```python
+import nets.save
+from pathlib import Path
+
+OUTPUT_DIR = Path('./output')
+data_path = OUTPUT_DIR/'data'
+
+## We can load the start and end time for each sessions:
+session_times = nets.save.load_session_times(OUTPUT_DIR) # {<session>: range(<session_start>, <session_end>)}
+
+
+## Get the names of all the recorders
+recorder_type = 'multimeter'
+# recorder_type = 'spike_detector'
+# recorder_type = 'weight_recorder'
+all_recorder_metadata_filenames = nets.save.load_metadata_filenames(OUTPUT_DIR, recorder_type)
+
+## To load the data for a recorder, all we need is the path to its metadata file.
+metadata_filename = all_recorder_metadata_filenames[0]
+# All the information about this recorder and the population it's connected to are contained in its metadata file
+mm_metadata = nets.save.load_yaml(data_path/metadata_filename)
+print(mm_metadata.keys())
+# load the data as panda dataframe
+mm_df = nets.save.load(data_path/metadata_filename)
+
+
+# We can also use some more advanced options for loading:
+mm_df = nets.save.load(
+    data_path/metadata_filename,
+    assign_locations=True, # add x,y,z columns
+    usecols=['gid', 'time', 'V_m'], # Ignore some columns
+    filter_ratio={
+       'gid': 0.5,
+       'time': 0.5,
+    }, # Load data for half of all unique GIDs and timestamps
+    filter_type={
+       'gid': 'random',
+       'time': 'even',
+    }, # GIDs are sampled randomly and timestamps evenly
+)
+```

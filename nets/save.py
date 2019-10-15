@@ -176,9 +176,10 @@ def load_yaml(*args):
     else:
         return []
 
-def load(metadata_path, all_unit_indices=True, data_format='df',
-         add_locations=True):
-    """Load tabular data from metadata file and return a x_array or pandas df.
+
+def load(metadata_path, assign_locations=False, usecols=None, filter_ratio=None,
+    filter_type=None):
+    """Load tabular data from metadata file and return a pandas df.
 
     The data files are assumed to be in the same directory as the metadata.
 
@@ -187,78 +188,87 @@ def load(metadata_path, all_unit_indices=True, data_format='df',
             metadata for a recorder.
 
     Kwargs:
-        all_unit_indices (bool): If True, the returned xarray possesses a third
-            spatial dimension ("z") corresponding to the index of the unit at a
-            given grid location. Otherwise, data for only a single unit at each
-            grid location is returned (we index by z=0), and the array has no
-            "z" dimension.
-        data_format (str): 'df' or 'xarray'
-        add_locations (book): If True, add 'x', 'y' and 'z' columns containing
-            the unit locations within their layer
+        assign_locations (bool): If True, add x y and z values indicating gid
+            grid position and unit index amongst each population
+        usecols (tuple[str] or None): Columns of the data that are loaded. By default,
+            all columns are loaded. Can be useful for multimeters if we are only
+            interested in one amongst many variables.
+        filter_ratio (dict): Dictionary of the form:
+                `{<column>: <ratio_of_loaded_values>}`
+            used to filter loaded data. For all filtered fields, the unique
+            values are loaded and sampled evenly or randomly based on the
+            corresponding value of the `filter_type` parameter.
+        filter_type (dict): Dictionary of the form:
+                `{<column>: <type_of_filtering>}`
+            used to filter loaded data. The types of filtering are 'even' or
+            'random' (default)
 
     Returns:
-        pd.Dataset or xarray.Dataset: Contains raw data and possibly 'x', 'y',
-            'z' columns
+        pd.DataFrame : pd dataframe containing the raw data, possibly
+            subsampled. Columns may be dropped ( see `usecols` kwarg) and 'x',
+            'y' 'z' location fields may be added (see `assign_locations` kwarg).
     """
-    print(f"Loading {metadata_path}")
+    print(f"Loading {metadata_path}, filter_ratio={filter_ratio}, "
+          f"filter_type={filter_type}, usecols={usecols}, assign_locations={assign_locations}")
     metadata = load_yaml(metadata_path)
     filepaths = get_filepaths(metadata_path)
 
-    if data_format == 'xarray':
-        data = load_as_xarray(metadata['colnames'], metadata['locations'],
-                              *filepaths)
-        if all_unit_indices:
-            return data
-        # Index by z=0
-        return data.sel(z=0)
-
-    elif data_format == 'df':
-        data = load_as_df(metadata['colnames'], *filepaths)
-        if not add_locations:
-            return data
-        data = assign_locations(data, metadata['locations'])
-        if all_unit_indices:
-            return data
-        # Index by z=0
-        return data.loc[data['z'] == 0]
-
+    # Loaded columns
+    cols = metadata['colnames']
+    if usecols is None:
+        usecols = cols
     else:
-        raise Exception('Unrecognized value for `data_format` kwarg')
+        usecols = list(set(cols) & set(usecols))
+    if not usecols:
+        return None
 
-def load_as_xarray(names, locations, *paths, sep='\t', index_col=False,
-                   **kwargs):
-    """Load tabular data from one or more files and return a x_array dataset.
+    # Target values for each filtered column
+    def get_target_values(metadata, *filepaths,
+                          usecols=None,
+                          filter_ratio=None, filter_type=None):
+        if filter_ratio is None:
+            filter_ratio = {}
+        if filter_type is None:
+            filter_type = {}
+        filter_values = {}
+        for column, proportion in filter_ratio.items():
+            unique_values = load_as_df(
+                metadata['colnames'],
+                *filepaths,
+                usecols=[column]
+            )[column].unique()
+            filt_type = filter_type.get(column, 'random')
+            assert filt_type in ['random', 'even']
+            if filt_type == 'even':
+                # Every 1/proportion values in sorted list of unique values
+                filter_values[column] = sorted(
+                    unique_values
+                )[::int(1/proportion)]
+            else:
+                filter_values[column] = np.random.choice(
+                    unique_values,
+                    int(proportion*len(unique_values))
+                )
+        return filter_values
 
-    Keyword arguments are passed to ``pandas.read_csv()``.
+    filter_values = get_target_values(metadata, *filepaths, usecols=usecols,
+                                      filter_ratio=filter_ratio,
+                                      filter_type=filter_type)
 
-    Arguments:
-        colnames (tuple[str]): The names of the columns.
-        locations (dict of int:tuple): Dictionary containing the gid to
-            (x,y,z)-positions mappings for the population. Locations are
-            3-tuples of int. First two dimensions correspond to x and y
-            location in the layer, 3rd dimension corresponds to the "unit
-            index" (if there is more than one unit per grid location)
-        *paths (filepath or buffer): The file(s) to load data from.
+    data = load_as_df(metadata['colnames'],
+                      *filepaths,
+                      usecols=usecols,
+                      filter_values=filter_values)
+    if assign_locations:
+        # print('Assigning locations')
+        data = assign_gid_locations(data, metadata['locations'])
+        # print('Done assigning locations')
 
-    Returns:
-        xarray.Dataset: The loaded data. Contains 'time', 'x', 'y', 'z'
-            dimensions
-    """
-    # Read data from disk
-    data = pd.concat(
-        pd.read_csv(path, sep=sep, names=names, index_col=index_col, **kwargs)
-        for path in paths
-    )
-    # Add x,y,z spatial location information
-    data = assign_locations(data, locations)
-    # Index and sort dataframe by time and spatial location
-    data.set_index(['time', 'x', 'y', 'z'], inplace=True)
-    data = data.sort_index()
-    # Return as x_array
-    return data.to_xarray()
+    return data
 
-def load_as_df(names, *paths, sep='\t', index_col=False,
-               **kwargs):
+
+def load_as_df(names, *paths, sep='\t', index_col=False, usecols=None,
+               filter_values=None, **kwargs):
     """Load tabular data from one or more files and return a pandas df.
 
     Keyword arguments are passed to ``pandas.read_csv()``.
@@ -272,34 +282,54 @@ def load_as_df(names, *paths, sep='\t', index_col=False,
             index" (if there is more than one unit per grid location)
         *paths (filepath or buffer): The file(s) to load data from.
 
+    Kwargs:
+        filter_values (dict): Dictionary of the form:
+                `{<column>: <target_values_list>}`
+            used to filter loaded data.
+
     Returns:
-        xarray.Dataset: The loaded data. Contains 'time', 'x', 'y', 'z'
-            dimensions
+        pd.DataFrame: The loaded data.
     """
+
     # Read data from disk
     return pd.concat(
-        pd.read_csv(path, sep=sep, names=names, index_col=index_col, **kwargs)
+        filter_df(
+            pd.read_csv(path, sep=sep, names=names, index_col=index_col,
+                        usecols=usecols, **kwargs),
+            filter_values
+        )
         for path in paths
     )
 
-def get_filepaths(metadata_path):
-    metadata = load_yaml(metadata_path)
-    # Check loaded metadata
-    assert 'filenames' in metadata, \
-        (f'The metadata loaded at path: `{metadata_path}` does not have the '
-         f'correct format. Please check package versions?')
-    # We assume metadata and data are in the same directory
-    return [join(dirname(metadata_path), filename)
-            for filename in metadata['filenames']]
+
+def filter_df(df, filter_values):
+    """Filter df by matching targets for multiple columns.
+
+    Args:
+        df (pd.DataFrame): dataframe
+        filter_values (None or dict): Dictionary of the form:
+                `{<field>: <target_values_list>}`
+            used to filter columns data.
+    """
+    if filter_values is None or not filter_values:
+        return df
+    return df[
+        np.logical_and.reduce([
+            df[column].isin(target_values)
+            for column, target_values in filter_values.items()
+        ])
+    ]
+
 
 # TODO: This step is slow ! What can we do?
-def assign_locations(df, locations):
+def assign_gid_locations(df, locations):
     """Assign x and y columns (loc in grid), and z (index at grid location)."""
     return df.assign(
         x = df.gid.map(lambda gid: locations[gid][0]),
         y = df.gid.map(lambda gid: locations[gid][1]),
         z = df.gid.map(lambda gid: locations[gid][2])
     )
+
 
 def load_metadata_filenames(output_dir, recorder_type):
     """Return list of all recorder filenames for a certain recorder type"""
@@ -317,6 +347,17 @@ def load_metadata_filenames(output_dir, recorder_type):
         if recorder_type in os.path.splitext(f)[0]
         and not os.path.splitext(f)[1] # "metadata" files are the ones without .ext
     ])
+
+
+def get_filepaths(metadata_path):
+    metadata = load_yaml(metadata_path)
+    # Check loaded metadata
+    assert 'filenames' in metadata, \
+        (f'The metadata loaded at path: `{metadata_path}` does not have the '
+         f'correct format. Please check package versions?')
+    # We assume metadata and data are in the same directory
+    return [join(dirname(metadata_path), filename)
+            for filename in metadata['filenames']]
 
 
 def load_session_times(output_dir):
