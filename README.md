@@ -1,98 +1,148 @@
 # NETS: Network Simulations (in NEST)
 
-## Network
+This project is a object-oriented front-end to the NEST simulation kernel (
+nest-simulator.org ) which allows the user to fully specify large scale
+networks and simulation characteristics in separate, trackable and
+hierarchically organized parameter files. From those parameter files, NETS
+instantiates in NEST the actual network (nodes, connections etc), and runs and
+saves data for a particular simulation (stimulus, duration, parameter changes,
+etc).
 
-### Definitions
+This declarative approach allows a decoupling of the network and simulation
+parameters from the actual code and facilitates version control and sharing of
+the parameter files.
 
-- A **model** is a NEST model (neuron or synapse) with a specific name and set
-  of parameters. All models are copied from their respective "NEST model" using
-  `nest.Copy()` with their specific parameters. NEST models can be either
-  imported from external modules or built-in.
-  - Models should have a different name from NEST models.
-  - Multiple models can have different names but the same NEST model and
+Under the hood, NETS instantiates classes that represent specific aspects of the full network (layers, connections, ...) or of the simulation. This classes take as inputs subtrees of the whole parameter tree, translate those parameters to parameters understandable by NEST, instantiates the NEST object, etc. The main classes, which map to parameter subtrees, are described below.
+
+
+## Definitions and objects
+
+#### Network
+
+**IMPORTANT**: We make the distinction between the "independent" parameters, that are specified in the parameter files, and the "dependent" parameters that are actually given to NEST during object instantiation. Please read carefully the documentation to know how parameters are interpreted, and possibly translated, by NETS. 
+As an example, the topological connection's `kernel` and `mask` params, that are specified in the connection_model parameter files, are scaled by the connection_model's `scale_factor`  parameter.
+
+- A **model** is a NEST model (neuron, synapse, generator or recorder) with a
+  specific name and set of parameters. All models are copied from their
+  respective "NEST model" using `nest.Copy()` with their specific parameters, or
+  change the default parameters of their "NEST model" if they have the same
+  name. NEST models can be either imported from external modules or built-in.
+  The `model` NETS parameters specify the 
+    - NB: Multiple models can have different names but the same NEST model and
     parameters.
+    - Neuron and generator models are specified in the `network/neuron_models`
+      parameter subtree.
+    - Synapse models are specified in the `network/synapse_models` parameter
+      subtree.
+    - Recorder models are specified in the `network/recorders` parameter
+      subtree.
+
 
 - A **layer** is a NEST topological layer. A layer is akin to a grid of a
   certain dimension (nrows x ncols) and is composed of a given number of nodes
   at each grid _location_. Nodes at each location can be from different models.
-  - Only 2D layers are supported.
-  - Layers can be of the type `InputLayer` when composed of generators. Input
-    layers are automatically duplicated to contain parrot neurons, so that
-    recording of generators' activity is possible (via parrot neurons).
-    Additionally, the state of generators can be changed before each session to
-    reflect the forecoming input stimulus (see "session" description).
+  - NB: All units represented by NETS are organized in layers ! There can be no
+    "floating" node, but there can be layers consisting in a single node.
+  - NB: Only 2D layers are currently supported in NETS. Since there can be
+    multiple units of the same population at the same grid location, unit
+    locations are indexed as (row x col x unit_index) in the output.
+  - Layers can be of the type `InputLayer` when they are composed of generators.
+    (Think of the `InputLayer` as the retina.) Input layers are automatically
+    duplicated to contain parrot neurons, so that recording of generators'
+    activity is possible (via parrot neurons).  Additionally, the state of
+    generators can be changed before each session to reflect the forecoming
+    input stimulus (see "session" description).
+  - Layers are specified in the `network/layers` parameter
+    subtree.
 
 - A **population** is a set of nodes of the same model within a specific layer.
-  In practice, populations are `(layer, neuron_model)` tuples.
-  - Connections are defined between layers or populations (but not at a finer
-    grain).
-  - Each recorder created in NEST corresponds to a specific population, so it is
-    possible to decide to record (or not) each population independently, and to
-    record different variables for different populations.
+  In practice, populations are `(layer, neuron_model)` tuples. 
+  - Connections are typically defined between layers or populations (but not at
+    a finer grain).
+  - Each **recorder** created in NETS, and in NEST, maps to a specific
+    population, so that it is possible to decide to record (or not) each population independently, and to
+    record different variables for different populations (note, however, that it
+    is not possible to record only part of a population.).
+  - **IMPORTANT**: The layer parameters fully specify the populations of a
+    network. The `network/populations` parameter subtree, the nodes of which are
+    populations (rather than layers), is used exclusively to create or not
+    recorders for each population. Note that this parameter subtree is redundant
+    with the layer parameter subtree, and that both need to be consistent.
+
 
 - We call **connection model** a set of parameters describing a certain type of
-  projection between node populations. The following types of connection models
-  are handled so far:
-  - _topological connections_: Connections to be created by
-    `nest.topology.Connect()`
-  - _connections from file_: Connections between individual units loaded from a
-    dump from a previous simulation. Arbitrary unit-to-unit connections are
-    handled with this type of connection.
-  - _rescaled (topological) connections_: "Rescaled" topological connections
-    from a dump from a previous simulation. This allows one to change the
-    spatial profile of topological connections between two networks while
-    keeping the same number of outgoing connections per node.
-  - _multisynapse connections_: TODO document. implements the workaround
-      at https://github.com/nest/nest-simulator/issues/904
+  projection between nodes or populations.
+  The following types of connection models are handled so far:
+    - _topological connections_: Connections to be created by
+      `nest.topology.Connect()`. Topological connections are defined amongst
+      populations.
+    - _connections from file_: Connections between individual units loaded from a
+      dump from a previous simulation. Arbitrary unit-to-unit connections can be
+      created and handled with this type of connection.
+    - _rescaled (topological) connections_: "Rescaled" topological connections
+      from a dump from a previous simulation. This allows one to change the
+      spatial profile of topological connections between two networks while
+      keeping the same number of outgoing connections per node.
+    - _multisynapse connections_: TODO document. implements the workaround
+        at https://github.com/nest/nest-simulator/issues/904
+      This connection type allows the creation of multiple connections between
+      the same couples of units, eg to create connections with multiple receptor
+      types.
+  - Connection models are specified in the `network/connection_model` parameter
+    subtree.
+
 
 - We call __connection__ a specific projection between layers or populations.
-  Each individual connection has a specific connection model.
+  Each individual connection has a specific connection model, and optional
+  parameters that can override the connection model's default.
+  - The list of all individual connections is specified in the `network/topology` parameter
+    subtree.
 
-## Simulation
-
-### Definitions
+#### Simulation
 
 - We call **network** a full NEST network, consisting of layers, connections,
-  etc. Represented by the `Network()` object.
+  recorders, etc. It is represented by the `Network()` object, which contains all the objects representing the different aspects of a network.
 
 - We call **session** a period of simulation of a network with specific
-  background conditions/inputs. Represented by the `Session()` object.
+  inputs and parameters. Represented by the `Session()` object.
   - One can change the state of the network before each session by:
     - Modifying the state of all (or part of) the units within a population.
     - Modifying the state of all (or part of) the population-to-population
       connections (synapses).
-    - One can change the state of the input layers of the network to mimic the
-      presentation of a certain stimulus during that session. This can be done
-      by specifying an **input** for that session. An input stimulus is an array
-      from which the instantaneous poisson rate of each of the input layer's
-      units is derived.
-      - If the input has no time dimension, the poisson rate is constant for
-        each unit.
-      - If the input has a time dimension, the poisson rate of each unit varies
-        with time accordingly.
+  - One can change the state of the input layers of the network to mimic the
+    presentation of a certain stimulus during that session. This can be done
+    by specifying an **input** for that session. An input stimulus is an array
+    from which the instantaneous poisson rate of each of the input layer's
+    units is derived.
+    - If the input has no time dimension, the poisson rate is constant for
+      each unit.
+    - If the input has a time dimension, the poisson rate of each unit varies
+      with time accordingly.
 
 - We call **simulation** a full experiment. Represented by a `Simulation()`
   object (which contains a `Network` object and a list of `Session` objects).
 
-### Overview of a full simulation
+## Overview of a full simulation
+
+A full NETS simulation consists of the following steps:
 
 1. **Initialize kernel**:
-  1. Set NEST kernel
-  2. Set random seeds
+    1. Set NEST kernel parameters
+    2. Set random seeds for python's `random` module and NEST's random generator.
 1. **Initialize network**:
-  1. Initialize the `Network` object representing a NEST network: derive the
-     dependent parameters from the independent parameters given in the parameter
-     files.
-  2. Create the network in NEST.
+    1. Initialize the `Network` object representing a NEST network: derive the dependent parameters from the independent parameters given in the parameter files.
+    2. Create the network in NEST.
 2. **Save the simulation's metadata**
-  1. Create and/or clear the output directory
-  1. Save parameters
-  2. Save git hash
-  3. Save network metadata (gid/location mappings, ...) (TODO)
+    1. Create and/or clear the output directory
+    1. Save parameters
+    2. Save git hash
+    3. Save network metadata (gid/location mappings, ...) (TODO)
 3. **Run each session** in turn. For each session:
   1. Initialize the session:
     1. (Possibly) reset the network
-    2. Change the network's dynamic variables
+    2. (Possibly) Change some of the network's parameters:
+      1. Change neuron parameters for certain units of certain populations
+      1. Change synapse parameters for certain synapse models.
     3. If there are any InputLayer in the network:
       1. Load the stimulus
       2. Set the input spike times or input rates to emulate the forecoming
@@ -112,14 +162,14 @@
 
 ## Parameters
 
-### `Params` parameter trees
+#### `Params` parameter trees
 
 Simulation parameter trees are specified as tree-like `Params` objects. The
 hierarchical tree structure provides a concise means of specifying parameters
 for nested 'scopes', which inherit parameters from ancestor scopes. The leaves
-of the tree specify models, etc. that are instantiated in the simulation.
+of the tree specify models, etc. that are instantiated in the simulation. 
 
-### Example parameter tree
+##### Example parameter tree
 
 Below is an example of a YAML file with a tree-like structure that can be loaded
 and represented by the `Params` class:
@@ -175,7 +225,7 @@ NMDA_syn:
     weight: 1.0
 ```
 
-### Merging trees
+#### Merging trees
 
 `Params` objects can be merged horizontally, meaning the parameters (contents of
 the `params` key) of nodes with the same name and at the same position in the
@@ -190,9 +240,34 @@ to highest precedence):
 - CLI input: Parameters in the file given by the `--input=<path>` command-line
   flag.
 
-### Full parameter tree
 
-The final parameter tree (obtained after merging) must have the following
+#### Main parameter file
+
+nets.run takes as input a path to a yaml file containing the relative paths to
+the different parameter files to be merged. The main parameter file will look for example as follows, if the parameters are split amongst subdirectories and files:
+
+```yaml
+# List is read from last to first. param files towards the beginning take
+# precedence over those towards the end if there are duplicate parameters.
+- ./network/layers.yml
+- ./network/synapse_models.yml
+- ./network/neuron_models.yml
+- ./network/connections.yml
+- ./network/connection_models.yml
+- ./simulation/populations.yml
+- ./simulation/recorders.yml
+- ./simulation/sessions_df.yml
+- ./simulation/kernel_params.yml
+- ./simulation/simulation_params.yml
+```
+
+Nets merges the parameter trees from all these files horizontally to generate the __Full parameter tree__ that fully describes the whole simulation.
+
+
+
+### Full parameter tree: description of parameters
+
+The final parameter tree (obtained after merging the parameter trees from all the parameter files) must have the following
 subtrees/leaves:
 
 NB: Parameters for which no default value is given are _mandatory_ and should be
@@ -229,7 +304,7 @@ defined in the final parameter tree.
       not initialized. (default `False`)
     - `clear_output_dir` (bool): If true, the contents of the subdirectories of
       `output_dir` listed in the CLEAR_SUBDIRS constant (defined in `save.py`)
-      are deleted during a `Simulation.save()` call before any saving of output.
+      are deleted during a `Simulation.save()` call before any saving of output. 
       (default `False`)
         - If set to `False`, it is possible that an output directory contains data
           from a previous simulation.
@@ -242,10 +317,10 @@ defined in the final parameter tree.
     - `n_jobs` (int): Number of cores to use if we format recorders in parallel
       (default -1)
     - `save_nest_raster` (bool): If true, NEST raster plots are generated during
-      a `Simulation.save()` (default `True`)
+      a `Simulation.save()` (default `True`) (TODO: Change df to False)
     - `dump_connections` (bool): If true, the unit-to-unit synapses are dumped
-      during a `__init__.run()` call. Modify the `plot_connection`
-      connection_model parameters to dump only a subset of the connections.
+      during a `__init__.run()` call. Modify the `dump_connection`
+      connection_model parameter to dump only a subset of the connections.
       (default `False`)
     - `plot_connections` (bool): If true, population-to-population connections
       are plotted during a `__init__.run()` call. Modify the `plot_connection`
@@ -264,15 +339,22 @@ defined in the final parameter tree.
     the session (default `False`)
   - `session_input` (bool): Absolute or relative path to a NumPy array defining
     the stimulus for that session. Possibly ignored if the `input_path` session
-    parameter points to a NumPy array. Please refer to the 'Inputs' paragraph.
+    parameter points to a NumPy array. Please refer to the 'Inputs' paragraph for details on how this parameter is interpreted.
     (default `None`)
   - `time_per_frame` (float): Number of milliseconds during which each 'frame'
     of the input movie is shown to the network. (default `1.0`)
   - `simulation_time` (float): Duration of the session, in ms. The stimulus is
     generated by repeating each element of the session input array for
     `time_per_frame` milliseconds, and the array of repeated elements is
-    treamed or repeating such that the stimulus lasts `simulation_time`
-    (mandatory)
+    trimmed or repeated such that the stimulus lasts `simulation_time`
+    (mandatory).
+    - Example: if the session input array has two frames, time_per_frame = 2 (ms) and simulation_time = 7 (ms), the effective input at each millisecond will be [frame 1, frame 1, frame 2, frame 2, frame 1, frame 1, frame 2]
+  - `input_rate_scale_factor` (float or int): Scaling factor to obtain the
+    Poisson firing rates in Hz from array values of the stimulus array. The
+    corresponding firing rate in Hz for a given array value is equal to
+    <value> * <session_input_rate_scale_factor> * <layer_input_scale_factor>.
+    See `input_rate_scale_factor` in the layer parameters and the "Input"
+    documentation paragraph. (default 1.0)
   - `unit_changes` (list): List of dictionaries describing the parameter changes
     to apply to a proportion of units of specific populations. (default `[]`).
     Each `unit_change` dictionary should be of the form::
@@ -326,7 +408,7 @@ defined in the final parameter tree.
           applied to the selected units.
   - `synapse_changes` (list): List of dictionaries describing the parameter
     changes to apply to population-to-population connections within specific
-    populations. (default `[]`)
+    populations. (default `[]`). TODO: Document
 
 - `network` (subtree): Should contain the following subtrees:
   - `layers` (subtree): Defines layer parameters. Each leaf is a layer. The
@@ -341,29 +423,33 @@ defined in the final parameter tree.
       (keys) and the number of units of that model at each grid location
       (values). (mandatory)
     - `area` (str): Area of the layer. (default `None`)
-    - `input_rate_scale_factor` (float or int): Scaling factor for the poisson
-      rate applied to an `InputLayer` to reflect a stimulus. (mandatory for
-      `InputLayers`)
-    - `weight_gain`: Scaling factor for the weight of connections of which the
-      considered layer is the _source_. (default `1.0`)
+    - `input_rate_scale_factor` (float or int): Scaling factor to obtain the
+      Poisson firing rates in Hz from array values of the stimulus array. The
+      corresponding firing rate in Hz for a given array value is equal to
+      <value> * <session_input_rate_scale_factor> * <layer_input_scale_factor>.
+      See `input_rate_scale_factor` in the session parameters and the "Input"
+      documentation paragraph. (mandatory for `InputLayer` layers)
+    - `weight_gain`: Scaling factor for the weight of connections **of which the
+      considered layer is the _source_.** (default `1.0`). Lets one scale the
+      weight of all outgoing connections from a layer.
     - `scale_kernels_masks_to_extent`: Whether the kernels and masks of
       connections of which the considered layer is the pooling layer are
       considered to be expressed in 'number of units', rather than physical
-      extent. (default `True`).
+      extent. (default `True`). (TODO: default to False)
         - **Important**: Please note that by default the kernel and masks are
           interpreted as being expressed in 'number of units' rather than
           physical extent and are accordingly scaled before being passed to
           NEST.
     - `scale_input_weight`: Whether the weight of connections originating from
       an InputLayer is scaled by number of layers within an InputLayer. (default
-      `False`)
+      `False`) (TODO: Delete)
   - `neuron_models` (subtree): Defines neuron models. Each leaf is a neuron
-    model. All parameters of a leaf are passed to ``nest.CopyModel()`` except
-    the following:
+    model. All parameters of a leaf are passed to ``nest.CopyModel()`` __except
+    the following__:
     - `nest_model` (str): Base NEST model for the neuron model. (mandatory)
   - `synapse_models` (subtree): Defines synapse models. Each leaf is a synapse
     model. All parameters of a leaf are passed to ``nest.CopyModel()`` without
-    change except the following:
+    change __except the following__:
     - `nest_model` (str): Base NEST model for the synapse model. (mandatory)
     - `receptor_type` (str): Name of the receptor_type. Used to derive the
       port-in of the connection. If specified, a `target_neuron` parameter is
@@ -372,14 +458,15 @@ defined in the final parameter tree.
       port-in of the connection. Ignored if `receptor_type` is unspecified.
       (default `None`)
   - `connection_models` (subtree): Defines the connection models. Each leaf is a
-    connection model. The following parameters are recognized:
+    connection model. All parameters are interpreted as "NEST parameters" and
+    passed to NEST __except the following parameters__:
     - `type` (str). Type of the connection. Recognized types are 'topological',
       'from_file', 'rescaled'. (default `'topological'`).
     - `source_dir` (str). Path to the directory containing the previously dumped
       connections. Used (and mandatory) only if the connection is of type
       'from_file' or 'rescaled'. (default `None`)
     - `scale_factor` (float). Scaling factor for the kernel and masks. (default
-      `1.0`)
+      `1.0`).
     - `dump_connection` (bool): Whether connections of that connection model
       should be dumped during a `Simulation.dump_connections()` call. (default
       `False`)
@@ -388,14 +475,22 @@ defined in the final parameter tree.
       `True`)
     - `weight_gain` (float): Scales the connection's synapse model's default
         weight. The actual connection weight is equal to the synapse defaults,
-        multiplied by this parameter and possibly the source layer's
+        multiplied by this parameter and the source layer's
         `weight_gain` parameter.
-    - The other parameters define the topological or rescaled (topological)
-      connections and will be passed to nest.topology.ConnectLayers() (for
-      topological) connections, possibly after kernel and mask scaling.
-      These parameters are ignored in the case of connections 'from_file', and
-      interpreted similarly in 'rescaled connections' as in topological
-      connections.
+    - `kernel`, `mask`: Interpreted as the corresponting nest.topology
+      parameters, except that __the sizes__ (radius, lower_left, upper_right, ...)
+      __are scaled before being passed to NEST__ according to the
+      'scale_kernels_masks_to_extent' and 'scale_factor' parameters(TODO: Check
+      that this won't fail in future
+      versions of NEST) **The actual mask or kernel extent is equal to the value
+      in the corresponding parameters, expressed either in number of units or in
+      extent, multiplied by the connection model's scaling factor**
+    - All other parameters define the topological or rescaled (topological)
+      connections and will be passed to nest.topology.ConnectLayers() (__Note
+      that for topological connections, kernels and masks are scaled before
+      being passed to NEST__). These parameters are ignored in the case of
+      connections 'from_file', and interpreted similarly in 'rescaled
+      connections' as in topological connections.
     - **Important**: There shouldn't be a `weight` entry in these parameters!
         The weight is set from the synapse defaults and scaled by the source
         Layer's and the Connection's `weight_gain` parameters.
@@ -403,36 +498,37 @@ defined in the final parameter tree.
       `scale_kernels_masks_to_extent` parameter of the pooling layer is true,
       the masks and kernel sizes specified in the parameters (and scaled by the
       `scale_factor`) are interpreted as "number_of_units" rather than physical
-      extent.
+      extent. 
   - `topology` (leaf): Should contain a `connections` parameter consisting in a
     list of dictionary describing population(/layer)-to-population(/layer)
     connections. Each item specifies a list of source layers and target layers.
     Actual connections are created for all the source_layer x target_layer
     combinations.
     Each item should be a dictionary with the following fields:
-    - source_layers (list[str]): List of source layers. Individual connections
+    - `source_layers` (list[str]): List of source layers. Individual connections
       are created for all source_layer x target_layer combinations,. (mandatory)
-    - source_population (str or None): source pop for each of the source_layer x
+    - `source_population` (str or None): source pop for each of the source_layer x
       target_layer combination. If not specified, each connection originates
       from all the populations in the source layer.
       (default `None`)
-    - source_layers (list[str]): List of target layers. Individual connections
+    - `source_layers` (list[str]): List of target layers. Individual connections
       are created for all source_layer x target_layer combinations,. (mandatory)
-    - target_population (str or None): target pop for each of the source_layer x
+    - `target_population` (str or None): target pop for each of the source_layer x
       target_layer combination. If not specified, each connection targets
       all the populations in the target layer.
       (default `None`)
-    - connection (str): Name of the connection model. (mandatory)
-    - nest_params (dict or None): NEST parameters for the specific connections
+    - `connection` (str): Name of the connection model. (mandatory)
+    - `nest_params` (dict or None): NEST parameters for the specific connections
       represented by the item. Takes precedence over the connection model's
       NEST parameters
-    - params (dict or None): Non-NEST parameters for the specific connections
+    - `params` (dict or None): Non-NEST parameters for the specific connections
       represented by the item. Takes precedence over the connection model's
       non-NEST parameters
   - `recorders` (subtree): Defines recorder models. Each leaf is a recorder
-    model. All parameters of a leaf are passed to ``nest.CopyModel()`` except
-    the following:
+    model. All parameters of a leaf are passed to ``nest.CopyModel()`` or
+    ``nest.SetDefaults()``except the following:
     - `nest_model` (str): Base NEST model for the recorder model.
+    - TODO: document 'formatting_interval' or delete param
   - `populations` (subtree): Defines the populations (= models within a specific
     layer). Used to define which population is recorded by what type of
     recorder. Leaves are individual populations. The name of populations-leaves
@@ -451,26 +547,29 @@ defined in the final parameter tree.
                 0 otherwise. default value is 1.0
               - for multimeters: the value of a random timestep within the
                 slice. default value is equal to the `interval` nest_parameter.
+              ()
+            (TODO: Delete param)
     - `number_formatted` (int): Number of units per grid location that are
       for which recorder data is formatted. All units are formatted if None.
-      (default None)
+      (default None) (TODO: Delete)
     - **NB**: Make sure that no population is missing compared to the `'layer'`
-      parameters.
+      parameters. (TODO: Add check)
 
 
-## Inputs to the network
+### Inputs to the network
 
-The input 'shown' to the network (that is, used to set the firing rates during a
-forecoming session) is a NumPy array of dimensions compatible with the network's
-`InputLayer`'s dimension. The NumPy array should be 4D with the following
-dimensions: `(rows, columns, filters, frames)`
+The input 'shown' to the network (that is, used to set the firing rates of the
+InputLayer during a forecoming session) is a NumPy array of dimensions
+compatible with the network's `InputLayer`'s dimension. The NumPy array should
+be 4D with the following dimensions: `(rows, columns, filters, frames)`
+TODO: FIX!!!
 - _rows_ : should be greater than the number of rows of the `InputLayer`.
 - _columns_ : should be greater than the number of columns of the `InputLayer`
 - _filter_ : should be greater than the number of Layers in the `InputLayer`.
   Please ignore this dimension in general cases but make sure your array is 4D.
   This dimension would correspond to different filters to be applied to an image
   to mimic different 'filterings' by the retina, LGN, V1 etc in an object
-  recognition network.
+  recognition network. (TODO: Remove)
 - _frames_ : If the stimulators are spike_generators, successive 'frames' are
     shown to the InputLayer, each for a certain duration. If the stimulators
     are poisson_generators, only the first frame is shown to the network.
@@ -483,10 +582,11 @@ ignored.
 If InputLayer stimulators are spike generators, the instantaneous rates at each
 time are set proportionally to the frame corresponding to that time. Each frame
 is 'shown' to the layer for a certain duration (`time_per_frame` parameter).
-In both cases the scaling factor from np-array values to rates is given by the
-'input_rate_scale_factor' parameter of the InputLayer.
+In both cases __the scaling factor from np-array values to firing rates is equal to__:
 
-### Loading of the input arrays
+<session_input_rate_scale_factor> * <layer_input_rate_scale_factor>, where <session_input_rate_scale_factor> and <layer_input_rate_scale_factor> are the `input_rate_scale_factor` parameters from the session and layer parameters.
+
+#### Loading of the input arrays
 
 The input stimulus "shown" to the network is loaded using the following steps
 during the initialization of each session:
@@ -504,7 +604,7 @@ during the initialization of each session:
 4. (option 4): Just for reference, there is another type of loading that is
     specific to our usage and doesn't need to be developed upon right now. We
     will probably migrate the corresponding code outside of the package in the
-    future.
+    future. (TODO: Delete code)
 
 In summary, if an absolute path to an array is specified in the command line
 `input` optional argument, it will be used for all sessions. Otherwise, a good
@@ -513,18 +613,16 @@ nets.constants, leave the `'input_path'` simulation parameter otherwise
 unspecified and specify the relative path (from the `'input directory'`) to each
 session's input in the session parameters.
 
-### Duration of session
+### Duration of a session
 
-The simulation time of each session is decided differently depending on whether
-there are InputLayers (and corresponding stimuli) in the network or not:
-  - if there are input layers:
-      The simulation time is equal to the  minimum between the
-      'max_session_sim_time' session parameter and the total duration of the
-      input movie (nframes x time_per_frame).
-  - if there are no input layers:
-      The simulation time is equal to the 'max_session_sim_time' session
-      parameter or to the default MAX_SIM_TIME_NO_INPUT variable in sessions.py
-      if 'max_session_sim_time' is not specified.
+The simulation time is equal to the 'simulation_time' session
+parameter.
+The stimulus is
+    generated by repeating each element of the session input array for
+    `time_per_frame` milliseconds, and the array of repeated elements is
+    trimmed or repeated such that the stimulus lasts `simulation_time`
+    (mandatory).
+    - Example: if the session input array has two frames, time_per_frame = 2 (ms) and simulation_time = 7 (ms), the effective input at each millisecond will be [frame 1, frame 1, frame 2, frame 2, frame 1, frame 1, frame 2]
 
 
 ## Run the simulation
@@ -604,3 +702,5 @@ python -m nets <param_file.yml> [-i <input>] [-o <output>]
 
 All the simulations outputs are saved in subdirectories of the directory
 specified in the `output_dir` simulation parameter.
+
+TODO: Document 
