@@ -583,10 +583,6 @@ during the initialization of each session:
     towards a directory, and the `session_input` session parameter can be
     interpreted as a relative path, from the `input_path` directory, pointing
     towards a NumPy array, it will be loaded for the session.
-4. (option 4): Just for reference, there is another type of loading that is
-    specific to our usage and doesn't need to be developed upon right now. We
-    will probably migrate the corresponding code outside of the package in the
-    future. (TODO: Delete code)
 
 In summary, if an absolute path to an array is specified in the command line
 `input` optional argument, it will be used for all sessions. Otherwise, a good

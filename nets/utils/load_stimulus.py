@@ -8,10 +8,7 @@
 
 from os.path import basename, isfile, join
 
-import numpy as np
-
-from ..constants import INPUT_SUBDIRS, METADATA_FILENAME
-from ..save import load_as_numpy, load_yaml
+from ..save import load_as_numpy
 
 
 def load_raw_stimulus(input_path, session_input):
@@ -82,14 +79,6 @@ def load_raw_stimulus(input_path, session_input):
                     None)
         except FileNotFoundError:
             pass
-    # Option 4: load from stimulus yaml at os.path.join(input_path, session_input)
-    try:
-        stim = load_stim_from_yaml(input_path, session_input)
-        print(f"-> Loading input from stimulus file `{session_input}` ... at"
-              f" formatted input directory `{input_path}`.. (loading option 4)")
-        return stim
-    except (FileNotFoundError, AssertionError):
-        pass
     error_string = (f"Couldn't load an input stimulus with: \n`input_path`"
                     f"simulation parameter: {input_path} and \n`session_input`"
                     f"session parameter: {session_input}")
@@ -101,53 +90,3 @@ def frame_labels_from_file(input_path, nframes):
     # which is the filename.
     return [basename(input_path)
             for i in range(nframes)]
-
-
-def load_stim_from_yaml(input_path, session_input_filename):
-    """Load and concatenate a sequence of movie stimuli from a 'stim' yaml file.
-
-    Load only files that exist and are of non - null size. Concatenate along the
-    first dimension(time).
-
-    Args:
-        <session_input_path> (str): Path to the session's stimulus file.
-
-    Return:
-        (tuple): (<stim> , <frame_filenames>, <stim_metadata> ) where:
-            <stim> (np - array): (T * nfilters * nrows * ncols) array.
-            <frame_filenames> (list): list of length T containing the filename
-                of the movie each frame is taken from.
-            <stim_metadata> (dict): Metadata from preprocessing pipeline. Used
-                to map input layers and filter dimensions.
-    """
-    # Load stimulus yaml file for the session. Contains the set and a sequence
-    # of filenames.
-    stimulus_params = load_yaml(join(input_path,
-                                     INPUT_SUBDIRS['stimuli'],
-                                     session_input_filename))
-
-    # Load all the movies in a list of arrays, while saving the label for each
-    # frame
-    all_movies = []
-    labels = []
-    for movie_filename in stimulus_params['sequence']:
-        # Load movie
-        movie = load_as_numpy(join(input_path,
-                                   INPUT_SUBDIRS['preprocessed_input_sets'],
-                                   stimulus_params['set_name'],
-                                   movie_filename))
-        all_movies.append(movie)
-        # Save filename for each frame
-        labels += [movie_filename for i in range(np.size(movie, 0))]
-
-    # Check that we loaded something
-    assert(all_movies), "Could not load any stimuli"
-    # Check that all movies have same number of dimensions.
-    assert(len(set([np.ndim(movie) for movie in all_movies])) == 1), (
-           'Not all loaded movies have same dimensions'
-    )
-
-    # Load metadata
-    metadata = load_yaml(stimulus_params['set_name'], METADATA_FILENAME)
-
-    return (np.concatenate(all_movies, axis=0), labels, metadata)
