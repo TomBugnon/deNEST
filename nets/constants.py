@@ -7,7 +7,7 @@ DEFAULT_PARAMS_PATH = None
 
 DEFAULT_INPUT_PATH = './input'
 
-INPUT_SUBDIRS = { # Ignored if input stimuli are loaded from .npy
+INPUT_SUBDIRS = {  # Ignored if input stimuli are loaded from .npy
     'raw_input': 'raw_input',
     'preprocessed_input': 'preprocessed_input',
     'raw_input_sets': 'raw_input_sets',

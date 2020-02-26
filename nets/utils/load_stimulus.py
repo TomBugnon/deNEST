@@ -95,6 +95,7 @@ def load_raw_stimulus(input_path, session_input):
                     f"session parameter: {session_input}")
     raise Exception(error_string)
 
+
 def frame_labels_from_file(input_path, nframes):
     # If the input is loaded from numpy, all the frames have the same label,
     # which is the filename.
@@ -122,8 +123,8 @@ def load_stim_from_yaml(input_path, session_input_filename):
     # Load stimulus yaml file for the session. Contains the set and a sequence
     # of filenames.
     stimulus_params = load_yaml(join(input_path,
-                                    INPUT_SUBDIRS['stimuli'],
-                                    session_input_filename))
+                                     INPUT_SUBDIRS['stimuli'],
+                                     session_input_filename))
 
     # Load all the movies in a list of arrays, while saving the label for each
     # frame
@@ -142,8 +143,9 @@ def load_stim_from_yaml(input_path, session_input_filename):
     # Check that we loaded something
     assert(all_movies), "Could not load any stimuli"
     # Check that all movies have same number of dimensions.
-    assert(len(set([np.ndim(movie) for movie in all_movies])) == 1), \
+    assert(len(set([np.ndim(movie) for movie in all_movies])) == 1), (
            'Not all loaded movies have same dimensions'
+    )
 
     # Load metadata
     metadata = load_yaml(stimulus_params['set_name'], METADATA_FILENAME)

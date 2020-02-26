@@ -6,15 +6,12 @@
 
 # pylint:disable=missing-docstring
 
-import os
 from copy import deepcopy
-from itertools import product
 
 import matplotlib.pyplot as plt
 import pylab
 
 from .. import save
-from ..utils import misc
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
 
@@ -23,6 +20,7 @@ POP_RECORDER_TYPES = ['multimeter', 'spike_detector']
 # Parameters that are recognized and not passed as NEST parameters. These
 # parameters are set in `populations.yml` rather than `recorders.yml`
 NON_NEST_PARAMS = {}
+
 
 class BaseRecorder(NestObject):
     """Base class for all recorder classes. Represent nodes (not models).
@@ -49,11 +47,11 @@ class BaseRecorder(NestObject):
         self._type = None
         # Attributes below may depend on NEST default and recorder models and
         # are updated after creation
-        self._gid = None # gid of recorder node
+        self._gid = None  # gid of recorder node
         self._filenames = None
-        self._record_to = None # eg ['memory', 'file']
+        self._record_to = None  # eg ['memory', 'file']
         self._withtime = None
-        self._label = None # Only affects raw data filenames.
+        self._label = None  # Only affects raw data filenames.
 
     @property
     @if_created
@@ -114,7 +112,7 @@ class BaseRecorder(NestObject):
         import nest
         # TODO: Deal with case where multimeter is only recorded to memory?
         assert 'file' in self._record_to
-        assert self._label is not None # Check that the label has been set
+        assert self._label is not None  # Check that the label has been set
         prefix = (nest.GetKernelStatus('data_prefix')
                   + self._label
                   + f'-{self.gid[0]}-')
@@ -123,8 +121,10 @@ class BaseRecorder(NestObject):
         # TODO: CHeck the formatting for 3 digits number of threads
         assert n_vp <= 100
         n_digits = len(str(n_vp))
-        return [prefix + f'{str(vp).zfill(n_digits)}.{extension}' for vp in range(n_vp)]
-
+        return [
+            prefix + f'{str(vp).zfill(n_digits)}.{extension}'
+            for vp in range(n_vp)
+        ]
 
     @if_created
     def get_base_metadata_dict(self):
@@ -155,14 +155,14 @@ class PopulationRecorder(BaseRecorder):
         super().__init__(name, params)
         # Attributes below are necessary for creating the output metadata file
         # and are passed by the Population object during `create()` call
-        self._gids = None # all gids of recorded nodes
-        self._locations = None # location by gid for recorded nodes
-        self._population_name = None # Name of recorded (parent) population
-        self._layer_name = None # Name of recorded (parent) pop's layer
-        self._layer_shape = None # (nrows, cols) for recorded pop
-        self._units_number = None # Number of nodes per grid position for pop
+        self._gids = None  # all gids of recorded nodes
+        self._locations = None  # location by gid for recorded nodes
+        self._population_name = None  # Name of recorded (parent) population
+        self._layer_name = None  # Name of recorded (parent) pop's layer
+        self._layer_shape = None  # (nrows, cols) for recorded pop
+        self._units_number = None  # Number of nodes per grid position for pop
         ##
-        self._type = None # 'spike detector' or 'multimeter'
+        self._type = None  # 'spike detector' or 'multimeter'
         if self.name in POP_RECORDER_TYPES:
             self._type = self.name
         else:
@@ -172,8 +172,8 @@ class PopulationRecorder(BaseRecorder):
                   f' `{self._type}`')
         # Attributes below may depend on NEST default and recorder models and
         # are updated after creation
-        self._record_from = None # list of variables for mm, or ['spikes']
-        self._interval = None # Sampling interval. None for spike_detector.
+        self._record_from = None  # list of variables for mm, or ['spikes']
+        self._interval = None  # Sampling interval. None for spike_detector.
 
     def guess_rec_type(self):
         """Guess recorder type from recorder name."""
@@ -184,7 +184,6 @@ class PopulationRecorder(BaseRecorder):
             if rec_type in self.name:
                 return rec_type
         raise Exception("The type of recorder {self.name} couldn't be guessed")
-
 
     @if_not_created
     def create(self, population_params):
@@ -277,8 +276,8 @@ class PopulationRecorder(BaseRecorder):
 
     def raw_data_colnames(self):
         import nest
-        #TODO: Make sure this is necessary or find a workaround?
-        #TODO: check the parameters at creation rather than here
+        # TODO: Make sure this is necessary or find a workaround?
+        # TODO: check the parameters at creation rather than here
         assert nest.GetStatus(self.gid, 'withtime')[0]
         if self.type == 'multimeter':
             return ['gid', 'time'] + self._record_from
@@ -295,14 +294,14 @@ class PopulationRecorder(BaseRecorder):
         raster, error_msg = None, None
         if 'memory' not in self._record_to:
             error_msg = 'Data was not saved to memory.'
-        elif not len(nest.GetStatus(self.gid)[0]['events']['senders']): # pylint: disable=len-as-condition
+        elif not len(nest.GetStatus(self.gid)[0]['events']['senders']):  # pylint: disable=len-as-condition
             error_msg = 'No events were recorded.'
         elif len(nest.GetStatus(self.gid)[0]['events']['senders']) == 1:
             error_msg = 'There was only one sender'
         else:
             try:
                 raster = raster_plot.from_device(self.gid, hist=True)
-            except Exception as exception: # pylint: disable=broad-except
+            except Exception as exception:  # pylint: disable=broad-except
                 error_msg = (f'Uncaught exception when generating raster.\n'
                              f'--> Exception message: {exception}\n'
                              f'--> Recorder status: {nest.GetStatus(self.gid)}')
@@ -333,7 +332,7 @@ class ConnectionRecorder(BaseRecorder):
         self._tgt_population_name = None
         self._tgt_gids = None
         ##
-        self._type = None # 'weight_recorder'
+        self._type = None  # 'weight_recorder'
         if self.name in ['weight_recorder']:
             self._type = self.name
         else:
@@ -403,16 +402,14 @@ class ConnectionRecorder(BaseRecorder):
         return metadata_dict
 
     def raw_data_colnames(self):
-        import nest
-        #TODO: Make sure this is necessary or find a workaround?
-        #TODO: check the parameters at creation rather than here
+        # TODO: Make sure this is necessary or find a workaround?
+        # TODO: check the parameters at creation rather than here
         # assert not nest.GetStatus(self.gid, 'withport')[0]
         # assert not nest.GetStatus(self.gid, 'withrport')[0]
         # assert nest.GetStatus(self.gid, 'withtime')[0]
         if self._type == 'weight_recorder':
             # TODO
             return None
-
 
     def save_metadata(self, output_dir):
         metadata_path = save.output_path(

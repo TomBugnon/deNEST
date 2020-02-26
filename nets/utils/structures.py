@@ -28,9 +28,9 @@ def chaintree(tree_list, children_key='children'):
 
     # Remove empty stuff from the list
     tree_list = [tree for tree in tree_list if bool(tree)]
-    if len(tree_list) == 1: # pylint:disable=len-as-condition
+    if len(tree_list) == 1:  # pylint:disable=len-as-condition
         return tree_list[0]
-    if len(tree_list) == 0: # pylint:disable=len-as-condition
+    if len(tree_list) == 0:  # pylint:disable=len-as-condition
         return {}
 
     # Combine horizontally the values in all trees under each key except
@@ -47,7 +47,7 @@ def chaintree(tree_list, children_key='children'):
         for tree in tree_list
         if (children_key in tree and tree[children_key])
     ])
-    if len(children_tups) > 0: # pylint:disable=len-as-condition
+    if len(children_tups) > 0:  # pylint:disable=len-as-condition
         combined_subtrees = {
             child_key: chaintree(child_subtrees_list, children_key='children')
             for (child_key, child_subtrees_list) in children_tups
@@ -68,7 +68,8 @@ def combine_values(values):
     """
     accepted_types = (float, int, Mapping, list, str)
     if any(
-        [v is not None and not isinstance(v, accepted_types) for v in values]):
+        [v is not None and not isinstance(v, accepted_types) for v in values]
+    ):
         raise Exception("The type of a value to merge is not recognized.")
     values = [v for v in values if isinstance(v, (int, float, str)) or v]
     if not values:

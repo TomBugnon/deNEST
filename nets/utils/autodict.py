@@ -13,6 +13,7 @@ from .structures import dictify
 
 # pylint:disable=missing-docstring
 
+
 class AutoDict(UserDict):
 
     """A dictionary supporting deep access and modification with tuples.

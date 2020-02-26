@@ -18,7 +18,7 @@ from .. import save
 from .layers import InputLayer
 from .nest_object import NestObject
 from .recorders import ConnectionRecorder
-from .utils import if_created, if_not_created
+from .utils import if_not_created
 
 
 # Matched substrings when scaling masks.
@@ -30,18 +30,19 @@ SCALED_KERNEL_TYPES = ['gaussian']
 # List of Connection and ConnectionModel parameters (and their default values
 # that shouldn't be considered as 'nest_parameters'
 NON_NEST_CONNECTION_PARAMS = {
-    'type': 'topological', # 'Topological', 'Rescaled' or 'FromFile', or 'multisyn'
-    'source_dir': None, # Where to find the data for 'FromFile' and 'Rescaled' conns.
-    'scale_factor': 1.0, # Scaling of mask and kernel
-    'weight_gain': 1.0, # Scaling of synapse default weight
+    'type': 'topological',  # 'Topological', 'Rescaled' or 'FromFile', or 'multisyn'
+    'source_dir': None,  # Where to find the data for 'FromFile' and 'Rescaled' conns.
+    'scale_factor': 1.0,  # Scaling of mask and kernel
+    'weight_gain': 1.0,  # Scaling of synapse default weight
     'dump_connection': False,
     'plot_connection': False,
     'recorders': {},
-    'synapse_label': None, # (int or None). Only for *_lbl synapse models
-    'query_synapse_label': None, # Used in MultiSynapseConnection only
-    'make_symmetric_multisynapse': False, # Used in MultiSynapseConnection only
+    'synapse_label': None,  # (int or None). Only for *_lbl synapse models
+    'query_synapse_label': None,  # Used in MultiSynapseConnection only
+    'make_symmetric_multisynapse': False,  # Used in MultiSynapseConnection only
     'save': [],
 }
+
 
 class ConnectionModel(NestObject):
     """Represent a NEST connection model.
@@ -83,6 +84,7 @@ class ConnectionModel(NestObject):
     @property
     def source_dir(self):
         return self.params['source_dir']
+
 
 class BaseConnection(NestObject):
     """Base class for all population-to-population connections.
@@ -167,14 +169,18 @@ class BaseConnection(NestObject):
         # the ConnectionModel params and nest_params
         params = connection_dict.get('params', {})
         nest_params = connection_dict.get('nest_params', {})
-        assert all([key in NON_NEST_CONNECTION_PARAMS for key in
-                    params.keys()]), \
-               (f'Unrecognized parameter in connection: {connection_dict}.'
-                f'\nRecognized parameters: {NON_NEST_CONNECTION_PARAMS.keys()}')
-        assert not any([key in NON_NEST_CONNECTION_PARAMS for key in
-                        nest_params.keys()]), \
-               (f'Reserved nest parameter in connection: {connection_dict}'
-                f'\"Non-nest reserved parameters: {NON_NEST_CONNECTION_PARAMS.keys()}')
+        assert all(
+            [key in NON_NEST_CONNECTION_PARAMS for key in params.keys()]
+            ), (
+                f'Unrecognized parameter in connection: {connection_dict}.'
+                f'\nRecognized parameters: {NON_NEST_CONNECTION_PARAMS.keys()}'
+            )
+        assert not any(
+            [key in NON_NEST_CONNECTION_PARAMS for key in nest_params.keys()]
+            ), (
+                f'Reserved nest parameter in connection: {connection_dict}'
+                f'\"Non-nest reserved parameters: {NON_NEST_CONNECTION_PARAMS.keys()}'
+            )
         self.params = dict(ChainMap(params, model.params))
         self.nest_params = dict(ChainMap(nest_params, model.nest_params))
         super().__init__(model.name, self.params)
@@ -207,7 +213,7 @@ class BaseConnection(NestObject):
             for recorder_name, recorder_params
             in self.params['recorders'].items()
         ]
-        assert len(self.recorders) < 2 # Only a single recorder type so far...
+        assert len(self.recorders) < 2  # Only a single recorder type so far...
         self.check()
 
     # Properties:
@@ -452,8 +458,7 @@ class BaseConnection(NestObject):
                 params = self.format_dumped_line(line)
                 unitconn = UnitConn(params['synapse_model'], params)
                 driver_gid = unitconn.params[self.driver]
-                conns[driver_gid] = (conns.get(driver_gid, [])
-                                           + [unitconn])
+                conns[driver_gid] = (conns.get(driver_gid, []) + [unitconn])
         # Return a connection list (possibly empty) for each driver gid
         import warnings
         warnings.warn('Double check the synapse models vs nest_synapse_model')
@@ -519,11 +524,10 @@ class BaseConnection(NestObject):
             # TODO
             print('TODO: save connection ', field, ' in ', output_dir)
 
-
     def save_plot(self, output_dir):
         if self.plot_connection:
             import matplotlib.pyplot as plt
-            fig = self.plot_conn() #pylint: disable=unused-variable
+            fig = self.plot_conn()  # pylint: disable=unused-variable
             plt.savefig(join(save.output_subdir(output_dir, 'connections'),
                              self.__str__))
             plt.close()
@@ -533,7 +537,7 @@ class BaseConnection(NestObject):
         # TODO: Get our own version so we can plot convergent connections
         import nest.topology as tp
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots() # pylint:disable=invalid-name
+        fig, ax = plt.subplots()  # pylint:disable=invalid-name
         tp.PlotLayer(self.target.gid, fig)
         ctr = self.source.find_center_element(population=self.source_population)
         # Plot the kernel and mask if the connection is topological or rescaled.
@@ -556,8 +560,8 @@ class BaseConnection(NestObject):
                            src_size=250,
                            tgt_color='red')
         except ValueError:
-            print((f"Not plotting targets: the center unit {ctr[0]} has no "
-                    + f"target within connection {self.__str__}"))
+            print(f"Not plotting targets: the center unit {ctr[0]} has no "
+                  f"target within connection {self.__str__}")
         plt.suptitle(f"Plot of targets of a single source unit.\n"
                      f"Target units' pop: {self.target.name},"
                      f"{str(self.target_population)} (targets in red),\n"
@@ -568,8 +572,8 @@ class BaseConnection(NestObject):
                     "than it seems if there is multiple units per grid position"
                     " in the target population(s)")
         ax.annotate(footnote, xy=(1, 0), xycoords='axes fraction', fontsize=5,
-            xytext=(0, -15), textcoords='offset points',
-            ha='right', va='top')
+                    xytext=(0, -15), textcoords='offset points',
+                    ha='right', va='top')
         return fig
 
     def check(self):
@@ -581,8 +585,10 @@ class BaseConnection(NestObject):
         neuron (otherwise we can't record the input layer).
         """
         assert type(self.target).__name__ != 'InputLayer'
-        if (type(self.source).__name__ == 'InputLayer'
-            and self.source_population != self.source.PARROT_MODEL):
+        if (
+            type(self.source).__name__ == 'InputLayer'
+            and self.source_population != self.source.PARROT_MODEL
+        ):
             import warnings
             warn_str = (f'\n\nCareful! The Input population for connection:'
                         f'\n{self.__str__}\n is not a parrot '
@@ -714,20 +720,28 @@ class TopoConnection(BaseConnection):
 
         # Get connection-specific scaling factor, taking in account whether the
         # connection is convergent or divergent
-        if (self.nest_params['connection_type'] == 'convergent'
-                and self.source.params.get('scale_kernels_masks_to_extent', True)):
+        if (
+            self.nest_params['connection_type'] == 'convergent'
+            and self.source.params.get('scale_kernels_masks_to_extent', True)
+        ):
             # For convergent connections, the pooling layer is the source
             self._scale_factor = self.source.extent_units(self.scale_factor)
-        elif (self.nest_params['connection_type'] == 'divergent'
-                and self.target.params.get('scale_kernels_masks_to_extent', True)):
+        elif (
+            self.nest_params['connection_type'] == 'divergent'
+            and self.target.params.get('scale_kernels_masks_to_extent', True)
+        ):
             # For convergent connections, the pooling layer is the target
             self._scale_factor = self.target.extent_units(self.scale_factor)
 
         # Set kernel, mask, and weights, scaling if necessary
         if 'kernel' in self.nest_params:
-            self.nest_params['kernel'] = self.scale_kernel(self.nest_params['kernel'])
+            self.nest_params['kernel'] = self.scale_kernel(
+                self.nest_params['kernel']
+            )
         if 'mask' in self.nest_params:
-            self.nest_params['mask'] = self.scale_mask(self.nest_params['mask'])
+            self.nest_params['mask'] = self.scale_mask(
+                self.nest_params['mask']
+            )
 
     def scale_kernel(self, kernel):
         """Return a new kernel scaled by ``scale_factor``.
@@ -830,7 +844,7 @@ class RescaledConnection(TopoConnection):
     def redraw_conns(self):
         """Redraw pool gids according to topological parameters."""
         # TODO: Use simulation `parallel` parameter
-        PARALLEL = True # pylint: disable=invalid-name,
+        PARALLEL = True  # pylint: disable=invalid-name,
         drivers = self.driver_gids()
         # Draw the model's number of pooled gids for each driving unit
         if PARALLEL:
@@ -856,7 +870,7 @@ class RescaledConnection(TopoConnection):
                 # profile?
         return conns
 
-    def draw_pool_gids(self, driver_gid, N=1): # pylint:disable=invalid-name
+    def draw_pool_gids(self, driver_gid, N=1):  # pylint:disable=invalid-name
         return topology.draw_pool_gids(self, driver_gid, N=N)
 
 
@@ -868,7 +882,7 @@ class UnitConn(NestObject):
     def __init__(self, name, params):
         super().__init__(name, params)
         self._synapse_model = None
-        #TODO Check that we use the nest_synapse_model and not synapse_model
+        # TODO Check that we use the nest_synapse_model and not synapse_model
         self._nest_synapse_model = None
         self._weight = None
         self._delay = None

@@ -7,7 +7,6 @@ import time
 from pprint import pformat
 
 import numpy as np
-from tqdm import tqdm
 
 from . import save
 from .utils.load_stimulus import load_raw_stimulus
@@ -15,8 +14,6 @@ from .utils.misc import pretty_time
 
 # pylint:disable=missing-docstring
 
-# Simulation time if self.params['max_session_sim_time'] == float('inf')
-MAX_SIM_TIME_NO_INPUT = 10000.
 
 class Session:
     """Represents a sequence of stimuli."""
@@ -170,12 +167,16 @@ class Session:
         print(f'--> Apply session input_rate_scale_factor: {scale_factor}')
 
         # Expand from frame to timesteps
-        labels = expand_raw_stimulus(raw_labels,
-                                self.params.get('time_per_frame', 1.),
-                                self.simulation_time)
-        movie = expand_raw_stimulus(raw_movie,
-                               self.params.get('time_per_frame', 1.),
-                               self.simulation_time)
+        labels = expand_raw_stimulus(
+            raw_labels,
+            self.params.get('time_per_frame', 1.),
+            self.simulation_time
+        )
+        movie = expand_raw_stimulus(
+            raw_movie,
+            self.params.get('time_per_frame', 1.),
+            self.simulation_time
+        )
 
         return {'movie': movie,
                 'labels': labels,
@@ -192,7 +193,6 @@ def expand_raw_stimulus(list_or_array, nrepeats, target_length):
     extended_arr = np.repeat(list_or_array, nrepeats, axis=0)
     n_rep, remainder = divmod(target_length, len(extended_arr))
     return np.concatenate(
-        [extended_arr for i in range(n_rep)] \
-        + [extended_arr[:remainder]],
+        [extended_arr for i in range(n_rep)] + [extended_arr[:remainder]],
         axis=0
     )

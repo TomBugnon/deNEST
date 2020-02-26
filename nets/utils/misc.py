@@ -25,9 +25,11 @@ def drop_git_hash(output_dir):
     with open(path, 'wb') as f:
         f.write(git_hash)
 
+
 def delete_contents(filename):
     with open(filename, "wb"):
         pass
+
 
 def git_head_hash():
     process = subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False,

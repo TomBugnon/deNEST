@@ -67,7 +67,7 @@ def load_params(path, *overrides):
         *[Params(overrides_tree)
           for overrides_tree in overrides],
         *[Params.load(path_dir, relative_path)
-        for relative_path in load_yaml(path)]
+          for relative_path in load_yaml(path)]
     )
 
 
@@ -79,7 +79,7 @@ def run(path, *overrides, output_dir=None, input_path=None):
         *overrides (tree-like): Variable number of tree-like parameters that
             should override those from the path. Last in list is applied first.
     """
-    start_time = time.time() # Timing of simulation time
+    start_time = time.time()  # Timing of simulation time
     print(SEPARATOR)
 
     # Load parameters

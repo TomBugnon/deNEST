@@ -5,7 +5,6 @@
 """Provides the ``Simulation`` class."""
 
 import os
-from shutil import rmtree
 
 from .constants import (DEFAULT_INPUT_PATH, DEFAULT_OUTPUT_DIR, NEST_SEED,
                         PYTHON_SEED)
@@ -93,8 +92,9 @@ class Simulation:
         """Save simulation metadata before running the simulation."""
         # Initialize output dir (create and clear)
         print(f'Creating output_dir: {self.output_dir}')
-        clear_output_dir = self.params.c['simulation'].get('clear_output_dir',
-                                        False)
+        clear_output_dir = self.params.c['simulation'].get(
+            'clear_output_dir', False
+        )
         # Delete the `session` subdirs
         delete_subdirs_list = [session.name for session in self.sessions]
         make_output_dir(self.output_dir, clear_output_dir,
@@ -212,8 +212,10 @@ class Simulation:
             if 'loaded already' in str(exception):
                 print(f'\nModule {module_name} is already loaded.')
                 return
-            if ('could not be opened' in str(exception)
-                and 'file not found' in str(exception)):
+            if (
+                'could not be opened' in str(exception)
+                and 'file not found' in str(exception)
+            ):
                 print(f'\nModule {module_name} could not be loaded. Did you'
                       f' compile and install the extension module?')
                 raise exception

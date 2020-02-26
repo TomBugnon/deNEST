@@ -16,13 +16,14 @@ from .utils import flatten, if_created, if_not_created
 
 # pylint:disable=missing-docstring
 
+
 class AbstractLayer(NestObject):
     """Abstract base class for a layer.
 
     Defines the layer interface.
     """
 
-    #pylint:disable=too-many-instance-attributes
+    # pylint:disable=too-many-instance-attributes
 
     def __init__(self, name, params):
         super().__init__(name, params)
@@ -153,7 +154,8 @@ class AbstractLayer(NestObject):
         self._prob_changed = True
 
     @staticmethod
-    def apply_unit_changes(gids_to_change, changes_dict, change_type='constant'):
+    def apply_unit_changes(gids_to_change, changes_dict,
+                           change_type='constant'):
         """Change the state of a list of units."""
         assert change_type in ['constant', 'multiplicative']
         import nest
@@ -167,7 +169,7 @@ class AbstractLayer(NestObject):
                 current_value = nest.GetStatus((gid,), change_key)[0]
                 nest.SetStatus(
                     (gid,),
-                    { change_key: current_value * change_ratio }
+                    {change_key: current_value * change_ratio}
                 )
         else:
             raise NotImplementedError

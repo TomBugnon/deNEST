@@ -9,7 +9,7 @@ import random
 import scipy.spatial
 
 
-def draw_pool_gids(conn, driver_gid, N=1): # pylint:disable=invalid-name
+def draw_pool_gids(conn, driver_gid, N=1):  # pylint:disable=invalid-name
     """Draw n pool gids for a driver gid, taking in account topological params.
 
     Algorithm:

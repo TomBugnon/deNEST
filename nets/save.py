@@ -10,7 +10,7 @@
 import os
 import pickle
 import shutil
-from os.path import exists, isdir, join, dirname
+from os.path import dirname, exists, isdir, join
 
 import numpy as np
 import pandas as pd
@@ -18,23 +18,24 @@ import scipy.sparse
 import yaml
 
 # Use LIL as the default sparse format
-sparse_format = scipy.sparse.lil_matrix # pylint:disable=invalid-name
+sparse_format = scipy.sparse.lil_matrix  # pylint:disable=invalid-name
 
 # Modify along with FILENAME_FUNCS dict (see end of file)
-OUTPUT_SUBDIRS = {'params': (),
-                  'git_hash': (),
-                  'raw_data': ('data',), # Raw recorder data (NEST output)
-                  'recorders_metadata': ('data',), # Metadata for recorders (contains filenames and gid/location mappings)
-                  'connection_recorders_metadata': ('data',),
-                  'session_movie': ('sessions',),
-                  'session_labels': ('sessions',),
-                  'session_metadata': ('sessions',),
-                  'session_times': ('sessions',),
-                  'connections': ('connection_plots',), # NEST connection plots
-                  'dump': ('network_dump',), # Network dump
-                  'rasters': ('rasters',),
-                  'plots': ('plots',),
-                  'measures': ('measures',),
+OUTPUT_SUBDIRS = {
+    'params': (),
+    'git_hash': (),
+    'raw_data': ('data',),  # Raw recorder data (NEST output)
+    'recorders_metadata': ('data',),  # Metadata for recorders (contains filenames and gid/location mappings)
+    'connection_recorders_metadata': ('data',),
+    'session_movie': ('sessions',),
+    'session_labels': ('sessions',),
+    'session_metadata': ('sessions',),
+    'session_times': ('sessions',),
+    'connections': ('connection_plots',),  # NEST connection plots
+    'dump': ('network_dump',),  # Network dump
+    'rasters': ('rasters',),
+    'plots': ('plots',),
+    'measures': ('measures',),
 }
 
 # Subdirectories that are cleared if the simulation parameter 'clear_output_dir'
@@ -66,16 +67,16 @@ def load_yaml(*args):
 
     Return empty list if the file doesn't exist.
     """
-    path = join(*args) # pylint:disable=no-value-for-parameter
+    path = join(*args)  # pylint:disable=no-value-for-parameter
     if exists(path):
-        with open(join(*args), 'rt') as f: # pylint:disable=no-value-for-parameter
+        with open(join(*args), 'rt') as f:  # pylint:disable=no-value-for-parameter
             return yaml.load(f)
     else:
         return []
 
 
 def load(metadata_path, assign_locations=False, usecols=None, filter_ratio=None,
-    filter_type=None):
+         filter_type=None):
     """Load tabular data from metadata file and return a pandas df.
 
     The data files are assumed to be in the same directory as the metadata.
@@ -89,9 +90,9 @@ def load(metadata_path, assign_locations=False, usecols=None, filter_ratio=None,
             where z is the unit index at a given grid location
         assign_locations (bool): If True, add x y and z values indicating gid
             grid position and unit index amongst each population
-        usecols (tuple[str] or None): Columns of the data that are loaded. By default,
-            all columns are loaded. Can be useful for multimeters if we are only
-            interested in one amongst many variables.
+        usecols (tuple[str] or None): Columns of the data that are loaded. By
+            default, all columns are loaded. Can be useful for multimeters if we
+            are only interested in one amongst many variables.
         filter_ratio (dict): Dictionary of the form:
                 `{<column>: <ratio_of_loaded_values>}`
             used to filter loaded data. For all filtered fields, the unique
@@ -224,9 +225,9 @@ def filter_df(df, filter_values):
 def assign_gid_locations(df, locations):
     """Assign x and y columns (loc in grid), and z (index at grid location)."""
     return df.assign(
-        x = df.gid.map(lambda gid: locations[gid][0]),
-        y = df.gid.map(lambda gid: locations[gid][1]),
-        z = df.gid.map(lambda gid: locations[gid][2])
+        x=df.gid.map(lambda gid: locations[gid][0]),
+        y=df.gid.map(lambda gid: locations[gid][1]),
+        z=df.gid.map(lambda gid: locations[gid][2])
     )
 
 
@@ -244,7 +245,7 @@ def load_metadata_filenames(output_dir, recorder_type):
     return sorted([
         f for f in os.listdir(metadata_dir)
         if recorder_type in os.path.splitext(f)[0]
-        and not os.path.splitext(f)[1] # "metadata" files are the ones without .ext
+        and not os.path.splitext(f)[1]  # "metadata" files are the ones without .ext
     ])
 
 
@@ -280,6 +281,7 @@ def load_session_stim(output_dir, session_name, filt=0):
     if filt is None:
         return movie
     return movie[:, filt]
+
 
 def load_weight_recorder(output_dir, conn_name, start_trim=None):
     path = output_path(output_dir,
@@ -341,6 +343,7 @@ def save_sparse(path, array):
     except OSError as e:
         msg = (f"Could not save data at {f}! \n"
                f"... Ignoring the following error: {str(e)}`")
+        import warnings
         warnings.warn(msg)
 
 
@@ -393,6 +396,7 @@ def save_dict(path, dictionary):
     except OSError as e:
         msg = (f"Could not save data at {f}! \n"
                f"... Ignoring the following error: {str(e)}`")
+        import warnings
         warnings.warn(msg)
 
 
@@ -536,14 +540,15 @@ def git_hash_filename():
     return 'git_hash'
 
 
-FILENAME_FUNCS = {'params': params_filename,
-                  'recorders_metadata': recorder_metadata_filename,
-                  'connection_recorders': recorder_metadata_filename,
-                  'connection_recorders_metadata': recorder_metadata_filename,
-                  'session_times': session_times_filename,
-                  'session_metadata': metadata_filename,
-                  'session_labels': labels_filename,
-                  'session_movie': movie_filename,
-                  'rasters': rasters_filename,
-                  'git_hash': git_hash_filename,
+FILENAME_FUNCS = {
+    'params': params_filename,
+    'recorders_metadata': recorder_metadata_filename,
+    'connection_recorders': recorder_metadata_filename,
+    'connection_recorders_metadata': recorder_metadata_filename,
+    'session_times': session_times_filename,
+    'session_metadata': metadata_filename,
+    'session_labels': labels_filename,
+    'session_movie': movie_filename,
+    'rasters': rasters_filename,
+    'git_hash': git_hash_filename,
 }

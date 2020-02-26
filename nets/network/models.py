@@ -11,6 +11,7 @@ from .utils import if_not_created
 EXC_SUBSTRINGS = ['AMPA', 'NMDA', 'exc']
 INH_SUBSTRINGS = ['GABA', 'inh']
 
+
 class Model(NestObject):
     """Represent a model in NEST."""
 
@@ -82,7 +83,7 @@ class SynapseModel(Model):
                for substring in EXC_SUBSTRINGS):
             syn_type = 1.0
         elif any(substring.lower() in test_string.lower()
-               for substring in INH_SUBSTRINGS):
+                 for substring in INH_SUBSTRINGS):
             syn_type = -1.0
 
         # Tell USER about it
