@@ -116,9 +116,6 @@ class Simulation:
             # Save session times
             save_as_yaml(output_path(self.output_dir, 'session_times'),
                          self.session_times)
-            # Save network
-            self.network.save_data(self.output_dir,
-                                   self.params.c['simulation'])
 
     def init_kernel(self):
         """Initialize NEST kernel."""

@@ -8,9 +8,6 @@
 
 from copy import deepcopy
 
-import matplotlib.pyplot as plt
-import pylab
-
 from .. import save
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
@@ -232,24 +229,6 @@ class PopulationRecorder(BaseRecorder):
     def __str__(self):
         return self.type + '_' + self._layer_name + '_' + self._population_name
 
-    def save_raster(self, output_dir, session_name=None):
-        if self.type == 'spike_detector':
-            raster, error_msg = self.get_nest_raster()
-            if raster is not None:
-                pylab.title(self._layer_name + '_' + self._population_name)
-                f = raster[0].figure
-                f.set_size_inches(15, 9)
-                f.savefig(save.output_path(output_dir, 'rasters',
-                                           self._layer_name,
-                                           self._population_name,
-                                           session_name=session_name),
-                          dpi=100)
-                plt.close()
-            else:
-                print(f'Not saving raster for population:'
-                      f' {str(self._population_name)}:')
-                print(f'-> {error_msg}\n')
-
     def get_population_recorder_metadata_dict(self):
         metadata_dict = self.get_base_metadata_dict()
         metadata_dict.update({
@@ -285,27 +264,6 @@ class PopulationRecorder(BaseRecorder):
             return ['gid', 'time']
         else:
             raise Exception
-
-    def get_nest_raster(self):
-        """Return the nest_raster plot and possibly error message."""
-        import nest
-        from nest import raster_plot
-        assert self.type == 'spike_detector'
-        raster, error_msg = None, None
-        if 'memory' not in self._record_to:
-            error_msg = 'Data was not saved to memory.'
-        elif not len(nest.GetStatus(self.gid)[0]['events']['senders']):  # pylint: disable=len-as-condition
-            error_msg = 'No events were recorded.'
-        elif len(nest.GetStatus(self.gid)[0]['events']['senders']) == 1:
-            error_msg = 'There was only one sender'
-        else:
-            try:
-                raster = raster_plot.from_device(self.gid, hist=True)
-            except Exception as exception:  # pylint: disable=broad-except
-                error_msg = (f'Uncaught exception when generating raster.\n'
-                             f'--> Exception message: {exception}\n'
-                             f'--> Recorder status: {nest.GetStatus(self.gid)}')
-        return raster, error_msg
 
 
 class ConnectionRecorder(BaseRecorder):

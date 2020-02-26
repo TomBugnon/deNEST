@@ -331,25 +331,6 @@ class Network:
         # Save recorder metadata
         self.recorder_call('save_metadata', output_dir)
 
-    def save_data(self, output_dir, sim_params):
-        """Save network's activity.
-
-        1- Possibly creates raster plots (must be in series)
-        2- Possibly save synapse states
-        """
-
-        # Possibly save population rasters
-        with_rasters = sim_params.get('with_rasters', True)
-        if with_rasters:
-            for recorder in tqdm(self.get_recorders(recorder_class="population"),
-                                 desc='Saving recorder raster plots'):
-                recorder.save_raster(output_dir)
-
-        # Save synapse states
-        for conn in tqdm(self.connections,
-                         desc='Saving synapse data'):
-            conn.save_synapse_state(output_dir)
-
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections, desc='Creating connection plots'):
             conn.save_plot(output_dir)
