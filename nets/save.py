@@ -10,7 +10,7 @@
 import os
 import pickle
 import shutil
-from os.path import abspath, exists, isdir, isfile, join, dirname
+from os.path import exists, isdir, join, dirname
 
 import numpy as np
 import pandas as pd
@@ -41,9 +41,11 @@ OUTPUT_SUBDIRS = {'params': (),
 # is set to true.
 CLEAR_SUBDIRS = [subdir for subdir in OUTPUT_SUBDIRS.values()]
 
+
 ################################
 #### Utility functions for data loading
 ################################
+
 
 def load_dict(path):
     """Load a big dic with pickle."""
@@ -361,14 +363,18 @@ def load_sparse(path):
     data = data.toarray()
     # Reshape
     return data.reshape(shape)
+
+
 ################################
 #### Utility functions for data saving
 ################################
+
 
 def save_as_yaml(path, tree):
     """Save <tree> as yaml file at <path>."""
     with open(path, 'w') as f:
         yaml.dump(tree, f, default_flow_style=False)
+
 
 def save_array(path, array):
     """Save array either as dense or sparse depending on data type."""
@@ -376,6 +382,7 @@ def save_array(path, array):
         save_sparse(path, array)
     except TypeError:
         np.save(path, array)
+
 
 # TODO: fix pickle.dump failure for large files
 def save_dict(path, dictionary):
@@ -523,6 +530,7 @@ def params_filename():
 
 def rasters_filename(layer, pop):
     return 'spikes_raster_' + layer + '_' + pop + '.png'
+
 
 def git_hash_filename():
     return 'git_hash'
