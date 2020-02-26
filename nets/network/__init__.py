@@ -6,7 +6,6 @@
 import os
 import itertools
 
-from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from .connections import (ConnectionModel, FromFileConnection,

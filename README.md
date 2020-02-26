@@ -311,8 +311,6 @@ defined in the final parameter tree.
           update the `CLEAR_SUBDIRS` variable accordingly.
     - `save_simulation` (bool): If true, `Simulation.save()` is called in
       `__init__.run()` (default `True`)
-    - `save_nest_raster` (bool): If true, NEST raster plots are generated during
-      a `Simulation.save()` (default `True`) (TODO: Change df to False)
     - `dump_connections` (bool): If true, the unit-to-unit synapses are dumped
       during a `__init__.run()` call. Modify the `dump_connection`
       connection_model parameter to dump only a subset of the connections.
@@ -523,7 +521,6 @@ defined in the final parameter tree.
     model. All parameters of a leaf are passed to ``nest.CopyModel()`` or
     ``nest.SetDefaults()``except the following:
     - `nest_model` (str): Base NEST model for the recorder model.
-    - TODO: document 'formatting_interval' or delete param
   - `populations` (subtree): Defines the populations (= models within a specific
     layer). Used to define which population is recorded by what type of
     recorder. Leaves are individual populations. The name of populations-leaves

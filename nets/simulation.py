@@ -70,7 +70,7 @@ class Simulation:
 
     def run(self):
         """Run each of the sessions in order."""
-        # Get list of recorders and formatting parameters
+        # Get list of recorders
         for session in self.sessions:
             print(f'Running session: `{session.name}`...\n')
             session.run(self.network)
