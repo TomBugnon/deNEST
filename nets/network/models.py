@@ -7,9 +7,14 @@
 from .nest_object import NestObject
 from .utils import if_not_created
 
+# Substrings used to guess the type (exc/inh) of synapses
+EXC_SUBSTRINGS = ['AMPA', 'NMDA', 'exc']
+INH_SUBSTRINGS = ['GABA', 'inh']
 
 class Model(NestObject):
     """Represent a model in NEST."""
+
+    # pylint:disable=too-few-public-methods
 
     def __init__(self, name, params):
         super().__init__(name, params)
@@ -66,8 +71,6 @@ class SynapseModel(Model):
 
         Return +1(/-1) for excitatory (/inhibitory) synapse.
         """
-        EXC_SUBSTRINGS = ['AMPA', 'NMDA', 'exc']
-        INH_SUBSTRINGS = ['GABA', 'inh']
 
         syn_type = None
         # Try to match either the receptor type or the model name

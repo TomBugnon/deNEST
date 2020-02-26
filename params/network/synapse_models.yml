@@ -10,6 +10,7 @@ network:
       AMPA_syn:
         params:
           receptor_type: AMPA
+          weight: 0.5 # All connections weight scale this default value
       NMDA_syn:
         params:
           receptor_type: NMDA
@@ -21,8 +22,12 @@ network:
           receptor_type: GABA_B
     static_synapse:
       params:
-        nest_model: static_synapse
-      input_synapse:
+        nest_model: static_synapse_lbl
+      input_synapse_AMPA:
         params:
           target_neuron: ht_neuron
           receptor_type: AMPA
+      input_synapse_NMDA:
+        params:
+          target_neuron: ht_neuron
+          receptor_type: NMDA

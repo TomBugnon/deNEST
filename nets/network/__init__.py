@@ -4,12 +4,14 @@
 """Provide a class to construct a network from independent parameters."""
 
 import os
+import itertools
 
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from .connections import (ConnectionModel, FromFileConnection,
-                          RescaledConnection, TopoConnection)
+                          MultiSynapseConnection, RescaledConnection,
+                          TopoConnection)
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
 from .populations import Population
@@ -25,16 +27,18 @@ LAYER_TYPES = {
 CONNECTION_TYPES = {
     'topological': TopoConnection,
     'rescaled': RescaledConnection,
-    'from_file': FromFileConnection
+    'from_file': FromFileConnection,
+    'multisynapse': MultiSynapseConnection,
 }
 
 
-def worker(recorder, output_dir):
-    recorder.save(output_dir)
-
-
 class Network:
+    """Represent a full network."""
+
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, params):
+        """Initialize the network object without creating it in NEST."""
         self._created = False
         self._changed = False
         self.params = params
@@ -54,10 +58,14 @@ class Network:
         self.connection_models = self.build_named_leaves_dict(
             ConnectionModel, self.params.c['connection_models'])
         # Connections must be built last
-        self.connections = sorted([
-            self.build_connection(connection)
-            for connection in self.params.c['topology']['connections']
-        ])
+        conn_nested_list = [
+            self.build_connection(connection_item)
+            for connection_item in self.params.c['topology']['connections']
+        ]
+        self.connections = self.sort_connections([
+            conn for sublist in conn_nested_list for conn in sublist
+        ]) # .flatten() and sort to put "MultiSynapseConnection" connections at
+            # the end
         # Populations are represented as a list
         self.populations = sorted(
             self.build_named_leaves_list(self.build_population,
@@ -71,15 +79,29 @@ class Network:
         }
 
     @staticmethod
+    def sort_connections(connection_list):
+        """Sort connections making sure that the `multisynapse` are last."""
+        return (sorted([conn for conn in connection_list
+                        if not conn.params['type'] == 'multisynapse'])
+                + sorted([conn for conn in connection_list
+                        if conn.params['type'] == 'multisynapse']))
+
+    @staticmethod
     def build_named_leaves_list(constructor, node):
         return [constructor(name, leaf) for name, leaf in node.named_leaves()]
 
     def build_connection(self, connection_dict):
-        source = self.layers[connection_dict['source_layer']]
-        target = self.layers[connection_dict['target_layer']]
+        """Return list of connections for source x target layer combinations."""
+        source_layers = [self.layers[layer]
+                         for layer in connection_dict['source_layers']]
+        target_layers = [self.layers[layer]
+                         for layer in connection_dict['target_layers']]
         model = self.connection_models[connection_dict['connection']]
-        return CONNECTION_TYPES[model.type](source, target, model,
-                                            connection_dict)
+        return [
+            CONNECTION_TYPES[model.type](source, target, model, connection_dict)
+            for source, target
+            in itertools.product(source_layers, target_layers)
+        ]
 
     def build_population(self, pop_name, pop_params):
         # Get the gids and locations for the population from the layer object.
@@ -93,7 +115,8 @@ class Network:
     def __str__(self):
         return repr(self)
 
-    def _create_all(self, objects):
+    @staticmethod
+    def _create_all(objects):
         for obj in tqdm(objects):
             obj.create()
 
@@ -117,13 +140,32 @@ class Network:
             if type(l).__name__ == layer_type
         ]
 
-    def _get_recorders(self, recorder_type=None):
-        for population in self.populations:
-            yield from population.get_recorders(recorder_type=recorder_type)
+    def recorder_call(self, method_name, *args, recorder_class=None,
+                       recorder_type=None, **kwargs):
+        """Call a method on population and/or connection recorders.
 
-    def _get_connection_recorders(self, recorder_type=None):
-        for connection in self.connections:
-            yield from connection.get_recorders(recorder_type=recorder_type)
+        Args:
+            method_name (str): Name of method of Recorder objects.
+            recorder_class (str or None): Class of recorders: "population",
+                "connection" or None. Passed to self.get_recorders()
+            recorder_type (str or None): Passed to self.get_recorders()
+        """
+        for recorder in self.get_recorders(
+            recorder_class=recorder_class,
+            recorder_type=recorder_type):
+            method = getattr(recorder, method_name)
+            method(*args, **kwargs)
+
+    def get_recorders(self, recorder_class=None, recorder_type=None):
+        """Generator to get each pop and/or conn recorder of a certain type."""
+        assert recorder_class in ["population", "connection", None], \
+            "Unrecognized recorder class"
+        if recorder_class == 'population' or recorder_class is None:
+            for population in self.populations:
+                yield from population.get_recorders(recorder_type=recorder_type)
+        if recorder_class == 'connection' or recorder_class is None:
+            for connection in self.connections:
+                yield from connection.get_recorders(recorder_type=recorder_type)
 
     def _get_synapses(self, synapse_type=None):
         if synapse_type is None:
@@ -132,6 +174,10 @@ class Network:
             syn for syn in sorted(self.synapse_models.values())
             if syn.type == synapse_type
         ]
+
+    @property
+    def any_inputlayer(self):
+        return bool(self._get_layers(layer_type='InputLayer'))
 
     @property
     def input_shapes(self):
@@ -144,7 +190,7 @@ class Network:
                 max([s[1] for s in self.input_shapes]))
 
     @if_not_created
-    def create(self, dry_run=False):
+    def create(self):
         # TODO: use progress bar from PyPhi?
         log.info('Creating neuron models...')
         self._create_all(self.neuron_models.values())
@@ -157,17 +203,15 @@ class Network:
         log.info('Connecting layers...')
         self._create_all(self.connections)
         self.print_network_size()
-        if not dry_run:
-            log.info('Creating recorders...')
-            self._create_all(self.populations)
-        else:
-            print('Dry run: -> not creating recorders.')
+        log.info('Creating recorders...')
+        self._create_all(self.populations)
 
     def dump_connections(self, output_dir):
         for connection in tqdm(self.connections, desc='Dumping connections'):
             connection.dump(output_dir)
 
-    def change_synapse_states(self, synapse_changes):
+    @staticmethod
+    def change_synapse_states(synapse_changes):
         """Change parameters for some connections of a population.
 
         Args:
@@ -184,9 +228,13 @@ class Network:
         for changes in tqdm(
                 sorted(synapse_changes, key=synapse_sorting_map),
                 desc="-> Changing synapses's state."):
-            nest.SetStatus(
-                nest.GetConnections(synapse_model=changes['synapse_model']),
-                changes['params'])
+            target_conns = nest.GetConnections(
+                synapse_model=changes['synapse_model']
+            )
+            change_params = changes['params']
+            print(f"Change status for N={len(target_conns)} conns of type "
+                  f"{changes['synapse_model']}. Apply dict: {change_params}")
+            nest.SetStatus(target_conns, change_params)
 
     def change_unit_states(self, unit_changes):
         """Change parameters for some units of a population.
@@ -194,58 +242,84 @@ class Network:
         Args:
             unit_changes (list): List of dictionaries each of the form::
                     {
-                        'layer': <layer_name>,
+                        'layers': <layer_name_list>,
                         'layer_type': <layer_type>,
                         'population': <pop_name>,
                         'change_type': <change_type>,
                         'proportion': <prop>,
+                        'filter': <filter>,
                         'params': {<param_name>: <param_value>,
                                    ...}
                     }
                 where:
-                ``<layer_name>`` (default None) is the name of the considered
-                    layer. If not specified, changes are applied to all the
-                    layers of type <layer_type>.
+                ``<layer_name_list>`` (default None) is the list of name of the
+                    considered layers. If not specified or empty, changes are
+                    applied to all the layers of type <layer_type>.
                 ``<layer_type>`` (default None) is the name of the type of
                     layers to which the changes are applied. Should be 'Layer'
                     or 'InputLayer'. Used only if <layer_name> is None.
                 ``<population_name>`` (default None) is the name of the
-                    considered population. If not specified, changes are applied
-                    to all the populations.
-                ``<change_type>`` ('multiplicative' or None). If
+                    considered population in each layer. If not specified,
+                    changes are applied to all the populations.
+                ``<change_type>`` ('constant' or 'multiplicative'). If
                     'multiplicative', the set value for each parameter is the
                     product between the preexisting value and the given value.
-                    Otherwise, the given value is set without regard for the
-                    preexisting value.
+                    If 'constant', the given value is set without regard for the
+                    preexisting value. (default: 'constant')
                 ``<prop>`` (default 1) is the proportion of units of the
-                    considered population for which the parameters are changed.
+                    considered population on which the filter is applied. The
+                    changes are applied on the units that are randomly selected
+                    and passed the filter.
+                ``filter`` (default {}) is a dictionary defining the filter
+                    applied onto the proportion of randomly selected units of
+                    the population. The filter defines an interval for any unit
+                    parameter. A unit is selected if all its parameters are
+                    within their respectively defined interval. The parameter
+                    changes are applied only on the selected units.
+                    The ``filter`` dictionary is of the form:
+                        {
+                            <unit_param_name_1>:
+                                'min': <float_min>
+                                'max': <float_max>
+                            <unit_param_name_2>:
+                                ...
+                        }
+                    Where <float_min> and <float_max> define the (inclusive)
+                    min and max of the filtering interval for the considered
+                    parameter (default resp. -inf and +inf)
                 ``'params'`` (default {}) is the dictionary of parameter changes
                     applied to the selected units.
         """
-        for changes in tqdm(
-                sorted(unit_changes, key=unit_sorting_map),
-                desc="-> Changing units' state"):
+        for changes in sorted(unit_changes, key=unit_sorting_map):
             # Pass if no parameter dictionary.
             if not changes['params']:
                 continue
 
-            # Verbose
-            print('--> Applying unit changes dictionary: ', changes)
-
             # Iterate on all layers of a given subtype or on a specific layer
-            change_layer = changes.get('layer', None)
-            if change_layer is None:
+            change_layers = changes.get('layers', [])
+            if not change_layers:
                 layers = self._get_layers(
                     layer_type=changes.get('layer_type', None))
             else:
-                layers = [self.layers[change_layer]]
+                layers = [self.layers[layer_name]
+                          for layer_name in change_layers]
 
-            for layer in layers:
-                layer.change_unit_states(changes['params'],
-                                         changes.get('population', None),
-                                         changes.get('proportion', 1.))
+            # Verbose
+            print(f'\n--> Applying unit changes dictionary: {changes} ... to'
+                  f' layers: {change_layers}')
 
-    def reset(self):
+            for layer in tqdm(layers, desc="---> Apply change dict on layers"):
+                layer.change_unit_states(
+                    changes['params'],
+                    population=changes.get('population', None),
+                    proportion=changes.get('proportion', 1.),
+                    filter_dict=changes.get('filter', {}),
+                    change_type= changes.get('change_type', 'constant')
+                )
+            print(f'\n')
+
+    @staticmethod
+    def reset():
         import nest
         nest.ResetNetwork()
 
@@ -253,41 +327,41 @@ class Network:
         self._layer_call('set_input', stimulus, start_time,
                          layer_type='InputLayer')
 
-    def save(self, output_dir, with_rasters=True, parallel=True, n_jobs=-1):
-            # Save population rasters
+    def save_metadata(self, output_dir):
+        """Save network metadata."""
+        # Save recorder metadata
+        self.recorder_call('save_metadata', output_dir)
+
+    def save_data(self, output_dir, sim_params):
+        """Save network's activity.
+
+        1- Possibly formats recorders (possibly in parallel)
+        2- Possibly creates raster plots (must be in series)
+        3- Save synapse states
+        """
+        # Possibly format the recorders
+        format_recorders =  sim_params.get('format_recorders', False)
+        if format_recorders:
+            # Make kwargs dict containing simulation parameters
+            sim_kwargs = {
+                'parallel': sim_params.get('parallel', True),
+                'n_jobs': sim_params.get('n_jobs', -1),
+            }
+            all_recorders = self.get_recorders(recorder_class=None)
+            format_all_recorders(
+                all_recorders, output_dir, sim_kwargs)
+
+        # Possibly save population rasters
+        with_rasters = sim_params.get('with_rasters', True)
         if with_rasters:
-            for recorder in tqdm(self._get_recorders(),
+            for recorder in tqdm(self.get_recorders(recorder_class="population"),
                                  desc='Saving recorder raster plots'):
                 recorder.save_raster(output_dir)
-        # Format and save recorders using joblib
-        args_list = [(recorder, output_dir)
-                     for recorder in self._get_recorders()]
-        if parallel:
-            print(f'Formatting {len(args_list)} recorders using joblib')
-            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
-                delayed(worker)(*args) for args in args_list
-            )
-        else:
-            for args in tqdm(args_list,
-                             desc=(f'Formatting {len(args_list)} recorders '
-                                   f'without joblib')):
-                worker(*args)
+
         # Save synapse states
         for conn in tqdm(self.connections,
                          desc='Saving synapse data'):
             conn.save_synapse_state(output_dir)
-        # Save synapse recorders using joblib
-        args_list = [(connrecorder, output_dir)
-                     for connrecorder in self._get_connection_recorders()]
-        if parallel:
-            Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
-                delayed(worker)(*args) for args in args_list
-            )
-        else:
-            for args in tqdm(args_list,
-                             desc=(f'Formatting {len(args_list)} connection '
-                                   f'recorders without joblib')):
-                worker(*args)
 
     def plot_connections(self, output_dir):
         for conn in tqdm(self.connections, desc='Creating connection plots'):
@@ -309,7 +383,7 @@ class Network:
         for layer in self._get_layers(layer_type=layer_type):
             all_pops.update({
                 gid: (layer.name, population)
-                for gid, population in layer._populations.items()
+                for gid, population in layer.populations.items()
             })
         return all_pops
 
@@ -362,7 +436,7 @@ class Network:
             if synapse_name in self.synapse_models:
                 syn_type = self.synapse_models[synapse_name].type
             if syn_type is None:
-                break
+                continue
             elif syn_type > 0:
                 increase_autodict_count(connection_summary, (layer, pop, 'exc'))
             elif syn_type < 0:
@@ -383,7 +457,7 @@ class Network:
 
 def unit_sorting_map(unit_change):
     """Map by (layer, population, proportion, params_items for sorting."""
-    return (unit_change.get('layer', 'None'),
+    return (unit_change.get('layers', 'None'),
             unit_change.get('layer_type', 'None'),
             unit_change.get('population', 'None'),
             unit_change.get('proportion', '1'),
@@ -394,3 +468,37 @@ def synapse_sorting_map(synapse_change):
     """Map by (synapse_model, params_items) for sorting."""
     return (synapse_change['synapse_model'],
             sorted(synapse_change['params'].items()))
+
+
+# For recorder formatting in parallel
+def worker(recorder, output_dir, **kwargs):
+    recorder.save_formatted(output_dir, **kwargs)
+
+
+# TODO: Format only if the session has been recorded and figure out a way to
+# load the data properly
+def format_all_recorders(all_recorders, output_dir, sim_kwargs):
+    # Get simulation pparameters for formatting
+    parallel = sim_kwargs['parallel']
+    n_jobs = sim_kwargs['n_jobs']
+
+    # Format all recorders (population and connection), possibly using joblib
+    args_list = [(recorder, output_dir)
+                 for recorder in all_recorders]
+
+    # Verbose
+    msg = (f"Formatting {len(args_list)} population/connection recorders "
+           f"{'using' if parallel else 'without'} joblib: \n"
+           f"...")
+    print(msg)
+
+    if parallel:
+        Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
+            delayed(worker)(*args) for args in args_list
+        )
+    else:
+        for args in tqdm(args_list,
+                         desc=''):
+            worker(*args)
+
+    print('...Done formatting recorders\n')

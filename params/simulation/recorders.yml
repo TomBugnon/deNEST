@@ -7,7 +7,7 @@ network:
     multimeter:
       params:
         nest_model: multimeter
-        interval: 1.0
+        interval: 1.0 # formatting_interval = interval by default
         record_from: ['V_m']
     spike_detector:
       params:

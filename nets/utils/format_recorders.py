@@ -19,7 +19,10 @@ def format_recorder(gid,
                     shape=None,
                     locations=None,
                     all_variables=None,
-                    formatted_unit_indices=None):
+                    formatted_unit_indices=None,
+                    formatting_interval=None,
+                    start_time=None,
+                    end_time=None):
     """Return the formatted activity of the recorder for all vars and units.
 
     Return:
@@ -28,8 +31,11 @@ def format_recorder(gid,
                        `formatted_activity_unit_index_1`, ...],
              `var_2`: ...
             }
-            where the formatted arrays have the dimensions `shape`.
+            where the formatted arrays have the dimensions `shape` and have
+            slices corresponding to `formatting_interval` time intervals.
     """
+
+    # pylint:disable=too-many-arguments
 
     if recorder_type == 'multimeter':
 
@@ -43,7 +49,10 @@ def format_recorder(gid,
             locations,
             shape=shape,
             all_variables=all_variables,
-            formatted_unit_indices=formatted_unit_indices)
+            formatted_unit_indices=formatted_unit_indices,
+            formatting_interval=formatting_interval,
+            start_time=start_time,
+            end_time=end_time)
 
     if recorder_type == 'spike_detector':
         time, sender_gid = gather_raw_data(gid, recorder_type='spike_detector')
@@ -52,7 +61,10 @@ def format_recorder(gid,
             time,
             locations,
             shape=shape,
-            formatted_unit_indices=formatted_unit_indices)
+            formatted_unit_indices=formatted_unit_indices,
+            formatting_interval=formatting_interval,
+            start_time=start_time,
+            end_time=end_time)
 
     return all_recorder_activity
 
@@ -63,18 +75,32 @@ def format_mm_data(sender_gid,
                    location_by_gid,
                    shape=None,
                    all_variables=("V_m", ),
-                   formatted_unit_indices=(0, )):
+                   formatted_unit_indices=(0, ),
+                   formatting_interval=None,
+                   start_time=None,
+                   end_time=None):
     """Return dict containiing all formatted (t, row, col)-np.arrays."""
+    # pylint:disable=too-many-arguments, too-many-locals
+
+    if start_time is None:
+        start_time = 0
+    if end_time is None:
+        end_time = float('inf')
+
     all_recorder_activity = {
         var: [np.zeros(shape) for i in formatted_unit_indices]
         for var in all_variables
     }
     for (i, t) in enumerate(time):
+        if not start_time < t <= end_time:
+            continue
         row, col, index = location_by_gid[int(sender_gid[i])]
         if index in formatted_unit_indices:
             for var in all_variables:
-                all_recorder_activity[var][index][int(t) - 1, row, col] = \
-                    mm_data[var][i]
+                all_recorder_activity[var][index][
+                    int((t - start_time - 1)/formatting_interval),
+                    row,
+                    col] = mm_data[var][i]
     return all_recorder_activity
 
 
@@ -82,15 +108,30 @@ def format_sd_data(sender_gid,
                    time,
                    location_by_gid,
                    shape=None,
-                   formatted_unit_indices=(0, )):
+                   formatted_unit_indices=(0, ),
+                   formatting_interval=None,
+                   start_time=None,
+                   end_time=None):
     """Return dict containing all formatted (t, row, col)-np.arrays."""
+    # pylint:disable=too-many-arguments
+
+    if start_time is None:
+        start_time = 0
+    if end_time is None:
+        end_time = float('inf')
+
     all_recorder_activity = {
         'spikes': [np.zeros(shape) for i in formatted_unit_indices]
     }
     for (i, t) in enumerate(time):
+        if not start_time < t <= end_time:
+            continue
         row, col, index = location_by_gid[int(sender_gid[i])]
         if index in formatted_unit_indices:
-            all_recorder_activity['spikes'][index][int(t) - 1, row, col] = 1.0
+            all_recorder_activity['spikes'][index][
+                int((t - start_time - 1) / formatting_interval),
+                row,
+                col] = 1.0
     return all_recorder_activity
 
 
@@ -143,7 +184,7 @@ def gather_raw_data(rec_gid, all_variables=('V_m', ), recorder_type=None):
             return (time, sender_gid)
 
 
-def gather_raw_data_connrec(rec_gid):
+def gather_raw_data_connrec(rec_gid, start_time=None, end_time=None):
     """Return non - formatted activity of a ConnectionRecorder.
 
     Args:
@@ -166,11 +207,14 @@ def gather_raw_data_connrec(rec_gid):
 
         data = nest.GetStatus(rec_gid, 'events')[0]
 
+        t_indices = [i for i, t in enumerate(data['times'])
+                     if start_time <= t <= end_time]
+
         return {
-            'senders': data['senders'],
-            'targets': data['targets'],
-            'times': data['times'],
-            'weights': data['weights']
+            'senders': data['senders'][t_indices],
+            'targets': data['targets'][t_indices],
+            'times': data['times'][t_indices],
+            'weights': data['weights'][t_indices],
         }
 
     elif 'file' in record_to:
@@ -178,11 +222,14 @@ def gather_raw_data_connrec(rec_gid):
         recorder_files = nest.GetStatus(rec_gid, 'filenames')[0]
         data = load_and_combine(recorder_files)
 
+        t_indices = [i for i, t in enumerate(data[:, -2])
+                     if start_time <= t <= end_time]
+
         return {
-            'senders': data[:, 0],
-            'targets': data[:, 1],
-            'times': data[:, -2],
-            'weights': data[:, -1]
+            'senders': data[:, 0][t_indices],
+            'targets': data[:, 1][t_indices],
+            'times': data[:, -2][t_indices],
+            'weights': data[:, -1][t_indices],
         }
 
 
@@ -203,7 +250,7 @@ def load_and_combine(recorder_files_list):
 
     """
     file_data_list = [
-        np.loadtxt(filepath, dtype=float, ndmin=2)
+        load_recorder_file(filepath)
         for filepath in recorder_files_list
         if isfile(filepath) and not stat(filepath).st_size == 0
     ]
@@ -211,3 +258,23 @@ def load_and_combine(recorder_files_list):
     if file_data_list:
         return np.concatenate(file_data_list, axis=0)
     return np.empty((0, 10))
+
+def load_recorder_file(filepath):
+    """Load data from a recorder file into a numpy array of floats.
+
+    NB: As a temporary workaround to issues arising when clearing recorders'
+    data from file before the end of the simulation, we first strip potential
+    hidden characters from the start of the file before loading it into numpy.
+    """
+    # We remove from the first column from "^" and "@"
+    remove_leading_null_chars(filepath)
+    return np.loadtxt(filepath, dtype=float, ndmin=2)
+
+def remove_leading_null_chars(filepath):
+    """Strip the first line of a file from "@" and "^" characters."""
+    with open(filepath, 'rb') as fin:
+        first_line = fin.readline().lstrip(b'\x00') # Remove all the @ and ^ from first
+        lines = fin.readlines()
+    with open(filepath, 'wb') as fout:
+        fout.write(first_line)
+        fout.writelines(lines)

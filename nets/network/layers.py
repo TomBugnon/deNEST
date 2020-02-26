@@ -14,12 +14,15 @@ from ..utils import filter_suffixes, spike_times
 from .nest_object import NestObject
 from .utils import flatten, if_created, if_not_created
 
+# pylint:disable=missing-docstring
 
 class AbstractLayer(NestObject):
     """Abstract base class for a layer.
 
     Defines the layer interface.
     """
+
+    #pylint:disable=too-many-instance-attributes
 
     def __init__(self, name, params):
         super().__init__(name, params)
@@ -48,18 +51,23 @@ class AbstractLayer(NestObject):
         """Convert a value from grid units to extent units."""
         raise NotImplementedError
 
+    @if_not_created
     def create(self):
         """Create the layer in NEST."""
         raise NotImplementedError
 
     @property
+    def populations(self):
+        return self._populations
+
+    @property
     @if_created
     def gid(self):
-        """The NEST global ID (GID) of the layer."""
+        """Return the NEST global ID (GID) of the layer."""
         return self._gid
 
     @if_created
-    def _connect(self, target, nest_params):
+    def connect(self, target, nest_params):
         # NOTE: Don't use this method directly; use a Connection instead
         from nest import topology as tp
         tp.ConnectLayers(self.gid, target.gid, nest_params)
@@ -116,26 +124,53 @@ class AbstractLayer(NestObject):
         """
         raise NotImplementedError
 
-    def change_unit_states(self, changes_dict, population=None, proportion=1.0):
-        """Call nest.SetStatus for a proportion of units."""
+    def change_unit_states(self, changes_dict, population=None, proportion=1.0,
+                           filter_dict={}, change_type='constant'):
+        """Call nest.SetStatus for a proportion of units which pass the filter."""
         if not changes_dict:
             return
         if self._prob_changed and proportion != 1.0:
             raise Exception("Attempting to change probabilistically some "
                             "units' state multiple times.")
-            return
-        gids_to_change = self.get_gids_subset(
-            self.gids(population=population),
+        all_gids = self.gids(population=population)
+        if proportion != 1.0:
+            print(f'----> Select subset of gids (proportion = {proportion})')
+        gids_to_filter = self.get_gids_subset(
+            all_gids,
             proportion
         )
-        self.apply_unit_changes(gids_to_change, changes_dict)
+        if filter_dict:
+            print(f'----> Apply filter on gids (filter = {filter_dict})')
+        gids_to_change = self.filter_gids(
+            gids_to_filter,
+            filter_dict
+        )
+        print(f'----> Apply "{change_type}" parameter changes on '
+              f'{len(gids_to_change)}/{len(all_gids)} units '
+              f'(layer={self.name}, population={population})')
+        self.apply_unit_changes(gids_to_change, changes_dict,
+                                change_type=change_type)
         self._prob_changed = True
 
     @staticmethod
-    def apply_unit_changes(gids_to_change, changes_dict):
+    def apply_unit_changes(gids_to_change, changes_dict, change_type='constant'):
         """Change the state of a list of units."""
+        assert change_type in ['constant', 'multiplicative']
         import nest
-        nest.SetStatus(gids_to_change, changes_dict)
+        if change_type == 'constant':
+            nest.SetStatus(gids_to_change, changes_dict)
+        elif change_type == 'multiplicative':
+            for gid, (change_key, change_ratio) in itertools.product(
+                gids_to_change,
+                changes_dict.items()
+            ):
+                current_value = nest.GetStatus((gid,), change_key)[0]
+                nest.SetStatus(
+                    (gid,),
+                    { change_key: current_value * change_ratio }
+                )
+        else:
+            raise NotImplementedError
 
     @staticmethod
     def get_gids_subset(gids_list, proportion):
@@ -147,8 +182,40 @@ class AbstractLayer(NestObject):
                         int(len(gids_list) * proportion))
                         )]
 
+    def filter_gids(self, gids_list, filter_dict):
+        """Filter a list of gids according to their parameter values.
 
-
+        Args:
+            gids_list: list of gids
+            filter_dict: dictionary defining the filter. The filter defines an
+                interval for any unit parameter. A unit is selected if all its
+                parameters are within their respectively defined interval.
+                The ``filter_dict`` dictionary is of the form:
+                    {
+                        <unit_param_name_1>:
+                            'min': <float_min>
+                            'max': <float_max>
+                        <unit_param_name_2>:
+                            ...
+                    }
+                Where <float_min> and <float_max> define the (inclusive)
+                min and max of the filtering interval for the considered
+                parameter (default resp. -inf and +inf)
+        """
+        import nest
+        filtered_gids = gids_list
+        # Iterate over parameters that we use for filtering
+        for parameter_name, interval in filter_dict.items():
+            min_value = interval.get('min', -float('inf'))
+            max_value = interval.get('max', float('inf'))
+            print(f'-----> Filtering population gids: select if '
+                  f'{parameter_name} is in interval [{min_value}, {max_value}]')
+            filtered_gids = [
+                gid for gid in filtered_gids
+                if (nest.GetStatus([gid], parameter_name)[0] >= min_value
+                    and nest.GetStatus([gid], parameter_name)[0] <= max_value)
+                ]
+        return filtered_gids
 
 
 class Layer(AbstractLayer):
@@ -214,8 +281,10 @@ class Layer(AbstractLayer):
 
     @if_created
     def gids(self, population=None, location=None):
+        # pylint:disable=function-redefined
         pop_filt = None
         if population is not None:
+            assert population in self.population_names()
             def pop_filt(gid):
                 return population in self._populations[gid]
         loc_filt = None
@@ -234,7 +303,8 @@ class Layer(AbstractLayer):
         return tuple(self._locations[gid] for gid in args)
 
     @if_created
-    def position(self, *args):
+    @staticmethod
+    def position(*args):
         import nest.topology as tp
         return tp.GetPosition(args)
 

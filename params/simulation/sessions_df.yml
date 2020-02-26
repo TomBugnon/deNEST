@@ -2,21 +2,32 @@ sessions:
   params:
     order: ['warmup', 'noise', 'grating']
     reset_network: False
+    record: True # Inactivate all recorders for current session or not
   warmup:
     params:
       session_input: 'noise_256x256x1x1.npy'
       time_per_frame: 1000.
-      max_session_sim_time: 500.
+      simulation_time: 500.
       reset_network: True
+      record: False
+      unit_changes:
+        - layers: [l1,]
+          population: null
+          proportion: 0.5
+          filter:
+            V_m:
+              min: -.inf
+              max: .inf
+          params:
+            V_m: -70.0
   noise:
     params:
       session_input: 'noise_256x256x1x1.npy'
       time_per_frame: 1000.
-      max_session_sim_time: 2000.
+      simulation_time: 2000.
       input_rate_scale_factor: 2.0
-      reset_network: True
   grating:
     params:
       session_input: 'sinusoidal_grating_0_degrees_40x40x1x40.npy'
       time_per_frame: 30
-      max_session_sim_time: 500.
+      simulation_time: 2000.
