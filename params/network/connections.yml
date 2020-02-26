@@ -43,9 +43,6 @@ network:
           connection: input_connection_NMDA # "multisynapse" connection type
           params:
             query_synapse_label: 10010 # Replicate with modification the connections with this label
-            # synapse_label: 10011
-            # recorders:
-            #     weight_recorder: {}
 
         ### Source area: l1 ###
 
