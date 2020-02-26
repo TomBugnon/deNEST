@@ -3,6 +3,5 @@ simulation:
     output_dir: output
     dry_run: False
     clear_output_dir: True
-    save_simulation: True
     dump_connections: False
     plot_connections: False

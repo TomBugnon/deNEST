@@ -67,14 +67,22 @@ class Simulation:
         self.network = Network(self.params.c['network'])
         self.network.create()
         print('...done\n', flush=True)
+        # Save simulation metadata
+        print('Saving simulation metadata...', flush=True)
+        self.save_metadata()
+        print('...done\n', flush=True)
 
     def run(self):
-        """Run each of the sessions in order."""
+        """Run each of the sessions in order and save data."""
         # Get list of recorders
         for session in self.sessions:
             print(f'Running session: `{session.name}`...\n')
             session.run(self.network)
             print(f'Done running session `{session.name}`\n\n')
+        # Post run saves
+        print(f'Saving some more data')
+        self.save_data()
+        print(f'Done')
 
     def dump_connections(self):
         """Dump network connections."""

@@ -309,8 +309,6 @@ defined in the final parameter tree.
           from a previous simulation.
         - If you add subdirectories to the main output_dir don't forget to
           update the `CLEAR_SUBDIRS` variable accordingly.
-    - `save_simulation` (bool): If true, `Simulation.save()` is called in
-      `__init__.run()` (default `True`)
     - `dump_connections` (bool): If true, the unit-to-unit synapses are dumped
       during a `__init__.run()` call. Modify the `dump_connection`
       connection_model parameter to dump only a subset of the connections.
