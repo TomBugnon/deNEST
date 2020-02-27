@@ -37,33 +37,25 @@ def load_raw_stimulus(input_path, session_input):
 
     # Option 1: load directly from input_path
     if isfile(input_path):
-        try:
-            movie = load_as_numpy(input_path)
-            print(f"-> Loading input from array at simulation's `input_path`:"
-                  f'`{input_path}` (loading option 1)')
-            return movie
-        except FileNotFoundError:
-            pass
+        path = input_path
+        print(f"-> Loading input from array at simulation's `input_path`:"
+              f'`{input_path}` (loading option 1)')
     # Option 2: load directly from session_input
-    if isfile(session_input):
-        try:
-            movie = load_as_numpy(session_input)
-            print(f"-> Loading input from array at session's `session_input`:"
-                  f'`{session_input}` (loading option 2)')
-            return movie
-        except FileNotFoundError:
-            pass
-    fullpath = join(input_path, session_input)
+    elif isfile(session_input):
+        path = session_input
+        print(f"-> Loading input from array at session's `session_input`:"
+              f'`{session_input}` (loading option 2)')
     # Option 3: load from os.path.join(input_path, session_input)
-    if isfile(fullpath):
-        try:
-            movie = load_as_numpy(fullpath)
-            print(f"-> Loading input from array at os.path.join(`input_path`,"
-                  f"`session_input`): `{fullpath}` (loading option 3)")
-            return movie
-        except FileNotFoundError:
-            pass
-    error_string = (f"Couldn't load an input stimulus with: \n`input_path`"
-                    f"simulation parameter: {input_path} and \n`session_input`"
-                    f"session parameter: {session_input}")
-    raise Exception(error_string)
+    elif isfile(join(input_path, session_input)):
+        path = join(input_path, session_input)
+        print(f"-> Loading input from array at os.path.join(`input_path`,"
+              f"`session_input`): `{path}` (loading option 3)")
+    else:
+        error_string = (
+            f"Couldn't load an input stimulus with: \n`input_path`"
+            f"simulation parameter: {input_path} and \n`session_input`"
+            f"session parameter: {session_input}.\n Please check params."
+        )
+        raise FileNotFoundError(error_string)
+
+    return load_as_numpy(path)
