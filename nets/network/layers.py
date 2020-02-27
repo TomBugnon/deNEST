@@ -357,15 +357,13 @@ class InputLayer(Layer):
     STIMULATORS = ['spike_generator', 'poisson_generator']
 
     def __init__(self, name, params):
-        # Add parrot populations
-        # ~~~~~~~~~~~~~~~~~~~~~~
-        populations = self.params['populations']
+        populations = params['populations']
         if len(populations) != 1:
             raise ValueError('InputLayer must have only one population (of'
                              'stimulation devices)')
         # Save the stimulator type
         stimulator_model, nunits = list(populations.items())[0]
-        if len(nunits) != 1:
+        if nunits != 1:
             raise ValueError(
                 'InputLayer can have only one stimution device per location.'
                 f'Please check the `population` parameter: {populations}'
@@ -374,11 +372,11 @@ class InputLayer(Layer):
         self.stimulator_type = None  # TODO: Check stimulator type
         # Add a parrot population entry
         populations[self.PARROT_MODEL] = 1
-        self.params['populations'] = populations
+        params['populations'] = populations
+
         # Initialize the layer
         super().__init__(name, params)
 
-    @if_not_created
     def create(self):
         """Create the layer and connect the stimulator and parrot populations"""
         super().create()
@@ -416,7 +414,7 @@ class InputLayer(Layer):
         if self.stimulator_type == 'poisson_generator':
             print(
                 f"Stimulator is a 'poisson_generator' -> Using only first frame"
-                f"of the {rates.shape}-ndarray stimulus array""
+                f"of the {rates.shape}-ndarray stimulus array"
             )
             # Use only first frame
             self.set_state('rate', rates[0], population=self.stimulator_model)

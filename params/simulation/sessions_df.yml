@@ -5,7 +5,7 @@ sessions:
     record: True # Inactivate all recorders for current session or not
   warmup:
     params:
-      session_input: 'noise_256x256x1x1.npy'
+      session_input: 'noise_constant_x0.5_40x40x40_frames_rows_cols.npy'
       time_per_frame: 1000.
       simulation_time: 500.
       reset_network: True
