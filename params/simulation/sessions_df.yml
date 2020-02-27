@@ -22,12 +22,12 @@ sessions:
             V_m: -70.0
   noise:
     params:
-      session_input: 'noise_256x256x1x1.npy'
+      session_input: 'noise_constant_x0.5_40x40x40_frames_rows_cols.npy'
       time_per_frame: 1000.
       simulation_time: 2000.
       input_rate_scale_factor: 2.0
   grating:
     params:
-      session_input: 'sinusoidal_grating_0_degrees_40x40x1x40.npy'
+      session_input: 'sinusoidal_grating_0_degrees_40x40x40_frames_rows_cols.npy'
       time_per_frame: 30
       simulation_time: 2000.

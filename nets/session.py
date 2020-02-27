@@ -148,8 +148,8 @@ class Session:
         # Crop to adjust to network's input layer shape
         if crop_shape is not None:
             cropped_stim_array = raw_stim_array[
-                :, :, # time, filter
-                :crop_shape[0], :crop_shape[1] # row, col
+                :,  # time,
+                :crop_shape[0], :crop_shape[1]  # row, col
             ]
 
         # Scale the raw input by the session's scaling factor.

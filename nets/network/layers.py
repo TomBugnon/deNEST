@@ -10,7 +10,7 @@ import random
 import numpy as np
 from tqdm import tqdm
 
-from ..utils import filter_suffixes, spike_times
+from ..utils import spike_times
 from .nest_object import NestObject
 from .utils import flatten, if_created, if_not_created
 
@@ -346,69 +346,45 @@ class Layer(AbstractLayer):
                            {variable: value})
 
 
-class InputLayer(AbstractLayer):
+class InputLayer(Layer):
     """A layer that provides input to the network.
 
-    This layer consists of several sublayers, each distinct NEST topological
-    layers with their own GID, represented by a ``Layer``:
-
-      - For each filter combination, a stimulator/parrot pair of layers is
-        created.
-      - In such a pair, the stimulator layer contains stimulator devices, while
-        the parrot layer passes the stimuli from the stimulator layer to
-        multiple outputs.
+    A layer with a population of stimulation devices connected to an extra
+    population of parrot neurons, and that can handle input arrays
     """
 
     PARROT_MODEL = 'parrot_neuron'
+    STIMULATORS = ['spike_generator', 'poisson_generator']
 
     def __init__(self, name, params):
-        super().__init__(name, params)
         # Add parrot populations
         # ~~~~~~~~~~~~~~~~~~~~~~
         populations = self.params['populations']
-        # Check that there's only one stimulator type
         if len(populations) != 1:
-            raise ValueError('InputLayer must have only one population')
-        # Save the the stimulator type and get its number
-        self.stimulator_model, number = list(populations.items())[0]
-        self.stimulator_type = None
+            raise ValueError('InputLayer must have only one population (of'
+                             'stimulation devices)')
+        # Save the stimulator type
+        stimulator_model, nunits = list(populations.items())[0]
+        if len(nunits) != 1:
+            raise ValueError(
+                'InputLayer can have only one stimution device per location.'
+                f'Please check the `population` parameter: {populations}'
+        )
+        self.stimulator_model = stimulator_model
+        self.stimulator_type = None  # TODO: Check stimulator type
         # Add a parrot population entry
-        populations[self.PARROT_MODEL] = number
-        # Make a duplicate sublayer for each filter
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        names = filter_suffixes.get_expanded_names(self.name,
-                                                   self.params.get('filters',
-                                                                   {}))
-        self.layers = [Layer(name, self.params) for name in names]
-        # TODO: Possibly scale the weights of all input connections by the
-        # number of input layers
-
-    def extent_units(self, value):
-        # IMPORTANT: Assumes all sublayers are the same size!
-        return self.layers[0].extent_units(value)
-
-    def _layer_get(self, attr_name):
-        """Get an attribute from each sublayer."""
-        return tuple(getattr(layer, attr_name) for layer in self.layers)
-
-    def _layer_call(self, method_name, *args, **kwargs):
-        """Call a method on each sublayer."""
-        return tuple(method(*args, **kwargs)
-                     for method in self._layer_get(method_name))
-
-    def _connect(self, target, nest_params):
-        self._layer_call('_connect', target, nest_params)
+        populations[self.PARROT_MODEL] = 1
+        self.params['populations'] = populations
+        # Initialize the layer
+        super().__init__(name, params)
 
     @if_not_created
     def create(self):
+        """Create the layer and connect the stimulator and parrot populations"""
+        super().create()
         from nest import topology as tp
         import nest
-        # Create sublayers
-        self._layer_call('create')
-        # Set the GID
-        self._gid = flatten(self._layer_get('gid'))
         # Connect stimulators to parrots, one-to-one
-        # IMPORTANT: This assumes that all layers are the same size!
         radius = self.extent_units(0.1)
         one_to_one_connection = {
             'sources': {'model': self.stimulator_model},
@@ -421,49 +397,38 @@ class InputLayer(AbstractLayer):
         # Get stimulator type
         self.stimulator_type = nest.GetDefaults(self.stimulator_model,
                                                 'type_id')
+        if self.stimulator_type not in self.STIMULATORS:
+            raise ValueError(
+                f"The stimulation device in input layer {self.name} if not"
+                f" of an accepted type. stimulator_type={self.stimulator_type},"
+                f" Supported types: {self.STIMULATORS}"
+            )
 
-    @if_created
-    def gids(self, population=None, location=None):
-        return flatten(self._layer_call('gids',
-                                        population=population,
-                                        location=location))
-
-    @if_created
-    def element(self, *args):
-        return flatten(self._layer_call('element', *args))
-
-    @if_created
-    def population(self, *args):
-        return flatten(self._layer_call('population', *args))
-
-    @if_created
-    def location(self, *args):
-        return flatten(self._layer_call('location', *args))
 
     def set_input(self, stimulus_array, start_time=0.):
         input_rate_scale_factor = float(self.params['input_rate_scale_factor'])
         effective_max = input_rate_scale_factor * np.max(stimulus_array)
+        assert stimulus_array.ndim == 3
         print(f'-> Setting input for `{self.name}`.')
         print(f'--> Rate scaling factor: {str(input_rate_scale_factor)}')
         print(f'--> Max instantaneous rate: {str(effective_max)}Hz')
-        for layer in tqdm(self.layers):
-            # TODO: Input layers should be able to see different filters
-            layer_index = 0
-            layer_rates = (input_rate_scale_factor
-                           * stimulus_array[:, layer_index, :, :])
-            if self.stimulator_type == 'poisson_generator':
-                # Use only first frame
-                layer.set_state('rate', layer_rates[0],
-                                population=self.stimulator_model)
-            elif self.stimulator_type == 'spike_generator':
-                all_spike_times = spike_times.draw_spike_times(
-                    layer_rates,
-                    start_time=start_time
-                )
-                layer.set_state('spike_times', all_spike_times,
-                                population=self.stimulator_model)
-            else:
-                raise NotImplementedError
+        rates = input_rate_scale_factor * stimulus_array
+        if self.stimulator_type == 'poisson_generator':
+            print(
+                f"Stimulator is a 'poisson_generator' -> Using only first frame"
+                f"of the {rates.shape}-ndarray stimulus array""
+            )
+            # Use only first frame
+            self.set_state('rate', rates[0], population=self.stimulator_model)
+        elif self.stimulator_type == 'spike_generator':
+            all_spike_times = spike_times.draw_spike_times(
+                rates,
+                start_time=start_time
+            )
+            self.set_state('spike_times', all_spike_times,
+                           population=self.stimulator_model)
+        else:
+            raise NotImplementedError
     # pylint: disable=arguments-differ
 
     def find_center_element(self, population=None):

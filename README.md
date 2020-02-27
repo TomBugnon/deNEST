@@ -507,18 +507,12 @@ defined in the final parameter tree.
 The input 'shown' to the network (that is, used to set the firing rates of the
 InputLayer during a forecoming session) is a NumPy array of dimensions
 compatible with the network's `InputLayer`'s dimension. The NumPy array should
-be 4D with the following dimensions: `(rows, columns, filters, frames)`
-TODO: FIX!!!
-- _rows_ : should be greater than the number of rows of the `InputLayer`.
-- _columns_ : should be greater than the number of columns of the `InputLayer`
-- _filter_ : should be greater than the number of Layers in the `InputLayer`.
-  Please ignore this dimension in general cases but make sure your array is 4D.
-  This dimension would correspond to different filters to be applied to an image
-  to mimic different 'filterings' by the retina, LGN, V1 etc in an object
-  recognition network. (TODO: Remove)
+be 3D with the following dimensions: `(frames, rows, columns)`
 - _frames_ : If the stimulators are spike_generators, successive 'frames' are
     shown to the InputLayer, each for a certain duration. If the stimulators
     are poisson_generators, only the first frame is shown to the network.
+- _rows_ : should be greater than the number of rows of the `InputLayer`.
+- _columns_ : should be greater than the number of columns of the `InputLayer`
 
 ##### From input arrays to firing rates
 
