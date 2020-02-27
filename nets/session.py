@@ -30,8 +30,8 @@ class Session:
                                            " strictly positive (NEST kernel bug"
                                            " otherwise)")
         self._end = self._start + self._simulation_time
-        # Initialize _stim dictionary
-        self._stimulus = None
+        # Initialize stimulus array
+        self._stimulus_array = None
         # Whether we inactivate all recorders
         self._record = self.params.get('record', True)
 
@@ -68,9 +68,11 @@ class Session:
 
         if network.any_inputlayer:
             # Load stimuli
-            self._stimulus = self.load_stim(crop_shape=network.max_input_shape)
+            self._stimulus_array = self.load_stim_array(
+                crop_shape=network.max_input_shape
+            )
             # Set input spike times in the future.
-            network.set_input(self.stimulus, start_time=self._start)
+            network.set_input(self.stimulus_array, start_time=self._start)
 
         # Inactivate all the recorders and connection_recorders for
         # `self._simulation_time`
@@ -111,24 +113,12 @@ class Session:
         assert self.end == int(nest.GetKernelStatus('time'))
 
     def save_metadata(self, output_dir):
-        """Save session metadata (stimuli, ...)."""
-        if self.params.get('save_stim', False) and self._stimulus is not None:
-            save.save_array(save.output_path(output_dir,
-                                             'session_movie',
-                                             session_name=self.name),
-                            self.stimulus['movie'])
-            save.save_array(save.output_path(output_dir,
-                                             'session_labels',
-                                             session_name=self.name),
-                            self.stimulus['labels'])
-            save.save_as_yaml(save.output_path(output_dir,
-                                               'session_metadata',
-                                               session_name=self.name),
-                              self.stimulus['metadata'])
+        """Save session metadata (stimulus array, ...)."""
+        pass
 
     @property
-    def stimulus(self):
-        return self._stimulus
+    def stimulus_array(self):
+        return self._stimulus_array
 
     @property
     def duration(self):
@@ -138,14 +128,14 @@ class Session:
     def simulation_time(self):
         return self._simulation_time
 
-    def load_stim(self, crop_shape=None):
-        """Load and return the session's input movie.
+    def load_stim_array(self, crop_shape=None):
+        """Load and return the session's input array.
 
         See README.md and `load_raw_stimulus` function about how the input is
         loaded from the `input_path` simulation parameter and the
         `session_input` session parameter.
 
-        The stimulus movie loaded from file is scaled by the session parameter
+        The stimulus "movie" loaded from file is scaled by the session parameter
         `input_rate_scale_factor` (default 1.0). The session stimulus movie
         will be further scaled by the Network-wide Layer parameter
         `input_rate_scale_factor`
@@ -153,37 +143,31 @@ class Session:
         # Input path can be either to a file or to the structured input dir
         input_path = self.params['input_path']
         session_input = self.params['session_input']
-        (raw_movie,
-         raw_labels,
-         metadata) = load_raw_stimulus(input_path, session_input)
+        raw_stim_array = load_raw_stimulus(input_path, session_input)
 
         # Crop to adjust to network's input layer shape
         if crop_shape is not None:
-            raw_movie = raw_movie[:, :, :crop_shape[0], :crop_shape[1]]
+            cropped_stim_array = raw_stim_array[
+                :, :, # time, filter
+                :crop_shape[0], :crop_shape[1] # row, col
+            ]
 
         # Scale the raw input by the session's scaling factor.
         scale_factor = self.params.get('input_rate_scale_factor', 1.0)
-        raw_movie = raw_movie * scale_factor
+        scaled_stim_array = cropped_stim_array * scale_factor
         print(f'--> Apply session input_rate_scale_factor: {scale_factor}')
 
         # Expand from frame to timesteps
-        labels = expand_raw_stimulus(
-            raw_labels,
-            self.params.get('time_per_frame', 1.),
-            self.simulation_time
-        )
-        movie = expand_raw_stimulus(
-            raw_movie,
+        stim_array = expand_stimulus_array(
+            scaled_stim_array,
             self.params.get('time_per_frame', 1.),
             self.simulation_time
         )
 
-        return {'movie': movie,
-                'labels': labels,
-                'metadata': metadata}
+        return stim_array
 
 
-def expand_raw_stimulus(list_or_array, nrepeats, target_length):
+def expand_stimulus_array(list_or_array, nrepeats, target_length):
     """Repeat elems along the first dimension and adjust length to target.
 
     We first expand the array by repeating each element `nrepeats` times, and

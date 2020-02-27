@@ -322,8 +322,8 @@ class Network:
         import nest
         nest.ResetNetwork()
 
-    def set_input(self, stimulus, start_time=0.):
-        self._layer_call('set_input', stimulus, start_time,
+    def set_input(self, stimulus_array, start_time=0.):
+        self._layer_call('set_input', stimulus_array, start_time,
                          layer_type='InputLayer')
 
     def save_metadata(self, output_dir):

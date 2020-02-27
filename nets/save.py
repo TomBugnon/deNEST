@@ -265,24 +265,6 @@ def load_session_times(output_dir):
     return load_yaml(output_path(output_dir, 'session_times'))
 
 
-def load_session_stim(output_dir, session_name, filt=0):
-    """Load full stimulus movie of a session.
-
-    Args:
-        output_dir (str): Output directory
-        session_name (str): session_name
-        filt (int or None): Movie filter. Return all filters if None.
-    """
-    movie_prefix = output_filename('session_movie', session_name)
-    sessions_dir = output_subdir(output_dir, 'session_movie')
-    movie_filenames = [f for f in os.listdir(sessions_dir)
-                       if f.startswith(movie_prefix)]
-    movie = load_as_numpy(join(sessions_dir, movie_filenames[0]))
-    if filt is None:
-        return movie
-    return movie[:, filt]
-
-
 def load_weight_recorder(output_dir, conn_name, start_trim=None):
     path = output_path(output_dir,
                        'connection_recorders',
