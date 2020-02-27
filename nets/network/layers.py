@@ -334,8 +334,11 @@ class Layer(AbstractLayer):
         variable per location.
         """
         import nest
-        value_per_location = (isinstance(values, np.ndarray)
-                              and np.shape(values) == self.shape)
+        if isinstance(values, np.ndarray):
+            value_per_location = True
+            assert np.shape(values) == self.shape, (
+                "Array has the wrong shape for setting layer values"
+            )
         for location in self:
             value = values[location] if value_per_location else values
             nest.SetStatus(self.gids(population=population,
