@@ -19,8 +19,7 @@ Under the hood, NETS instantiates classes that represent specific aspects of the
 
 #### Network
 
-**IMPORTANT**: We make the distinction between the "independent" parameters, that are specified in the parameter files, and the "dependent" parameters that are actually given to NEST during object instantiation. Please read carefully the documentation to know how parameters are interpreted, and possibly translated, by NETS. 
-As an example, the topological connection's `kernel` and `mask` params, that are specified in the connection_model parameter files, are scaled by the connection_model's `scale_factor`  parameter.
+**IMPORTANT**: We make the distinction between the "independent" parameters, that are specified in the parameter files, and the "dependent" parameters that are actually given to NEST during object instantiation. Please read carefully the documentation to know how parameters are interpreted, and possibly translated, by NETS.
 
 - A **model** is a NEST model (neuron, synapse, generator or recorder) with a
   specific name and set of parameters. All models are copied from their
@@ -423,14 +422,6 @@ defined in the final parameter tree.
     - `weight_gain`: Scaling factor for the weight of connections **of which the
       considered layer is the _source_.** (default `1.0`). Lets one scale the
       weight of all outgoing connections from a layer.
-    - `scale_kernels_masks_to_extent`: Whether the kernels and masks of
-      connections of which the considered layer is the pooling layer are
-      considered to be expressed in 'number of units', rather than physical
-      extent. (default `True`). (TODO: default to False)
-        - **Important**: Please note that by default the kernel and masks are
-          interpreted as being expressed in 'number of units' rather than
-          physical extent and are accordingly scaled before being passed to
-          NEST.
     - `scale_input_weight`: Whether the weight of connections originating from
       an InputLayer is scaled by number of layers within an InputLayer. (default
       `False`) (TODO: Delete)
@@ -456,8 +447,6 @@ defined in the final parameter tree.
     - `source_dir` (str). Path to the directory containing the previously dumped
       connections. Used (and mandatory) only if the connection is of type
       'from_file' or 'rescaled'. (default `None`)
-    - `scale_factor` (float). Scaling factor for the kernel and masks. (default
-      `1.0`).
     - `dump_connection` (bool): Whether connections of that connection model
       should be dumped during a `Simulation.dump_connections()` call. (default
       `False`)
@@ -468,28 +457,14 @@ defined in the final parameter tree.
         weight. The actual connection weight is equal to the synapse defaults,
         multiplied by this parameter and the source layer's
         `weight_gain` parameter.
-    - `kernel`, `mask`: Interpreted as the corresponting nest.topology
-      parameters, except that __the sizes__ (radius, lower_left, upper_right, ...)
-      __are scaled before being passed to NEST__ according to the
-      'scale_kernels_masks_to_extent' and 'scale_factor' parameters(TODO: Check
-      that this won't fail in future
-      versions of NEST) **The actual mask or kernel extent is equal to the value
-      in the corresponding parameters, expressed either in number of units or in
-      extent, multiplied by the connection model's scaling factor**
-    - All other parameters define the topological or rescaled (topological)
-      connections and will be passed to nest.topology.ConnectLayers() (__Note
-      that for topological connections, kernels and masks are scaled before
-      being passed to NEST__). These parameters are ignored in the case of
-      connections 'from_file', and interpreted similarly in 'rescaled
-      connections' as in topological connections.
+    - All other parameters (`kernel`, `mask`, ...) define the topological or
+      connections and will be passed to nest.topology.ConnectLayers() . These
+      parameters are ignored in the case of connections 'from_file', and
+      interpreted similarly in 'rescaled connections' as in topological
+      connections.
     - **Important**: There shouldn't be a `weight` entry in these parameters!
         The weight is set from the synapse defaults and scaled by the source
         Layer's and the Connection's `weight_gain` parameters.
-    - **Important**: For each connection model, if the
-      `scale_kernels_masks_to_extent` parameter of the pooling layer is true,
-      the masks and kernel sizes specified in the parameters (and scaled by the
-      `scale_factor`) are interpreted as "number_of_units" rather than physical
-      extent. 
   - `topology` (leaf): Should contain a `connections` parameter consisting in a
     list of dictionary describing population(/layer)-to-population(/layer)
     connections. Each item specifies a list of source layers and target layers.

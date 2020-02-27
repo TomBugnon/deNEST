@@ -8,7 +8,6 @@ network:
       input_rate_scale_factor: 50
       edge_wrap: true
       weight_gain: 1.0 # Scales outgoing connection weights
-      scale_kernels_masks_to_extent: true
     # Areas
     input_area:
       params:

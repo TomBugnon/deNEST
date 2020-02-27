@@ -32,7 +32,6 @@ SCALED_KERNEL_TYPES = ['gaussian']
 NON_NEST_CONNECTION_PARAMS = {
     'type': 'topological',  # 'Topological', 'Rescaled' or 'FromFile', or 'multisyn'
     'source_dir': None,  # Where to find the data for 'FromFile' and 'Rescaled' conns.
-    'scale_factor': 1.0,  # Scaling of mask and kernel
     'weight_gain': 1.0,  # Scaling of synapse default weight
     'dump_connection': False,
     'plot_connection': False,
@@ -234,10 +233,6 @@ class BaseConnection(NestObject):
         return self.params['plot_connection']
 
     @property
-    def scale_factor(self):
-        return self._scale_factor
-
-    @property
     def __str__(self):
         return '-'.join(self.sort_key)
 
@@ -292,8 +287,7 @@ class BaseConnection(NestObject):
         # the connection
         self.create_nest_synapse_model()
         # Update the nest_parameters to get the proper connection weight, set
-        # the proper nest_synapse_model, possibly rescale kernels and weights,
-        # etc
+        # the proper nest_synapse_model, etc
         self.update_nest_params()
         # Actually create the connections in NEST
         self._connect()
@@ -680,7 +674,6 @@ class TopoConnection(BaseConnection):
 
     def __init__(self, source, target, model, conn_dict):
         super().__init__(source, target, model, conn_dict)
-        self._scale_factor = self.params['scale_factor']
 
     # Creation functions not inherited from BaseConnection
 
@@ -694,15 +687,12 @@ class TopoConnection(BaseConnection):
         - Set NEST synapse model (possibly different from self.synapse_model)
         - Set connection weight: Scale synapse default by Connection and Layer
             `weight_gain` params
-        - Scale kernels,
-        - Scale masks,
         """
         # TODO: Get a view of the kernel, mask, and weights inherited from the
         # connection model
         self.set_populations_nest_params()
         self.set_synapse_model_nest_params()
         self.set_connection_weight()
-        self.scale_kernel_mask()
 
     def set_synapse_model_nest_params(self):
         """Update the synapse_model given to NEST."""
@@ -714,93 +704,6 @@ class TopoConnection(BaseConnection):
             self.nest_params['sources'] = {'model': self.source_population}
         if self.target_population:
             self.nest_params['targets'] = {'model': self.target_population}
-
-    def scale_kernel_mask(self):
-        """Update self._scale_factor and scale kernels and masks."""
-
-        # Get connection-specific scaling factor, taking in account whether the
-        # connection is convergent or divergent
-        if (
-            self.nest_params['connection_type'] == 'convergent'
-            and self.source.params.get('scale_kernels_masks_to_extent', True)
-        ):
-            # For convergent connections, the pooling layer is the source
-            self._scale_factor = self.source.extent_units(self.scale_factor)
-        elif (
-            self.nest_params['connection_type'] == 'divergent'
-            and self.target.params.get('scale_kernels_masks_to_extent', True)
-        ):
-            # For convergent connections, the pooling layer is the target
-            self._scale_factor = self.target.extent_units(self.scale_factor)
-
-        # Set kernel, mask, and weights, scaling if necessary
-        if 'kernel' in self.nest_params:
-            self.nest_params['kernel'] = self.scale_kernel(
-                self.nest_params['kernel']
-            )
-        if 'mask' in self.nest_params:
-            self.nest_params['mask'] = self.scale_mask(
-                self.nest_params['mask']
-            )
-
-    def scale_kernel(self, kernel):
-        """Return a new kernel scaled by ``scale_factor``.
-
-        If kernel is a float: copy and return
-        If kernel is a dictionary:
-            - If empty: return ``{}``
-            - If recognized type (in SCALED_KERNEL_TYPES): scale 'sigma' field
-                and return scaled kernel
-            - If unrecognized type (not in SCALED_KERNEL_TYPES): issue warning
-                and return same kernel
-        """
-        kernel = deepcopy(kernel)
-        try:
-            # Float kernel (not scaled)
-            return float(kernel)
-        except TypeError:
-            if not kernel:
-                # Empty kernel
-                return kernel
-            kernel_type = list(kernel.keys())[0]
-            if kernel_type in SCALED_KERNEL_TYPES:
-                # Recognized non-trivial kernel type (scale sigma parameter)
-                kernel[kernel_type]['sigma'] *= self.scale_factor
-                return kernel
-            # Unrecognized non-trivial kernel type (return and warn)
-            import warnings
-            warnings.warn('Not scaling unrecognized kernel type')
-            return kernel
-
-    def scale_mask(self, mask):
-        """Return a new mask scaled by ``scale_factor``.
-
-        Scale the fields of the mask parameters if their key contains the
-        strings 'radius' (for circular and doughnut mask.), 'lower_left' or
-        'upper_right' (for rectangular or box masks.)
-        You can modify the list of scaled field by changing the
-        ``SCALED_MASK_SUBSTRINGS`` constant.
-
-        If mask is empty, return {}
-        """
-        mask = deepcopy(mask)
-        if not mask:
-            return mask
-        mask_type, mask_params = list(mask.items())[0]
-        # Iterate on all the parameters of the mask
-        for key in mask_params:
-            # Test if the key contains any of the matching substrings.
-            if any([substring in key for substring
-                    in SCALED_MASK_SUBSTRINGS]):
-                try:
-                    # If entry is list, scale all the elements
-                    mask[mask_type][key] = [scalar * self.scale_factor
-                                            for scalar
-                                            in mask[mask_type][key]]
-                except TypeError:
-                    # If entry is float, scale it
-                    mask[mask_type][key] *= self.scale_factor
-        return mask
 
     def _connect(self):
         self.source.connect(self.target, self.nest_params)
