@@ -4,7 +4,7 @@ network:
       type: null
       nrows: 5
       ncols: 5
-      visSize: 8.0
+      extent: [8.0, 8.0]
       input_rate_scale_factor: 50
       edge_wrap: true
     # Areas

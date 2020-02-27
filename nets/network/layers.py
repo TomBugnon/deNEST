@@ -33,7 +33,7 @@ class AbstractLayer(NestObject):
         self._locations = None
         self._populations = None
         self.shape = params['nrows'], params['ncols']
-        self.extent = (params['visSize'],) * 2
+        self.extent = params['extent']
         # Record if we change some of the layer units' state probabilistically
         self._prob_changed = False
 
@@ -226,9 +226,9 @@ class Layer(AbstractLayer):
         super().__init__(name, params)
         # TODO: use same names
         self.nest_params = {
-            'rows': self.params['nrows'],
-            'columns': self.params['ncols'],
-            'extent': [self.params['visSize']] * 2,
+            'rows': self.shape[0],
+            'columns': self.shape[1],
+            'extent': self.extent,
             'edge_wrap': self.params.get('edge_wrap', False),
             'elements': self.build_elements(),
         }
