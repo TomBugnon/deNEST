@@ -422,9 +422,6 @@ defined in the final parameter tree.
     - `weight_gain`: Scaling factor for the weight of connections **of which the
       considered layer is the _source_.** (default `1.0`). Lets one scale the
       weight of all outgoing connections from a layer.
-    - `scale_input_weight`: Whether the weight of connections originating from
-      an InputLayer is scaled by number of layers within an InputLayer. (default
-      `False`) (TODO: Delete)
   - `neuron_models` (subtree): Defines neuron models. Each leaf is a neuron
     model. All parameters of a leaf are passed to ``nest.CopyModel()`` __except
     the following__:
