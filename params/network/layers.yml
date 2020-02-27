@@ -7,7 +7,6 @@ network:
       visSize: 8.0
       input_rate_scale_factor: 50
       edge_wrap: true
-      weight_gain: 1.0 # Scales outgoing connection weights
     # Areas
     input_area:
       params:
@@ -15,7 +14,6 @@ network:
         type: 'InputLayer'
       input_layer:
         params:
-          weight_gain: 2.0 # Scales outgoing connection weights
           populations:
             input_exc: 1
     l1_area:

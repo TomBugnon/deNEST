@@ -419,9 +419,6 @@ defined in the final parameter tree.
       <value> * <session_input_rate_scale_factor> * <layer_input_scale_factor>.
       See `input_rate_scale_factor` in the session parameters and the "Input"
       documentation paragraph. (mandatory for `InputLayer` layers)
-    - `weight_gain`: Scaling factor for the weight of connections **of which the
-      considered layer is the _source_.** (default `1.0`). Lets one scale the
-      weight of all outgoing connections from a layer.
   - `neuron_models` (subtree): Defines neuron models. Each leaf is a neuron
     model. All parameters of a leaf are passed to ``nest.CopyModel()`` __except
     the following__:

@@ -380,8 +380,7 @@ class BaseConnection(NestObject):
         """Set connection weight in nest_params from synapse default.
 
         The Connection's weight is equal to the synapse model's default weight,
-        scaled by the Connection's `weight_gain` parameter, and by the source
-        layer's `weight_gain` parameter.
+        scaled by the Connection's `weight_gain` parameter
         """
         import nest
         synapse_df_weight = nest.GetDefaults(self.nest_params['synapse_model'],
@@ -396,8 +395,7 @@ class BaseConnection(NestObject):
     def scale_weights(self, weights):
         """Scale the synapse weight by Connection and Layer's weight gain."""
         connection_gain = self.params['weight_gain']
-        layer_gain = self.source.params.get('weight_gain', 1.0)
-        return weights * connection_gain * layer_gain
+        return weights * connection_gain
 
     def _connect(self):
         """Call nest.Connect() to create all unit connections.
@@ -685,7 +683,7 @@ class TopoConnection(BaseConnection):
 
         - Set source and target populations,
         - Set NEST synapse model (possibly different from self.synapse_model)
-        - Set connection weight: Scale synapse default by Connection and Layer
+        - Set connection weight: Scale synapse default by Connection
             `weight_gain` params
         """
         # TODO: Get a view of the kernel, mask, and weights inherited from the
