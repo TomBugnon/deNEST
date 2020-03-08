@@ -21,12 +21,6 @@ from .recorders import ConnectionRecorder
 from .utils import if_not_created
 
 
-# Matched substrings when scaling masks.
-SCALED_MASK_SUBSTRINGS = ['radius', 'lower_left', 'upper_right']
-
-# Recognized non-float types when scaling kernels.
-SCALED_KERNEL_TYPES = ['gaussian']
-
 # List of Connection and ConnectionModel parameters (and their default values
 # that shouldn't be considered as 'nest_parameters'
 NON_NEST_CONNECTION_PARAMS = {
