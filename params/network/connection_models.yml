@@ -19,7 +19,7 @@ network:
           gaussian:
             p_center: 0.05
             sigma: 7.5
-        weight_gain: 2.0 # Scales synapse default
+        weights: 1.0
         delays:
           uniform:
             min: 1.75
@@ -36,7 +36,7 @@ network:
           gaussian:
             p_center: 0.25
             sigma: 7.5
-        weight_gain: 1.0 # Scales synapse default
+        weights: 1.0
         delays:
           uniform:
             min: 1.75
@@ -50,7 +50,7 @@ network:
           circular:
             radius: 12.0
         kernel: 0.8
-        weight_gain: 1.0
+        weights: 1.0
         delays:
           uniform:
             min: 1.75
@@ -65,7 +65,7 @@ network:
           circular:
             radius: 12.0
         kernel: 0.8
-        weight_gain: 2.0 # Scales synapse default
+        weights: 1.0
         delays:
           uniform:
             min: 1.75
@@ -74,4 +74,4 @@ network:
       params:
         type: multisynapse
         synapse_model: input_synapse_NMDA
-        weight_gain: 5.0 # Scales synapse default
+        weights: 5.0

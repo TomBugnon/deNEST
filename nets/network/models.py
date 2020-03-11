@@ -62,6 +62,13 @@ class SynapseModel(Model):
             receptors = nest.GetDefaults(target)['receptor_types']
             self.nest_params['receptor_type'] = \
                 receptors[self.params['receptor_type']]
+        # Check that the "weight" parameter was not set
+        assert 'weight' not in params, (
+            f"Attempting to set weight={params['weight']} for synapse model "
+            f"`{self.name}`. This parameter will be overriden by the connection"
+            f" `weight` parameter. Please set all weights in connection "
+            f"parameters rather than synapse parameters."
+        )
         # Try to infer the synapse type (1 for excitatory/-1 for inhibitory)
         # If not specified in the params.
         if self.type is None:

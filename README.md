@@ -180,14 +180,11 @@ network:                # name of node (non-leaf)
     cortical:           # name of node (non-leaf)
       params:           # parameters common to all leaves below 'cortical' node
         target_neuron: bmt_neuron  # NEST model name
-        weight: 1.0
       AMPA_syn:         # name of node (non-leaf)
         params:         # parameters common to all leaves below 'AMPA_syn' node
           receptor_type: AMPA
         AMPA_syn:       # name of leaf
         AMPA_syn_to_MC: # name of leaf
-            params:     # params of the leaf
-                weight: 2.0
       NMDA_syn:         # name of leaf
         params:         # params of the leaf
           receptor_type: NMDA
@@ -210,17 +207,14 @@ AMPA_syn:
     nest_model: static_synapse
     target_neuron: bmt_neuron
     receptor_type: AMPA
-    weight: 1.0
 AMPA_syn_to_MC:
     nest_model: static_synapse
     target_neuron: bmt_neuron
     receptor_type: AMPA
-    weight: 2.0
 NMDA_syn:
     nest_model: static_synapse
     target_neuron: bmt_neuron
     receptor_type: NMDA
-    weight: 1.0
 ```
 
 #### Merging trees
@@ -447,18 +441,12 @@ defined in the final parameter tree.
     - `plot_connection` (bool): Whether connections of that connection model
       should be plotted during a `Simulation.plot_connections()` call. (default
       `True`)
-    - `weight_gain` (float): Scales the connection's synapse model's default
-        weight. The actual connection weight is equal to the synapse defaults,
-        multiplied by this parameter and the source layer's
-        `weight_gain` parameter.
-    - All other parameters (`kernel`, `mask`, ...) define the topological or
-      connections and will be passed to nest.topology.ConnectLayers() . These
+    - All other parameters (`kernel`, `mask`, `weights`...) define the
+      topological connections and will be passed to
+      nest.topology.ConnectLayers() without modification. These
       parameters are ignored in the case of connections 'from_file', and
       interpreted similarly in 'rescaled connections' as in topological
       connections.
-    - **Important**: There shouldn't be a `weight` entry in these parameters!
-        The weight is set from the synapse defaults and scaled by the source
-        Layer's and the Connection's `weight_gain` parameters.
   - `topology` (leaf): Should contain a `connections` parameter consisting in a
     list of dictionary describing population(/layer)-to-population(/layer)
     connections. Each item specifies a list of source layers and target layers.

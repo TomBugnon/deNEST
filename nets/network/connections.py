@@ -26,7 +26,6 @@ from .utils import if_not_created
 NON_NEST_CONNECTION_PARAMS = {
     'type': 'topological',  # 'Topological', 'Rescaled' or 'FromFile', or 'multisyn'
     'source_dir': None,  # Where to find the data for 'FromFile' and 'Rescaled' conns.
-    'weight_gain': 1.0,  # Scaling of synapse default weight
     'dump_connection': False,
     'plot_connection': False,
     'recorders': {},
@@ -56,12 +55,6 @@ class ConnectionModel(NestObject):
         params = {}
         for non_nest_param, default in NON_NEST_CONNECTION_PARAMS.items():
             params[non_nest_param] = nest_params.pop(non_nest_param, default)
-        # Check that there is no 'weight' parameter (refactor `weight` in
-        # `weight_gain`)
-        error_msg = ("`weights` is not an acceptable parameter. Please use the"
-                     " parameter `weight_gain` which will scale the synapse"
-                     " default.")
-        assert ('weights' not in nest_params), error_msg
         # We now save the params and nest_params dictionaries as attributes
         super().__init__(name, params)
         self.nest_params = nest_params
@@ -370,27 +363,6 @@ class BaseConnection(NestObject):
     def update_nest_params(self):
         pass
 
-    def set_connection_weight(self):
-        """Set connection weight in nest_params from synapse default.
-
-        The Connection's weight is equal to the synapse model's default weight,
-        scaled by the Connection's `weight_gain` parameter
-        """
-        import nest
-        synapse_df_weight = nest.GetDefaults(self.nest_params['synapse_model'],
-                                             'weight')
-        scaled_weight = self.scale_weights(synapse_df_weight)
-        if synapse_df_weight != 1.0:
-            print(f'NB: Connection weights scale synapse default '
-                  f'({synapse_df_weight}):'
-                  f'{self.__str__}: effective weight = {scaled_weight}')
-        self.nest_params['weights'] = scaled_weight
-
-    def scale_weights(self, weights):
-        """Scale the synapse weight by Connection and Layer's weight gain."""
-        connection_gain = self.params['weight_gain']
-        return weights * connection_gain
-
     def _connect(self):
         """Call nest.Connect() to create all unit connections.
 
@@ -639,9 +611,6 @@ class MultiSynapseConnection(BaseConnection):
     def get_synapse_model(self):
         self._synapse_model = self.nest_params['synapse_model']
 
-    def update_nest_params(self):
-        self.set_connection_weight()
-
     def _connect(self):
         # Get the connections that have the proper query label
         import nest
@@ -677,14 +646,11 @@ class TopoConnection(BaseConnection):
 
         - Set source and target populations,
         - Set NEST synapse model (possibly different from self.synapse_model)
-        - Set connection weight: Scale synapse default by Connection
-            `weight_gain` params
         """
         # TODO: Get a view of the kernel, mask, and weights inherited from the
         # connection model
         self.set_populations_nest_params()
         self.set_synapse_model_nest_params()
-        self.set_connection_weight()
 
     def set_synapse_model_nest_params(self):
         """Update the synapse_model given to NEST."""
