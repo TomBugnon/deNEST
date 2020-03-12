@@ -1,5 +1,5 @@
 network:
-  recorders:
+  recorder_models:
     params:
       record_to: ['file', 'memory']
       withgid: True
