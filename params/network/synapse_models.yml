@@ -10,7 +10,6 @@ network:
       AMPA_syn:
         params:
           receptor_type: AMPA
-          weight: 0.5 # All connections weight scale this default value
       NMDA_syn:
         params:
           receptor_type: NMDA
