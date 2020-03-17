@@ -104,6 +104,7 @@ class Network:
 
     def build_population_recorders(self, population_recorders_params):
         """Return population recorders specified by a list of recorder params.
+
         Arguments:
             population_recorders_params (list): Content of the
                 ``population_recorders`` network parameter. A list of items
@@ -126,6 +127,7 @@ class Network:
                 For each item in the list, a recorder of ``model`` will be
                 created and connected to the population(s) of interest of each
                 layer(s) of interest.
+
         Returns:
             list: List of ``PopulationRecorder`` objects.
         """
