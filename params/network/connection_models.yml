@@ -56,11 +56,9 @@ network:
             min: 1.75
             max: 2.25
 
-    input_connection_AMPA:
+    input_connection:
       params:
-        type: topological
         connection_type: convergent
-        synapse_model: input_synapse_AMPA
         mask:
           circular:
             radius: 12.0
@@ -70,8 +68,9 @@ network:
           uniform:
             min: 1.75
             max: 2.25
-    input_connection_NMDA:
-      params:
-        type: multisynapse
-        synapse_model: input_synapse_NMDA
-        weights: 5.0
+      input_connection_AMPA:
+        params:
+          synapse_model: input_synapse_AMPA
+      input_connection_NMDA:
+        params:
+          synapse_model: input_synapse_NMDA

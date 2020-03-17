@@ -18,7 +18,7 @@ network:
 
         ### Source area: input area ###
 
-        # excitatory on l1 for each input population
+        # excitatory on l1 l for each input population
         - source_layers: [input_layer]
           source_population: parrot_neuron
           target_layers: [l1, ]
@@ -27,22 +27,17 @@ network:
           params:
             recorders:
               weight_recorder: {}
-        # connections to the same l1_inh neurons with both AMPA and NMDA
-        # receptors -> We use the "multisynapse model"
+        # Inhibitory on l1 inh, AMPA and NMDA
         - source_layers: [input_layer]
           source_population: parrot_neuron
           target_layers: [l1]
           target_population: l1_inh
           connection: input_connection_AMPA
-          params:
-            synapse_label: 10010
         - source_layers: [input_layer]
           source_population: parrot_neuron
           target_layers: [l1]
           target_population: l1_inh
-          connection: input_connection_NMDA # "multisynapse" connection type
-          params:
-            query_synapse_label: 10010 # Replicate with modification the connections with this label
+          connection: input_connection_NMDA
 
         ### Source area: l1 ###
 

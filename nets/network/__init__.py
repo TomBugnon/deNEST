@@ -27,7 +27,6 @@ CONNECTION_TYPES = {
     'topological': TopoConnection,
     'rescaled': RescaledConnection,
     'from_file': FromFileConnection,
-    'multisynapse': MultiSynapseConnection,
 }
 
 
@@ -61,10 +60,9 @@ class Network:
             self.build_connection(connection_item)
             for connection_item in self.params.c['topology']['connections']
         ]
-        self.connections = self.sort_connections([
+        self.connections = sorted([
             conn for sublist in conn_nested_list for conn in sublist
-        ]) # .flatten() and sort to put "MultiSynapseConnection" connections at
-            # the end
+        ]) # flatten nested list and sort
         # Initialize population recorders
         self.population_recorders = self.build_population_recorders(
             self.params.c['recorders']['population_recorders']
@@ -76,14 +74,6 @@ class Network:
             name: constructor(name, leaf)
             for name, leaf in node.named_leaves()
         }
-
-    @staticmethod
-    def sort_connections(connection_list):
-        """Sort connections making sure that the `multisynapse` are last."""
-        return (sorted([conn for conn in connection_list
-                        if not conn.params['type'] == 'multisynapse'])
-                + sorted([conn for conn in connection_list
-                        if conn.params['type'] == 'multisynapse']))
 
     @staticmethod
     def build_named_leaves_list(constructor, node):

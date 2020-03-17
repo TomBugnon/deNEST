@@ -59,7 +59,7 @@ class ConnectionModel(NestObject):
         super().__init__(name, params)
         self.nest_params = nest_params
         # Check that the connection types are recognized and nothing is missing.
-        assert self.type in ['topological', 'rescaled', 'from_file', 'multisynapse']
+        assert self.type in ['topological', 'rescaled', 'from_file']
         assert self.type != 'rescaled' or self.source_dir is not None
         assert self.type != 'from_file' or self.source_dir is not None
 
@@ -565,69 +565,6 @@ class FromFileConnection(BaseConnection):
 
     def get_connections(self):
         self.conns = self.load_conns()
-
-
-class MultiSynapseConnection(BaseConnection):
-    """Replicate an existing labelled connection with different parameters.
-
-    We use this type of connection as a workaround to connect the same pairs of
-    neurons multiple times. See
-    https://github.com/nest/nest-simulator/issues/904
-
-    There are three parameters that we have control onto with these type of
-    connections: weight (obtained the same way as for topological connections)
-    ,synapse model (for which we can set labels and recorders similarly as
-    for topological connections), and finally the `make_symmetric` flag
-    necessary for gap junctions.
-
-    Usage:
-        Say we want to duplicate the specific connection `proj1`, which uses the
-        synapse AMPA, with different weights/synapse_models.
-        1 - Set the `synapse_label` parameter to a unique value for the specific
-            connection we want to duplicate (note that the synapse model must
-            accept labels, eg `static_synapse_lbl`). The connection_model of
-            `proj1` can be of any type.
-        2 - Define a connection_model of type `multisynapse`, with whatever
-            synapse and/or weight
-        3 - Define a specific connection `proj2` with the same source and target
-            population as `proj1`, and the `multisynapse` connection_model
-        4 - Set the `query_synapse_label` of `proj2` to the same value as the
-            `synapse_label` of `proj1`
-        5 - Optionally, you can still set the `recorders` or `synapse_labels` of
-            proj2.
-    """
-
-    def __init__(self, source, target, model, params):
-        super().__init__(source, target, model, params)
-        # Label used to query the connections
-        self.query_synapse_label = self.params['query_synapse_label']
-        # Make symmetric flag is passed during the nest.Connect() call
-        self.make_symmetric = self.params['make_symmetric_multisynapse']
-        assert self.query_synapse_label is not None
-
-    def get_connections(self):
-        pass
-
-    def get_synapse_model(self):
-        self._synapse_model = self.nest_params['synapse_model']
-
-    def _connect(self):
-        # Get the connections that have the proper query label
-        import nest
-        conns = nest.GetConnections(
-            synapse_label=self.query_synapse_label
-        )
-        if not conns:
-            return
-        srcs, tgts, _, _, _ = zip(*conns)
-        # Add additional connections only for those connections
-        nest.Connect(
-            srcs,
-            tgts,
-            {'rule': 'one_to_one', 'make_symmetric': self.make_symmetric},
-            {'model': self.nest_synapse_model,
-             'weight': self.nest_params['weights']}
-        )
 
 
 class TopoConnection(BaseConnection):
