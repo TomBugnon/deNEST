@@ -318,6 +318,10 @@ class Layer(AbstractLayer):
         """Return a list of population names within this layer."""
         return list(self.params['populations'].keys())
 
+    def recordable_population_names(self):
+        """Return list of names of recordable population names in this layer."""
+        return self.population_names()
+
     @if_created
     def find_center_element(self, population=None):
         center_loc = (int(self.shape[0]/2),
@@ -431,3 +435,7 @@ class InputLayer(Layer):
 
     def find_center_element(self, population=None):
         return self.layers[0].find_center_element(population=population)
+
+    def recordable_population_names(self):
+        """Return list of names of recordable population names in this layer."""
+        return ['parrot_neuron']

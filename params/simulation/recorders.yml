@@ -1,5 +1,5 @@
 network:
-  recorders:
+  recorder_models:
     params:
       record_to: ['file', 'memory']
       withgid: True
@@ -18,3 +18,27 @@ network:
         record_to: ['file', 'memory']
         withport: False
         withrport: True
+  recorders:
+    params:
+      population_recorders:
+        # No layer
+        - layers: []
+          populations: []
+          model: 'multimeter'
+        # `l2_inh` population of `l2` layer if it exists.
+        - layers: ['l2']
+          populations: ['l2_inh']
+          model: 'multimeter'
+        # All layers, "l2_exc" population if it exists.
+        - layers: null
+          populations: ['l2_exc']
+          model: 'multimeter'
+        # All populations of l1
+        - layers: ['l1']
+          populations: null
+          model: 'spike_detector'
+        # All layers, all populations.
+        # Only "parrot_neuron" population of input layers can be recorded.
+        - layers: null
+          populations: null
+          model: 'spike_detector'

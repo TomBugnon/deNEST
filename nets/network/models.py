@@ -61,3 +61,4 @@ class SynapseModel(Model):
             f"`{self.name}`. This parameter will be overriden by the connection"
             f" `weight` parameter. Please set all weights in connection "
             f"parameters rather than synapse parameters."
+        )
