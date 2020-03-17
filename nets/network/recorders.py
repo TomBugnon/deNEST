@@ -64,8 +64,6 @@ class BaseRecorder(NestObject):
     def type(self):
         return self._type
 
-    @property
-    @if_created
     def __str__(self):
         raise NotImplementedError
 
@@ -78,7 +76,7 @@ class BaseRecorder(NestObject):
     def set_label(self):
         """Set self._label attribute and set nest parameter accordingly."""
         import nest
-        self._label = self.__str__
+        self._label = self.__str__()
         # Don't use self.set_status to avoid verbose
         # self.set_status({'label': self._label})
         nest.SetStatus(self.gid, {'label': self._label})
@@ -144,20 +142,28 @@ class PopulationRecorder(BaseRecorder):
     Handles connecting the recorder node to the population.
     The recorder objects contains the population and layer specs necessary for
     creating recorder output metadata (population shape, unit locations, etc).
+
+    Args:
+        model (str): Model of recorder (eg 'multimeter')
+        layer (Layer): Layer object
+        population_name (str): Name of population to connect.
     """
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, name, params):
-        super().__init__(name, params)
+    def __init__(self, model, layer, population_name):
+        """Initialize PopulationRecorder object."""
+        super().__init__(model, {})
+        self.layer = layer
+        self._population_name = population_name  # Name of recorded population
+        self._layer_name = self.layer.name  # Name of recorded pop's layer
+        self._layer_shape = self.layer.shape  # (nrows, cols) for recorded pop
+        # TODO
+        self._units_number = None  # Number of nodes per grid position for pop
         # Attributes below are necessary for creating the output metadata file
-        # and are passed by the Population object during `create()` call
+        # and are defined during the `self.create()` call.
         self._gids = None  # all gids of recorded nodes
         self._locations = None  # location by gid for recorded nodes
-        self._population_name = None  # Name of recorded (parent) population
-        self._layer_name = None  # Name of recorded (parent) pop's layer
-        self._layer_shape = None  # (nrows, cols) for recorded pop
-        self._units_number = None  # Number of nodes per grid position for pop
         ##
         self._type = None  # 'spike detector' or 'multimeter'
         if self.name in POP_RECORDER_TYPES:
@@ -170,7 +176,17 @@ class PopulationRecorder(BaseRecorder):
         # Attributes below may depend on NEST default and recorder models and
         # are updated after creation
         self._record_from = None  # list of variables for mm, or ['spikes']
-        self._interval = None  # Sampling interval. None for spike_detector.
+        self._interval = None  # Sampling interval. Ignored for spike_detector.
+
+    @property
+    def population_name(self):
+        """Return name of population the recorder is connected to."""
+        return self._population_name
+
+    @property
+    def layer_name(self):
+        """Return name of layer the recorder is connected to."""
+        return self._layer_name
 
     def guess_rec_type(self):
         """Guess recorder type from recorder name."""
@@ -183,18 +199,20 @@ class PopulationRecorder(BaseRecorder):
         raise Exception("The type of recorder {self.name} couldn't be guessed")
 
     @if_not_created
-    def create(self, population_params):
-        """Get the layer/pop necessary attributes, create node and connect."""
+    def create(self):
+        """Create the PopulationRecorder node
+
+        1. Create the recorder node in NEST
+        2. Obtain the PopulationRecorder's attributes values from the Layer
+            object and the node in NEST
+        3. Connect the node to the target GIDs.
+        """
         import nest
-        # Save population and layer-wide attributes
-        self._gids = population_params['gids']
-        self._locations = population_params['locations']
-        self._population_name = population_params['population_name']
-        self._layer_name = population_params['layer_name']
-        self._layer_shape = population_params['layer_shape']
-        self._units_number = population_params['units_number']
         # Create node
-        self._gid = nest.Create(self.name, params=self.nest_params)
+        self._gid = nest.Create(self.name, params={})
+        # Save population and layer-wide attributes
+        self._gids = self.layer.gids(population=self.population_name)
+        self._locations = None  # TODO
         # Update attributes after creation (may depend on nest defaults and
         # recorder models)
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
@@ -224,8 +242,6 @@ class PopulationRecorder(BaseRecorder):
     def locations(self):
         return self._locations
 
-    @property
-    @if_created
     def __str__(self):
         return self.type + '_' + self._layer_name + '_' + self._population_name
 
@@ -334,8 +350,6 @@ class ConnectionRecorder(BaseRecorder):
         self.set_label()
         self._filenames = self.raw_data_filenames()
 
-    @property
-    @if_created
     def __str__(self):
         return self.type + '_' + self._connection_name
 

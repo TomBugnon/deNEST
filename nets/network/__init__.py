@@ -13,7 +13,7 @@ from .connections import (ConnectionModel, FromFileConnection,
                           TopoConnection)
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
-from .populations import Population
+from .recorders import PopulationRecorder
 from .utils import if_not_created, log
 
 # pylint: disable=too-few-public-methods
@@ -65,10 +65,10 @@ class Network:
             conn for sublist in conn_nested_list for conn in sublist
         ]) # .flatten() and sort to put "MultiSynapseConnection" connections at
             # the end
-        # Populations are represented as a list
-        self.populations = sorted(
-            self.build_named_leaves_list(self.build_population,
-                                         self.params.c['populations']))
+        # Initialize population recorders
+        self.population_recorders = self.build_population_recorders(
+            self.params.c['recorders']['population_recorders']
+        )
 
     @staticmethod
     def build_named_leaves_dict(constructor, node):
@@ -102,10 +102,62 @@ class Network:
             in itertools.product(source_layers, target_layers)
         ]
 
-    def build_population(self, pop_name, pop_params):
-        # Get the gids and locations for the population from the layer object.
-        layer = self.layers[pop_params['layer']]
-        return Population(pop_name, layer, pop_params)
+    def build_population_recorders(self, population_recorders_params):
+        """Return population recorders specified by a list of recorder params.
+        Arguments:
+            population_recorders_params (list): Content of the
+                ``population_recorders`` network parameter. A list of items
+                describing the population recorders to be created and connected
+                to the network. Each item must be a ``dict`` of the following
+                form::
+                    dict: {
+                        'model' : <model>,
+                        'layers': <layers_list>,
+                        'populations': <populations_list>,
+                    }
+                Where:
+                    - <model> is the model of a recorder.
+                    - <layers_list> is None or a list of layer names. If
+                      ``None``, all the layers in the network are considered.
+                    - <populations_list> is None or a list of populations. If
+                      ``None``, all the populations in each layer of interest
+                      are considered. For ``InputLayer`` layers, only the
+                      population of parrot neurons can be recorded.
+                For each item in the list, a recorder of ``model`` will be
+                created and connected to the population(s) of interest of each
+                layer(s) of interest.
+        Returns:
+            list: List of ``PopulationRecorder`` objects.
+        """
+        population_recorders = []
+        # Iterate on layers x population for each item in list
+        for item in population_recorders_params:
+            model = item['model']
+            layer_names = item['layers']
+            # Use all layers if <layers> is None
+            if layer_names is None:
+                layer_names = self.layers.keys()
+            for layer_name in layer_names:
+                layer = self.layers[layer_name]
+                population_names = item['populations']
+                # Use all recordable population in layer if <population> is None
+                if population_names is None:
+                    population_names = layer.population_names()
+                # Otherwise use only the populations specified if they exist in
+                # the layer
+                for population_name in [
+                    p for p in population_names
+                    if p in layer.population_names()
+                ]:
+                    # Build the population recorder object
+                    population_recorders.append(
+                        PopulationRecorder(
+                            model,
+                            layer=layer,
+                            population_name=population_name
+                        )
+                    )
+        return population_recorders
 
     def __repr__(self):
         return '{classname}({params})'.format(
@@ -140,31 +192,68 @@ class Network:
         ]
 
     def recorder_call(self, method_name, *args, recorder_class=None,
-                       recorder_type=None, **kwargs):
-        """Call a method on population and/or connection recorders.
+                      recorder_type=None, **kwargs):
+        """Call a method on all recorder objects
 
         Args:
-            method_name (str): Name of method of Recorder objects.
-            recorder_class (str or None): Class of recorders: "population",
-                "connection" or None. Passed to self.get_recorders()
-            recorder_type (str or None): Passed to self.get_recorders()
+            method_name (str): Name of method of recorder objects.
+            recorder_class, recorder_type (str or None): Passed to
+                self.get_recorders()
+            *args: Passed to method ``method_name``
+
+        Kwargs:
+            **kwargs: Passed to method ``method_name``
         """
         for recorder in self.get_recorders(
             recorder_class=recorder_class,
-            recorder_type=recorder_type):
+            recorder_type=recorder_type
+        ):
             method = getattr(recorder, method_name)
             method(*args, **kwargs)
 
     def get_recorders(self, recorder_class=None, recorder_type=None):
-        """Generator to get each pop and/or conn recorder of a certain type."""
-        assert recorder_class in ["population", "connection", None], \
-            "Unrecognized recorder class"
-        if recorder_class == 'population' or recorder_class is None:
-            for population in self.populations:
-                yield from population.get_recorders(recorder_type=recorder_type)
-        if recorder_class == 'connection' or recorder_class is None:
-            for connection in self.connections:
-                yield from connection.get_recorders(recorder_type=recorder_type)
+        """Yield all ``PopulationRecorder`` and ``ConnectionRecorder`` objects.
+
+        Args:
+            recorder_class (str or None): Class of queried recorders.
+                "PopulationRecorder", "ConnectionRecorder" or None.
+            recorder_type (str or None): Type of queried recorders.
+                'multimeter', 'spike_detector' or 'connection_recorder'
+        """
+        if recorder_type in ['multimeter', 'spike_detector']:
+            recorder_class = 'PopulationRecorder'
+        elif recorder_type in ['weight_recorder']:
+            recorder_class = 'ConnectionRecorder'
+        elif recorder_type is not None:
+            raise ValueError('Recorder type not recognized')
+        if recorder_class == 'PopulationRecorder' or recorder_class is None:
+            yield from self.get_population_recorders(
+                recorder_type=recorder_type
+            )
+        if recorder_class == 'ConnectionRecorder' or recorder_class is None:
+            yield from self.get_connection_recorders(
+                recorder_type=recorder_type
+            )
+
+    def get_population_recorders(self, recorder_type=None):
+        """Yield ``PopulationRecorder`` objects of type ``recorder_type``."""
+        if recorder_type not in [
+            "multimeter", "spike_detector", None
+        ]:
+            raise ValueError('Recorder type not recognized')
+        return iter([
+            poprec for poprec in self.population_recorders
+            if recorder_type is None or poprec.type == recorder_type
+        ])
+
+    def get_connection_recorders(self, recorder_type=None):
+        """Yield ``ConnectionRecorder`` objects of type ``recorder_type``."""
+        if recorder_type not in [
+            "weight_recorder", None
+        ]:
+            raise ValueError('Unrecognized recorder type')
+        for connection in self.connections:
+            yield from connection.get_recorders(recorder_type=recorder_type)
 
     def _get_synapses(self, synapse_type=None):
         if synapse_type is None:
@@ -202,8 +291,8 @@ class Network:
         log.info('Connecting layers...')
         self._create_all(self.connections)
         self.print_network_size()
-        log.info('Creating recorders...')
-        self._create_all(self.populations)
+        log.info('Creating population recorders...')
+        self._create_all(self.population_recorders)
 
     def dump_connections(self, output_dir):
         for connection in tqdm(self.connections, desc='Dumping connections'):
