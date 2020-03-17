@@ -142,12 +142,12 @@ class Network:
                 population_names = item['populations']
                 # Use all recordable population in layer if <population> is None
                 if population_names is None:
-                    population_names = layer.population_names()
+                    population_names = layer.recordable_population_names()
                 # Otherwise use only the populations specified if they exist in
                 # the layer
                 for population_name in [
                     p for p in population_names
-                    if p in layer.population_names()
+                    if p in layer.recordable_population_names()
                 ]:
                     # Build the population recorder object
                     population_recorders.append(
