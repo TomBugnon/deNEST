@@ -131,7 +131,8 @@ class Network:
         Returns:
             list: List of ``PopulationRecorder`` objects.
         """
-        population_recorders = []
+        # Fill with (model, layer_name, population_name) tuples
+        population_recorders_args = []
         # Iterate on layers x population for each item in list
         for item in population_recorders_params:
             model = item['model']
@@ -151,15 +152,20 @@ class Network:
                     p for p in population_names
                     if p in layer.recordable_population_names()
                 ]:
-                    # Build the population recorder object
-                    population_recorders.append(
-                        PopulationRecorder(
-                            model,
-                            layer=layer,
-                            population_name=population_name
-                        )
+                    population_recorders_args.append(
+                        (model, layer_name, population_name)
                     )
-        return population_recorders
+
+        # Build the unique population recorder objects
+        return [
+            PopulationRecorder(
+                model,
+                layer=self.layers[layer_name],
+                population_name=population_name
+            )
+            for (model, layer_name, population_name)
+            in sorted(set(population_recorders_args))
+        ]
 
     def __repr__(self):
         return '{classname}({params})'.format(
