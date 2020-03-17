@@ -8,9 +8,7 @@ import itertools
 
 from tqdm import tqdm
 
-from .connections import (ConnectionModel, FromFileConnection,
-                          MultiSynapseConnection, RescaledConnection,
-                          TopoConnection)
+from .connections import (ConnectionModel, TopoConnection)
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
 from .recorders import PopulationRecorder
@@ -25,8 +23,6 @@ LAYER_TYPES = {
 
 CONNECTION_TYPES = {
     'topological': TopoConnection,
-    'rescaled': RescaledConnection,
-    'from_file': FromFileConnection,
 }
 
 

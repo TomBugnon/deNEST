@@ -11,27 +11,19 @@ from collections import ChainMap
 from copy import deepcopy
 from os.path import join
 
-from tqdm import tqdm
-
-from . import topology
 from .. import save
-from .layers import InputLayer
 from .nest_object import NestObject
 from .recorders import ConnectionRecorder
 from .utils import if_not_created
 
-
 # List of Connection and ConnectionModel parameters (and their default values
 # that shouldn't be considered as 'nest_parameters'
 NON_NEST_CONNECTION_PARAMS = {
-    'type': 'topological',  # 'Topological', 'Rescaled' or 'FromFile', or 'multisyn'
-    'source_dir': None,  # Where to find the data for 'FromFile' and 'Rescaled' conns.
+    'type': 'topological',  # 'Topological'
     'dump_connection': False,
     'plot_connection': False,
     'recorders': {},
     'synapse_label': None,  # (int or None). Only for *_lbl synapse models
-    'query_synapse_label': None,  # Used in MultiSynapseConnection only
-    'make_symmetric_multisynapse': False,  # Used in MultiSynapseConnection only
     'save': [],
 }
 
@@ -59,9 +51,7 @@ class ConnectionModel(NestObject):
         super().__init__(name, params)
         self.nest_params = nest_params
         # Check that the connection types are recognized and nothing is missing.
-        assert self.type in ['topological', 'rescaled', 'from_file']
-        assert self.type != 'rescaled' or self.source_dir is not None
-        assert self.type != 'from_file' or self.source_dir is not None
+        assert self.type in ['topological']
 
     @property
     def type(self):
@@ -182,11 +172,11 @@ class BaseConnection(NestObject):
         self.driver_layer = self.source
         self.driver_population = self.source_population
         ##
-        # Synapse model is retrieved either from nest_params or UnitConns.
+        # Synapse model is retrieved from nest_params
         # The synapse model used in NEST might have a different name since we
         # need to change the default parameters of a synapse to specify the
         # weight recorder
-        self._synapse_model = None
+        self._synapse_model = self.nest_params['synapse_model']
         self._nest_synapse_model = None
         ##
         # Synapse label is set in the defaults of the nest synapse model in
@@ -263,11 +253,6 @@ class BaseConnection(NestObject):
             2- create nest_synapse_model
             3- connect
         """
-        # Get the UnitConns (does nothing for topological conns)
-        self.get_connections()
-        # Get the base synapse model from the list of UnitConns or the
-        # nest_params
-        self.get_synapse_model()
         # Create recorder objects
         self.create_recorders()
         # Get the NEST synapse model (different from synapse model if we record
@@ -278,29 +263,6 @@ class BaseConnection(NestObject):
         self.update_nest_params()
         # Actually create the connections in NEST
         self._connect()
-
-    def get_connections(self):
-        """Get the UnitConns from file (for Rescaled and FromFile conns."""
-        pass
-
-    def get_synapse_model(self):
-        """Get synapse model either from nest params or conns list."""
-        # Nasty hack to access the synapse model for FromFileConnections
-        synapse_model = None
-        try:
-            synapse_model = self.nest_params['synapse_model']
-        except (AttributeError, KeyError):
-            # Get the synapse model of any UnitConn.
-            for conn in self.conns.values():
-                if conn:
-                    synapse_model = conn[0].params['synapse_model']
-                    break
-        if synapse_model is None:
-            #TODO
-            import warnings
-            warnings.warn('Could not determine synapse model since there was'
-                            ' no dumped connection')
-        self._synapse_model = synapse_model
 
     def create_recorders(self):
         """Create and connect the connection recorders."""
@@ -394,45 +356,6 @@ class BaseConnection(NestObject):
                   'model': self.nest_synapse_model}
         return sources, targets, params
 
-    # Connection loading from file
-
-    def load_conns(self):
-        """Return a dictionary of model connections. Keys are driver gids.
-
-        The returned dictionary is of the form::
-            {
-                <driver_gid>: <UnitConn_list>
-            }
-        Where <UnitConn_list> is a list of UnitConn single connections for the
-        considered driver unit.
-
-        NB: By default (ie, if the connection is not topological) the driver
-        layer is considered to be the source.
-        """
-        conns = {}
-        with open(join(self.model.source_dir, self.__str__), 'r') as f:
-            reader = csv.reader(f, delimiter='\t')
-            for line in reader:
-                params = self.format_dumped_line(line)
-                unitconn = UnitConn(params['synapse_model'], params)
-                driver_gid = unitconn.params[self.driver]
-                conns[driver_gid] = (conns.get(driver_gid, []) + [unitconn])
-        # Return a connection list (possibly empty) for each driver gid
-        import warnings
-        warnings.warn('Double check the synapse models vs nest_synapse_model')
-        return {driver: conns.get(driver, [])
-                for driver in self.driver_gids()}
-
-    @staticmethod
-    def format_dumped_line(line):
-        return {
-            'source': int(line[0]),
-            'target': int(line[1]),
-            'synapse_model': str(line[2]),
-            'weight': float(line[3]),
-            'delay': float(line[4])
-        }
-
     # Connection dumping  to file
 
     def dump(self, output_dir):
@@ -498,7 +421,7 @@ class BaseConnection(NestObject):
         fig, ax = plt.subplots()  # pylint:disable=invalid-name
         tp.PlotLayer(self.target.gid, fig)
         ctr = self.source.find_center_element(population=self.source_population)
-        # Plot the kernel and mask if the connection is topological or rescaled.
+        # Plot the kernel and mask if the connection is topological
         try:
             tp.PlotKernel(ax, ctr,
                           self.nest_params['mask'],
@@ -602,94 +525,3 @@ class TopoConnection(BaseConnection):
 
     def _connect(self):
         self.source.connect(self.target, self.nest_params)
-
-
-class RescaledConnection(TopoConnection):
-    """Represent a rescaled topological connection from a dump."""
-
-    # pylint:disable=too-many-instance-attributes
-
-    def __init__(self, source, target, model, conn_dict):
-        super().__init__(source, target, model, conn_dict)
-        if self.nest_params['connection_type'] == 'convergent':
-            self.pool = 'source'
-            self.pool_layer = self.source
-            self.pool_population = self.source_population
-            self.driver = 'target'
-            self.driver_layer = self.target
-            self.driver_population = self.target_population
-        elif self.nest_params['connection_type'] == 'divergent':
-            self.pool = 'target'
-            self.pool_layer = self.target
-            self.pool_population = self.target_population
-            self.driver = 'source'
-            self.driver_layer = self.source
-            self.driver_population = self.source_population
-        # Both are dictionaries: {'driver_gid': [UnitConn, ...]}
-        self.model_conns = None
-        self.conns = None
-        # TODO: same for InputLayer connections. ( or !just.don't.care!)
-        if isinstance(self.source, InputLayer):
-            raise NotImplementedError
-
-    # Creation functions not inherited from BaseConnection
-
-    def get_connections(self):
-        # Load and rescale connections
-        self.model_conns = self.load_conns()
-        self.conns = self.redraw_conns()
-
-    def redraw_conns(self):
-        """Redraw pool gids according to topological parameters."""
-        # TODO: Use simulation `parallel` parameter
-        PARALLEL = True  # pylint: disable=invalid-name,
-        drivers = self.driver_gids()
-        # Draw the model's number of pooled gids for each driving unit
-        if PARALLEL:
-            from joblib import Parallel, delayed
-            print('Rescaling ', self.__str__)
-            arg_list = [(driver, len(self.model_conns[driver]))
-                        for driver in drivers]
-            all_pool_gids = Parallel(n_jobs=8, verbose=1)(
-                delayed(self.draw_pool_gids)(*args) for args in arg_list
-            )
-        else:
-            all_pool_gids = [
-                self.draw_pool_gids(driver, N=len(self.model_conns[driver]))
-                for driver in tqdm(drivers, desc=('Rescaling ' + self.__str__))
-            ]
-        # Copy the model connection list
-        conns = deepcopy(self.model_conns)
-        # Replace the model gids by the drawn gids in each UnitConn
-        for driver, pool_gids in zip(drivers, all_pool_gids):
-            for i, unitconn in enumerate(conns[driver]):
-                unitconn.params[self.pool] = pool_gids[i]
-                # TODO: Redraw delays and weights if they have a spatial
-                # profile?
-        return conns
-
-    def draw_pool_gids(self, driver_gid, N=1):  # pylint:disable=invalid-name
-        return topology.draw_pool_gids(self, driver_gid, N=N)
-
-
-class UnitConn(NestObject):
-    """Represent a single connection between two neurons."""
-
-    # pylint:disable=too-few-public-methods
-
-    def __init__(self, name, params):
-        super().__init__(name, params)
-        self._synapse_model = None
-        # TODO Check that we use the nest_synapse_model and not synapse_model
-        self._nest_synapse_model = None
-        self._weight = None
-        self._delay = None
-        self._source = None
-        self._target = None
-
-    def sort_key(self):
-        return (self.synapse_model, self.source, self.target, self.weight,
-                self.delay)
-
-    def __lt__(self, other):
-        return self.sort_key() < other.sort_key()

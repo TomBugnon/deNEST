@@ -75,18 +75,6 @@ Under the hood, NETS instantiates classes that represent specific aspects of the
     - _topological connections_: Connections to be created by
       `nest.topology.Connect()`. Topological connections are defined amongst
       populations.
-    - _connections from file_: Connections between individual units loaded from a
-      dump from a previous simulation. Arbitrary unit-to-unit connections can be
-      created and handled with this type of connection.
-    - _rescaled (topological) connections_: "Rescaled" topological connections
-      from a dump from a previous simulation. This allows one to change the
-      spatial profile of topological connections between two networks while
-      keeping the same number of outgoing connections per node.
-    - _multisynapse connections_: TODO document. implements the workaround
-        at https://github.com/nest/nest-simulator/issues/904
-      This connection type allows the creation of multiple connections between
-      the same couples of units, eg to create connections with multiple receptor
-      types.
   - Connection models are specified in the `network/connection_model` parameter
     subtree.
 
@@ -430,11 +418,8 @@ defined in the final parameter tree.
   - `connection_models` (subtree): Defines the connection models. Each leaf is a
     connection model. All parameters are interpreted as "NEST parameters" and
     passed to NEST __except the following parameters__:
-    - `type` (str). Type of the connection. Recognized types are 'topological',
-      'from_file', 'rescaled'. (default `'topological'`).
-    - `source_dir` (str). Path to the directory containing the previously dumped
-      connections. Used (and mandatory) only if the connection is of type
-      'from_file' or 'rescaled'. (default `None`)
+    - `type` (str). Type of the connection. Only 'topological' connections are
+      recognized (default `'topological'`).
     - `dump_connection` (bool): Whether connections of that connection model
       should be dumped during a `Simulation.dump_connections()` call. (default
       `False`)
@@ -443,10 +428,7 @@ defined in the final parameter tree.
       `True`)
     - All other parameters (`kernel`, `mask`, `weights`...) define the
       topological connections and will be passed to
-      nest.topology.ConnectLayers() without modification. These
-      parameters are ignored in the case of connections 'from_file', and
-      interpreted similarly in 'rescaled connections' as in topological
-      connections.
+      nest.topology.ConnectLayers() without modification.
   - `topology` (leaf): Should contain a `connections` parameter consisting in a
     list of dictionary describing population(/layer)-to-population(/layer)
     connections. Each item specifies a list of source layers and target layers.
