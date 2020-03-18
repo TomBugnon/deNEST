@@ -23,7 +23,6 @@ NON_NEST_CONNECTION_PARAMS = {
     'dump_connection': False,
     'plot_connection': False,
     'recorders': {},
-    'synapse_label': None,  # (int or None). Only for *_lbl synapse models
     'save': [],
 }
 
@@ -174,11 +173,6 @@ class BaseConnection(NestObject):
         # weight recorder
         self._synapse_model = self.nest_params['synapse_model']
         self._nest_synapse_model = None
-        ##
-        # Synapse label is set in the defaults of the nest synapse model in
-        # `create_nest_synapse_model` and can be used to query effectively the
-        # connections of a certain preojection.
-        self._synapse_label = None
         # Initialize the recorders
         self.recorders = [
             ConnectionRecorder(recorder_name, recorder_params)
@@ -272,17 +266,16 @@ class BaseConnection(NestObject):
     def create_nest_synapse_model(self):
         """Create a new synapse model for the specific connection.
 
-        We can change the defaults of the new `nest_synapse_model` to either:
-        - send spikes to the recorder
-        - set a label for that synapse for easy later query.
+        We can change the defaults of the new `nest_synapse_model` to either
+         send spikes to the recorder
         """
         import nest
         # By default `nest_synapse_model` is just `synapse_model`
         self._nest_synapse_model = self.synapse_model
-        if not self.recorders and self.params['synapse_label'] is None:
+        if not self.recorders:
             return
-        # If we either want to set a label, or record the synapse, we create a
-        # new model and change its default params accordingly
+        # If we want to record the synapse, we create a new model and change its
+        # default params accordingly
         self._nest_synapse_model = self.nest_synapse_model_name()
         nest.CopyModel(self.synapse_model, self._nest_synapse_model)
         # Set the recorder
@@ -293,21 +286,6 @@ class BaseConnection(NestObject):
                              {
                                  recorder.type: recorder.gid[0]
                              })
-        # Set the synapse label
-        synapse_label = self.params['synapse_label']
-        if synapse_label is not None:
-            assert type(self.params['synapse_label']) == int
-            assert 'synapse_model' in nest.GetDefaults(self._nest_synapse_model)
-            assert 'synapse_label' in nest.GetDefaults(self._nest_synapse_model), \
-                    (f'\nConnection: {self.name}: \n'
-                     'Attempting to set synapse label on a nest synapse model'
-                     ' that does not support labels. Use a *_lbl synapse model'
-                     ' (eg static_synapse_lbl)')
-            nest.SetDefaults(self._nest_synapse_model,
-                             {
-                                 'synapse_label': self.params['synapse_label']
-                             })
-            self._synapse_label = synapse_label
 
     def nest_synapse_model_name(self):
         return f"{self.synapse_model}-{self.__str__}"
