@@ -123,7 +123,7 @@ class Network:
         Returns:
             list: List of ``PopulationRecorder`` objects.
         """
-        # Fill with (model, layer_name, population_name) tuples
+        # Get all (model, layer_name, population_name) tuples
         population_recorders_args = []
         # Iterate on layers x population for each item in list
         for item in population_recorders_params:
