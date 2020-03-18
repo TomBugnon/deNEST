@@ -193,7 +193,7 @@ class BaseConnection(NestObject):
         self.nest_params['synapse_model'] = self._nest_synapse_model
 
     def nest_synapse_model_name(self):
-        return f"{self.synapse_model}-{self.__str__}"
+        return f"{self._base_synapse_model}-{self.__str__()}"
 
     # Connection dumping  to file
 
