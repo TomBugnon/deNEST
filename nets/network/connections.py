@@ -195,19 +195,15 @@ class BaseConnection(NestObject):
     def plot_connection(self):
         return self.params['plot_connection']
 
-    @property
     def __str__(self):
-        return '-'.join(self.sort_key)
-
-    @property
-    def sort_key(self):
-        # Mapping for sorting
-        return (self.name,
-                self.source.name, str(self.source_population),
-                self.target.name, str(self.target_population))
+        return '-'.join([
+            self.name,
+            self.source.name, str(self.source_population),
+            self.target.name, str(self.target_population),
+        ])
 
     def __lt__(self, other):
-        return self.sort_key < other.sort_key
+        return self.__str__() < other.__str__()
 
     def source_gids(self):
         return self.source.gids(population=self.source_population)
