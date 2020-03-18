@@ -11,7 +11,7 @@ from tqdm import tqdm
 from .connections import (ConnectionModel, TopoConnection)
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
-from .recorders import PopulationRecorder
+from .recorders import PopulationRecorder, ConnectionRecorder
 from .utils import if_not_created, log
 
 # pylint: disable=too-few-public-methods
@@ -58,6 +58,10 @@ class Network:
         # Initialize population recorders
         self.population_recorders = self.build_population_recorders(
             self.params.c['recorders']['population_recorders']
+        )
+        # Initialize connection recorders
+        self.connection_recorders = self.build_connection_recorders(
+            self.params.c['recorders']['connection_recorders']
         )
 
     @staticmethod
@@ -165,6 +169,92 @@ class Network:
             )
 
         return sorted(set(connection_args))
+
+    def build_connection_recorders(self, connection_recorders_params):
+        """Return connection recorders specified by a list of recorder params.
+
+        ConnectionRecorders must be built after Connections.
+
+        Arguments:
+            connection_recorders_params (list): Content of the
+                ``connection_recorders`` network/recorders parameter. A list of
+                items describing the connection recorders to be created. Each
+                item must be a ``dict`` of the following form::
+                    dict: {
+                        'model': <recorder_model>
+                        'connection_model' : <connection_model>,
+                        'source_layers': <source_layers_list>,
+                        'source_population': <source_population>,
+                        'target_layers': <target_layers_list>,
+                        'target_population': <target_population>,
+                    }
+                Where <model> is the name of the connection recorder model (eg
+                'weight_recorder'). The other keys fully specify the list of
+                population-to-population connections of a certain model that
+                a connection recorder is created for. Refer to
+                `Network.build_connections` for a full description of how
+                the <connection_model>, <source_layers>, <source_population>, 
+                <target_layers>, <target_population> keys are interpreted.
+
+        Returns:
+            list: List of ``ConnectionRecorder`` objects.
+        """
+        # Get all unique ``(model, connection_model, source_layer,
+        # source_population, target_layer, target_population)`` tuples
+        conn_recorder_args = []
+        for item in connection_recorders_params:
+            model = item.pop('model')
+            conn_recorder_args += [
+                (model,) + conn_args
+                for conn_args in self.parse_connection_params([item])
+            ]
+        conn_recorder_args = sorted(conn_recorder_args)
+
+        # Check that there are no duplicates.
+        if not len(set(conn_recorder_args)) == len(conn_recorder_args):
+            raise ValueError(
+                """Duplicate connection recorders specified by
+                ``connection_recorders`` network/recorders parameter.
+                (<recorder_model>, <connection_model_name>, <source_layer_name>,
+                <source_population_name>, <target_layer_name>,
+                <target_population_name>) tuples should uniquely specify
+                connections and connection recorders."""
+            )
+        
+        connection_recorders = []
+        for (
+            model, conn_model, src_layer, src_pop, tgt_layer, tgt_pop
+        ) in conn_recorder_args:
+
+            matching_connections = [
+                c for c in self.connections
+                if (c.model.name == conn_model
+                    and c.source.name == src_layer
+                    and c.source_population == src_pop
+                    and c.target.name == tgt_layer
+                    and c.target_population == tgt_pop)
+            ]
+
+            # Check that all the connections exist in the network
+            if not any(matching_connections):
+                raise ValueError(
+                    f"Could not create connection recorder {model} for"
+                    f" connection `{conn_model}, {src_layer}, {src_pop},"
+                    f" {tgt_layer}, {tgt_pop}`: Connection does not exist in "
+                    f"the network."
+                )
+            # Check (again) that connections are unique
+            if len(matching_connections) > 1:
+                raise ValueError("Multiple identical connections")
+
+            connection = matching_connections[0]
+            # Create connection recorder
+            connection_recorders.append(
+                ConnectionRecorder(model, connection)
+            )
+
+        return connection_recorders
+
 
     def build_population_recorders(self, population_recorders_params):
         """Return population recorders specified by a list of recorder params.

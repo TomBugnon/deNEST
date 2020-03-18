@@ -283,12 +283,10 @@ class PopulationRecorder(BaseRecorder):
 
 
 class ConnectionRecorder(BaseRecorder):
-    """Represent a weight_recorder node. Connects to synapses.
+    """Represents a weight_recorder node. Connects to synapses.
 
-    ConnectionRecorders are connected to synapses of at most one `Connection()`
-    object (that is, population-to-population projection of a certain synapse
-    type)
-    Handles connecting the weight_recorder node to the synapses.
+    ConnectionRecorders are connected to synapses of a single
+    population-to-population ``Connection`` object.
     """
 
     # pylint:disable=too-many-instance-attributes
