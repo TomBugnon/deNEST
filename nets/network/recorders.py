@@ -283,100 +283,72 @@ class PopulationRecorder(BaseRecorder):
 
 
 class ConnectionRecorder(BaseRecorder):
-    """Represents a weight_recorder node. Connects to synapses.
+    """Represents a recorder connected to synapses of a ``Connection``.
 
     ConnectionRecorders are connected to synapses of a single
     population-to-population ``Connection`` object.
+    
+    Args:
+        model (str): Model of the connection recorder (eg 'weight_recorder')
+        connection (``Connection``): ``Connection`` object the recorder is
+            connected to.
     """
 
     # pylint:disable=too-many-instance-attributes
+    CONNECTION_RECORDER_TYPES = ['weight_recorder']
 
-    def __init__(self, name, params):
-        # params in self.params, nest_params in self.nest_params
-        super().__init__(name, params)
-        # Attributes below are necessary for connecting and saving and are
-        # passed by the # Connection object during `create()` call
-        self._connection_name = None
-        self._src_layer_name = None
-        self._src_population_name = None
-        self._src_gids = None
-        self._tgt_layer_name = None
-        self._tgt_population_name = None
-        self._tgt_gids = None
-        ##
-        self._type = None  # 'weight_recorder'
-        if self.name in ['weight_recorder']:
-            self._type = self.name
-        else:
-            # TODO: access somehow the base nest model from which the recorder
-            # model inherits.
-            raise Exception('The weight recorder type is not recognized.')
-        # Attributes below may depend on NEST default and recorder models and
-        # are updated after creation
-        self._withport = None
-        self._withrport = None
-        self._withtargetgid = None
-        self._withweight = None
+    def __init__(self, model, connection):
+        super().__init__(model, {})
+        self._model = model
+        self._connection = connection
+        self._connection_name = str(connection)
+        # "type" or ConnectionRecorder ("weight_recorder")
+        self._type = None 
+        for type in self.CONNECTION_RECORDER_TYPES:
+            if type in self._model:
+                self._type = type
+        if self._type is None:
+            raise ValueError(
+                f'The type of ConnectionRecorder {model} is not recognized.'
+                f' Supported types: {self.CONNECTION_RECORDER_TYPES}.'
+            )
 
     @if_not_created
-    def create(self, conn_parameters):
-        """Get the Connection necessary attributes and create node.
+    def create(self):
+        """Create the ConnectionRecorder and update Connection object.
 
-        The synapses from the specific connection will send spikes to this
-        specific weight_recorder by defining a different "nest_synapse_model"
-        with the GID of this recorder as parameter."""
+        The synapse model of the Connection object is modified so that it sends
+        spikes to the ConnectionRecorder object
+        """
         import nest
-        # Get population and layer-wide attributes
-        self._connection_name = conn_parameters['connection_name']
-        self._src_layer_name = conn_parameters['src_layer_name']
-        self._src_population_name = conn_parameters['src_population_name']
-        self._src_gids = conn_parameters['src_gids']
-        self._tgt_layer_name = conn_parameters['tgt_layer_name']
-        self._tgt_population_name = conn_parameters['tgt_population_name']
-        self._tgt_gids = conn_parameters['tgt_gids']
-        # Update the parameters Create node
-        self._gid = nest.Create(self.name, params=self.nest_params)
-        # Get node parameters from nest (depends on nest defaults and recorder
-        # models)
+        # Create recorder node
+        self._gid = nest.Create(self._model)
+        # Update the Connection object so that it connects to the
+        # ConnectionRecorder
+        self._connection.connect_connection_recorder(
+            recorder_type=self._type,
+            recorder_gid=self._gid[0],
+        )
+        # Update attributes with nest.GetStatus calls
+        # TODO: Update other attributes?
         self._record_to = nest.GetStatus(self.gid, 'record_to')[0]
-        self._withtime = nest.GetStatus(self.gid, 'withtime')[0]
-        self._withport = nest.GetStatus(self.gid, 'withport')[0]
-        self._withrport = nest.GetStatus(self.gid, 'withrport')[0]
-        self._withtargetgid = nest.GetStatus(self.gid, 'withtargetgid')[0]
-        self._withweight = nest.GetStatus(self.gid, 'withweight')[0]
-        # Set the label (defines the filenames)
+        # Set the label (Makes the raw data filenames human-readable)
         self.set_label()
         self._filenames = self.raw_data_filenames()
+        self._colnames = self.raw_data_colnames()
 
     def __str__(self):
-        return self.type + '_' + self._connection_name
+        return self._model + '_' + str(self._connection)
 
     def get_connection_recorder_metadata_dict(self):
         metadata_dict = self.get_base_metadata_dict()
         # TODO save source and target populations' location-by-gid?
         metadata_dict.update({
             'connection_name': self._connection_name,
-            'src_layer_name': self._src_layer_name,
-            'src_population_name': self._src_population_name,
-            'src_gids': self._src_gids,
-            'tgt_layer_name': self._tgt_layer_name,
-            'tgt_population_name': self._tgt_population_name,
-            'tgt_gids': self._tgt_gids,
-            'record_to': self._record_to,
-            'withtime': self._withtime,
-            'withport': self._withport,
-            'withrport': self._withrport,
-            'withtargetgid': self._withtargetgid,
-            'withweight': self._withweight,
         })
         return metadata_dict
 
     def raw_data_colnames(self):
-        # TODO: Make sure this is necessary or find a workaround?
-        # TODO: check the parameters at creation rather than here
-        # assert not nest.GetStatus(self.gid, 'withport')[0]
-        # assert not nest.GetStatus(self.gid, 'withrport')[0]
-        # assert nest.GetStatus(self.gid, 'withtime')[0]
         if self._type == 'weight_recorder':
             # TODO
             return None

@@ -414,7 +414,7 @@ class Network:
             "weight_recorder", None
         ]:
             raise ValueError('Unrecognized recorder type')
-        yield from []
+        yield from self.connection_recorders
 
     def _get_synapses(self, synapse_type=None):
         if synapse_type is None:
@@ -449,11 +449,14 @@ class Network:
         self._create_all(self.recorder_models.values())
         log.info('Creating layers...')
         self._create_all(self._get_layers())
+        log.info('Creating population recorders...')
+        self._create_all(self.population_recorders)
+        log.info('Creating connection recorders...')
+        # ConnectionRecorders must be created BEFORE Connections
+        self._create_all(self.connection_recorders)
         log.info('Connecting layers...')
         self._create_all(self.connections)
         self.print_network_size()
-        log.info('Creating population recorders...')
-        self._create_all(self.population_recorders)
 
     def dump_connections(self, output_dir):
         for connection in tqdm(self.connections, desc='Dumping connections'):

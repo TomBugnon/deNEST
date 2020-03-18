@@ -172,25 +172,30 @@ class BaseConnection(NestObject):
         """Create the connections in NEST and the connection recorders."""
         pass
 
-    def create_nest_synapse_model(self, recorder_type=None, recorder_gid=None):
+    def connect_connection_recorder(self, recorder_type='weight_recorder',
+                                    recorder_gid=None):
         """Create and use new synapse model connected to a ConnectionRecorder.
 
         The new `nest_synapse_model` will be used during creation rather than
         the `base_synapse_model` specified in the nest parameters.
         """
         import nest
-        # If we want to record the synapse, we create a new model and change its
-        # default params so that it connects to the weight recorder
-        self._nest_synapse_model = self.nest_synapse_model_name()
-        nest.CopyModel(
-            self._base_synapse_model,
-            self._nest_synapse_model,
-            {
-                recorder_type: recorder_gid
-            }
-        )
-        # Connect using new synapse model
-        self.nest_params['synapse_model'] = self._nest_synapse_model
+        if recorder_type == 'weight_recorder':
+            # If we want to record the synapse, we create a new model and change its
+            # default params so that it connects to the weight recorder
+            self._nest_synapse_model = self.nest_synapse_model_name()
+            nest.CopyModel(
+                self._base_synapse_model,
+                self._nest_synapse_model,
+                {
+                    recorder_type: recorder_gid
+                }
+            )
+            # Connect using new synapse model
+            self.nest_params['synapse_model'] = self._nest_synapse_model
+        else:
+            raise ValueError(f"ConnectionRecorder type `{recorder_type}` not"
+                             "recognized")
 
     def nest_synapse_model_name(self):
         return f"{self._base_synapse_model}-{self.__str__()}"
