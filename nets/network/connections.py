@@ -62,33 +62,14 @@ class BaseConnection(NestObject):
     """Base class for all population-to-population connections.
 
     A Connection consists in synapses between two populations that have a
-    specific synapse model.
+    specific synapse model. Population-to-population connections are specified
+    in the ``connections`` network/topology parameter.
 
-    Population-to-population connections are described by a dictionnary of the
-    following form::
-    {
-        `source_layer`: 'source_layer',
-        `source_population`: 'source_population',
-        `target_layer`: 'target_layer',
-        `target_population`: 'target_population',
-        `connection_model`: 'connection_model'
-        `params`: 'non-nest-parameters',
-        `nest_params`: 'nest_params',
-    }
-
-    A Connection's `nest_params` and `params` are inherited and ChainMapped from
-    its ConnectionModel model.
-    The "non-nest" parameters (listed along with their default values in the
-    `NON_NEST_CONNECTION_PARAMS`) are popped off the `nest_params` parameters
-    at initialization and creation
-    Connections() inherit and possibly override their parameters (using a
-    ChainMap) from their respective ConnectionModel model. From their merged
-    connection dictionary, certain parameters are popped off and saved as
-    attributes. The remaining parameters are NEST parameters that are passed to
-    the kernel during a `Connect()` or `ConnectLayers()` call.
-    The parameters that shouldn't be considered as NEST parameters (and should
-    therefore be removed from the parameters during initialization or creation)
-    are listed in the global variable `NON_NEST_CONNECTION_PARAMS`.
+    ``(<connection_model_name>, <source_layer_name>, <source_population_name>,
+    <target_layer_name>, <target_population_name>)`` tuples fully specify each
+    individual connection and should be unique. Refer to
+    ``Network.build_connections`` for a description of how these arguments are
+    parsed.
 
     Connection weights can be recorded by 'weight_recorder' devices. Because
     the weight recorder device's GID must be specified in a synapse model's
@@ -113,7 +94,7 @@ class BaseConnection(NestObject):
     # pylint: disable=too-many-instance-attributes,too-many-public-methods
 
     def __init__(self, model, source_layer, source_population, target_layer,
-                 target_population, connection_dict):
+                 target_population):
         """Initialize Connection object from model and overrides.
 
         Initialize the self.params and self.nest_params attributes, and all the
@@ -127,38 +108,11 @@ class BaseConnection(NestObject):
                 source and target population. If None, all populations are used.
                 Wrapper for the `sources` and `targets` `nest.ConnectLayers`
                 parameters.
-            connection_dict (dict): Dictionary defining the connection. The
-                dictionary should have the form described in the class
-                docstring. In particular, it may contain the following keys:
-                    params (dict): "non-nest" parameter dictionary. Combined in
-                        a ChainMap with `model.params`. All recognized
-                        parameters are listed in global variable
-                        `NON_NEST_CONNECTION_PARAMS`.
-                    nest_params (dict): Parameters that may be passed to the
-                        NEST kernel. Combined in a ChainMap with
-                        model.nest_params. No parameter listed in global
-                        variable `NON_NEST_CONNECTION_PARAMS` should be present
-                        in this variable.
         """
         ##
-        # Check the params and nest_params dictionaries and ChainMap them with
-        # the ConnectionModel params and nest_params
-        params = connection_dict.get('params', {})
-        nest_params = connection_dict.get('nest_params', {})
-        assert all(
-            [key in NON_NEST_CONNECTION_PARAMS for key in params.keys()]
-            ), (
-                f'Unrecognized parameter in connection: {connection_dict}.'
-                f'\nRecognized parameters: {NON_NEST_CONNECTION_PARAMS.keys()}'
-            )
-        assert not any(
-            [key in NON_NEST_CONNECTION_PARAMS for key in nest_params.keys()]
-            ), (
-                f'Reserved nest parameter in connection: {connection_dict}'
-                f'\"Non-nest reserved parameters: {NON_NEST_CONNECTION_PARAMS.keys()}'
-            )
-        self.params = dict(ChainMap(params, model.params))
-        self.nest_params = dict(ChainMap(nest_params, model.nest_params))
+        # Inherit params and nest_params from connection model
+        self.params = dict(model.params)
+        self.nest_params = dict(model.nest_params)
         super().__init__(model.name, self.params)
         ##
         # Define the source and targets

@@ -10,10 +10,6 @@ network:
         #       All populations if no key of not __bool__
         # - 'source_population' (str or None):
         #       All populations if no key of not __bool__
-        # - 'nest_params' (Mapping or None):
-        #       Takes precedence on connection model if specified)
-        # - 'params' (Mapping or None):
-        #       Takes precedence on connection model if specified
 
 
         ### Source area: input area ###

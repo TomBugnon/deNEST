@@ -51,14 +51,10 @@ class Network:
         }
         self.connection_models = self.build_named_leaves_dict(
             ConnectionModel, self.params.c['connection_models'])
-        # Connections must be built last
-        conn_nested_list = [
-            self.build_connection(connection_item)
-            for connection_item in self.params.c['topology']['connections']
-        ]
-        self.connections = sorted([
-            conn for sublist in conn_nested_list for conn in sublist
-        ]) # flatten nested list and sort
+        # Connections must be built after layers and connection models
+        self.connections = self.build_connections(
+            self.params.c['topology']['connections']
+        )
         # Initialize population recorders
         self.population_recorders = self.build_population_recorders(
             self.params.c['recorders']['population_recorders']
@@ -75,34 +71,110 @@ class Network:
     def build_named_leaves_list(constructor, node):
         return [constructor(name, leaf) for name, leaf in node.named_leaves()]
 
-    def build_connection(self, connection_dict):
-        """Return list of connections for source x target layer combinations."""
-        source_layers = [self.layers[layer]
-                         for layer in connection_dict['source_layers']]
-        target_layers = [self.layers[layer]
-                         for layer in connection_dict['target_layers']]
-        source_population = connection_dict.get('source_population', None)
-        target_population = connection_dict.get('target_population', None)
-        model = self.connection_models[connection_dict['connection_model']]
-        return [
-            CONNECTION_TYPES[model.type](
-                model,
-                source, source_population,
-                target, target_population,
-                connection_dict)
-            for source, target
-            in itertools.product(source_layers, target_layers)
-        ]
+    def build_connections(self, connections_params):
+        """Return ``Connection`` objects specified by ``connections`` params
+
+        Arguments:
+            connections_params (list): Content of the ``connections``
+                network/topology parameter. A list of items describing the
+                connections to be created. Each item must be a ``dict`` of the
+                following form::
+                    dict: {
+                        'connection_model' : <connection_model>,
+                        'source_layers': <source_layers_list>,
+                        'source_population': <source_population>,
+                        'target_layers': <target_layers_list>,
+                        'target_population': <target_population>,
+                    }
+                Where:
+                    - <connection_model> is the name of the connection model.
+                      Connection model are specified in the
+                      ``connection_models`` network parameter.
+                    - <source_layers_list>, <target_layers_list> are lists of
+                      source and target layer names. Connections are created for
+                      all source_layer x target layer combinations.
+                    - <source_population>, <target_population> are ``None`` or
+                      the name of source and target populations for the created
+                      connection. If ``None``, all populations in the source or
+                      target layer are connected.
+                The ``(<connection_model_name>, <source_layer_name>,
+                <source_population_name>, <target_layer_name>,
+                <target_population_name>)`` tuples fully specify each individual
+                connection and should be unique.
+
+        Returns:
+            list: List of ``Connection`` objects specifying all the connections
+                in the network.
+        """
+        # Get all unique ``(connection_model, source_layer, source_population,
+        # target_layer, target_population)`` tuples
+        connection_args = self.parse_connection_params(connections_params)
+        # Build Connection objects
+        connections = []
+        for (conn_model, src_lyr, src_pop, tgt_lyr, tgt_pop) in connection_args:
+            model = self.connection_models[conn_model]
+            source = self.layers[src_lyr]
+            target = self.layers[tgt_lyr]
+            connections.append(
+                CONNECTION_TYPES[model.type](
+                    model,
+                    source, src_pop,
+                    target, tgt_pop
+                )
+            )
+        return connections
+
+    def parse_connection_params(self, connection_params):
+        """Return list of tuples specifying all unique connections
+
+        Args:
+            connection_params: Content of the ``connections``
+                network/topology parameter. See ``self.build_connections`` for
+                detailed description.
+
+        Return:
+            list: List of unique (<connection_model_name>, <source_layer_name>,
+                <source_population_name>, <target_layer_name>,
+                <target_population_name>) tuples specifying all connections in
+                the network.
+        """
+        connection_args = []
+        for connection_item in connection_params:
+            for source_layer_name, target_layer_name in itertools.product(
+                connection_item['source_layers'],
+                connection_item['target_layers']
+            ):
+                connection_args.append(
+                    (
+                        connection_item['connection_model'],
+                        source_layer_name,
+                        connection_item['source_population'],
+                        target_layer_name,
+                        connection_item['target_population'],
+                    )
+                )
+
+        # Check that there are no duplicates.
+        if not len(set(connection_args)) == len(connection_args):
+            raise ValueError(
+                """Duplicate connections specified by `connections` network
+                parameters. (<connection_model_name>, <source_layer_name>,
+                <source_population_name>, <target_layer_name>,
+                <target_population_name>) tuples should uniquely specify
+                connections."""
+            )
+
+        return sorted(set(connection_args))
 
     def build_population_recorders(self, population_recorders_params):
         """Return population recorders specified by a list of recorder params.
 
         Arguments:
             population_recorders_params (list): Content of the
-                ``population_recorders`` network parameter. A list of items
-                describing the population recorders to be created and connected
-                to the network. Each item must be a ``dict`` of the following
-                form::
+                ``population_recorders`` network/recorders parameter. A list of
+                items describing the population recorders to be created and
+                connected to the network. Each item must be a ``dict`` of the
+                following form::
                     dict: {
                         'model' : <model>,
                         'layers': <layers_list>,
