@@ -83,7 +83,7 @@ class Network:
                          for layer in connection_dict['target_layers']]
         source_population = connection_dict.get('source_population', None)
         target_population = connection_dict.get('target_population', None)
-        model = self.connection_models[connection_dict['connection']]
+        model = self.connection_models[connection_dict['connection_model']]
         return [
             CONNECTION_TYPES[model.type](
                 model,

@@ -23,18 +23,18 @@ network:
           source_population: parrot_neuron
           target_layers: [l1, ]
           target_population: l1_exc
-          connection: input_connection_AMPA
+          connection_model: input_connection_AMPA
         # Inhibitory on l1 inh, AMPA and NMDA
         - source_layers: [input_layer]
           source_population: parrot_neuron
           target_layers: [l1]
           target_population: l1_inh
-          connection: input_connection_AMPA
+          connection_model: input_connection_AMPA
         - source_layers: [input_layer]
           source_population: parrot_neuron
           target_layers: [l1]
           target_population: l1_inh
-          connection: input_connection_NMDA
+          connection_model: input_connection_NMDA
 
         ### Source area: l1 ###
 
@@ -43,12 +43,12 @@ network:
           source_population: l1_exc
           target_layers: [l1]
           target_population: l1_exc
-          connection: horizontal_exc
+          connection_model: horizontal_exc
         - source_layers: [l1]
           source_population: l1_exc
           target_layers: [l1]
           target_population: l1_inh
-          connection: horizontal_exc
+          connection_model: horizontal_exc
 
 
         # l1 excitatory FF
@@ -56,9 +56,9 @@ network:
           source_population: l1_exc
           target_layers: [l2]
           target_population: l2_exc
-          connection: FF_exc
+          connection_model: FF_exc
         - source_layers: [l1]
           source_population: l1_exc
           target_layers: [l2]
           target_population: l2_inh
-          connection: FF_exc
+          connection_model: FF_exc

@@ -71,7 +71,7 @@ class BaseConnection(NestObject):
         `source_population`: 'source_population',
         `target_layer`: 'target_layer',
         `target_population`: 'target_population',
-        `model`: 'connection_model'
+        `connection_model`: 'connection_model'
         `params`: 'non-nest-parameters',
         `nest_params`: 'nest_params',
     }
