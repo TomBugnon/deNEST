@@ -24,9 +24,6 @@ network:
           target_layers: [l1, ]
           target_population: l1_exc
           connection: input_connection_AMPA
-          params:
-            recorders:
-              weight_recorder: {}
         # Inhibitory on l1 inh, AMPA and NMDA
         - source_layers: [input_layer]
           source_population: parrot_neuron

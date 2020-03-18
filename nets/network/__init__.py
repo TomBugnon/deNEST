@@ -81,9 +81,15 @@ class Network:
                          for layer in connection_dict['source_layers']]
         target_layers = [self.layers[layer]
                          for layer in connection_dict['target_layers']]
+        source_population = connection_dict.get('source_population', None)
+        target_population = connection_dict.get('target_population', None)
         model = self.connection_models[connection_dict['connection']]
         return [
-            CONNECTION_TYPES[model.type](source, target, model, connection_dict)
+            CONNECTION_TYPES[model.type](
+                model,
+                source, source_population,
+                target, target_population,
+                connection_dict)
             for source, target
             in itertools.product(source_layers, target_layers)
         ]
@@ -246,8 +252,7 @@ class Network:
             "weight_recorder", None
         ]:
             raise ValueError('Unrecognized recorder type')
-        for connection in self.connections:
-            yield from connection.get_recorders(recorder_type=recorder_type)
+        yield from []
 
     def _get_synapses(self, synapse_type=None):
         if synapse_type is None:
