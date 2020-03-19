@@ -66,6 +66,7 @@ class Network:
 
     @staticmethod
     def build_named_leaves_dict(constructor, node):
+        """Construct and return as dict all leaves of a tree."""
         return {
             name: constructor(name, leaf)
             for name, leaf in node.named_leaves()
@@ -73,6 +74,7 @@ class Network:
 
     @staticmethod
     def build_named_leaves_list(constructor, node):
+        """Construct and return as list all leaves of a tree."""
         return [constructor(name, leaf) for name, leaf in node.named_leaves()]
 
     def build_connections(self, connections_params):
@@ -334,7 +336,7 @@ class Network:
             obj.create()
 
     def _layer_call(self, method_name, *args, layer_type=None, **kwargs):
-        """Call a method on each input layer."""
+        """Call a method on each layer."""
         for layer in self._get_layers(layer_type=layer_type):
             method = getattr(layer, method_name)
             method(*args, **kwargs)
@@ -346,6 +348,7 @@ class Network:
             for layer in self._get_layers(layer_type=layer_type))
 
     def _get_layers(self, layer_type=None):
+        """Return all layers of a certain type ('Layer' or 'InputLayer')"""
         if layer_type is None:
             return sorted(self.layers.values())
         return [
@@ -417,6 +420,7 @@ class Network:
         yield from self.connection_recorders
 
     def _get_synapses(self, synapse_type=None):
+        """Return synapse models"""
         if synapse_type is None:
             return sorted(self.synapse_models.values())
         return [
@@ -499,7 +503,6 @@ class Network:
                         'population': <pop_name>,
                         'change_type': <change_type>,
                         'proportion': <prop>,
-                        'filter': <filter>,
                         'params': {<param_name>: <param_value>,
                                    ...}
                     }
@@ -522,23 +525,6 @@ class Network:
                     considered population on which the filter is applied. The
                     changes are applied on the units that are randomly selected
                     and passed the filter.
-                ``filter`` (default {}) is a dictionary defining the filter
-                    applied onto the proportion of randomly selected units of
-                    the population. The filter defines an interval for any unit
-                    parameter. A unit is selected if all its parameters are
-                    within their respectively defined interval. The parameter
-                    changes are applied only on the selected units.
-                    The ``filter`` dictionary is of the form:
-                        {
-                            <unit_param_name_1>:
-                                'min': <float_min>
-                                'max': <float_max>
-                            <unit_param_name_2>:
-                                ...
-                        }
-                    Where <float_min> and <float_max> define the (inclusive)
-                    min and max of the filtering interval for the considered
-                    parameter (default resp. -inf and +inf)
                 ``'params'`` (default {}) is the dictionary of parameter changes
                     applied to the selected units.
         """
@@ -565,13 +551,13 @@ class Network:
                     changes['params'],
                     population=changes.get('population', None),
                     proportion=changes.get('proportion', 1.),
-                    filter_dict=changes.get('filter', {}),
-                    change_type= changes.get('change_type', 'constant')
+                    change_type=changes.get('change_type', 'constant')
                 )
             print(f'\n')
 
     @staticmethod
     def reset():
+        """Call `nest.ResetNetwork()`"""
         import nest
         nest.ResetNetwork()
 
@@ -599,7 +585,7 @@ class Network:
         print('------------------------')
 
     def populations_by_gids(self, layer_type='Layer'):
-        """Return a dictionary of the form {'gid': (layer_name, pop_name)}."""
+        """Return a dict of the form ``{'gid': (layer_name, pop_name)}``."""
         all_pops = {}
         for layer in self._get_layers(layer_type=layer_type):
             all_pops.update({
