@@ -12,7 +12,6 @@ from .. import save
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
 
-POP_RECORDER_TYPES = ['multimeter', 'spike_detector']
 
 # Parameters that are recognized and not passed as NEST parameters. These
 # parameters are set in `populations.yml` rather than `recorders.yml`
@@ -20,27 +19,12 @@ NON_NEST_PARAMS = {}
 
 
 class BaseRecorder(NestObject):
-    """Base class for all recorder classes. Represent nodes (not models).
+    """Base class for all recorder classes. Represent nodes (not models)."""
 
-    NB: The recorder models are created separately !!! All the parameters
-    passed to these classes originate not from the `recorder` parameters
-    (`recorders.yml`) but from the population parameters !
-    IMPORTANT: The parameters from the recorder models ('recorders.yml') are set
-    as defaults of the NEST model, and the parameters of the instances of this
-    class overwrite those defaults at creation.
-
-    TODO: Don't create the recorder models separately so we can define
-    "non_nest" parameters in `recorder.yml`.
-    """
-    def __init__(self, name, all_params):
-        # Pop off the params that shouldn't be considered as NEST parameters
-        nest_params = deepcopy(dict(all_params))
-        params = {}
-        for non_nest_param, default in NON_NEST_PARAMS.items():
-            params[non_nest_param] = nest_params.pop(non_nest_param, default)
+    def __init__(self, model):
         # We now save the params and nest_params dictionaries as attributes
-        super().__init__(name, params)
-        self.nest_params = nest_params
+        super().__init__(model, {})
+        self._model = model
         self._type = None
         # Attributes below may depend on NEST default and recorder models and
         # are updated after creation
@@ -49,32 +33,40 @@ class BaseRecorder(NestObject):
         self._record_to = None  # eg ['memory', 'file']
         self._withtime = None
         self._label = None  # Only affects raw data filenames.
+    
+    @property
+    def model(self):
+        """Return NEST model of recorder node."""
+        return self._model
 
     @property
     @if_created
     def gid(self):
+        """Return gid of node as tuple."""
         return self._gid
 
     @property
     @if_created
     def variables(self):
+        """Return recorder's `record_from`. "spikes" for spike detectors."""
         return self._record_from
 
     @property
     def type(self):
+        """Return type of recorder ('spike_detector', 'multimeter', ...)
         return self._type
 
     def __str__(self):
         raise NotImplementedError
 
     def set_status(self, params):
-        """Call nest.SetStatus to set recorder params."""
+        """Call nest.SetStatus on node."""
         import nest
-        print(f'--> Setting status for recorder {self.name}: {params}')
+        print(f'--> Setting status for recorder {str(self)}: {params}')
         nest.SetStatus(self.gid, params)
 
     def set_label(self):
-        """Set self._label attribute and set nest parameter accordingly."""
+        """Set self._label and node's NEST ``label`` from self.__str__."""
         import nest
         self._label = self.__str__()
         # Don't use self.set_status to avoid verbose
@@ -82,13 +74,14 @@ class BaseRecorder(NestObject):
         nest.SetStatus(self.gid, {'label': self._label})
 
     def raw_data_colnames(self):
-        """Return list of labels for columns in raw data saved by NEST."""
+        """Return column names of raw data files for pandas loading."""
         raise NotImplementedError
 
     def raw_data_filenames(self):
-        """Return names of raw data files saved by NEST.
+        """Return filenames of raw data files saved by NEST.
 
-        From NEST documentation:
+        From NEST documentation::
+
             ```The name of the output file is
             `data_path/data_prefix(label|model_name)-gid-vp.file_extension`
 
@@ -98,15 +91,17 @@ class BaseRecorder(NestObject):
         NB: We don't use the recorder's `filenames` key, since it is created
         only after the first `Simulate` call.
 
-        NB: The label is set at creation.
-
         NB: There is one file per virtual process. The virtual processes are
         numeroted from 0 and formatted with the same number of digits as that of
         the number of virtual processes.
         """
         import nest
         # TODO: Deal with case where multimeter is only recorded to memory?
-        assert 'file' in self._record_to
+        if not 'file' in self._record_to:
+            raise ValueError(
+                f"Recorder {str(self)} was not saved to file. Please modify"
+                f" `record_to` recorder parameter"
+            )
         assert self._label is not None  # Check that the label has been set
         prefix = (nest.GetKernelStatus('data_prefix')
                   + self._label
@@ -123,7 +118,7 @@ class BaseRecorder(NestObject):
 
     @if_created
     def get_base_metadata_dict(self):
-        """Return dictionary containing metadata for all recorder types."""
+        """Return metadata dict common to all recorder types."""
         return {
             'type': self._type,
             'label': self._label,
@@ -139,9 +134,13 @@ class BaseRecorder(NestObject):
 class PopulationRecorder(BaseRecorder):
     """Represent a recorder node. Connects to a single population.
 
-    Handles connecting the recorder node to the population.
-    The recorder objects contains the population and layer specs necessary for
-    creating recorder output metadata (population shape, unit locations, etc).
+    Handles creating and connecting the recorder node to the recorder
+    population, and saving the recorder's output metadata, which contains
+    population and layer information (population shape, unit locations, etc).
+
+    PopulationRecorder objects are specified in the `population_recorders`
+    parameters at network/recorders. Recorder models can be specified separately
+    in the `recorder_models` parameters at network/recorders.
 
     Args:
         model (str): Model of recorder (eg 'multimeter')
@@ -149,7 +148,7 @@ class PopulationRecorder(BaseRecorder):
         population_name (str): Name of population to connect.
     """
 
-    # pylint: disable=too-many-instance-attributes
+    POP_RECORDER_TYPES = ['multimeter', 'spike_detector']
 
     def __init__(self, model, layer, population_name):
         """Initialize PopulationRecorder object."""
@@ -158,25 +157,43 @@ class PopulationRecorder(BaseRecorder):
         self._population_name = population_name  # Name of recorded population
         self._layer_name = self.layer.name  # Name of recorded pop's layer
         self._layer_shape = self.layer.shape  # (nrows, cols) for recorded pop
-        # TODO
-        self._units_number = None  # Number of nodes per grid position for pop
+        # TODO: unit_numbers as layer attribute
+        self._units_number = self.layer.populations[population_name]  # Number of nodes per grid position for pop
         # Attributes below are necessary for creating the output metadata file
         # and are defined during the `self.create()` call.
         self._gids = None  # all gids of recorded nodes
         self._locations = None  # location by gid for recorded nodes
-        ##
+        # We try to guess the recorder type ('spike_detector', 'multimeter')
+        # from its model name
         self._type = None  # 'spike detector' or 'multimeter'
-        if self.name in POP_RECORDER_TYPES:
-            self._type = self.name
-        else:
-            # We try to guess the recorder type from its name
-            self._type = self.guess_rec_type()
-            print(f'Guessing type for recorder `{self.name}`:'
-                  f' `{self._type}`')
+        for rec_type in self.POP_RECORDER_TYPES:
+            if rec_type in self.model:
+                self._type = rec_type
+                break
+        if self._type is None:
+            raise ValueError(
+                f"The type of recorder {self.model} couldn't be guessed."
+                f" Recognized types: {self.POP_RECORDER_TYPES}"
+            )
         # Attributes below may depend on NEST default and recorder models and
         # are updated after creation
         self._record_from = None  # list of variables for mm, or ['spikes']
         self._interval = None  # Sampling interval. Ignored for spike_detector.
+
+    def __str__(self):
+        return self.model + '_' + self._layer_name + '_' + self._population_name
+
+    @property
+    @if_created
+    def gids(self):
+        """Return list of GIDs of recorded units."""
+        return self._gids
+
+    @property
+    @if_created
+    def locations(self):
+        """Return ``{<gid>: (<row>, <col>, <unit_i>)}`` for recorded units."""
+        return self._locations
 
     @property
     def population_name(self):
@@ -188,28 +205,18 @@ class PopulationRecorder(BaseRecorder):
         """Return name of layer the recorder is connected to."""
         return self._layer_name
 
-    def guess_rec_type(self):
-        """Guess recorder type from recorder name."""
-        # TODO: add to doc
-        # TODO: access somehow the base nest model from which the recorder
-        # model inherits rather than guessing
-        for rec_type in POP_RECORDER_TYPES:
-            if rec_type in self.name:
-                return rec_type
-        raise Exception("The type of recorder {self.name} couldn't be guessed")
-
     @if_not_created
     def create(self):
         """Create the PopulationRecorder node
 
-        1. Create the recorder node in NEST
-        2. Obtain the PopulationRecorder's attributes values from the Layer
-            object and the node in NEST
-        3. Connect the node to the target GIDs.
+            1. Create the recorder node in NEST
+            2. Update PopulationRecorder's attributes from the Layer object and
+                the node in NEST
+            3. Connect the node to the target GIDs.
         """
         import nest
         # Create node
-        self._gid = nest.Create(self.name, params={})
+        self._gid = nest.Create(self.model, params={})
         # Save population and layer-wide attributes
         self._gids = self.layer.gids(population=self.population_name)
         self._locations = None  # TODO
@@ -232,20 +239,8 @@ class PopulationRecorder(BaseRecorder):
         elif self.type == 'spike_detector':
             nest.Connect(self.gids, self.gid)
 
-    @property
-    @if_created
-    def gids(self):
-        return self._gids
-
-    @property
-    @if_created
-    def locations(self):
-        return self._locations
-
-    def __str__(self):
-        return self.type + '_' + self._layer_name + '_' + self._population_name
-
     def get_population_recorder_metadata_dict(self):
+        """Create population recorder metadata dict."""
         metadata_dict = self.get_base_metadata_dict()
         metadata_dict.update({
             'gids': self._gids,
@@ -261,6 +256,7 @@ class PopulationRecorder(BaseRecorder):
         return metadata_dict
 
     def save_metadata(self, output_dir):
+        """Save population recorder metadata."""
         metadata_path = save.output_path(
             output_dir,
             'recorders_metadata',
@@ -270,6 +266,7 @@ class PopulationRecorder(BaseRecorder):
                           self.get_population_recorder_metadata_dict())
 
     def raw_data_colnames(self):
+        """Return list of labels for columns in raw data saved by NEST."""
         import nest
         # TODO: Make sure this is necessary or find a workaround?
         # TODO: check the parameters at creation rather than here
@@ -313,12 +310,17 @@ class ConnectionRecorder(BaseRecorder):
                 f' Supported types: {self.CONNECTION_RECORDER_TYPES}.'
             )
 
+    def __str__(self):
+        return self._model + '_' + str(self._connection)
+
     @if_not_created
     def create(self):
         """Create the ConnectionRecorder and update Connection object.
 
-        The synapse model of the Connection object is modified so that it sends
-        spikes to the ConnectionRecorder object
+            1. Create the recorder node in NEST.
+            2. Modify the synapse model of the Connection object is modified so
+                that it sends spikes to the ConnectionRecorder object.
+            3. Update ConnectionRecorder's attributes.
         """
         import nest
         # Create recorder node
@@ -337,23 +339,23 @@ class ConnectionRecorder(BaseRecorder):
         self._filenames = self.raw_data_filenames()
         self._colnames = self.raw_data_colnames()
 
-    def __str__(self):
-        return self._model + '_' + str(self._connection)
-
+    # TODO: Save more information
     def get_connection_recorder_metadata_dict(self):
+        """Create metadata directory for ConnectionRecorder."""
         metadata_dict = self.get_base_metadata_dict()
-        # TODO save source and target populations' location-by-gid?
         metadata_dict.update({
             'connection_name': self._connection_name,
         })
         return metadata_dict
 
     def raw_data_colnames(self):
+        """Return column names of raw data files for pandas loading."""
         if self._type == 'weight_recorder':
             # TODO
             return None
 
     def save_metadata(self, output_dir):
+        """Save recorder metadata."""
         metadata_path = save.output_path(
             output_dir,
             'connection_recorders_metadata',
