@@ -53,7 +53,7 @@ class BaseRecorder(NestObject):
 
     @property
     def type(self):
-        """Return type of recorder ('spike_detector', 'multimeter', ...)
+        """Return type of recorder ('spike_detector', 'multimeter', ...)"""
         return self._type
 
     def __str__(self):
@@ -152,7 +152,7 @@ class PopulationRecorder(BaseRecorder):
 
     def __init__(self, model, layer, population_name):
         """Initialize PopulationRecorder object."""
-        super().__init__(model, {})
+        super().__init__(model)
         self.layer = layer
         self._population_name = population_name  # Name of recorded population
         self._layer_name = self.layer.name  # Name of recorded pop's layer
@@ -295,7 +295,7 @@ class ConnectionRecorder(BaseRecorder):
     CONNECTION_RECORDER_TYPES = ['weight_recorder']
 
     def __init__(self, model, connection):
-        super().__init__(model, {})
+        super().__init__(model)
         self._model = model
         self._connection = connection
         self._connection_name = str(connection)

@@ -27,12 +27,12 @@ class AbstractLayer(NestObject):
     def __init__(self, name, params):
         super().__init__(name, params)
         self._gid = None
-        self._gids = None
-        self._elements = None
-        self._locations = None
-        self._populations = None
+        self._gids = None  # list of layer GIDs
+        self._locations = {}  # {<gid>: (row, col)}
+        self._populations = params['populations']  # {<population>: <number>}
         self.shape = params['nrows'], params['ncols']
         self.extent = params['extent']
+        self.edge_wrap = params['edge_wrap']
         # Record if we change some of the layer units' state probabilistically
         self._prob_changed = False
 
@@ -99,30 +99,6 @@ class AbstractLayer(NestObject):
             tuple[tuple[int, str-like]]: For each (x, y) coordinate pair in
             ``args``, returns a tuple of (GID, population) pairs for the
             elements at that location.
-        """
-        raise NotImplementedError
-
-    def location(self, *args):
-        """Return the location(s) on the layer grid of the GID(s).
-
-        Args:
-            *args (int): The GID(s) of interest.
-
-        Returns:
-            tuple[tuple[int]]: Returns a tuple of (x, y) coordinate pairs, one
-            for each GID in ``gids``, giving the location of the element with
-            that GID.
-        """
-        raise NotImplementedError
-
-    def population(self, *args):
-        """Return the population(s) of the GID(s).
-
-        Args:
-            *args (int): The GID(s) of interest.
-
-        Returns:
-            tuple[str]: Returns a tuple the population names of the GID(s).
         """
         raise NotImplementedError
 
@@ -214,7 +190,7 @@ class Layer(AbstractLayer):
             'rows': self.shape[0],
             'columns': self.shape[1],
             'extent': self.extent,
-            'edge_wrap': self.params.get('edge_wrap', False),
+            'edge_wrap': self.edge_wrap,
             'elements': self.build_elements(),
         }
 
@@ -236,12 +212,12 @@ class Layer(AbstractLayer):
         populations = self.params['populations']
         if (
             not populations 
-            or any([not isinstance(n, 'int') for n in populations.values()])
+            or any([not isinstance(n, int) for n in populations.values()])
         ):
             raise ValueError(
                 "Invalid format for `populations` parameter {populations} of "
                 f"layer {str(self)}: expects non-empty dictionary of the form"
-                f"`{ <population_name>: <number_of_units>}` with integer values"
+                "`{<population_name>: <number_of_units>}` with integer values"
             )
         # Map types to numbers
         return flatten([population, number]
@@ -253,54 +229,45 @@ class Layer(AbstractLayer):
         import nest
         from nest import topology as tp
         self._gid = tp.CreateLayer(self.nest_params)
-        # Update _elements, _population and _locations
+        # Update _locations: ``{gid: (row, col)}``
         for i, j in itertools.product(range(self.shape[0]),
                                       range(self.shape[1])):
             # IMPORTANT: rows and columns are switched in the GetElement query
             gids = tp.GetElement(self.gid, locations=(j, i))
-            populations = [
-                str(model) for model in nest.GetStatus(gids, 'model')
-            ]
-            elements = tuple(zip(gids, populations))
-            self._elements[(i, j)] = elements
-            for gid, population in elements:
+            for gid in gids:
                 self._locations[gid] = (i, j)
-                self._populations[gid] = population
         # Get all GIDs
         self._gids = tuple(sorted(self._locations.keys()))
 
     @if_created
     def gids(self, population=None, location=None):
-        # pylint:disable=function-redefined
-        pop_filt = None
-        if population is not None:
-            assert population in self.population_names()
-            def pop_filt(gid):
-                return population in self._populations[gid]
-        loc_filt = None
-        if location is not None:
-            def loc_filt(gid):
-                return (self._locations[gid] == location or
-                        self._locations[gid] in location)
-        return sorted(tuple(filter(loc_filt, filter(pop_filt, self._gids))))
+        """Return layer GIDs filtered by population or location."""
+        import nest
+        return [
+            gid for gid in self._gids
+            if (
+                (population is None
+                 or nest.GetStatus((gid,), 'model')[0] == population)
+                and (location is None
+                     or self.locations[gid] == location)
+            )
+        ]
 
     @if_created
     def element(self, *args):
         return tuple(self._elements[location] for location in args)
 
+    @property
     @if_created
-    def location(self, *args):
-        return tuple(self._locations[gid] for gid in args)
+    def locations(self):
+        """Return ``{<gid>: (<row>, <col>)}`` dict of locations."""
+        return self._locations
 
     @if_created
     @staticmethod
     def position(*args):
         import nest.topology as tp
         return tp.GetPosition(args)
-
-    @if_created
-    def population(self, *args):
-        return tuple(self._populations[gid] for gid in args)
 
     def population_names(self):
         """Return a list of population names within this layer."""
@@ -312,6 +279,7 @@ class Layer(AbstractLayer):
 
     @if_created
     def find_center_element(self, population=None):
+        """Return GID of an element centered within the layer."""
         center_loc = (int(self.shape[0]/2),
                       int(self.shape[1]/2))
         center_gid = self.gids(location=center_loc, population=population)[0:1]
