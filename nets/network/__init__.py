@@ -428,20 +428,6 @@ class Network:
             if syn.type == synapse_type
         ]
 
-    @property
-    def any_inputlayer(self):
-        return bool(self._get_layers(layer_type='InputLayer'))
-
-    @property
-    def input_shapes(self):
-        return set(self._layer_get('shape', layer_type='InputLayer'))
-
-    @property
-    def max_input_shape(self):
-        """Max of each dimension."""
-        return (max([s[0] for s in self.input_shapes]),
-                max([s[1] for s in self.input_shapes]))
-
     @if_not_created
     def create(self):
         # TODO: use progress bar from PyPhi?
@@ -560,10 +546,6 @@ class Network:
         """Call `nest.ResetNetwork()`"""
         import nest
         nest.ResetNetwork()
-
-    def set_input(self, stimulus_array, start_time=0.):
-        self._layer_call('set_input', stimulus_array, start_time,
-                         layer_type='InputLayer')
 
     def save_metadata(self, output_dir):
         """Save network metadata."""

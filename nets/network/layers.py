@@ -363,26 +363,24 @@ class InputLayer(Layer):
             )
 
 
-    def set_input(self, stimulus_array, start_time=0.):
-        """Set stimulator state from stimulus_array."""
-        # TODO: Remove layer `input_rate_scale_factor`
-        input_rate_scale_factor = float(self.params['input_rate_scale_factor'])
-        effective_max = input_rate_scale_factor * np.max(stimulus_array)
-        assert stimulus_array.ndim == 3
+    def set_input(self, input_array, start_time=0.):
+        """Set stimulator state from input_array."""
+        max_rate = np.max(input_array)
+        assert input_array.ndim == 3
         print(f'-> Setting input for `{self.name}`.')
-        print(f'--> Rate scaling factor: {str(input_rate_scale_factor)}')
-        print(f'--> Max instantaneous rate: {str(effective_max)}Hz')
-        rates = input_rate_scale_factor * stimulus_array
+        print(f'--> Max instantaneous rate: {str(max_rate)}Hz')
         if self.stimulator_type == 'poisson_generator':
             print(
                 f"Stimulator is a 'poisson_generator' -> Using only first frame"
-                f"of the {rates.shape}-ndarray stimulus array"
+                f"of the {input_array.shape}-ndarray stimulus array"
             )
             # Use only first frame
-            self.set_state('rate', rates[0], population=self.stimulator_model)
+            self.set_state('rate',
+                           input_array[0],
+                           population=self.stimulator_model)
         elif self.stimulator_type == 'spike_generator':
             all_spike_times = spike_times.draw_spike_times(
-                rates,
+                input_array,
                 start_time=start_time
             )
             self.set_state('spike_times', all_spike_times,

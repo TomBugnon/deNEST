@@ -16,7 +16,15 @@ from .utils.misc import pretty_time
 
 
 class Session:
-    """Represents a sequence of stimuli."""
+    """Represents a sequence of stimuli.
+
+    Args:
+        name: Session name.
+        params: Session parameters.
+    
+    Kwargs:
+        start_time: Time of kernel in seconds when session starts running.
+    """
 
     def __init__(self, name, params, start_time=0):
         print(f'-> Creating session `{name}`')
@@ -24,24 +32,32 @@ class Session:
         self.params = params
         # Initialize the session start and end times
         self._start = start_time
-        assert 'simulation_time' in self.params
         self._simulation_time = int(self.params['simulation_time'])
-        assert self._simulation_time > 0, ("Session's simulation time should be"
-                                           " strictly positive (NEST kernel bug"
-                                           " otherwise)")
+        if not self._simulation_time > 0:
+            raise ValueError(
+                f"Session parameter `simulation_time` should be strictly"
+                f"positive."
+            )
         self._end = self._start + self._simulation_time
-        # Initialize stimulus array
-        self._stimulus_array = None
+        # Initialize input arrays
+        self._input_arrays = None
         # Whether we inactivate all recorders
         self._record = self.params.get('record', True)
 
     @property
     def end(self):
+        """Return kernel time at session's end."""
         return self._end
 
     @property
     def start(self):
+        """Return kernel time at session's start."""
         return self._start
+
+    @property
+    def input_arrays(self):
+        """Return ``{<input_layer>: <input_array>}`` dict."""
+        return self._input_arrays
 
     def __repr__(self):
         return '{classname}({name}, {params})'.format(
@@ -52,11 +68,12 @@ class Session:
     def initialize(self, network):
         """Initialize session.
 
-        1- Reset Network
-        2- Change network's dynamic variables.
-        If there are InputLayers:
-            3- Load stimuli
-            5- Set input spike times or input rates.
+            1. Reset Network
+            2. Change network's dynamic variables.
+            3. (possibly) inactivate recorders
+            4. For each InputLayer
+                1. Load input array
+                2. Set layer's spike times or input rates from input array
         """
         # Reset network
         if self.params.get('reset_network', False):
@@ -66,18 +83,31 @@ class Session:
         network.change_synapse_states(self.params.get('synapse_changes', []))
         network.change_unit_states(self.params.get('unit_changes', []))
 
-        if network.any_inputlayer:
-            # Load stimuli
-            self._stimulus_array = self.load_stim_array(
-                crop_shape=network.max_input_shape
-            )
-            # Set input spike times in the future.
-            network.set_input(self.stimulus_array, start_time=self._start)
-
         # Inactivate all the recorders and connection_recorders for
         # `self._simulation_time`
         if not self._record:
             self.inactivate_recorders(network)
+
+        # Set input for each inputlayer
+        inputlayers = network._get_layers(layer_type='InputLayer')
+        self._input_arrays = {}
+        for inputlayer in inputlayers:
+            if inputlayer.name not in self.params['inputs'].keys():
+                raise ValueError(
+                    f"No input defined for InputLayer {str(inputlayer)}"
+                )
+
+            print(f"Setting input for InputLayer `{inputlayer.name}`")
+
+            # Load input array 
+            input_array = self.load_input_array(
+                inputlayer,
+                self.params['inputs'][inputlayer.name]
+            )
+            self._input_arrays[inputlayer.name] = input_array
+
+            # Set input spike times in the future.
+            inputlayer.set_input(input_array, start_time=self._start)
 
     def inactivate_recorders(self, network):
         """Set 'start' of all (connection_)recorders at the end of session."""
@@ -117,8 +147,8 @@ class Session:
         pass
 
     @property
-    def stimulus_array(self):
-        return self._stimulus_array
+    def input_array(self):
+        return self._input_array
 
     @property
     def duration(self):
@@ -128,43 +158,62 @@ class Session:
     def simulation_time(self):
         return self._simulation_time
 
-    def load_stim_array(self, crop_shape=None):
-        """Load and return the session's input array.
+    def load_input_array(self, input_layer, input_params):
+        """Load and return the session's input array for an ``InputLayer``
 
-        See README.md and `load_raw_stimulus` function about how the input is
-        loaded from the `input_path` simulation parameter and the
-        `session_input` session parameter.
-
-        The stimulus "movie" loaded from file is scaled by the session parameter
-        `input_rate_scale_factor` (default 1.0). The session stimulus movie
-        will be further scaled by the Network-wide Layer parameter
-        `input_rate_scale_factor`
+        Args:
+            input_layer (InputLayer): Layer of type 'InputLayer'
+            input_params (dict): Dictionary specifying the input for this layer.
+                One of the keys of the ``inputs`` session parameter. Should have
+                the following form::
+                    {
+                        'file': <input_file>
+                        'time_per_frame': <time_per_frame>
+                        'rate_scaling_factor': <rate_scaling_factor>
+                    }
+                Where:
+                    - <file> points to the input array used to set the
+                        stimulator's firing rates. Refer to
+                        `utils.load_stimulus` for a description of how the array
+                        is loaded from this parameter and the `input_path`
+                        simulation parameter
+                    - <rate_scaling_factor> scales the input array's values
+                    - <time_per_frame> is the time in msec during which each of
+                        the input array's "frames" is shown to the network.
         """
         # Input path can be either to a file or to the structured input dir
         input_path = self.params['input_path']
-        session_input = self.params['session_input']
-        raw_stim_array = load_raw_stimulus(input_path, session_input)
+        file = input_params['file']
+        raw_input_array = load_raw_stimulus(input_path, file)
 
         # Crop to adjust to network's input layer shape
-        if crop_shape is not None:
-            cropped_stim_array = raw_stim_array[
-                :,  # time,
-                :crop_shape[0], :crop_shape[1]  # row, col
-            ]
+        layer_shape = input_layer.shape  # (row, col)
+        raw_input_array_rowcol = (raw_input_array.shape[1],
+                                  raw_input_array.shape[2]) # (row, col)
+        
+        if not np.all(layer_shape <= raw_input_array_rowcol):
+            raise ValueError(
+                f"Invalid shape for input array at `file` for layer"
+                f"{input_layer} "
+            )
+        cropped_input_array = raw_input_array[
+            :,  # time,
+            :layer_shape[0], :layer_shape[1]  # row, col
+        ]
 
         # Scale the raw input by the session's scaling factor.
-        scale_factor = self.params.get('input_rate_scale_factor', 1.0)
-        scaled_stim_array = cropped_stim_array * scale_factor
-        print(f'--> Apply session input_rate_scale_factor: {scale_factor}')
+        scale_factor = input_params.get('rate_scaling_factor', 1.0)
+        scaled_input_array = cropped_input_array * scale_factor
+        print(f'--> Apply scaling factor to array: {scale_factor}')
 
         # Expand from frame to timesteps
-        stim_array = expand_stimulus_array(
-            scaled_stim_array,
-            self.params.get('time_per_frame', 1.),
+        input_array = expand_stimulus_array(
+            scaled_input_array,
+            input_params.get('time_per_frame', 1.),
             self.simulation_time
         )
 
-        return stim_array
+        return input_array
 
 
 def expand_stimulus_array(list_or_array, nrepeats, target_length):
