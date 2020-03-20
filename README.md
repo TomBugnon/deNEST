@@ -447,7 +447,7 @@ defined in the final parameter tree.
       target_layer combination. If not specified, each connection targets
       all the populations in the target layer.
       (default `None`)
-    - `connection` (str): Name of the connection model. (mandatory)
+    - `connection_model` (str): Name of the connection model. (mandatory)
     - `nest_params` (dict or None): NEST parameters for the specific connections
       represented by the item. Takes precedence over the connection model's
       NEST parameters

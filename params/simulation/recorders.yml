@@ -42,3 +42,18 @@ network:
         - layers: null
           populations: null
           model: 'spike_detector'
+      connection_recorders:
+        # Specify a connecton recorder model. Connections are specified as in
+        # `connections.yml`
+        - source_layers: [input_layer]
+          source_population: parrot_neuron
+          target_layers: [l1]
+          target_population: l1_exc
+          connection_model: input_connection_AMPA
+          model: weight_recorder
+        - source_layers: [l1]
+          source_population: l1_exc
+          target_layers: [l1]
+          target_population: l1_exc
+          connection_model: horizontal_exc
+          model: weight_recorder

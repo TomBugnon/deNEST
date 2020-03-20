@@ -8,7 +8,6 @@ import itertools
 import random
 
 import numpy as np
-from tqdm import tqdm
 
 from ..utils import spike_times
 from .nest_object import NestObject
@@ -59,6 +58,7 @@ class AbstractLayer(NestObject):
 
     @property
     def populations(self):
+        """Return ``{<population_name>: <number_units>}`` dictionary."""
         return self._populations
 
     @property
@@ -69,6 +69,7 @@ class AbstractLayer(NestObject):
 
     @if_created
     def connect(self, target, nest_params):
+        """Connect to target layer. Called by `Connection.create()`"""
         # NOTE: Don't use this method directly; use a Connection instead
         from nest import topology as tp
         tp.ConnectLayers(self.gid, target.gid, nest_params)
@@ -126,8 +127,36 @@ class AbstractLayer(NestObject):
         raise NotImplementedError
 
     def change_unit_states(self, changes_dict, population=None, proportion=1.0,
-                           filter_dict={}, change_type='constant'):
-        """Call nest.SetStatus for a proportion of units which pass the filter."""
+                           change_type='constant'):
+        """Set parameters for some units.
+        
+        Args:
+            changes_dict (dict): Dictionary specifying changes applied to
+                selected units, of the form::
+                    {
+                        <param_1>: <change_value_1>,
+                        <param_2>: <change_value_2>
+                    }
+                The values are set multiplicatively or without modification
+                depending on the ``change_type`` parameter.
+            population (str | None): Name of population from which we select
+                units. All layer's populations if None.
+            proportion (float): Proportion of candidate units to which the
+                changes are applied. (default 1.0)
+            change_type (str): 'constant' (default) or 'multiplicative'.
+                Specifies how parameter values are set from ``change_dict``. If
+                "constant", the values in ``change_dict`` are set to the
+                corresponding parameters without modification. If
+                "multiplicative", the values in ``change_dict`` are multiplied
+                to the current value of the corresponding parameter for each
+                unit.
+        """
+        if change_type not in ['constant', 'multiplicative']:
+            raise ValueError(
+                "``change_type`` argument should 'constant' or 'multiplicative'"
+            )
+        if proportion > 1 or proportion < 0:
+            raise ValueError('``proportion`` parameter should be within [0, 1]')
         if not changes_dict:
             return
         if self._prob_changed and proportion != 1.0:
@@ -136,15 +165,9 @@ class AbstractLayer(NestObject):
         all_gids = self.gids(population=population)
         if proportion != 1.0:
             print(f'----> Select subset of gids (proportion = {proportion})')
-        gids_to_filter = self.get_gids_subset(
+        gids_to_change = self.get_gids_subset(
             all_gids,
             proportion
-        )
-        if filter_dict:
-            print(f'----> Apply filter on gids (filter = {filter_dict})')
-        gids_to_change = self.filter_gids(
-            gids_to_filter,
-            filter_dict
         )
         print(f'----> Apply "{change_type}" parameter changes on '
               f'{len(gids_to_change)}/{len(all_gids)} units '
@@ -171,8 +194,6 @@ class AbstractLayer(NestObject):
                     (gid,),
                     {change_key: current_value * change_ratio}
                 )
-        else:
-            raise NotImplementedError
 
     @staticmethod
     def get_gids_subset(gids_list, proportion):
@@ -183,42 +204,6 @@ class AbstractLayer(NestObject):
                         range(len(gids_list)),
                         int(len(gids_list) * proportion))
                         )]
-
-    def filter_gids(self, gids_list, filter_dict):
-        """Filter a list of gids according to their parameter values.
-
-        Args:
-            gids_list: list of gids
-            filter_dict: dictionary defining the filter. The filter defines an
-                interval for any unit parameter. A unit is selected if all its
-                parameters are within their respectively defined interval.
-                The ``filter_dict`` dictionary is of the form:
-                    {
-                        <unit_param_name_1>:
-                            'min': <float_min>
-                            'max': <float_max>
-                        <unit_param_name_2>:
-                            ...
-                    }
-                Where <float_min> and <float_max> define the (inclusive)
-                min and max of the filtering interval for the considered
-                parameter (default resp. -inf and +inf)
-        """
-        import nest
-        filtered_gids = gids_list
-        # Iterate over parameters that we use for filtering
-        for parameter_name, interval in filter_dict.items():
-            min_value = interval.get('min', -float('inf'))
-            max_value = interval.get('max', float('inf'))
-            print(f'-----> Filtering population gids: select if '
-                  f'{parameter_name} is in interval [{min_value}, {max_value}]')
-            filtered_gids = [
-                gid for gid in filtered_gids
-                if (nest.GetStatus([gid], parameter_name)[0] >= min_value
-                    and nest.GetStatus([gid], parameter_name)[0] <= max_value)
-                ]
-        return filtered_gids
-
 
 class Layer(AbstractLayer):
 
@@ -232,40 +217,43 @@ class Layer(AbstractLayer):
             'edge_wrap': self.params.get('edge_wrap', False),
             'elements': self.build_elements(),
         }
-        # TODO: implement
-        self._connected = list()
-        self._gid = None
 
     def extent_units(self, value):
         return self.to_extent_units(value, self.extent[0],
                                     self.shape[0], self.shape[1])
 
     def build_elements(self):
-        """Return the NEST description of layer elements.
+        """Convert ``populations`` parameters to format expected by NEST
 
-        A NEST element specification is a list of the form::
-
-            [<model_name>, <model_number>, <model_name>, <model_number>, ...]
-
-        This converts the parameters to such a list.
+        From the ``populations`` layer parameter, which is a dict of the
+        form::
+            {
+                <population_name>: <number_of_units>
+            }
+        return a NEST element specification, which is a list of the form::
+            [<model_name>, <number of units>]
         """
         populations = self.params['populations']
-        assert populations
+        if (
+            not populations 
+            or any([not isinstance(n, 'int') for n in populations.values()])
+        ):
+            raise ValueError(
+                "Invalid format for `populations` parameter {populations} of "
+                f"layer {str(self)}: expects non-empty dictionary of the form"
+                f"`{ <population_name>: <number_of_units>}` with integer values"
+            )
         # Map types to numbers
         return flatten([population, number]
                        for population, number in populations.items())
 
     @if_not_created
     def create(self):
+        """Create the layer in NEST and update attributes."""
         import nest
         from nest import topology as tp
         self._gid = tp.CreateLayer(self.nest_params)
-        # Maps grid location to elements ((GID, population) pair)
-        self._elements = dict()
-        # Maps GID to location
-        self._locations = dict()
-        # Maps GID to population
-        self._populations = dict()
+        # Update _elements, _population and _locations
         for i, j in itertools.product(range(self.shape[0]),
                                       range(self.shape[1])):
             # IMPORTANT: rows and columns are switched in the GetElement query
@@ -408,6 +396,8 @@ class InputLayer(Layer):
 
 
     def set_input(self, stimulus_array, start_time=0.):
+        """Set stimulator state from stimulus_array."""
+        # TODO: Remove layer `input_rate_scale_factor`
         input_rate_scale_factor = float(self.params['input_rate_scale_factor'])
         effective_max = input_rate_scale_factor * np.max(stimulus_array)
         assert stimulus_array.ndim == 3
