@@ -23,8 +23,34 @@ class Simulation:
     saving output.
 
     Args:
-        params (dict-like): full parameter tree
-    """
+        params (Params): Full simulation parameter tree. The following subtrees
+            are expected:
+
+                - ``simulation`` (dict-like). Defines input and output paths,
+                    and the simulation steps performed. The following parameters
+                    are expected:
+                        - ``output_dir` (str): Path to the output directory.
+                        - ``input_path`` (str): Path to the input.
+                        - ``sessions`` (list(str)): Order in which sessions are
+                            run. Elements of the list should be the name of
+                            session models defined in the ``session_models``
+                            parameter subtree.
+                - ``kernel``: Used for NEST kernel initialization. Refer to
+                  ``Simulation.init_kernel`` for a description of
+                  kernel parameters.
+                - ``session_models``: Parameter tree, the leaves of which define
+                    session models. Refer to ``Sessions`` for a description of
+                    session parameters.
+                - ``network``: Parameter tree defining the network in NEST.
+                    Refer to `Network` for a full description of network
+                    parameters.
+
+    Kwargs:
+        input_path (str | None): None or the path to the input. If defined,
+            overrides the `input_path` simulation parameter
+        output_dir (str | None): None or the path to the output directory. If
+            defined, overrides `output_dir` simulation parameter
+     """
     def __init__(self, params, input_path=None, output_dir=None):
         """Initialize simulation."""
         self.params = params
@@ -112,6 +138,7 @@ class Simulation:
                      self.session_times)
 
     def init_kernel(self, kernel_params):
+        # TODO Document
         """Initialize NEST kernel.
 
         Args:
