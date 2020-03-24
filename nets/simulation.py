@@ -101,12 +101,10 @@ class Simulation:
         """Save simulation metadata before running the simulation."""
         # Initialize output dir (create and clear)
         print(f'Creating output_dir: {self.output_dir}')
-        clear_output_dir = self.params.c['simulation'].get(
-            'clear_output_dir', False
-        )
         # Delete the `session` subdirs
         delete_subdirs_list = [session.name for session in self.sessions]
-        make_output_dir(self.output_dir, clear_output_dir,
+        make_output_dir(self.output_dir,
+                        clear_output_dir=True,
                         delete_subdirs_list=delete_subdirs_list)
         # Save params
         save_as_yaml(output_path(self.output_dir, 'params'),

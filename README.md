@@ -278,14 +278,6 @@ defined in the final parameter tree.
       `Simulation.__init__()` 'output_dir' kwarg. Please see the 'Input'
       section for details on how the input is loaded for each session.
       (default from `nets.constants`)
-    - `clear_output_dir` (bool): If true, the contents of the subdirectories of
-      `output_dir` listed in the CLEAR_SUBDIRS constant (defined in `save.py`)
-      are deleted during a `Simulation.save()` call before any saving of output. 
-      (default `False`)
-        - If set to `False`, it is possible that an output directory contains data
-          from a previous simulation.
-        - If you add subdirectories to the main output_dir don't forget to
-          update the `CLEAR_SUBDIRS` variable accordingly.
     - `dump_connections` (bool): If true, the unit-to-unit synapses are dumped
       during a `__init__.run()` call. Modify the `dump_connection`
       connection_model parameter to dump only a subset of the connections.

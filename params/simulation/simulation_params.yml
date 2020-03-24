@@ -2,6 +2,5 @@ simulation:
   params:
     sessions: ['warmup', 'noise', 'grating']
     output_dir: output
-    clear_output_dir: True
     dump_connections: False
     plot_connections: False
