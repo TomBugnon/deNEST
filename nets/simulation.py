@@ -42,25 +42,26 @@ class Simulation:
         print('...done\n', flush=True)
         # Create sessions
         print('Create sessions...', flush=True)
-        self.order = self.params.c['sessions'].get('order', [])
-        session_params = {
+        self.sessions_order = self.params.c['simulation'].get('sessions', [])
+        session_models = {
             session_name: session_params
             for session_name, session_params
-            in self.params.c['sessions'].named_leaves()
+            in self.params.c['session_models'].named_leaves()
         }
         self.sessions = []
         session_start_time = 0
-        for i, session_name in enumerate(self.order):
+        for i, session_model in enumerate(self.sessions_order):
             self.sessions.append(
-                Session(self.make_session_name(session_name, i),
-                        session_params[session_name],
+                Session(self.make_session_name(session_model, i),
+                        session_models[session_model],
                         start_time=session_start_time)
             )
+            # start of next session = end of current session
             session_start_time = self.sessions[-1].end
         self.session_times = {
             session.name: session.duration for session in self.sessions
         }
-        print(f'-> Sessions: {self.order}')
+        print(f'-> Sessions: {self.sessions_order}')
         print('Done...\n', flush=True)
         # Create network
         print('Create network...', flush=True)
@@ -193,7 +194,7 @@ class Simulation:
             input_path = DEFAULT_INPUT_PATH
             self.params.c['simulation']['input_path'] = input_path
         # Cast to session params as well as simulation params
-        self.params.c['sessions']['input_path'] = input_path
+        self.params.c['session_models']['input_path'] = input_path
         return input_path
 
     @staticmethod
