@@ -141,10 +141,6 @@ A full NETS simulation consists of the following steps:
     2. Call `Network.save_data`:
         - Save the population rasters if the data was not cleared
         - Save the final state of synapses
-  2. Save and plot other
-    - Plot some connections
-    - Dump some connections
-    - ... any post-processing you like :)
 
 ## Parameters
 
@@ -278,17 +274,6 @@ defined in the final parameter tree.
       `Simulation.__init__()` 'output_dir' kwarg. Please see the 'Input'
       section for details on how the input is loaded for each session.
       (default from `nets.constants`)
-    - `dump_connections` (bool): If true, the unit-to-unit synapses are dumped
-      during a `__init__.run()` call. Modify the `dump_connection`
-      connection_model parameter to dump only a subset of the connections.
-      (default `False`)
-    - `plot_connections` (bool): If true, population-to-population connections
-      are plotted during a `__init__.run()` call. Modify the `plot_connection`
-      connection_model parameters to plot only a subset of the connections.
-      (default `False`)
-    - `dump_connection_numbers` (bool): If true, the number of incoming
-      connections by population for each connection type is dumped during a
-      `__init__.run()` call. (default `False`)
 
 - `sessions` (subtree): Contains the parameters for each session and the list of
   sessions to be run in order. The sessions are represented by the leaves of
@@ -408,12 +393,6 @@ defined in the final parameter tree.
     passed to NEST __except the following parameters__:
     - `type` (str). Type of the connection. Only 'topological' connections are
       recognized (default `'topological'`).
-    - `dump_connection` (bool): Whether connections of that connection model
-      should be dumped during a `Simulation.dump_connections()` call. (default
-      `False`)
-    - `plot_connection` (bool): Whether connections of that connection model
-      should be plotted during a `Simulation.plot_connections()` call. (default
-      `True`)
     - All other parameters (`kernel`, `mask`, `weights`...) define the
       topological connections and will be passed to
       nest.topology.ConnectLayers() without modification.
@@ -556,7 +535,6 @@ sim.run()
 
 # Save the results, dump the connections, etc.
 sim.save()
-sim.dump()
 ```
 
 #### Using the ``nets.run()`` function to run the full simulation at once:

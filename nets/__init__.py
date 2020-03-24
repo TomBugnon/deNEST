@@ -104,28 +104,6 @@ def run(path, *overrides, output_dir=None, input_path=None):
     sim.run()
     print('\n...done running simulation...', flush=True, end=SEPARATOR)
 
-    ###########################
-    ######## bonus steps ######
-    ###########################
-
-    # Dump network's connections
-    if params.get(('simulation', 'dump_connections'), False):
-        print('Dump connections...\n', flush=True)
-        sim.dump_connections()
-        print('\n...done dumping connections...', flush=True, end=SEPARATOR)
-
-    # Plot network's connections
-    if params.get(('simulation', 'plot_connections'), False):
-        print('Plot connections...\n', flush=True)
-        sim.plot_connections()
-        print('\n...done plotting connections...', flush=True, end=SEPARATOR)
-
-    # Dump network's incoming connection numbers per layer
-    if params.get(('simulation', 'dump_connection_numbers'), False):
-        print('Dumping connection numbers...\n', flush=True)
-        sim.dump_connection_numbers()
-        print('\n...done dumping conn numbers...', flush=True, end=SEPARATOR)
-
     # Conclusive remarks
     print('\nThis simulation is a great success.\n')
     print(f"Total simulation virtual time: {sim.total_time()}ms")

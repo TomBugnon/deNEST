@@ -5,11 +5,8 @@
 
 # pylint:disable=missing-docstring
 
-import csv
 from copy import deepcopy
-from os.path import join
 
-from ..io import save
 from .nest_object import NestObject
 from .utils import if_not_created
 
@@ -17,8 +14,6 @@ from .utils import if_not_created
 # that shouldn't be considered as 'nest_parameters'
 NON_NEST_CONNECTION_PARAMS = {
     'type': 'topological',  # 'Topological'
-    'dump_connection': False,
-    'plot_connection': False,
 }
 
 
@@ -127,14 +122,6 @@ class BaseConnection(NestObject):
         """
         return self._nest_synapse_model
 
-    @property
-    def dump_connection(self):
-        return self.params['dump_connection']
-
-    @property
-    def plot_connection(self):
-        return self.params['plot_connection']
-
     def __str__(self):
         return '-'.join([
             self.name,
@@ -180,94 +167,9 @@ class BaseConnection(NestObject):
     def nest_synapse_model_name(self):
         return f"{self._base_synapse_model}-{self.__str__()}"
 
-    # Connection dumping  to file
-
-    def dump(self, output_dir):
-        # TODO: Query using synapse labels to identify connections with same
-        # source pop, target pop and synapse model
-        import nest
-        if self.dump_connection:
-            conns = nest.GetConnections(
-                source=self.source.gids(population=self.source_population),
-                target=self.target.gids(population=self.target_population),
-                synapse_model=self.nest_synapse_model)
-            # We save: source_gid, target_gid, synapse_model, weight, delay
-            with open(join(save.output_subdir(output_dir, 'dump'),
-                           self.__str__), 'w') as f:
-                writer = csv.writer(f, delimiter='\t')
-                writer.writerows(self.format_dump(conns))
-        import warnings
-        warnings.warn('Double check the synapse models vs nest_synapse_model')
-
-    @staticmethod
-    def format_dump(conns):
-        import nest
-        formatted = []
-        for conn in conns:
-            status = nest.GetStatus((conn,))[0]
-            formatted.append((status['source'],
-                              status['target'],
-                              str(status['synapse_model']),
-                              status['weight'],
-                              status['delay']))
-        return sorted(formatted)
-
     # Save and plot stuff
-
     def save(self, output_dir):
         pass
-
-    def save_plot(self, output_dir):
-        if self.plot_connection:
-            import matplotlib.pyplot as plt
-            fig = self.plot_conn()  # pylint: disable=unused-variable
-            plt.savefig(join(save.output_subdir(output_dir, 'connections'),
-                             self.__str__))
-            plt.close()
-
-    def plot_conn(self):
-        """Plot the targets of a unit using nest.topology function."""
-        # TODO: Get our own version so we can plot convergent connections
-        import nest.topology as tp
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots()  # pylint:disable=invalid-name
-        tp.PlotLayer(self.target.gid, fig)
-        ctr = self.source.find_center_element(population=self.source_population)
-        # Plot the kernel and mask if the connection is topological
-        try:
-            tp.PlotKernel(ax, ctr,
-                          self.nest_params['mask'],
-                          kern=self.nest_params['kernel'],
-                          kernel_color='green')
-        except (AttributeError, KeyError, ValueError):
-            # AttributeError, KeyError: if no nest_params mask or kernel
-            # ValueError: if the mask or kernel cannot be plotted (custom mask)
-            pass
-        try:
-            tp.PlotTargets(ctr,
-                           self.target.gid,
-                           tgt_model=self.target_population,
-                           syn_type=self.synapse_model,
-                           fig=fig,
-                           tgt_size=40,
-                           src_size=250,
-                           tgt_color='red')
-        except ValueError:
-            print(f"Not plotting targets: the center unit {ctr[0]} has no "
-                  f"target within connection {self.__str__}")
-        plt.suptitle(f"Plot of targets of a single source unit.\n"
-                     f"Target units' pop: {self.target.name},"
-                     f"{str(self.target_population)} (targets in red),\n"
-                     f"Source unit's population: {self.source.name},"
-                     f"{str(self.source_population)}\n"
-                     f"Connection name: {self.name},\n", fontsize=7)
-        footnote = ("NB: The actual connection probability might be smaller "
-                    "than it seems if there is multiple units per grid position"
-                    " in the target population(s)")
-        ax.annotate(footnote, xy=(1, 0), xycoords='axes fraction', fontsize=5,
-                    xytext=(0, -15), textcoords='offset points',
-                    ha='right', va='top')
-        return fig
 
     def validate_connection(self):
         """Check the connection to avoid bad errors.

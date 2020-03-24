@@ -85,18 +85,6 @@ class Simulation:
         self.save_data()
         print(f'Done')
 
-    def dump_connections(self):
-        """Dump network connections."""
-        self.network.dump_connections(self.output_dir)
-
-    def plot_connections(self):
-        """Plot network connections."""
-        self.network.plot_connections(self.output_dir)
-
-    def dump_connection_numbers(self):
-        """Dump connection numbers."""
-        self.network.dump_connection_numbers(self.output_dir)
-
     def save_metadata(self):
         """Save simulation metadata before running the simulation."""
         # Initialize output dir (create and clear)

@@ -2,8 +2,6 @@ network:
   connection_models:
     params:
       type: topological
-      dump_connection: True
-      plot_connection: True
       allow_autapses: false
       allow_multapses: false
       allow_oversized_mask: true
