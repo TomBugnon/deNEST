@@ -100,10 +100,9 @@ def run(path, *overrides, output_dir=None, input_path=None):
     print('\n...done initializing simulation...', flush=True, end=SEPARATOR)
 
     # Simulate
-    if not params.get(('simulation', 'dry_run'), False):
-        print('Run simulation...\n', flush=True)
-        sim.run()
-        print('\n...done running simulation...', flush=True, end=SEPARATOR)
+    print('Run simulation...\n', flush=True)
+    sim.run()
+    print('\n...done running simulation...', flush=True, end=SEPARATOR)
 
     ###########################
     ######## bonus steps ######

@@ -278,10 +278,6 @@ defined in the final parameter tree.
       `Simulation.__init__()` 'output_dir' kwarg. Please see the 'Input'
       section for details on how the input is loaded for each session.
       (default from `nets.constants`)
-    - `dry_run` (bool): If true, `Simulation.run()` is not called in
-      `__init__.run()`. This means that the simulation is initialized and saved
-      as usual, but no nest.Simulate() call is performed and the sessions are
-      not initialized. (default `False`)
     - `clear_output_dir` (bool): If true, the contents of the subdirectories of
       `output_dir` listed in the CLEAR_SUBDIRS constant (defined in `save.py`)
       are deleted during a `Simulation.save()` call before any saving of output. 

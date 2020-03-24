@@ -118,13 +118,12 @@ class Simulation:
 
     def save_data(self):
         """Save data after the simulation has been run."""
-        if not self.params.c['simulation']['dry_run']:
-            # Save sessions
-            for session in self.sessions:
-                session.save_metadata(self.output_dir)
-            # Save session times
-            save_as_yaml(output_path(self.output_dir, 'session_times'),
-                         self.session_times)
+        # Save sessions
+        for session in self.sessions:
+            session.save_metadata(self.output_dir)
+        # Save session times
+        save_as_yaml(output_path(self.output_dir, 'session_times'),
+                     self.session_times)
 
     def init_kernel(self, kernel_params):
         """Initialize NEST kernel.
