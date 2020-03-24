@@ -38,7 +38,7 @@ class Simulation:
         print('...done\n', flush=True)
         # Initialize kernel (should be after getting output dirs)
         print('Initialize NEST kernel...', flush=True)
-        self.init_kernel()
+        self.init_kernel(self.params.c['kernel'])
         print('...done\n', flush=True)
         # Create sessions
         print('Create sessions...', flush=True)
@@ -126,10 +126,13 @@ class Simulation:
             save_as_yaml(output_path(self.output_dir, 'session_times'),
                          self.session_times)
 
-    def init_kernel(self):
-        """Initialize NEST kernel."""
+    def init_kernel(self, kernel_params):
+        """Initialize NEST kernel.
+
+        Args:
+            kernel_params (Params): Kernel parameters.
+        """
         import nest
-        kernel_params = self.params.c['kernel']
         nest.ResetKernel()
         # Install extension modules
         print('->Installing external modules...', end=' ')
