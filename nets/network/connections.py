@@ -9,7 +9,7 @@ import csv
 from copy import deepcopy
 from os.path import join
 
-from .. import save
+from ..io import save
 from .nest_object import NestObject
 from .utils import if_not_created
 
@@ -19,7 +19,6 @@ NON_NEST_CONNECTION_PARAMS = {
     'type': 'topological',  # 'Topological'
     'dump_connection': False,
     'plot_connection': False,
-    'save': [],
 }
 
 
@@ -216,13 +215,7 @@ class BaseConnection(NestObject):
     # Save and plot stuff
 
     def save(self, output_dir):
-        self.save_synapse_state(output_dir)
-
-    def save_synapse_state(self, output_dir):
-        """Save using a GetConnections() call."""
-        for field in self.params['save']:
-            # TODO
-            print('TODO: save connection ', field, ' in ', output_dir)
+        pass
 
     def save_plot(self, output_dir):
         if self.plot_connection:

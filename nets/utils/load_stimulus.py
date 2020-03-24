@@ -8,7 +8,7 @@
 
 from os.path import isfile, join
 
-from ..save import load_as_numpy
+import numpy as np
 
 
 def load_raw_stimulus(input_path, file):
@@ -58,4 +58,4 @@ def load_raw_stimulus(input_path, file):
         )
         raise FileNotFoundError(error_string)
 
-    return load_as_numpy(path)
+    return np.load(path)

@@ -9,7 +9,7 @@ import os
 from .constants import (DEFAULT_INPUT_PATH, DEFAULT_OUTPUT_DIR, NEST_SEED,
                         PYTHON_SEED)
 from .network import Network
-from .save import make_output_dir, output_path, output_subdir, save_as_yaml
+from .io.save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
 from .utils import misc
 

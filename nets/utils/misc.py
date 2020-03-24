@@ -9,7 +9,7 @@ import subprocess
 import time
 from os.path import join
 
-from .. import save
+from ..io import save
 
 
 def pretty_time(start_time):

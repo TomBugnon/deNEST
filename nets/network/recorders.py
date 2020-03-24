@@ -6,9 +6,7 @@
 
 # pylint:disable=missing-docstring
 
-from copy import deepcopy
-
-from .. import save
+from ..io import save
 from .nest_object import NestObject
 from .utils import if_created, if_not_created
 

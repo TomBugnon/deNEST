@@ -8,7 +8,6 @@ from pprint import pformat
 
 import numpy as np
 
-from . import save
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
 
