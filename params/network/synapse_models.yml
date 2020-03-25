@@ -3,6 +3,8 @@ network:
     # NOTE:
     # - If you define a 'receptor_type' field you need a 'target_neuron'
     #   field as well.
+    params: {}
+    nest_params: {}
     ht_synapse:
       params:
         nest_model: ht_synapse
