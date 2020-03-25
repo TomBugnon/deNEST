@@ -52,7 +52,13 @@ class Simulation:
             defined, overrides `output_dir` simulation parameter
      """
     def __init__(self, params, input_path=None, output_dir=None):
-        """Initialize simulation."""
+        """Initialize simulation.
+
+            - Initialize NEST kernel
+            - Initialize and build Network in NEST,
+            - Create sessions
+            - Save simulation metadata
+        """
         self.params = params
         # Get output dir and nest raw output_dir
         self.output_dir = self.get_output_dirs(output_dir)
@@ -99,20 +105,15 @@ class Simulation:
         self.save_metadata()
         print('...done\n', flush=True)
 
-    def run(self):
-        """Run each of the sessions in order and save data."""
-        # Get list of recorders
-        for session in self.sessions:
-            print(f'Running session: `{session.name}`...\n')
-            session.run(self.network)
-            print(f'Done running session `{session.name}`\n\n')
-        # Post run saves
-        print(f'Saving some more data')
-        self.save_data()
-        print(f'Done')
-
     def save_metadata(self):
-        """Save simulation metadata before running the simulation."""
+        """Save simulation metadata.
+
+            - Save parameters
+            - Save NETS git hash
+            - Save sessions metadata (`Session.save_metadata`)
+            - Save session times (start and end kernel time for each session)
+            - Save network metadata (`Network.save_metadata`)
+        """
         # Initialize output dir (create and clear)
         print(f'Creating output_dir: {self.output_dir}')
         # Delete the `session` subdirs
@@ -125,17 +126,26 @@ class Simulation:
                      self.params)
         # Drop git hash
         misc.drop_git_hash(self.output_dir)
-        # Save network metadata
-        self.network.save_metadata(self.output_dir)
-
-    def save_data(self):
-        """Save data after the simulation has been run."""
         # Save sessions
         for session in self.sessions:
             session.save_metadata(self.output_dir)
         # Save session times
         save_as_yaml(output_path(self.output_dir, 'session_times'),
                      self.session_times)
+        # Save network metadata
+        self.network.save_metadata(self.output_dir)
+
+    def run(self):
+        """Run simulation.
+
+            - Run sessions in the order specified by the `sessions` simulation
+                parameter
+        """
+        # Get list of recorders
+        for session in self.sessions:
+            print(f'Running session: `{session.name}`...\n')
+            session.run(self.network)
+            print(f'Done running session `{session.name}`\n\n')
 
     def init_kernel(self, kernel_params):
         # TODO Document

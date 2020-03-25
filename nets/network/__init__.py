@@ -544,7 +544,10 @@ class Network:
         nest.ResetNetwork()
 
     def save_metadata(self, output_dir):
-        """Save network metadata."""
+        """Save network metadata.
+        
+            - Save recorder metadata
+        """
         # Save recorder metadata
         self.recorder_call('save_metadata', output_dir)
 

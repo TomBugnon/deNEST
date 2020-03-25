@@ -113,34 +113,29 @@ Under the hood, NETS instantiates classes that represent specific aspects of the
 
 A full NETS simulation consists of the following steps:
 
-1. **Initialize kernel**:
-    1. Set NEST kernel parameters
-    2. Set random seeds for python's `random` module and NEST's random generator.
-1. **Initialize network**:
-    1. Initialize the `Network` object representing a NEST network: derive the dependent parameters from the independent parameters given in the parameter files.
-    2. Create the network in NEST.
-2. **Save the simulation's metadata**
-    1. Create and/or clear the output directory
-    1. Save parameters
-    2. Save git hash
-    3. Save network metadata (gid/location mappings, ...) (TODO)
-3. **Run each session** in turn. For each session:
-  1. Initialize the session:
-    1. (Possibly) reset the network
-    2. (Possibly) Change some of the network's parameters:
-      1. Change neuron parameters for certain units of certain populations
-      1. Change synapse parameters for certain synapse models.
-    3. If there are any InputLayer in the network:
-      1. Load the stimulus
-      2. Set the input spike times or input rates to emulate the forecoming
-         session stimulus.
-  2. Call `nest.Simulate()`.
-4. **Do some post-processing saves**
-  1. Call `sim.save_data`:
-    1. Save the session's times and stimuli
-    2. Call `Network.save_data`:
-        - Save the population rasters if the data was not cleared
-        - Save the final state of synapses
+1. **Initialize simulation** (``Simulation.__init__``)
+  1. **Initialize kernel**: (`Simulation.init_kernel(<kernel_params>)`)
+      1. Set NEST kernel parameters
+      2. Set random seeds for python's `random` module and NEST's random generator.
+  1. **Create network**:
+      1. Initialize the network objects (``Network.__init__``)
+      2. Create the objects in NEST (``Network.__create__``)
+  2. **Save the simulation's metadata**
+      1. Create the output directory
+      1. Save parameters
+      2. Save git hash
+      3. Save network metadata 
+      4. Save session metadata
+2. **Run the simulation** in turn. ``Simulation.__run__``
+  1. Run each session in turn: (``Session.__run__``)
+    1. Initialize session
+      1. (Possibly) reset the network
+      2. (Possibly) Change some of the network's parameters:
+        1. Change neuron parameters for certain units of certain populations
+        1. Change synapse parameters for certain synapse models.
+      3. (Possibly) inactivate recorders for the duration of the session
+      3. Set InputLayer's state from input arrays
+    2. Call `nest.Simulate()`.
 
 ## Parameters
 
