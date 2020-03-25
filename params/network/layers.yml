@@ -2,6 +2,7 @@ network:
   layers:
     params:
       type: null
+    nest_params:
       rows: 5
       columns: 5
       extent: [8.0, 8.0]

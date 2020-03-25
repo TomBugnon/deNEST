@@ -24,15 +24,15 @@ class AbstractLayer(NestObject):
 
     # pylint:disable=too-many-instance-attributes
 
-    def __init__(self, name, params):
-        super().__init__(name, params)
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
         self._gid = None
         self._gids = None  # list of layer GIDs
         self._locations = {}  # {<gid>: (row, col)}
         self._populations = params['populations']  # {<population>: <number>}
-        self.shape = params['rows'], params['columns']
-        self.extent = params['extent']
-        self.edge_wrap = params['edge_wrap']
+        self.shape = nest_params['rows'], nest_params['columns']
+        # TODO: make extent optional and use nest.Topo default
+        self.extent = nest_params['extent']
         # Record if we change some of the layer units' state probabilistically
         self._prob_changed = False
 
@@ -172,14 +172,10 @@ class AbstractLayer(NestObject):
 
 class Layer(AbstractLayer):
 
-    def __init__(self, name, params):
-        super().__init__(name, params)
-        # TODO: use same names
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
+        assert not 'elements' in self.nest_params
         self.nest_params = {
-            'rows': self.shape[0],
-            'columns': self.shape[1],
-            'extent': self.extent,
-            'edge_wrap': self.edge_wrap,
             'elements': self.build_elements(),
         }
 
@@ -292,7 +288,7 @@ class InputLayer(Layer):
     PARROT_MODEL = 'parrot_neuron'
     STIMULATORS = ['spike_generator', 'poisson_generator']
 
-    def __init__(self, name, params):
+    def __init__(self, name, params, nest_params):
         populations = params['populations']
         if len(populations) != 1:
             raise ValueError('InputLayer must have only one population (of'
@@ -311,7 +307,7 @@ class InputLayer(Layer):
         params['populations'] = populations
 
         # Initialize the layer
-        super().__init__(name, params)
+        super().__init__(name, params, nest_params)
 
     def create(self):
         """Create the layer and connect the stimulator and parrot populations"""
