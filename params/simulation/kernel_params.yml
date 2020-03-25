@@ -1,8 +1,10 @@
 kernel:
   params:
-    local_num_threads: 20
-    resolution: 1.0
+    extension_modules: []
     nest_seed: 94
     python_seed: 94
+  nest_params:
+    local_num_threads: 20
+    resolution: 1.0
     print_time: True
     overwrite_files: True

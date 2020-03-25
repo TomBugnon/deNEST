@@ -28,7 +28,7 @@ class Simulation:
 
                 - ``simulation`` (dict-like). Defines input and output paths,
                     and the simulation steps performed. The following parameters
-                    are expected:
+                    (`params` field) are expected:
                         - ``output_dir` (str): Path to the output directory.
                         - ``input_path`` (str): Path to an input file or to the
                             directory in which input files are searched for for
@@ -57,8 +57,7 @@ class Simulation:
         """Initialize simulation.
 
             - Set input and output paths
-            - Set python seed
-            - Initialize NEST kernel
+            - Initialize NEST kernel and set python seed
             - Initialize and build Network in NEST,
             - Create sessions
             - Save simulation metadata
@@ -83,7 +82,7 @@ class Simulation:
         self.set_python_seeds()
         print('...done\n', flush=True)
         # Initialize kernel (should be after getting output dirs)
-        print('Initialize NEST kernel...', flush=True)
+        print('Initialize NEST kernel and seeds...', flush=True)
         self.init_kernel(self.params.c['kernel'])
         print('...done\n', flush=True)
         # Create sessions
@@ -159,50 +158,69 @@ class Simulation:
             session.run(self.network)
             print(f'Done running session `{session.name}`\n\n')
 
-    def init_kernel(self, kernel_params):
+    def init_kernel(self, params, nest_params):
         # TODO Document
-        """Initialize NEST kernel.
+        """Initialize NEST kernel and set Python seed
+
+            - Call ``nest.SetKernelStatus`` with ``nest_params``
+            - Set NEST kernel ``data_path`` and seed
+            - Set Python rng seed for ``numpy`` and ``random`` packages
+            - Install extension modules
 
         Args:
-            kernel_params (Params): Kernel parameters.
+            params (dict-like): Kernel parameters. The following parameters are
+                recognized:
+                    extension_modules (list(str)): List of modules to install.
+                        (default [])
+                    nest_seed (int): Used to set NEST kernel's rng seed
+                    python_seed (int): Seed in Python ``numpy`` and ``random``
+                        packages
+            nest_params (dict-like): Kernel "NEST" parameters, passed to
+                ``nest.SetKernelStatus``. The following parameters are reserved:
+                ``[data_path, 'grng_seed', 'rng_seed']``. The seeds are set via
+                the ``nest_seed`` parameter.
         """
         import nest
         nest.ResetKernel()
-        # Install extension modules
-        print('->Installing external modules...', end=' ')
-        for module in kernel_params.get('extension_modules', []):
-            self.install_module(module)
-        print('done')
-        # Create raw directory in advance
-        print('->Creating raw data directory...', end=' ')
+
+        # Set kernel status from nest_params
+        reserved = ['data_path', 'msd', 'grng_seed', 'rng_seed']
+        if any([key in nest_params for key in reserved]):
+            raise ValueError(
+                f'Reserved keys in kernel nest_params: `{nest_params}`. The'
+                f'following keys are reserved: {reserved}. Use `nest_seed` '
+                'kernel parameter to set the kernel seed.'
+            )
+
+        print(f'-> Setting NEST kernel status')
+        print(f'-->Call `nest.SetKernelStatus({nest_params})`', end=' ')
+        nest.SetKernelStatus(nest_params)
+        # Set data path:
         data_path = output_subdir(self.output_dir, 'raw_data', create_dir=True)
-        print('done')
-        # Set kernel status
-        print('->Setting kernel status...', end=' ')
-        num_threads = kernel_params.get('local_num_threads', 1)
-        resolution = kernel_params.get('resolution', 1.)
-        msd = kernel_params.get('nest_seed', NEST_SEED)
-        print('-> NEST master seed: ', str(msd))
-        print('-> data_path: ', str(data_path))
-        print('-> local_num_threads: ', str(num_threads))
-        nest.SetKernelStatus(
-            {'local_num_threads': num_threads,
-             'resolution': resolution,
-             'overwrite_files': kernel_params.get('overwrite_files', True),
-             'data_path': data_path})
+        # Set seed. Do that after after first SetKernelStatus call in case
+        # total_num_virtual_procs has changed
         n_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
-        nest.SetKernelStatus({
+        msd = params.get('nest_seed', NEST_SEED)
+        kernel_params = {
+            'data_path': data_path,
             'grng_seed': msd + n_vp,
             'rng_seeds': range(msd + n_vp + 1, msd + 2 * n_vp + 1),
-            'print_time': kernel_params['print_time'],
-        })
+        }
+        print(f'-->Call `nest.SetKernelStatus({kernel_params})`', end=' ')
+        nest.SetKernelStatus(nest_params)
         print('done')
 
-    def set_python_seeds(self):
+        # Install extension modules
+        print('->Installing external modules...', end=' ')
+        for module in params.get('extension_modules', []):
+            self.install_module(module)
+        print('done')
+
+        # Set python seed
         import numpy as np
         import random
-        python_seed = self.params.c['kernel'].get('python_seed', PYTHON_SEED)
-        print(f'-> Setting python seed: {str(python_seed)}')
+        python_seed = params.get('python_seed', PYTHON_SEED)
+        print(f'-> Setting Python seed: {python_seed}')
         np.random.seed(python_seed)
         random.seed(python_seed)
 
@@ -216,9 +234,10 @@ class Simulation:
         """Install module in NEST using nest.Install() and catch errors.
 
         Even after resetting the kernel, NEST throws a NESTError (rather than a)
-        warning when the module is already loaded. I couldn't find a way to test
-        whether the module is already installed so this function catches the
-        error if the module is already installed by matching the error message.
+        warning when the module is already loaded. I (Tom) couldn't find a way
+        to test whether the module is already installed so this function catches
+        the error if the module is already installed by matching the error
+        message.
         """
         import nest
         try:
