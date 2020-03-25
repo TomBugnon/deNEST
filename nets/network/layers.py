@@ -30,7 +30,7 @@ class AbstractLayer(NestObject):
         self._gids = None  # list of layer GIDs
         self._locations = {}  # {<gid>: (row, col)}
         self._populations = params['populations']  # {<population>: <number>}
-        self.shape = params['nrows'], params['ncols']
+        self.shape = params['rows'], params['columns']
         self.extent = params['extent']
         self.edge_wrap = params['edge_wrap']
         # Record if we change some of the layer units' state probabilistically
