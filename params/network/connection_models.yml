@@ -2,12 +2,12 @@ network:
   connection_models:
     params:
       type: topological
+    nest_params:
       allow_autapses: false
       allow_multapses: false
       allow_oversized_mask: true
-
     horizontal_exc:
-      params:
+      nest_params:
         connection_type: divergent
         synapse_model: AMPA_syn
         mask:
@@ -24,7 +24,7 @@ network:
             max: 2.25
 
     horizontal_inh:
-      params:
+      nest_params:
         connection_type: divergent
         synapse_model: GABA_A_syn
         mask:
@@ -41,7 +41,7 @@ network:
             max: 2.25
 
     FF_exc:
-      params:
+      nest_params:
         connection_type: convergent
         synapse_model: AMPA_syn
         mask:
@@ -55,7 +55,7 @@ network:
             max: 2.25
 
     input_connection:
-      params:
+      nest_params:
         connection_type: convergent
         mask:
           circular:
@@ -67,8 +67,8 @@ network:
             min: 1.75
             max: 2.25
       input_connection_AMPA:
-        params:
+        nest_params:
           synapse_model: input_synapse_AMPA
       input_connection_NMDA:
-        params:
+        nest_params:
           synapse_model: input_synapse_NMDA
