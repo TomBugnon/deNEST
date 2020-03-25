@@ -26,8 +26,7 @@ class BaseRecorder(NestObject):
     """
 
     def __init__(self, model):
-        # We now save the params and nest_params dictionaries as attributes
-        super().__init__(model, {})
+        super().__init__(model, {}, {})
         self._model = model
         self._type = None
         # Attributes below may depend on NEST default and recorder models and
@@ -63,11 +62,11 @@ class BaseRecorder(NestObject):
     def __str__(self):
         raise NotImplementedError
 
-    def set_status(self, params):
+    def set_status(self, nest_params):
         """Call nest.SetStatus on node."""
         import nest
-        print(f'--> Setting status for recorder {str(self)}: {params}')
-        nest.SetStatus(self.gid, params)
+        print(f'--> Setting status for recorder {str(self)}: {nest_params}')
+        nest.SetStatus(self.gid, nest_params)
 
     def set_label(self):
         """Set self._label and node's NEST ``label`` from self.__str__."""

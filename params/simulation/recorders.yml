@@ -1,12 +1,14 @@
 network:
   recorder_models:
-    params:
+    params: {}
+    nest_params:
       record_to: ['file', 'memory']
       withgid: True
       withtime: True
     multimeter:
       params:
         nest_model: multimeter
+      nest_params:
         interval: 1.0
         record_from: ['V_m']
     spike_detector:
@@ -15,6 +17,7 @@ network:
     weight_recorder:
       params:
         nest_model: weight_recorder
+      nest_params:
         record_to: ['file', 'memory']
         withport: False
         withrport: True
