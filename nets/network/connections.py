@@ -5,46 +5,26 @@
 
 # pylint:disable=missing-docstring
 
-from copy import deepcopy
-
 from .nest_object import NestObject
 from .utils import if_not_created
-
-# List of Connection and ConnectionModel parameters (and their default values
-# that shouldn't be considered as 'nest_parameters'
-NON_NEST_CONNECTION_PARAMS = {
-    'type': 'topological',  # 'Topological'
-}
 
 
 class ConnectionModel(NestObject):
     """Represent a NEST connection model.
 
-    The nest parameters (`self.nest_params`) of a ConnectionModel object contain
-    the base nest parameters used in Connection objects. The parameters that
-    should not be considered as "nest-parameters" (listed along with their
-    default values in the global variable NON_NEST_CONNECTION_PARAMS) are popped
-    off the `self.nest_params` dictionary and kept in the `self.params`
-    attribute.
-    The population-to-population Connection objects inherit from both the params
-    and the nest_params dictionaries.
+    Connection objects inherit ``nest_params`` and ``params`` attributes from
+    ConnectionModel objects.
     """
 
-    def __init__(self, name, all_params):
-        # Pop off the params that shouldn't be considered as NEST parameters
-        nest_params = deepcopy(dict(all_params))
-        params = {}
-        for non_nest_param, default in NON_NEST_CONNECTION_PARAMS.items():
-            params[non_nest_param] = nest_params.pop(non_nest_param, default)
-        # We now save the params and nest_params dictionaries as attributes
-        super().__init__(name, params)
-        self.nest_params = nest_params
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
+        self._type = self.params.get('type', 'topological')
         # Check that the connection types are recognized and nothing is missing.
         assert self.type in ['topological']
 
     @property
-    def type(self):
-        return self.params['type']
+    def _type(self):
+        return self._type
 
 
 class BaseConnection(NestObject):
@@ -84,11 +64,8 @@ class BaseConnection(NestObject):
     def __init__(self, model, source_layer, source_population, target_layer,
                  target_population):
         """Initialize Connection object."""
-        ##
         # Inherit params and nest_params from connection model
-        self.params = dict(model.params)
-        self.nest_params = dict(model.nest_params)
-        super().__init__(model.name, self.params)
+        super().__init__(model.name, self.model.params, self.model.nest_params)
         ##
         # Define the source and targets
         self.model = model
