@@ -85,18 +85,11 @@ def run(path, *overrides, output_dir=None, input_path=None):
     # Load parameters
     print('Load params...\n')
     params = load_params(path, *overrides)
-    # Incorporate kwargs in params
-    if output_dir is not None:
-        print(f'Overriding output directory: {output_dir}')
-        params.c['simulation']['output_dir'] = output_dir
-    if input_path is not None:
-        print(f'Overriding input: {input_path}')
-        params.c['simulation']['input_path'] = input_path
     print('\n...done loading params.', flush=True, end=SEPARATOR)
 
     # Initialize simulation
     print('Initialize simulation...\n', flush=True)
-    sim = Simulation(params)
+    sim = Simulation(params, input_path=input_path, output_dir=output_dir)
     print('\n...done initializing simulation...', flush=True, end=SEPARATOR)
 
     # Simulate

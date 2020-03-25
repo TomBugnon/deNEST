@@ -25,10 +25,11 @@ class Session:
         start_time: Time of kernel in seconds when session starts running.
     """
 
-    def __init__(self, name, params, start_time=0):
+    def __init__(self, name, params, start_time=0, input_path=None):
         print(f'-> Creating session `{name}`')
         self.name = name
         self.params = params
+        self.input_path = input_path
         # Initialize the session start and end times
         self._start = start_time
         self._simulation_time = int(self.params['simulation_time'])
@@ -180,10 +181,10 @@ class Session:
                     - <time_per_frame> is the time in msec during which each of
                         the input array's "frames" is shown to the network.
         """
-        # Input path can be either to a file or to the structured input dir
-        input_path = self.params['input_path']
+        # Input path can be either to an input array or to the directory in
+        # which input # arrays are searched
         file = input_params['file']
-        raw_input_array = load_raw_stimulus(input_path, file)
+        raw_input_array = load_raw_stimulus(self.input_path, file)
 
         # Crop to adjust to network's input layer shape
         layer_shape = input_layer.shape  # (row, col)

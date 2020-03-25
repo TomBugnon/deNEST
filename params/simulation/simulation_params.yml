@@ -2,4 +2,4 @@ simulation:
   params:
     sessions: ['warmup', 'noise', 'grating']
     output_dir: output
-    input_dir: input
+    input_path: input
