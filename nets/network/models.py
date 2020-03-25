@@ -13,13 +13,10 @@ class Model(NestObject):
 
     # pylint:disable=too-few-public-methods
 
-    def __init__(self, name, params):
-        super().__init__(name, params)
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
         # Save and remove the NEST model name from the nest parameters.
         self.nest_model = self.params.pop('nest_model')
-        # TODO: keep nest params in params['nest_params'] and leave base model
-        # as params['nest_model']?
-        self.nest_params = dict(self.params)
 
     @if_not_created
     def create(self):
@@ -43,8 +40,8 @@ class SynapseModel(Model):
         NEST expects 'receptor_type' to be an integer rather than a string. The
         integer index must be found in the defaults of the target neuron.
     """
-    def __init__(self, name, params):
-        super().__init__(name, params)
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
         # Replace the target receptor type with its NEST index
         if 'receptor_type' in params:
             if 'target_neuron' not in params:
@@ -56,9 +53,9 @@ class SynapseModel(Model):
             self.nest_params['receptor_type'] = \
                 receptors[self.params['receptor_type']]
         # Check that the "weight" parameter was not set
-        assert 'weight' not in params, (
-            f"Attempting to set weight={params['weight']} for synapse model "
-            f"`{self.name}`. This parameter will be overriden by the connection"
-            f" `weight` parameter. Please set all weights in connection "
-            f"parameters rather than synapse parameters."
+        assert 'weight' not in nest_params, (
+            f"Attempting to set weight={nest_params['weight']} for synapse"
+            f"model `{self.name}`. This parameter will be overriden by the"
+            f"connection `weight` parameter. Please set allweights in"
+            f"connection parameters rather than synapse parameters."
         )
