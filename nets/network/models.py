@@ -6,6 +6,8 @@
 
 from .nest_object import NestObject
 from .utils import if_not_created
+from utils.validation import MissingParameterError, \
+    ReservedParameterError
 
 
 class Model(NestObject):
@@ -13,10 +15,19 @@ class Model(NestObject):
 
     # pylint:disable=too-few-public-methods
 
+    # Validation of `params`
+    RESERVED_PARAMS = []
+    MANDATORY_PARAMS = ['nest_model']
+    OPTIONAL_PARAMS = {}
+    # Validation of `nest_params`
+    RESERVED_NEST_PARAMS = None
+    MANDATORY_NEST_PARAMS = None
+    OPTIONAL_NEST_PARAMS = None
+
     def __init__(self, name, params, nest_params):
         super().__init__(name, params, nest_params)
         # Save and remove the NEST model name from the nest parameters.
-        self.nest_model = self.params.pop('nest_model')
+        self.nest_model = self.params['nest_model']
 
     @if_not_created
     def create(self):
@@ -40,22 +51,32 @@ class SynapseModel(Model):
         NEST expects 'receptor_type' to be an integer rather than a string. The
         integer index must be found in the defaults of the target neuron.
     """
+
+    # Validation of `nest_params`
+    RESERVED_NEST_PARAMS = ['weight']
+
     def __init__(self, name, params, nest_params):
-        super().__init__(name, params, nest_params)
-        # Replace the target receptor type with its NEST index
+        # Get receptor index in NEST from receptor name
+        if (
+            ('receptor_type' in params and 'target_neuron' not in params)
+            or ('target_neuron' in params and 'receptor_type' not in params)
+        ):
+            raise MissingParameterError(
+                f"Missing parameter in SynapseModel {name} `params`: "
+                f"Must specify both `target_neuron` and `receptor_type` params"
+                f" or neither of them"
+            )
         if 'receptor_type' in params:
-            if 'target_neuron' not in params:
-                raise ValueError("must specify 'target_neuron' "
-                                 "if providing 'receptor_type'")
             import nest
-            target = self.nest_params.pop('target_neuron')
-            receptors = nest.GetDefaults(target)['receptor_types']
-            self.nest_params['receptor_type'] = \
-                receptors[self.params['receptor_type']]
-        # Check that the "weight" parameter was not set
-        assert 'weight' not in nest_params, (
-            f"Attempting to set weight={nest_params['weight']} for synapse"
-            f"model `{self.name}`. This parameter will be overriden by the"
-            f"connection `weight` parameter. Please set allweights in"
-            f"connection parameters rather than synapse parameters."
-        )
+            target = nest_params.pop('target_neuron')
+            receptor_name = nest_params.pop('receptor_type')
+            receptor_ids = nest.GetDefaults(target)['receptor_types']
+            if 'receptor_type' in nest_params:
+                raise ReservedParameterError(
+                    f"Reserved parameter in SynapseModel {name} `nest_params`: "
+                    f"`receptor_type` should not be specified in nest_params if"
+                    f"specified in params."
+                )
+            nest_params['receptor_type'] = receptor_ids[receptor_name]
+        # Initialize Model
+        super().__init__(name, params, nest_params)

@@ -16,9 +16,20 @@ class ConnectionModel(NestObject):
     ConnectionModel objects.
     """
 
+    # Validation of `params`
+    RESERVED_PARAMS = []
+    MANDATORY_PARAMS = []
+    OPTIONAL_PARAMS = {
+        'type': 'topological'
+    }
+    # Validation of `nest_params`
+    RESERVED_NEST_PARAMS = None
+    MANDATORY_NEST_PARAMS = ['synapse_model']
+    OPTIONAL_NEST_PARAMS = None
+
     def __init__(self, name, params, nest_params):
         super().__init__(name, params, nest_params)
-        self._type = self.params.get('type', 'topological')
+        self._type = self.params['type']
         # Check that the connection types are recognized and nothing is missing.
         assert self.type in ['topological']
 

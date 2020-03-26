@@ -164,8 +164,6 @@ class Layer(AbstractLayer):
         name (str): Name of the layer
         params (dict-like): Dictionary of parameters. The following parameters
             are expected:
-                type (str): Type of the layer. Can be ``InputLayer`` or
-                    ``Layer``
                 populations (dict): Dictionary of the form ``{<model>: <number>}
                     specifying the elements within the layer. Analogous to the
                     ``elements`` nest.Topology parameter
@@ -176,9 +174,20 @@ class Layer(AbstractLayer):
             parameter instead to specify layer elements.
     """
 
+    # Validation of `params`
+    RESERVED_PARAMS = None
+    MANDATORY_PARAMS = ['populations']
+    OPTIONAL_PARAMS = {
+        'type': None
+    }
+    # Validation of `nest_params`
+    RESERVED_NEST_PARAMS = ['elements']
+    MANDATORY_NEST_PARAMS = ['rows', 'columns']
+    OPTIONAL_NEST_PARAMS = None
+
+
     def __init__(self, name, params, nest_params):
         super().__init__(name, params, nest_params)
-        assert not 'elements' in self.nest_params
         self.nest_params['elements'] = self.build_elements()
 
     def build_elements(self):
@@ -295,13 +304,15 @@ class InputLayer(Layer):
     STIMULATORS = ['spike_generator', 'poisson_generator']
 
     def __init__(self, name, params, nest_params):
+        
+        # Check populations and add a population of parrot neurons
         populations = params['populations']
         if (len(populations) != 1 or list(populations.values())[0] != 1):
             raise ValueError(
-                f"""`InputLayer` layer {name} should be composed of a single
-                population, of stimulation devices, with a single element per
-                location. Please check the `population` parameter:
-                {populations}"""
+                f"Invalid `population` parameter for `InputLayer` layer {name}."
+                f"InputLayers should be composed of a single population, of"
+                f"stimulation devices, with a single element per location."
+                f"Please check the `population` parameter: {populations}"
             )
         # Save the stimulator type
         stimulator_model, nunits = list(populations.items())[0]

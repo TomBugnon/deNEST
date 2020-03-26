@@ -44,9 +44,8 @@ class Network:
             SynapseModel, self.params.c['synapse_models'])
         self.recorder_models = self.build_named_leaves_dict(
             Model, self.params.c['recorder_models'])
-        # Layers can have different types
         self.layers = {
-            name: LAYER_TYPES[leaf['type']](name, leaf)
+            name: LAYER_TYPES[leaf.get('type', None)](name, leaf)
             for name, leaf in self.params.c['layers'].named_leaves()
         }
         self.connection_models = self.build_named_leaves_dict(
