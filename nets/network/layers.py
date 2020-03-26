@@ -37,6 +37,7 @@ class AbstractLayer(NestObject):
         self._prob_changed = False
 
     def __iter__(self):
+        """Iterate on layer locations."""
         yield from itertools.product(range(self.shape[0]),
                                      range(self.shape[1]))
 
@@ -64,7 +65,7 @@ class AbstractLayer(NestObject):
     @property
     @if_created
     def gid(self):
-        """Return the NEST global ID (GID) of the layer."""
+        """Return the NEST global ID (GID) of the layer object."""
         return self._gid
 
     @if_created
@@ -167,6 +168,7 @@ class AbstractLayer(NestObject):
                         range(len(gids_list)),
                         int(len(gids_list) * proportion))
                         )]
+
 
 class Layer(AbstractLayer):
 
