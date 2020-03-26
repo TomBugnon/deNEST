@@ -89,19 +89,6 @@ class AbstractLayer(NestObject):
         """
         raise NotImplementedError
 
-    def element(self, *args):
-        """Return the element(s) at the given location(s).
-
-        Args:
-            *args (tuple[int]): Coordinate pair(s) of grid location(s).
-
-        Returns:
-            tuple[tuple[int, str-like]]: For each (x, y) coordinate pair in
-            ``args``, returns a tuple of (GID, population) pairs for the
-            elements at that location.
-        """
-        raise NotImplementedError
-
     def change_unit_states(self, changes_dict, population=None, proportion=1.0,
                            change_type='constant'):
         """Set parameters for some units.
@@ -252,10 +239,6 @@ class Layer(AbstractLayer):
                      or self.locations[gid] == location)
             )
         ]
-
-    @if_created
-    def element(self, *args):
-        return tuple(self._elements[location] for location in args)
 
     @property
     @if_created
