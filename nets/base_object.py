@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/nest_object.py
-"""Base class for representations of NEST objects."""
+"""Base class for representations of objects with parameters."""
 
 import copy as cp
 import functools
 from pprint import pformat
 
-from ..utils.validation import validate
+from .utils.validation import validate
 
 
 class ParamObject:

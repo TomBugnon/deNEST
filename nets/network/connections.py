@@ -5,7 +5,7 @@
 
 # pylint:disable=missing-docstring
 
-from .nest_object import NestObject
+from ..base_object import NestObject
 from .utils import if_not_created
 
 

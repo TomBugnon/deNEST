@@ -10,7 +10,7 @@ import random
 import numpy as np
 
 from ..utils import spike_times
-from .nest_object import NestObject
+from ..base_object import NestObject
 from .utils import flatten, if_created, if_not_created
 
 # pylint:disable=missing-docstring
