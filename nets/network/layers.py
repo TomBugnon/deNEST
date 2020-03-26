@@ -175,9 +175,7 @@ class Layer(AbstractLayer):
     def __init__(self, name, params, nest_params):
         super().__init__(name, params, nest_params)
         assert not 'elements' in self.nest_params
-        self.nest_params = {
-            'elements': self.build_elements(),
-        }
+        self.nest_params['elements'] = self.build_elements()
 
     def extent_units(self, value):
         return self.to_extent_units(value, self.extent[0],
