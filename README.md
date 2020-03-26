@@ -354,11 +354,6 @@ defined in the final parameter tree.
   - `layers` (subtree): Defines layer parameters. Each leaf is a layer. The
     following parameters are recognized for each layer-leaf:
     - `type` (str): `'InputLayer'`, `'Layer'` or `None` (default `'Layer'`).
-    - `nrows`, `ncols` (int): Number of rows/columns for the layer (mandatory)
-    - `edge_wrap` (bool): Whether the layer is wrapped in NEST. (default
-      `False`)
-    - `visSize` (bool): NEST physical 'extent' of each the layer's side. We only
-      consider square layers for now (possible TODO) (mandatory)
     - `populations` (dict): Non-empty dictionary containing the neuron model
       (keys) and the number of units of that model at each grid location
       (values). (mandatory)

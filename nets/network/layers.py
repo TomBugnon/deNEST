@@ -31,8 +31,6 @@ class AbstractLayer(NestObject):
         self._locations = {}  # {<gid>: (row, col)}
         self._populations = params['populations']  # {<population>: <number>}
         self.shape = nest_params['rows'], nest_params['columns']
-        # TODO: make extent optional and use nest.Topo default
-        self.extent = nest_params['extent']
         # Record if we change some of the layer units' state probabilistically
         self._prob_changed = False
 
@@ -40,17 +38,6 @@ class AbstractLayer(NestObject):
         """Iterate on layer locations."""
         yield from itertools.product(range(self.shape[0]),
                                      range(self.shape[1]))
-
-    @staticmethod
-    def to_extent_units(value, extent, rows, columns):
-        """Convert a value from grid units to extent units."""
-        size = max(rows, columns)
-        units = extent / size
-        return value * units
-
-    def extent_units(self, value):
-        """Convert a value from grid units to extent units."""
-        raise NotImplementedError
 
     @if_not_created
     def create(self):
@@ -184,7 +171,7 @@ class Layer(AbstractLayer):
                     ``elements`` nest.Topology parameter
         nest_params (dict-like): Dictionary of parameters that will be passed
             to NEST during the ``nest.CreateLayer`` call. The following
-            parameters are mandatory: ``['rows', 'columns', 'extent']``. The
+            parameters are mandatory: ``['rows', 'columns']``. The
             ``elements`` parameter is reserved. Please use the ``populations``
             parameter instead to specify layer elements.
     """
@@ -193,10 +180,6 @@ class Layer(AbstractLayer):
         super().__init__(name, params, nest_params)
         assert not 'elements' in self.nest_params
         self.nest_params['elements'] = self.build_elements()
-
-    def extent_units(self, value):
-        return self.to_extent_units(value, self.extent[0],
-                                    self.shape[0], self.shape[1])
 
     def build_elements(self):
         """Convert ``populations`` parameters to format expected by NEST
@@ -335,18 +318,20 @@ class InputLayer(Layer):
     def create(self):
         """Create the layer and connect the stimulator and parrot populations"""
         super().create()
-        from nest import topology as tp
         import nest
         # Connect stimulators to parrots, one-to-one
-        radius = self.extent_units(0.1)
-        one_to_one_connection = {
-            'sources': {'model': self.stimulator_model},
-            'targets': {'model': self.PARROT_MODEL},
-            'connection_type': 'convergent',
-            'synapse_model': 'static_synapse',
-            'mask': {'circular': {'radius': radius}}
-        }
-        tp.ConnectLayers(self._gid, self._gid, one_to_one_connection)
+        assert all([n == 1 for n in self.populations.values()])
+        stim_gids = [
+            self.gids(location=loc, population=self.stimulator_model)
+            for loc in self
+        ]
+        parrot_gids = [
+            self.gids(location=loc, population=self.PARROT_MODEL)
+            for loc in self
+        ]
+        nest.Connect(
+            stim_gids, parrot_gids, 'one_to_one', {'model': 'static_synapse'}
+        )
         # Get stimulator type
         self.stimulator_type = nest.GetDefaults(self.stimulator_model,
                                                 'type_id')
