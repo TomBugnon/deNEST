@@ -263,15 +263,6 @@ class Layer(AbstractLayer):
         return self.population_names()
 
     @if_created
-    def find_center_element(self, population=None):
-        """Return GID of an element centered within the layer."""
-        center_loc = (int(self.shape[0]/2),
-                      int(self.shape[1]/2))
-        center_gid = self.gids(location=center_loc, population=population)[0:1]
-        assert len(center_gid) == 1
-        return center_gid
-
-    @if_created
     def set_state(self, variable, values, population=None):
         """Set the state of a variable for all units in a layer.
 
@@ -373,9 +364,6 @@ class InputLayer(Layer):
         else:
             raise NotImplementedError
     # pylint: disable=arguments-differ
-
-    def find_center_element(self, population=None):
-        return self.layers[0].find_center_element(population=population)
 
     def recordable_population_names(self):
         """Return list of names of recordable population names in this layer."""
