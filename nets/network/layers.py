@@ -171,6 +171,23 @@ class AbstractLayer(NestObject):
 
 
 class Layer(AbstractLayer):
+    """Represents a NEST layer composed of populations of units
+
+    Args:
+        name (str): Name of the layer
+        params (dict-like): Dictionary of parameters. The following parameters
+            are expected:
+                type (str): Type of the layer. Can be ``InputLayer`` or
+                    ``Layer``
+                populations (dict): Dictionary of the form ``{<model>: <number>}
+                    specifying the elements within the layer. Analogous to the
+                    ``elements`` nest.Topology parameter
+        nest_params (dict-like): Dictionary of parameters that will be passed
+            to NEST during the ``nest.CreateLayer`` call. The following
+            parameters are mandatory: ``['rows', 'columns', 'extent']``. The
+            ``elements`` parameter is reserved. Please use the ``populations``
+            parameter instead to specify layer elements.
+    """
 
     def __init__(self, name, params, nest_params):
         super().__init__(name, params, nest_params)
@@ -279,8 +296,16 @@ class Layer(AbstractLayer):
 class InputLayer(Layer):
     """A layer that provides input to the network.
 
-    A layer with a population of stimulation devices connected to an extra
-    population of parrot neurons, and that can handle input arrays
+    ``InputLayer`` extends the ``Layer`` class to handle layers of stimulation
+    devices.
+
+    `InputLayer` parameters should specify a single population of stimulation
+    devices. A second population of parrot neurons will be created and connected
+    one-to-one to the population of stimulators, to allow recording of activity
+    in the layer.
+
+    The state of stimulators within the `InputLayer` can be set from an input
+    array via the ``InputLayer.set_input`` method.
     """
 
     PARROT_MODEL = 'parrot_neuron'
@@ -288,16 +313,16 @@ class InputLayer(Layer):
 
     def __init__(self, name, params, nest_params):
         populations = params['populations']
-        if len(populations) != 1:
-            raise ValueError('InputLayer must have only one population (of'
-                             'stimulation devices)')
+        if (len(populations) != 1 or list(populations.values())[0] != 1):
+            raise ValueError(
+                f"""`InputLayer` layer {name} should be composed of a single
+                population, of stimulation devices, with a single element per
+                location. Please check the `population` parameter:
+                {populations}"""
+            )
         # Save the stimulator type
         stimulator_model, nunits = list(populations.items())[0]
-        if nunits != 1:
-            raise ValueError(
-                'InputLayer can have only one stimution device per location.'
-                f'Please check the `population` parameter: {populations}'
-        )
+        assert nunits == 1
         self.stimulator_model = stimulator_model
         self.stimulator_type = None  # TODO: Check stimulator type
         # Add a parrot population entry
@@ -325,16 +350,17 @@ class InputLayer(Layer):
         # Get stimulator type
         self.stimulator_type = nest.GetDefaults(self.stimulator_model,
                                                 'type_id')
-        if self.stimulator_type not in self.STIMULATORS:
-            raise ValueError(
-                f"The stimulation device in input layer {self.name} if not"
-                f" of an accepted type. stimulator_type={self.stimulator_type},"
-                f" Supported types: {self.STIMULATORS}"
-            )
 
-
+    # TODO: DOc
     def set_input(self, input_array, start_time=0.):
         """Set stimulator state from input_array."""
+
+        if self.stimulator_type not in self.STIMULATORS:
+            raise ValueError(
+                f"Input can be set for `InputLayer` only for stimulators of the"
+                f"following type: {self.STIMULATORS}."
+            )
+
         max_rate = np.max(input_array)
         assert input_array.ndim == 3
         print(f'-> Setting input for `{self.name}`.')
@@ -356,7 +382,7 @@ class InputLayer(Layer):
             self.set_state('spike_times', all_spike_times,
                            population=self.stimulator_model)
         else:
-            raise NotImplementedError
+            assert False
     # pylint: disable=arguments-differ
 
     def recordable_population_names(self):
