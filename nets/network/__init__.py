@@ -567,7 +567,7 @@ class Network(object):
     def print_network_size():
         import nest
         print('------------------------')
-        print('Network size (without recorders)')
+        print('Network size (with recorders and parrot neurons)')
         print('Number of nodes: ', nest.GetKernelStatus('network_size'))
         print('Number of connections: ',
               nest.GetKernelStatus('num_connections'))
