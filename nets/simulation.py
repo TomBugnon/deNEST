@@ -96,11 +96,6 @@ class Simulation(object):
             self.sim_params['input_path'] = input_path
         self.input_path = self.sim_params['input_path']
 
-        # set python seeds
-        print('Set python seed...', flush=True)
-        self.set_python_seeds()
-        print('...done\n', flush=True)
-
         # Initialize kernel (should be after getting output dirs)
         print('Initialize NEST kernel and seeds...', flush=True)
         self.init_kernel(self.params.c['kernel'])
