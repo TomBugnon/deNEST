@@ -8,13 +8,14 @@ from pprint import pformat
 
 import numpy as np
 
+from .base_object import ParamObject
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
 
 # pylint:disable=missing-docstring
 
 
-class Session:
+class Session(ParamObject):
     """Represents a sequence of stimuli.
 
     Args:
@@ -25,24 +26,33 @@ class Session:
         start_time: Time of kernel in seconds when session starts running.
     """
 
+    # Validation of `params`
+    RESERVED_PARAMS = None
+    MANDATORY_PARAMS = ['simulation_time']
+    OPTIONAL_PARAMS = {
+        'reset_network': False,
+        'record': True,
+        'unit_changes': [],
+        'synapse_changes': [],
+        'inputs': []
+    }
+
     def __init__(self, name, params, start_time=0, input_path=None):
         print(f'-> Creating session `{name}`')
-        self.name = name
-        self.params = params
+        # Sets self.name / self.params  and validates params
+        super().__init__(name, params)
         self.input_path = input_path
         # Initialize the session start and end times
         self._start = start_time
         self._simulation_time = int(self.params['simulation_time'])
         if not self._simulation_time > 0:
             raise ValueError(
-                f"Session parameter `simulation_time` should be strictly"
-                f"positive."
+                f"Parameter `simulation_time` of session {name} should be"
+                f"strictly positive."
             )
         self._end = self._start + self._simulation_time
         # Initialize input arrays
         self._input_arrays = None
-        # Whether we inactivate all recorders
-        self._record = self.params.get('record', True)
 
     @property
     def end(self):
@@ -76,16 +86,16 @@ class Session:
                 2. Set layer's spike times or input rates from input array
         """
         # Reset network
-        if self.params.get('reset_network', False):
+        if self.params['reset_network']:
             network.reset()
 
         # Change dynamic variables
-        network.change_synapse_states(self.params.get('synapse_changes', []))
-        network.change_unit_states(self.params.get('unit_changes', []))
+        network.change_synapse_states(self.params['synapse_changes'])
+        network.change_unit_states(self.params['unit_changes'])
 
         # Inactivate all the recorders and connection_recorders for
         # `self._simulation_time`
-        if not self._record:
+        if not self.params['record']:
             self.inactivate_recorders(network)
 
         # Set input for each inputlayer
@@ -94,7 +104,9 @@ class Session:
         for inputlayer in inputlayers:
             if inputlayer.name not in self.params['inputs'].keys():
                 raise ValueError(
-                    f"No input defined for InputLayer {str(inputlayer)}"
+                    f"No input defined in session {self.name} for InputLayer"
+                    f"{str(inputlayer)}. Please check the `inputs` session"
+                    f"parameter"
                 )
 
             print(f"Setting input for InputLayer `{inputlayer.name}`")

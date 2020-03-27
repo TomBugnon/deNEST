@@ -6,25 +6,23 @@
 
 import os
 
-from .constants import (DEFAULT_INPUT_PATH, DEFAULT_OUTPUT_DIR, NEST_SEED,
-                        PYTHON_SEED)
 from .network import Network
 from .io.save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
-from .utils import misc
+from .utils import misc, validation
 
 # pylint:disable=missing-docstring
 
 
-class Simulation:
+class Simulation(object):
     """Represents a simulation.
 
     Handles building the network, running it with a series of sessions, and
     saving output.
 
     Args:
-        params (Params): Full simulation parameter tree. The following subtrees
-            are expected:
+        params (Params): Full simulation parameter tree. The following
+            ``Params`` subtrees are expected:
 
                 - ``simulation`` (dict-like). Defines input and output paths,
                     and the simulation steps performed. The following parameters
@@ -52,7 +50,20 @@ class Simulation:
             overrides the `input_path` simulation parameter
         output_dir (str | None): None or the path to the output directory. If
             defined, overrides `output_dir` simulation parameter.
-     """
+    """
+
+    # Validate children subtrees
+    MANDATORY_CHILDREN = []
+    OPTIONAL_CHILDREN = []
+
+    # Validate "simulation" params
+    MANDATORY_SIM_PARAMS = []
+    OPTIONAL_SIM_PARAMS = {
+        'sessions': [],
+        'input_path': 'input',
+        'output_dir': 'output',
+    }
+
     def __init__(self, params, input_path=None, output_dir=None):
         """Initialize simulation.
 
@@ -62,32 +73,42 @@ class Simulation:
             - Create sessions
             - Save simulation metadata
         """
+        # Full parameter tree
         self.params = params
-        # Get output dir
+        # Check that the full tree's data key is empty
+        validation.validate(
+            "Full parameter tree", dict(params), mandatory=[], optional={})
+        # TODO: Validate children
+
+        # "simulation" parameters
+        self.sim_params = validation.validate(
+            "simulation", dict(self.params.c['simulation']),
+            mandatory=self.MANDATORY_SIM_PARAMS,
+            optional=self.OPTIONAL_SIM_PARAMS
+        )
+
+        # Incorporate `input_path` and `output_dir` kwargs
         if output_dir is not None:
-            self.output_dir = output_dir
-        else:
-            self.output_dir = params.c['simulation'].get(
-                output_dir, DEFAULT_OUTPUT_DIR
-            )
+            self.sim_params['output_dir'] = output_dir
+        self.output_dir = self.sim_params['output_dir']
         # Get input dir
         if input_path is not None:
-            self.input_path = input_path
-        else:
-            self.input_path = params.c['simulation'].get(
-                input_path, DEFAULT_INPUT_PATH
-            )
+            self.sim_params['input_path'] = input_path
+        self.input_path = self.sim_params['input_path']
+
         # set python seeds
         print('Set python seed...', flush=True)
         self.set_python_seeds()
         print('...done\n', flush=True)
+
         # Initialize kernel (should be after getting output dirs)
         print('Initialize NEST kernel and seeds...', flush=True)
         self.init_kernel(self.params.c['kernel'])
         print('...done\n', flush=True)
+
         # Create sessions
         print('Create sessions...', flush=True)
-        self.sessions_order = self.params.c['simulation'].get('sessions', [])
+        self.sessions_order = self.sim_params['sessions']
         session_models = {
             session_name: session_params
             for session_name, session_params
@@ -109,11 +130,13 @@ class Simulation:
         }
         print(f'-> Sessions: {self.sessions_order}')
         print('Done...\n', flush=True)
+
         # Create network
         print('Create network...', flush=True)
         self.network = Network(self.params.c['network'])
         self.network.create()
         print('...done\n', flush=True)
+
         # Save simulation metadata
         print('Saving simulation metadata...', flush=True)
         self.save_metadata()
@@ -172,25 +195,36 @@ class Simulation:
                 recognized:
                     extension_modules (list(str)): List of modules to install.
                         (default [])
-                    nest_seed (int): Used to set NEST kernel's rng seed
+                    nest_seed (int): Used to set NEST kernel's rng seed (default
+                        1)
                     python_seed (int): Seed in Python ``numpy`` and ``random``
-                        packages
+                        packages. (default 1)
             nest_params (dict-like): Kernel "NEST" parameters, passed to
                 ``nest.SetKernelStatus``. The following parameters are reserved:
                 ``[data_path, 'grng_seed', 'rng_seed']``. The seeds are set via
                 the ``nest_seed`` parameter.
         """
+
+        MANDATORY_PARAMS = []
+        OPTIONAL_PARAMS = {
+            'extension_modules': [],
+            'nest_seed': 1,
+            'python_seed': 1
+        }
+        RESERVED_NEST_PARAMS = ['data_path', 'msd', 'grng_seed', 'rng_seed']
+
+        # Validate params and nest_params
+        params = validation.validate(
+            "kernel", params, param_type='params', mandatory=MANDATORY_PARAMS,
+            optional=OPTIONAL_PARAMS
+        )
+        nest_params = validation.validate(
+            "kernel", nest_params, param_type='nest_params',
+            reserved=RESERVED_NEST_PARAMS
+        )
+
         import nest
         nest.ResetKernel()
-
-        # Set kernel status from nest_params
-        reserved = ['data_path', 'msd', 'grng_seed', 'rng_seed']
-        if any([key in nest_params for key in reserved]):
-            raise ValueError(
-                f'Reserved keys in kernel nest_params: `{nest_params}`. The'
-                f'following keys are reserved: {reserved}. Use `nest_seed` '
-                'kernel parameter to set the kernel seed.'
-            )
 
         print(f'-> Setting NEST kernel status')
         print(f'-->Call `nest.SetKernelStatus({nest_params})`', end=' ')
@@ -200,7 +234,7 @@ class Simulation:
         # Set seed. Do that after after first SetKernelStatus call in case
         # total_num_virtual_procs has changed
         n_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
-        msd = params.get('nest_seed', NEST_SEED)
+        msd = params['nest_seed']
         kernel_params = {
             'data_path': data_path,
             'grng_seed': msd + n_vp,
@@ -212,14 +246,14 @@ class Simulation:
 
         # Install extension modules
         print('->Installing external modules...', end=' ')
-        for module in params.get('extension_modules', []):
+        for module in params['extension_modules']:
             self.install_module(module)
         print('done')
 
         # Set python seed
         import numpy as np
         import random
-        python_seed = params.get('python_seed', PYTHON_SEED)
+        python_seed = params['python_seed']
         print(f'-> Setting Python seed: {python_seed}')
         np.random.seed(python_seed)
         random.seed(python_seed)

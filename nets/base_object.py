@@ -19,7 +19,8 @@ class ParamObject:
     RESERVED_PARAMS = None
     MANDATORY_PARAMS = None
     OPTIONAL_PARAMS = None
-    
+
+    # TODO: Check that params is dict rather than `Params` type
     def __init__(self, name, params):
         self.name = name
         self.params = cp.deepcopy(params)
@@ -29,7 +30,7 @@ class ParamObject:
         """Validate and update params with default values."""
         # Validate params:
         self.params = validate(
-            self.name, self.params, param_type='params',
+            self.name, dict(self.params), param_type='params',
             reserved=self.RESERVED_PARAMS,
             mandatory=self.MANDATORY_PARAMS,
             optional=self.OPTIONAL_PARAMS,
