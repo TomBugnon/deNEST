@@ -468,11 +468,11 @@ class Network(object):
             synapse_changes (list): List of dictionaries each of the form::
                     {
                         'synapse_model': <synapse_model>,
-                        'params': {<key>: <value>,
-                                    ...}
+                        'params': {<param1>: <value1>}
                     }
-                where the ``'params'`` key contains the parameters to set for
-                all synapses of a given model.
+                where the dictionary in ``params`` is passed to nest.SetStatus
+                to set the parameters for all connections with synapse model
+                ``<synapse_model>``
         """
         import nest
         for changes in tqdm(
