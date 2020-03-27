@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/__init__.py
-"""Provide a class to construct a network from independent parameters."""
+"""Provide a class to construct a network."""
 
 import os
 import itertools

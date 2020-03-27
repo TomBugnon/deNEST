@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # recorders.py
 
-"""Create and save population and connection recorder objects."""
+"""PopulationRecorder and ConnectionRecorder objects."""
 
 # pylint:disable=missing-docstring
 

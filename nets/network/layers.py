@@ -299,6 +299,8 @@ class InputLayer(Layer):
     The state of stimulators within the `InputLayer` can be set from an input
     array via the ``InputLayer.set_input`` method.
     """
+    # Append ``Layer`` docstring
+    __doc__ += '\n'.join(Layer.__doc__.split('\n')[1:])
 
     PARROT_MODEL = 'parrot_neuron'
     STIMULATORS = ['spike_generator', 'poisson_generator']

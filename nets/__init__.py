@@ -78,6 +78,14 @@ def run(path, *overrides, output_dir=None, input_path=None):
         path (str): The filepath of a parameter file specifying the simulation.
         *overrides (tree-like): Variable number of tree-like parameters that
             should override those from the path. Last in list is applied first.
+
+    Kwargs:
+        input_path (str | None): None or the path to the input. Passed to
+            ``Simulation.__init__``. If defined, overrides the `input_path`
+            simulation parameter
+        output_dir (str | None): None or the path to the output directory.
+            Passed to ``Simulation.__init__`` If defined, overrides `output_dir`
+            simulation parameter.
     """
     start_time = time.time()  # Timing of simulation time
     print(SEPARATOR)

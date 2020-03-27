@@ -26,15 +26,20 @@ class Simulation(object):
 
                 - ``simulation`` (dict-like). Defines input and output paths,
                     and the simulation steps performed. The following parameters
-                    (`params` field) are expected:
-                        - ``output_dir` (str): Path to the output directory.
+                    (`params` field) are recognized:
+                        - ``output_dir` (str): Path to the output directory
+                            (default 'output').
                         - ``input_path`` (str): Path to an input file or to the
-                            directory in which input files are searched for for
-                            each session.
+                          directory in which input files are searched for for
+                          each session. If ``input_path`` points towards a
+                          loadable numpy input array, it will be used for
+                          setting the `InputLayer` layers' input. Otherwise,
+                          ``input_path`` is interpreted as a directory in which
+                          input array files are searched. (default 'input')
                         - ``sessions`` (list(str)): Order in which sessions are
                             run. Elements of the list should be the name of
                             session models defined in the ``session_models``
-                            parameter subtree.
+                            parameter subtree (default [])
                 - ``kernel``: Used for NEST kernel initialization. Refer to
                   ``Simulation.init_kernel`` for a description of
                   kernel parameters.
@@ -182,7 +187,6 @@ class Simulation(object):
             print(f'Done running session `{session.name}`\n\n')
 
     def init_kernel(self, params, nest_params):
-        # TODO Document
         """Initialize NEST kernel and set Python seed
 
             - Call ``nest.SetKernelStatus`` with ``nest_params``
@@ -201,8 +205,8 @@ class Simulation(object):
                         packages. (default 1)
             nest_params (dict-like): Kernel "NEST" parameters, passed to
                 ``nest.SetKernelStatus``. The following parameters are reserved:
-                ``[data_path, 'grng_seed', 'rng_seed']``. The seeds are set via
-                the ``nest_seed`` parameter.
+                ``[data_path, 'grng_seed', 'rng_seed']``. The NEST seeds should
+                be set via the ``nest_seed`` kernel parameter parameter.
         """
 
         MANDATORY_PARAMS = []
@@ -260,6 +264,7 @@ class Simulation(object):
 
     @staticmethod
     def total_time():
+        """Return the NEST kernel time."""
         import nest
         return nest.GetKernelStatus('time')
 
@@ -272,6 +277,9 @@ class Simulation(object):
         to test whether the module is already installed so this function catches
         the error if the module is already installed by matching the error
         message.
+        
+        Args:
+            module_name (str): Name of the module.
         """
         import nest
         try:

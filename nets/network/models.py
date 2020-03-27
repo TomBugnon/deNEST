@@ -11,7 +11,18 @@ from utils.validation import MissingParameterError, \
 
 
 class Model(NestObject):
-    """Represent a model in NEST."""
+    """Represent a model in NEST.
+
+    During creation, we copy or change the default parameters of the
+    ``nest_model`` NEST model.
+
+    Args:
+        name (str): Name of the model
+        params (dict-like): `params` of the object. Should countain the
+            `nest_model` key.
+        nest_params (dict-like): Dictionary passed to NEST during the
+            ``nest.CopyModel`` of ``nest.SetDefaults`` call.
+    """
 
     # pylint:disable=too-few-public-methods
 
@@ -46,6 +57,21 @@ class Model(NestObject):
 
 class SynapseModel(Model):
     """Represents a NEST synapse.
+
+    Args:
+        name (str): Name of the model
+        params (dict-like): `params` of the object. Should countain the
+            `nest_model` key. The following keys are recognized:
+                - ``receptor_type``, ``target_neuron`` (str): Name of the
+                    receptor type (eg "AMPA") and of the target neuron for
+                    synapses of this type. If specified, the `receptor_type`
+                    NEST parameter (which is an integer) is automatically set
+                    from the defaults of the target neuron.
+        nest_params (dict-like): Dictionary passed to NEST during the
+            ``nest.CopyModel`` of ``nest.SetDefaults`` call. The ``weight``
+            parameter, which sets the synapse model's default weight is
+            reserved. To set the strength of connections, set the ``weights``
+            parameter of ``Connection`` objects instead.
 
     ..note::
         NEST expects 'receptor_type' to be an integer rather than a string. The
