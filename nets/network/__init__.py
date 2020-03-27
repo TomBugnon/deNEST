@@ -12,7 +12,7 @@ from .connections import (ConnectionModel, TopoConnection)
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
 from .recorders import PopulationRecorder, ConnectionRecorder
-from .utils import if_not_created, log
+from .utils import if_not_created, log, validation
 
 # pylint: disable=too-few-public-methods
 
@@ -26,7 +26,7 @@ CONNECTION_TYPES = {
 }
 
 
-class Network:
+class Network(object):
     """Represent a full network."""
 
     # pylint: disable=too-many-instance-attributes
@@ -36,6 +36,15 @@ class Network:
         self._created = False
         self._changed = False
         self.params = params
+        
+        # Validate params
+        # ~~~~~~~~~~~~~~~~~~~~~~~~
+        # Check that the "network" tree's data key is empty
+        validation.validate(
+            "network", dict(params), mandatory=[], optional={})
+        # TODO: Check children
+
+
         # Build network components
         # ~~~~~~~~~~~~~~~~~~~~~~~~
         self.neuron_models = self.build_named_leaves_dict(
