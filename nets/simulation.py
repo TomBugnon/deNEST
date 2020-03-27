@@ -53,8 +53,7 @@ class Simulation(object):
     """
 
     # Validate children subtrees
-    MANDATORY_CHILDREN = []
-    OPTIONAL_CHILDREN = []
+    MANDATORY_CHILDREN = ['kernel', 'simulation', 'session_models', 'network']
 
     # Validate "simulation" params
     MANDATORY_SIM_PARAMS = []
@@ -75,11 +74,17 @@ class Simulation(object):
         """
         # Full parameter tree
         self.params = params
+
+        # Validate params tree
+        # ~~~~~~~~~~~~~~~~~~~~~~~~
         # Check that the full tree's data key is empty
         validation.validate(
             "Full parameter tree", dict(params), mandatory=[], optional={})
-        # TODO: Validate children
-
+        # Check that the full parameter tree has the correct children
+        validation.validate_children(
+            'Full parameter tree', list(params.c.keys()),
+            mandatory_children=self.MANDATORY_CHILDREN
+        )
         # "simulation" parameters
         self.sim_params = validation.validate(
             "simulation", dict(self.params.c['simulation']),

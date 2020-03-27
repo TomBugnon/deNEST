@@ -27,6 +27,53 @@ class UnrecognizedParameterError(ParameterError):
     pass
 
 
+class MissingChildNodeError(ValueError):
+    """Raised when a child `Params` node is missing."""
+    pass
+
+
+class UnrecognizedChildNodeError(ValueError):
+    """Raised when a child `Params` node is not recognized."""
+    pass
+
+
+def validate_children(name, children_list, mandatory_children=None):
+    """Validate a `Params` node children.
+    
+    Args:
+        name (str): Name of the `Params` node we're validating
+    
+    Kwargs:
+        children_list (list(str) | None): ``None`` or the list of names of
+            children nodes that are expected in the validated node. Ignored if
+            ``None``
+    """
+
+    if mandatory_children is None:
+        return
+
+    error_msg_base = (
+        f"Invalid set of children for ``Params`` node ``{name}``:\n"
+    )
+
+    missing_children = list(set(mandatory_children) - set(children_list))
+    if any(missing_children):
+        raise MissingChildNodeError((
+            error_msg_base +
+            f"The following `Params` children subtrees are missing: "
+            f"{missing_children}"
+        ))
+
+    extra_children = list(set(children_list) - set(mandatory_children))
+    if any(extra_children):
+        raise UnrecognizedChildNodeError((
+            error_msg_base +
+            f"The following `Params` children subtrees are unexpected: "
+            f"{extra_children}"
+        ))
+    return
+
+
 def validate(name, params, param_type='params', reserved=None,
              mandatory=None, optional=None):
     """Validate and set default values for parameter dictionary.

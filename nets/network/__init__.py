@@ -29,7 +29,10 @@ CONNECTION_TYPES = {
 class Network(object):
     """Represent a full network."""
 
-    # pylint: disable=too-many-instance-attributes
+    MANDATORY_CHILDREN = [
+        'neuron_models', 'synapse_models', 'layers', 'connection_models',
+        'topology', 'recorder_models', 'recorders'
+    ]
 
     def __init__(self, params):
         """Initialize the network object without creating it in NEST."""
@@ -42,8 +45,11 @@ class Network(object):
         # Check that the "network" tree's data key is empty
         validation.validate(
             "network", dict(params), mandatory=[], optional={})
-        # TODO: Check children
-
+        # Check that the "network" tree has the correct children
+        validation.validate_children(
+            'network', list(params.c.keys()),
+            mandatory_children=self.MANDATORY_CHILDREN
+        )
 
         # Build network components
         # ~~~~~~~~~~~~~~~~~~~~~~~~
