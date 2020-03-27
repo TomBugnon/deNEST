@@ -36,6 +36,7 @@ class ParamObject:
             optional=self.OPTIONAL_PARAMS,
         )
 
+
 @functools.total_ordering
 class NestObject:
     """Base class for a named NEST object, with params and nest_params

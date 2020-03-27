@@ -39,10 +39,10 @@ class UnrecognizedChildNodeError(ValueError):
 
 def validate_children(name, children_list, mandatory_children=None):
     """Validate a `Params` node children.
-    
+
     Args:
         name (str): Name of the `Params` node we're validating
-    
+
     Kwargs:
         children_list (list(str) | None): ``None`` or the list of names of
             children nodes that are expected in the validated node. Ignored if

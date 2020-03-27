@@ -117,7 +117,7 @@ class Session(ParamObject):
             4. For each InputLayer
                 1. Load input array
                 2. Set layer's spike times or input rates from input array
-        
+
         Args:
             self (Session): ``Session`` object
             network (Network): ``Network`` object.

@@ -3,7 +3,6 @@
 # network/__init__.py
 """Provide a class to construct a network."""
 
-import os
 import itertools
 
 from tqdm import tqdm
@@ -39,7 +38,7 @@ class Network(object):
         self._created = False
         self._changed = False
         self.params = params
-        
+
         # Validate params
         # ~~~~~~~~~~~~~~~~~~~~~~~~
         # Check that the "network" tree's data key is empty
@@ -209,7 +208,7 @@ class Network(object):
                 population-to-population connections of a certain model that
                 a connection recorder is created for. Refer to
                 `Network.build_connections` for a full description of how
-                the <connection_model>, <source_layers>, <source_population>, 
+                the <connection_model>, <source_layers>, <source_population>,
                 <target_layers>, <target_population> keys are interpreted.
 
         Returns:
@@ -236,7 +235,7 @@ class Network(object):
                 <target_population_name>) tuples should uniquely specify
                 connections and connection recorders."""
             )
-        
+
         connection_recorders = []
         for (
             model, conn_model, src_layer, src_pop, tgt_layer, tgt_pop
@@ -270,7 +269,6 @@ class Network(object):
             )
 
         return connection_recorders
-
 
     def build_population_recorders(self, population_recorders_params):
         """Return population recorders specified by a list of recorder params.
@@ -559,7 +557,7 @@ class Network(object):
 
     def save_metadata(self, output_dir):
         """Save network metadata.
-        
+
             - Save recorder metadata
         """
         # Save recorder metadata

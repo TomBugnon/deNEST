@@ -80,7 +80,7 @@ class AbstractLayer(NestObject):
     def change_unit_states(self, changes_dict, population=None, proportion=1.0,
                            change_type='constant'):
         """Set parameters for some units.
-        
+
         Args:
             changes_dict (dict): Dictionary specifying changes applied to
                 selected units, of the form::
@@ -185,7 +185,6 @@ class Layer(AbstractLayer):
     MANDATORY_NEST_PARAMS = ['rows', 'columns']
     OPTIONAL_NEST_PARAMS = None
 
-
     def __init__(self, name, params, nest_params):
         super().__init__(name, params, nest_params)
         self.nest_params['elements'] = self.build_elements()
@@ -203,7 +202,7 @@ class Layer(AbstractLayer):
         """
         populations = self.params['populations']
         if (
-            not populations 
+            not populations
             or any([not isinstance(n, int) for n in populations.values()])
         ):
             raise ValueError(
@@ -218,7 +217,6 @@ class Layer(AbstractLayer):
     @if_not_created
     def create(self):
         """Create the layer in NEST and update attributes."""
-        import nest
         from nest import topology as tp
         self._gid = tp.CreateLayer(self.nest_params)
         # Update _locations: ``{gid: (row, col)}``
@@ -306,7 +304,7 @@ class InputLayer(Layer):
     STIMULATORS = ['spike_generator', 'poisson_generator']
 
     def __init__(self, name, params, nest_params):
-        
+
         # Check populations and add a population of parrot neurons
         populations = params['populations']
         if (len(populations) != 1 or list(populations.values())[0] != 1):

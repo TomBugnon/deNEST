@@ -4,8 +4,6 @@
 
 """Provides the ``Simulation`` class."""
 
-import os
-
 from .network import Network
 from .io.save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
@@ -277,7 +275,7 @@ class Simulation(object):
         to test whether the module is already installed so this function catches
         the error if the module is already installed by matching the error
         message.
-        
+
         Args:
             module_name (str): Name of the module.
         """

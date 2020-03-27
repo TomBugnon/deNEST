@@ -74,8 +74,8 @@ class BaseConnection(NestObject):
     one specified in the connection's parameters (`self.base_synapse_model`)
 
     Args:
-        model (``ConnectionModel``): ``ConnectionModel`` object. The ``params`` and
-            ``nest_params`` parameter dictionaries are inherited from the
+        model (``ConnectionModel``): ``ConnectionModel`` object. The ``params``
+            and ``nest_params`` parameter dictionaries are inherited from the
             ``ConnectionModel`` object.
         source_layer, target_layer (``Layer``): source and target Layer object
         source_population, target_population (str | None): Name of the
