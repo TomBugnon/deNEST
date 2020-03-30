@@ -17,7 +17,13 @@ NON_NEST_PARAMS = {}
 
 
 class BaseRecorder(NestObject):
-    """Base class for all recorder classes. Represent nodes (not models)."""
+    """Base class for all recorder classes. Represent nodes (not models).
+    
+    Args:
+        model (str): Model of the recorder in NEST. This should be a native 
+            model in NEST, or a recorder model defined via ``recorder_models``
+            network parameters.
+    """
 
     def __init__(self, model):
         # We now save the params and nest_params dictionaries as attributes
@@ -141,9 +147,11 @@ class PopulationRecorder(BaseRecorder):
     in the `recorder_models` parameters at network/recorders.
 
     Args:
-        model (str): Model of recorder (eg 'multimeter')
+        model (str): Model of the recorder in NEST. This should be a native 
+            model in NEST, or a recorder model defined via ``recorder_models``
+            network parameters. (eg: 'multimeter' or 'modified_multimeter')
         layer (Layer): Layer object
-        population_name (str): Name of population to connect.
+        population_name (str): Name of population to connect to.
     """
 
     POP_RECORDER_TYPES = ['multimeter', 'spike_detector']
@@ -284,7 +292,9 @@ class ConnectionRecorder(BaseRecorder):
     population-to-population ``Connection`` object.
     
     Args:
-        model (str): Model of the connection recorder (eg 'weight_recorder')
+        model (str): Model of the connection recorder in NEST. This should be a
+            native model in NEST, or a recorder model defined via
+            ``recorder_models`` network parameters. (eg: 'weight_recorder')
         connection (``Connection``): ``Connection`` object the recorder is
             connected to.
     """

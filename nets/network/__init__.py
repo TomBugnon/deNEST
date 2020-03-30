@@ -448,10 +448,6 @@ class Network:
         self._create_all(self.connections)
         self.print_network_size()
 
-    def dump_connections(self, output_dir):
-        for connection in tqdm(self.connections, desc='Dumping connections'):
-            connection.dump(output_dir)
-
     @staticmethod
     def change_synapse_states(synapse_changes):
         """Change parameters for some connections of a population.
@@ -548,13 +544,12 @@ class Network:
         nest.ResetNetwork()
 
     def save_metadata(self, output_dir):
-        """Save network metadata."""
+        """Save network metadata.
+        
+            - Save recorder metadata
+        """
         # Save recorder metadata
         self.recorder_call('save_metadata', output_dir)
-
-    def plot_connections(self, output_dir):
-        for conn in tqdm(self.connections, desc='Creating connection plots'):
-            conn.save_plot(output_dir)
 
     @staticmethod
     def print_network_size():

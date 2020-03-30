@@ -85,47 +85,17 @@ def run(path, *overrides, output_dir=None, input_path=None):
     # Load parameters
     print('Load params...\n')
     params = load_params(path, *overrides)
-    # Incorporate kwargs in params
-    if output_dir is not None:
-        print(f'Overriding output directory: {output_dir}')
-        params.c['simulation']['output_dir'] = output_dir
-    if input_path is not None:
-        print(f'Overriding input: {input_path}')
-        params.c['simulation']['input_path'] = input_path
     print('\n...done loading params.', flush=True, end=SEPARATOR)
 
     # Initialize simulation
     print('Initialize simulation...\n', flush=True)
-    sim = Simulation(params)
+    sim = Simulation(params, input_path=input_path, output_dir=output_dir)
     print('\n...done initializing simulation...', flush=True, end=SEPARATOR)
 
     # Simulate
-    if not params.get(('simulation', 'dry_run'), False):
-        print('Run simulation...\n', flush=True)
-        sim.run()
-        print('\n...done running simulation...', flush=True, end=SEPARATOR)
-
-    ###########################
-    ######## bonus steps ######
-    ###########################
-
-    # Dump network's connections
-    if params.get(('simulation', 'dump_connections'), False):
-        print('Dump connections...\n', flush=True)
-        sim.dump_connections()
-        print('\n...done dumping connections...', flush=True, end=SEPARATOR)
-
-    # Plot network's connections
-    if params.get(('simulation', 'plot_connections'), False):
-        print('Plot connections...\n', flush=True)
-        sim.plot_connections()
-        print('\n...done plotting connections...', flush=True, end=SEPARATOR)
-
-    # Dump network's incoming connection numbers per layer
-    if params.get(('simulation', 'dump_connection_numbers'), False):
-        print('Dumping connection numbers...\n', flush=True)
-        sim.dump_connection_numbers()
-        print('\n...done dumping conn numbers...', flush=True, end=SEPARATOR)
+    print('Run simulation...\n', flush=True)
+    sim.run()
+    print('\n...done running simulation...', flush=True, end=SEPARATOR)
 
     # Conclusive remarks
     print('\nThis simulation is a great success.\n')

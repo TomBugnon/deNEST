@@ -37,6 +37,7 @@ class AbstractLayer(NestObject):
         self._prob_changed = False
 
     def __iter__(self):
+        """Iterate on layer locations."""
         yield from itertools.product(range(self.shape[0]),
                                      range(self.shape[1]))
 
@@ -64,7 +65,7 @@ class AbstractLayer(NestObject):
     @property
     @if_created
     def gid(self):
-        """Return the NEST global ID (GID) of the layer."""
+        """Return the NEST global ID (GID) of the layer object."""
         return self._gid
 
     @if_created
@@ -86,19 +87,6 @@ class AbstractLayer(NestObject):
 
         Returns:
             list: The GID(s).
-        """
-        raise NotImplementedError
-
-    def element(self, *args):
-        """Return the element(s) at the given location(s).
-
-        Args:
-            *args (tuple[int]): Coordinate pair(s) of grid location(s).
-
-        Returns:
-            tuple[tuple[int, str-like]]: For each (x, y) coordinate pair in
-            ``args``, returns a tuple of (GID, population) pairs for the
-            elements at that location.
         """
         raise NotImplementedError
 
@@ -181,6 +169,7 @@ class AbstractLayer(NestObject):
                         int(len(gids_list) * proportion))
                         )]
 
+
 class Layer(AbstractLayer):
 
     def __init__(self, name, params):
@@ -253,10 +242,6 @@ class Layer(AbstractLayer):
             )
         ]
 
-    @if_created
-    def element(self, *args):
-        return tuple(self._elements[location] for location in args)
-
     @property
     @if_created
     def locations(self):
@@ -276,15 +261,6 @@ class Layer(AbstractLayer):
     def recordable_population_names(self):
         """Return list of names of recordable population names in this layer."""
         return self.population_names()
-
-    @if_created
-    def find_center_element(self, population=None):
-        """Return GID of an element centered within the layer."""
-        center_loc = (int(self.shape[0]/2),
-                      int(self.shape[1]/2))
-        center_gid = self.gids(location=center_loc, population=population)[0:1]
-        assert len(center_gid) == 1
-        return center_gid
 
     @if_created
     def set_state(self, variable, values, population=None):
@@ -388,9 +364,6 @@ class InputLayer(Layer):
         else:
             raise NotImplementedError
     # pylint: disable=arguments-differ
-
-    def find_center_element(self, population=None):
-        return self.layers[0].find_center_element(population=population)
 
     def recordable_population_names(self):
         """Return list of names of recordable population names in this layer."""

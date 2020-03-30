@@ -1,6 +1,5 @@
-sessions:
+session_models:
   params:
-    order: ['warmup', 'noise', 'grating']
     reset_network: False
     record: True # Inactivate all recorders for current session or not
   warmup:

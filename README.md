@@ -113,38 +113,29 @@ Under the hood, NETS instantiates classes that represent specific aspects of the
 
 A full NETS simulation consists of the following steps:
 
-1. **Initialize kernel**:
-    1. Set NEST kernel parameters
-    2. Set random seeds for python's `random` module and NEST's random generator.
-1. **Initialize network**:
-    1. Initialize the `Network` object representing a NEST network: derive the dependent parameters from the independent parameters given in the parameter files.
-    2. Create the network in NEST.
-2. **Save the simulation's metadata**
-    1. Create and/or clear the output directory
-    1. Save parameters
-    2. Save git hash
-    3. Save network metadata (gid/location mappings, ...) (TODO)
-3. **Run each session** in turn. For each session:
-  1. Initialize the session:
-    1. (Possibly) reset the network
-    2. (Possibly) Change some of the network's parameters:
-      1. Change neuron parameters for certain units of certain populations
-      1. Change synapse parameters for certain synapse models.
-    3. If there are any InputLayer in the network:
-      1. Load the stimulus
-      2. Set the input spike times or input rates to emulate the forecoming
-         session stimulus.
-  2. Call `nest.Simulate()`.
-4. **Do some post-processing saves**
-  1. Call `sim.save_data`:
-    1. Save the session's times and stimuli
-    2. Call `Network.save_data`:
-        - Save the population rasters if the data was not cleared
-        - Save the final state of synapses
-  2. Save and plot other
-    - Plot some connections
-    - Dump some connections
-    - ... any post-processing you like :)
+1. **Initialize simulation** (``Simulation.__init__``)
+  1. **Initialize kernel**: (`Simulation.init_kernel(<kernel_params>)`)
+      1. Set NEST kernel parameters
+      2. Set random seeds for python's `random` module and NEST's random generator.
+  1. **Create network**:
+      1. Initialize the network objects (``Network.__init__``)
+      2. Create the objects in NEST (``Network.__create__``)
+  2. **Save the simulation's metadata**
+      1. Create the output directory
+      1. Save parameters
+      2. Save git hash
+      3. Save network metadata 
+      4. Save session metadata
+2. **Run the simulation** in turn. ``Simulation.__run__``
+  1. Run each session in turn: (``Session.__run__``)
+    1. Initialize session
+      1. (Possibly) reset the network
+      2. (Possibly) Change some of the network's parameters:
+        1. Change neuron parameters for certain units of certain populations
+        1. Change synapse parameters for certain synapse models.
+      3. (Possibly) inactivate recorders for the duration of the session
+      3. Set InputLayer's state from input arrays
+    2. Call `nest.Simulate()`.
 
 ## Parameters
 
@@ -278,29 +269,6 @@ defined in the final parameter tree.
       `Simulation.__init__()` 'output_dir' kwarg. Please see the 'Input'
       section for details on how the input is loaded for each session.
       (default from `nets.constants`)
-    - `dry_run` (bool): If true, `Simulation.run()` is not called in
-      `__init__.run()`. This means that the simulation is initialized and saved
-      as usual, but no nest.Simulate() call is performed and the sessions are
-      not initialized. (default `False`)
-    - `clear_output_dir` (bool): If true, the contents of the subdirectories of
-      `output_dir` listed in the CLEAR_SUBDIRS constant (defined in `save.py`)
-      are deleted during a `Simulation.save()` call before any saving of output. 
-      (default `False`)
-        - If set to `False`, it is possible that an output directory contains data
-          from a previous simulation.
-        - If you add subdirectories to the main output_dir don't forget to
-          update the `CLEAR_SUBDIRS` variable accordingly.
-    - `dump_connections` (bool): If true, the unit-to-unit synapses are dumped
-      during a `__init__.run()` call. Modify the `dump_connection`
-      connection_model parameter to dump only a subset of the connections.
-      (default `False`)
-    - `plot_connections` (bool): If true, population-to-population connections
-      are plotted during a `__init__.run()` call. Modify the `plot_connection`
-      connection_model parameters to plot only a subset of the connections.
-      (default `False`)
-    - `dump_connection_numbers` (bool): If true, the number of incoming
-      connections by population for each connection type is dumped during a
-      `__init__.run()` call. (default `False`)
 
 - `sessions` (subtree): Contains the parameters for each session and the list of
   sessions to be run in order. The sessions are represented by the leaves of
@@ -420,12 +388,6 @@ defined in the final parameter tree.
     passed to NEST __except the following parameters__:
     - `type` (str). Type of the connection. Only 'topological' connections are
       recognized (default `'topological'`).
-    - `dump_connection` (bool): Whether connections of that connection model
-      should be dumped during a `Simulation.dump_connections()` call. (default
-      `False`)
-    - `plot_connection` (bool): Whether connections of that connection model
-      should be plotted during a `Simulation.plot_connections()` call. (default
-      `True`)
     - All other parameters (`kernel`, `mask`, `weights`...) define the
       topological connections and will be passed to
       nest.topology.ConnectLayers() without modification.
@@ -568,7 +530,6 @@ sim.run()
 
 # Save the results, dump the connections, etc.
 sim.save()
-sim.dump()
 ```
 
 #### Using the ``nets.run()`` function to run the full simulation at once:
