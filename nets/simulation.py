@@ -22,7 +22,7 @@ class Simulation(object):
         params (Params): Full simulation parameter tree. The following
             ``Params`` subtrees are expected:
 
-                - ``simulation`` (dict-like). Defines input and output paths,
+                - ``simulation`` (``Params``). Defines input and output paths,
                     and the simulation steps performed. The following parameters
                     (`params` field) are recognized:
                         - ``output_dir` (str): Path to the output directory
@@ -38,15 +38,15 @@ class Simulation(object):
                             run. Elements of the list should be the name of
                             session models defined in the ``session_models``
                             parameter subtree (default [])
-                - ``kernel``: Used for NEST kernel initialization. Refer to
-                  ``Simulation.init_kernel`` for a description of
-                  kernel parameters.
-                - ``session_models``: Parameter tree, the leaves of which define
-                    session models. Refer to ``Sessions`` for a description of
-                    session parameters.
-                - ``network``: Parameter tree defining the network in NEST.
-                    Refer to `Network` for a full description of network
-                    parameters.
+                - ``kernel`` (``Params``): Used for NEST kernel initialization.
+                    Refer to ``Simulation.init_kernel`` for a description of
+                    kernel parameters.
+                - ``session_models`` (``Params``): Parameter tree, the leaves of
+                    which define session models. Refer to ``Sessions`` for a
+                    description of session parameters.
+                - ``network`` (``Params``): Parameter tree defining the network
+                    in NEST. Refer to `Network` for a full description of
+                    network parameters.
 
     Kwargs:
         input_path (str | None): None or the path to the input. If defined,
@@ -59,6 +59,7 @@ class Simulation(object):
     MANDATORY_CHILDREN = ['kernel', 'simulation', 'session_models', 'network']
 
     # Validate "simulation" params
+    # TODO: Check there is no "nest_params"
     MANDATORY_SIM_PARAMS = []
     OPTIONAL_SIM_PARAMS = {
         'sessions': [],
