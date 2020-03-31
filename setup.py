@@ -17,8 +17,13 @@ about = {}
 with open('./nets/__about__.py') as f:
     exec(f.read(), about)
 
-with open('./requirements.txt') as f:
-    install_requires = [line.strip() for line in f.readlines()]
+install_requires = [
+    'docopt',
+    'numpy',
+    'pandas',
+    'pyyaml',
+    'tqdm',
+]
 
 setup(
     name=about['__title__'],

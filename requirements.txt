@@ -1,5 +1,2 @@
-numpy
-pyyaml
-tqdm
-docopt
-pandas
+-e .
+-r dev_requirements.txt
