@@ -7,11 +7,12 @@ import itertools
 
 from tqdm import tqdm
 
-from .connections import (ConnectionModel, TopoConnection)
+from ..utils import validation
+from .connections import ConnectionModel, TopoConnection
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
-from .recorders import PopulationRecorder, ConnectionRecorder
-from .utils import if_not_created, log, validation
+from .recorders import ConnectionRecorder, PopulationRecorder
+from .utils import if_not_created, log
 
 # pylint: disable=too-few-public-methods
 

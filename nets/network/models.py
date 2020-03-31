@@ -5,9 +5,8 @@
 """NEST model classes."""
 
 from ..base_object import NestObject
+from ..utils.validation import MissingParameterError, ReservedParameterError
 from .utils import if_not_created
-from utils.validation import MissingParameterError, \
-    ReservedParameterError
 
 
 class Model(NestObject):
