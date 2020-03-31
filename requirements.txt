@@ -2,11 +2,4 @@ numpy
 pyyaml
 tqdm
 docopt
-ipython
-scipy
-pillow
-watchdog
-seaborn
 pandas
-bokeh
-joblib
