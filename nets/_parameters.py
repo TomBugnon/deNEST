@@ -5,6 +5,7 @@
 """Provide the ``Params`` class."""
 
 from collections import ChainMap, Mapping, UserDict
+import yaml
 
 
 class DeepChainMap(ChainMap):
@@ -25,56 +26,35 @@ class DeepChainMap(ChainMap):
         raise KeyError(key)
 
 
-class RecursiveChainMap(ChainMap):
-    """Variant of ChainMap that also chains nested mappings together."""
-
-    def __getitem__(self, key):
-        values = []
-        for mapping in self.maps:
-            try:
-                values.append(mapping[key])
-            except KeyError:
-                pass
-        if not values:
-            return self.__missing__(key)
-        is_mapping = [isinstance(value, Mapping) for value in values]
-        if any(is_mapping):
-            # Validate values: if one value is a mapping, all must be
-            if not all(is_mapping):
-                raise KeyError(
-                    f"inconsistent structure for key '{key}': either all"
-                    " or none of the values must be mappings"
-                )
-            # All are mappings
-            return RecursiveChainMap(*values)
-        # Return first value (earlier maps have precedence)
-        return values[0]
-
-    def __repr__(self):
-        return str(dict(self))
-
-
-class RecursiveDeepChainMap(RecursiveChainMap, DeepChainMap):
-    pass
-
-
 class Tree(UserDict):
 
     DATA_KEYS = ["params", "nest_params"]
 
-    def __init__(self, mapping, parent=None, name=None):
+    def __init__(self, mapping=None, parent=None, name=None):
         # Parent
         self._parent = parent
         # Name
         self._name = name
-        # Data internal to this node
-        self._data = {key: value for key, value in mapping.items() if key in self.DATA_KEYS}
+        # No data & no children if mapping is None.
+        if mapping is None:
+            mapping = {}
+        # Data internal to this node. Keys are keys in DATA_KEYS. data keys
+        # contain empty dictionaries by default.
+        self._data = {
+            key: mapping.get(key, {})
+            for key in self.DATA_KEYS
+        }
         # Accessible data (inherits from parents)
         super().__init__(self._data)
-        self.data = RecursiveDeepChainMap(
-            self.data,
-            *(ancestor._data for ancestor in self.ancestors()),
-        )
+        # if name == 'warmup':
+        #     import ipdb; ipdb.set_trace()
+        self.data = {
+            key: DeepChainMap(
+                self.data[key],
+                *(ancestor._data[key] for ancestor in self.ancestors()),
+            )
+            for key in self.DATA_KEYS
+        }
         # Children
         self._children = {
             key: Tree(value, parent=self, name=key)
@@ -86,7 +66,10 @@ class Tree(UserDict):
             setattr(self, data_key, value)
 
     def __repr__(self):
-        return f'{type(self).__name__}[{len(self.children)}]({dict(self.data)})'
+        return (
+            f'{type(self).__name__}[{len(self.children)}]'
+            f'(`{self._name}`, {dict(self._data)})'
+        )
 
     def __str__(self):
         return repr(self)
@@ -133,6 +116,43 @@ class Tree(UserDict):
         if not leaves:
             leaves.append(self)
         return leaves
+
+    def named_leaves(self):
+        """Return list of `(<name>, <node>)` tuples for all the leaves.
+
+        Traversal order is not defined."""
+        return [(leave.name, leave) for leave in self.leaves()]
+
+    @classmethod
+    def merge(cls, *trees, parent=None, name=None):
+        """Merge trees into a new tree. Earlier trees take precedence.
+
+        If a node exists at the same location in more than one tree and these
+        nodes have duplicate keys, the values from the nodes in the trees that
+        appear earlier in the argument list will take precedence over those
+        from later trees.
+        """
+        # Initialize empty tree
+        merged = cls(parent=parent, name=name)
+        # Merge node's own data
+        merged._data = {
+            key: ChainMap(*(tree._data[key] for tree in trees))
+            for key in cls.DATA_KEYS
+        }
+        # Merge children recursively.
+        all_names = set.union(*[set(tree.children.keys()) for tree in trees])
+        merged._children = {
+            name: cls.merge(
+                *[
+                    tree.children[name] for tree in trees
+                    if name in tree.children
+                ],
+                parent=merged,
+                name=name
+            )
+            for name in all_names
+        }
+        return merged
 
     @classmethod
     def read(cls, path):
