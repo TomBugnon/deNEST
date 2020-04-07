@@ -4,7 +4,7 @@
 
 """Provide the ``Tree`` class."""
 
-from collections import ChainMap, Mapping, UserDict
+from collections import ChainMap, UserDict
 import yaml
 
 
@@ -132,14 +132,15 @@ class Tree(UserDict):
         appear earlier in the argument list will take precedence over those
         from later trees.
         """
-        # Initialize empty tree
-        merged = cls(parent=parent, name=name)
         # Merge node's own data
-        merged._data = {
+        node_data = {
             key: ChainMap(*(tree._data[key] for tree in trees))
             for key in cls.DATA_KEYS
         }
-        # Merge children recursively.
+        # Initialize tree with node data and no children.
+        merged = cls(mapping=node_data, parent=parent, name=name)
+        # Merge children recursively. Pass parent so that children inherit
+        # merged node's data
         all_names = set.union(*[set(tree.children.keys()) for tree in trees])
         merged._children = {
             name: cls.merge(
