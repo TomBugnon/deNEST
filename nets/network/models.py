@@ -93,8 +93,8 @@ class SynapseModel(Model):
             )
         if 'receptor_type' in params:
             import nest
-            target = nest_params.pop('target_neuron')
-            receptor_name = nest_params.pop('receptor_type')
+            target = params.pop('target_neuron')
+            receptor_name = params.pop('receptor_type')
             receptor_ids = nest.GetDefaults(target)['receptor_types']
             if 'receptor_type' in nest_params:
                 raise ReservedParameterError(
