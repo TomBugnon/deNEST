@@ -161,10 +161,10 @@ class Tree(UserDict):
             return cls(yaml.load(f, Loader=yaml.SafeLoader))
 
     def write(self, path):
-        with open(path, 'wt') as f:
-            # TODO save (in yaml)
-            pass
+        # TODO save (in yaml)
+        # with open(path, 'wt') as f:
+        pass
 
     def print(self):
-        pass
         # TODO print tree
+        pass
