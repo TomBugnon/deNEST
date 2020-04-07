@@ -78,44 +78,50 @@ class Network(object):
 
         # Validate tree
         # ~~~~~~~~~~~~~~~~~~~~~~~~
-        # Check that the "network" tree's data key is empty
+        # Check that the "network" tree's params and nest_params keys are empty
         validation.validate(
-            "network", dict(tree), mandatory=[], optional={})
+            "network", dict(tree.params), param_type='params', mandatory=[],
+            optional={})
+        validation.validate(
+            "network", dict(tree.nest_params), param_type='nest_params',
+            mandatory=[], optional={})
         # Check that the "network" tree has the correct children
         validation.validate_children(
-            'network', list(tree.c.keys()),
+            'network', list(tree.children.keys()),
             mandatory_children=self.MANDATORY_CHILDREN
         )
 
         # Build network components
         # ~~~~~~~~~~~~~~~~~~~~~~~~
         self.neuron_models = self.build_named_leaves_dict(
-            Model, self.tree.c['neuron_models'])
+            Model, self.tree.children['neuron_models'])
         self.synapse_models = self.build_named_leaves_dict(
-            SynapseModel, self.tree.c['synapse_models'])
+            SynapseModel, self.tree.children['synapse_models'])
         self.recorder_models = self.build_named_leaves_dict(
-            Model, self.tree.c['recorder_models'])
+            Model, self.tree.children['recorder_models'])
         self.layers = {
-            name: LAYER_TYPES[leaf.get('type', None)](name, leaf)
-            for name, leaf in self.tree.c['layers'].named_leaves()
+            name: LAYER_TYPES[leaf.get('type', None)](name,
+                                                      dict(leaf.params),
+                                                      dict(leaf.nest_params))
+            for name, leaf in self.tree.children['layers'].named_leaves()
         }
         self.connection_models = self.build_named_leaves_dict(
-            ConnectionModel, self.tree.c['connection_models'])
+            ConnectionModel, self.tree.children['connection_models'])
         # Connections must be built after layers and connection models
         self.connections = self.build_connections(
-            self.tree.c['topology']
+            self.tree.children['topology']
         )
         # Initialize population recorders and connection recorders
         self.population_recorders, self.connection_recorders = \
             self.build_recorders(
-                self.tree.c['recorders']
+                self.tree.children['recorders']
             )
 
     @staticmethod
     def build_named_leaves_dict(constructor, node):
         """Construct and return as dict all leaves of a tree."""
         return {
-            name: constructor(name, leaf)
+            name: constructor(name, dict(leaf.params), dict(leaf.nest_params))
             for name, leaf in node.named_leaves()
         }
 
@@ -164,11 +170,16 @@ class Network(object):
         # Validate ``topology`` parameter
         # No children
         validation.validate_children(
-            'topology', list(topology_tree.c.keys()), []
+            'topology', list(topology_tree.children.keys()), []
+        )
+        # No nest_params
+        validation.validate(
+            'topology', dict(topology_tree.nest_params),
+            param_type='nest_params', mandatory=[], optional={}
         )
         # Only a 'connections' `params` entry
         connection_items = validation.validate(
-            'topology', dict(topology_tree), param_type=['params'],
+            'topology', dict(topology_tree.params), param_type=['params'],
             mandatory=[], optional=OPTIONAL_TOPOLOGY_PARAMS
         )['connections']
 
@@ -241,7 +252,8 @@ class Network(object):
 
         Args:
             self (``Network``): Network object
-            recorders_tree (``Tree``): ``Tree`` object without children.
+            recorders_tree (``Tree``): ``Tree`` object without children nor 
+                ``nest_params``.
                 The parameters of which may contain a ``population_recorders``
                 (default []) and a ``connection_recorders`` (default []) entry
                 specifying the network's recorders.
@@ -262,20 +274,26 @@ class Network(object):
         # Validate recorders tree
         # No children
         validation.validate_children(
-            'recorders', list(recorders_tree.c.keys()), []
+            'recorders', list(recorders_tree.children.keys()), []
+        )
+        # No nest_params
+        validation.validate(
+            'recorders', dict(recorders_tree.nest_params),
+            param_type=['nest_params'],
+            mandatory=[], optional={}
         )
         # Only a 'population_params' or 'connection_params' `params` entry
-        recorders_tree = validation.validate(
-            'recorders', dict(recorders_tree), param_type=['params'],
+        recorders_params = validation.validate(
+            'recorders', dict(recorders_tree.params), param_type=['params'],
             mandatory=[], optional=OPTIONAL_RECORDERS_PARAMS
         )
 
         return (
             self.build_population_recorders(
-                recorders_tree['population_recorders']
+                recorders_params['population_recorders']
             ),
             self.build_connection_recorders(
-                recorders_tree['connection_recorders']
+                recorders_params['connection_recorders']
             )
         )
 

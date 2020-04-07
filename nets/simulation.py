@@ -81,17 +81,34 @@ class Simulation(object):
 
         # Validate params tree
         # ~~~~~~~~~~~~~~~~~~~~~~~~
-        # Check that the full tree's data key is empty
+        # Check that the full tree's data keys are empty
         validation.validate(
-            "Full parameter tree", dict(tree), mandatory=[], optional={})
+            "Full parameter tree", dict(tree.params), param_type='params',
+            mandatory=[], optional={})
+        validation.validate(
+            "Full parameter tree", dict(tree.nest_params),
+            param_type='nest_params', mandatory=[], optional={})
         # Check that the full parameter tree has the correct children
         validation.validate_children(
-            'Full parameter tree', list(tree.c.keys()),
+            'Full parameter tree', list(tree.children.keys()),
             mandatory_children=self.MANDATORY_CHILDREN
         )
-        # "simulation" parameters
+        # Validate "simulation" subtree
+        # ~~~~~~~~~~~~~~~~~~~~~~~~
+        simulation_tree = self.tree.children['simulation']
+        # No nest_params in `simulation` subtree
+        validation.validate(
+            "simulation", dict(simulation_tree.nest_params),
+            mandatory=[], optional={}, param_type='nest_params'
+        )
+        # No children in `simulation` subtree
+        validation.validate_children(
+            'simulation', list(simulation_tree.children.keys()),
+            mandatory_children={}
+        )
+        # Validate `params` and save in `simulation` subtree
         self.sim_params = validation.validate(
-            "simulation", dict(self.tree.c['simulation']),
+            "simulation", dict(simulation_tree.params),
             mandatory=self.MANDATORY_SIM_PARAMS,
             optional=self.OPTIONAL_SIM_PARAMS
         )
@@ -107,23 +124,41 @@ class Simulation(object):
 
         # Initialize kernel (should be after getting output dirs)
         print('Initialize NEST kernel and seeds...', flush=True)
-        self.init_kernel(self.params.c['kernel'])
+        kernel_tree = self.tree.children['kernel']
+        # Validate "kernel" subtree
+        # No children in `kernel` subtree
+        validation.validate_children(
+            'kernel', list(kernel_tree.children.keys()),
+            mandatory_children={}
+        )
+        self.init_kernel(
+            dict(kernel_tree.params),
+            dict(kernel_tree.nest_params)
+        )
         print('...done\n', flush=True)
 
         # Create sessions
         print('Create sessions...', flush=True)
         self.sessions_order = self.sim_params['sessions']
-        session_models = {
-            session_name: session_params
-            for session_name, session_params
-            in self.tree.c['session_models'].named_leaves()
+        # Get session model params
+        session_model_nodes = {
+            session_name: session_node
+            for session_name, session_node
+            in self.tree.children['session_models'].named_leaves()
         }
+        # Validate session_model nodes: no nest_params
+        for name, node in session_model_nodes.items():
+            validation.validate(
+                name, dict(node.nest_params),
+                mandatory=[], optional={}, param_type='nest_params'
+            )
+        # Create session objects
         self.sessions = []
         session_start_time = 0
         for i, session_model in enumerate(self.sessions_order):
             self.sessions.append(
                 Session(self.make_session_name(session_model, i),
-                        session_models[session_model],
+                        dict(session_model_nodes[session_model].params),
                         start_time=session_start_time,
                         input_path=self.input_path)
             )
@@ -137,7 +172,7 @@ class Simulation(object):
 
         # Create network
         print('Create network...', flush=True)
-        self.network = Network(self.tree.c['network'])
+        self.network = Network(self.tree.children['network'])
         self.network.create()
         print('...done\n', flush=True)
 

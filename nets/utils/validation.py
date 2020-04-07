@@ -141,16 +141,16 @@ def validate(name, params, param_type='params', reserved=None,
                 )
             )
 
-    # Add default values:
-    missing_optional = {
-        k: v
-        for k, v in optional.items()
-        if k not in params.keys()
-    }
-    if any(missing_optional):
-        print(f"Object {name}, {param_type}: Set default value for optional "
-              f"parameters: {missing_optional}")
-        params = cp.deepcopy(params)
-        params.update(missing_optional)
+        # Add default values:
+        missing_optional = {
+            k: v
+            for k, v in optional.items()
+            if k not in params.keys()
+        }
+        if any(missing_optional):
+            print(f"Object {name}, {param_type}: Set default value for optional"
+                  f"parameters: {missing_optional}")
+            params = cp.deepcopy(params)
+            params.update(missing_optional)
 
     return params

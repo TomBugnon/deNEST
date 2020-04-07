@@ -58,16 +58,17 @@ def load_tree(path, *overrides):
     Returns:
         Tree: The loaded parameter tree with overrides applied.
     """
-    print(f'Loading parameters: `{path}`', end='', flush=True)
+    print(f'Loading parameters from list at: `{path}`', flush=True)
     if overrides:
         print(f' with {len(overrides)} override trees.', end='')
-    print('...')
     path_dir = os.path.dirname(os.path.abspath(path))
+    rel_path_list = load_yaml(path)
+    print(f"List of loaded parameter files: {rel_path_list}", flush=True)
     return Tree.merge(
         *[Tree(overrides_tree)
           for overrides_tree in overrides],
-        *[Tree.load(path_dir, relative_path)
-          for relative_path in load_yaml(path)]
+        *[Tree.read(os.path.join(path_dir, relative_path))
+          for relative_path in rel_path_list]
     )
 
 
