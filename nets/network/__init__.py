@@ -179,7 +179,7 @@ class Network(object):
         )
         # Only a 'connections' `params` entry
         connection_items = validation.validate(
-            'topology', dict(topology_tree.params), param_type=['params'],
+            'topology', dict(topology_tree.params), param_type='params',
             mandatory=[], optional=OPTIONAL_TOPOLOGY_PARAMS
         )['connections']
 
@@ -279,12 +279,12 @@ class Network(object):
         # No nest_params
         validation.validate(
             'recorders', dict(recorders_tree.nest_params),
-            param_type=['nest_params'],
+            param_type='nest_params',
             mandatory=[], optional={}
         )
         # Only a 'population_params' or 'connection_params' `params` entry
         recorders_params = validation.validate(
-            'recorders', dict(recorders_tree.params), param_type=['params'],
+            'recorders', dict(recorders_tree.params), param_type='params',
             mandatory=[], optional=OPTIONAL_RECORDERS_PARAMS
         )
 

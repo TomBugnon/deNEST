@@ -279,7 +279,7 @@ class Simulation(object):
             'rng_seeds': range(msd + n_vp + 1, msd + 2 * n_vp + 1),
         }
         print(f'-->Call `nest.SetKernelStatus({kernel_params})`', end=' ')
-        nest.SetKernelStatus(nest_params)
+        nest.SetKernelStatus(kernel_params)
         print('done')
 
         # Install extension modules

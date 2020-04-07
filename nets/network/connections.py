@@ -48,7 +48,7 @@ class ConnectionModel(NestObject):
         assert self.type in ['topological']
 
     @property
-    def _type(self):
+    def type(self):
         return self._type
 
 
@@ -91,7 +91,7 @@ class BaseConnection(NestObject):
                  target_population):
         """Initialize Connection object."""
         # Inherit params and nest_params from connection model
-        super().__init__(model.name, self.model.params, self.model.nest_params)
+        super().__init__(model.name, model.params, model.nest_params)
         ##
         # Define the source and targets
         self.model = model

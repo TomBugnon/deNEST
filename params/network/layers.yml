@@ -23,8 +23,6 @@ network:
             l1_exc: 2
             l1_inh: 1
     l2_area:
-      params:
-        area: l2_area
       l2:
         params:
           populations:
