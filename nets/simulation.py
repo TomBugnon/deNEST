@@ -19,10 +19,10 @@ class Simulation(object):
     saving output.
 
     Args:
-        params (Params): Full simulation parameter tree. The following
-            ``Params`` subtrees are expected:
+        tree (Tree): Full simulation parameter tree. The following
+            ``Tree`` subtrees are expected:
 
-                - ``simulation`` (``Params``). Defines input and output paths,
+                - ``simulation`` (``Tree``). Defines input and output paths,
                     and the simulation steps performed. The following parameters
                     (`params` field) are recognized:
                         - ``output_dir` (str): Path to the output directory
@@ -38,13 +38,13 @@ class Simulation(object):
                             run. Elements of the list should be the name of
                             session models defined in the ``session_models``
                             parameter subtree (default [])
-                - ``kernel`` (``Params``): Used for NEST kernel initialization.
+                - ``kernel`` (``Tree``): Used for NEST kernel initialization.
                     Refer to ``Simulation.init_kernel`` for a description of
                     kernel parameters.
-                - ``session_models`` (``Params``): Parameter tree, the leaves of
+                - ``session_models`` (``Tree``): Parameter tree, the leaves of
                     which define session models. Refer to ``Sessions`` for a
                     description of session parameters.
-                - ``network`` (``Params``): Parameter tree defining the network
+                - ``network`` (``Tree``): Parameter tree defining the network
                     in NEST. Refer to `Network` for a full description of
                     network parameters.
 
@@ -67,7 +67,7 @@ class Simulation(object):
         'output_dir': 'output',
     }
 
-    def __init__(self, params, input_path=None, output_dir=None):
+    def __init__(self, tree, input_path=None, output_dir=None):
         """Initialize simulation.
 
             - Set input and output paths
@@ -77,21 +77,21 @@ class Simulation(object):
             - Save simulation metadata
         """
         # Full parameter tree
-        self.params = params
+        self.tree = tree
 
         # Validate params tree
         # ~~~~~~~~~~~~~~~~~~~~~~~~
         # Check that the full tree's data key is empty
         validation.validate(
-            "Full parameter tree", dict(params), mandatory=[], optional={})
+            "Full parameter tree", dict(tree), mandatory=[], optional={})
         # Check that the full parameter tree has the correct children
         validation.validate_children(
-            'Full parameter tree', list(params.c.keys()),
+            'Full parameter tree', list(tree.c.keys()),
             mandatory_children=self.MANDATORY_CHILDREN
         )
         # "simulation" parameters
         self.sim_params = validation.validate(
-            "simulation", dict(self.params.c['simulation']),
+            "simulation", dict(self.tree.c['simulation']),
             mandatory=self.MANDATORY_SIM_PARAMS,
             optional=self.OPTIONAL_SIM_PARAMS
         )
@@ -116,7 +116,7 @@ class Simulation(object):
         session_models = {
             session_name: session_params
             for session_name, session_params
-            in self.params.c['session_models'].named_leaves()
+            in self.tree.c['session_models'].named_leaves()
         }
         self.sessions = []
         session_start_time = 0
@@ -137,7 +137,7 @@ class Simulation(object):
 
         # Create network
         print('Create network...', flush=True)
-        self.network = Network(self.params.c['network'])
+        self.network = Network(self.tree.c['network'])
         self.network.create()
         print('...done\n', flush=True)
 
@@ -159,9 +159,9 @@ class Simulation(object):
         print(f'Creating output_dir: {self.output_dir}')
         make_output_dir(self.output_dir,
                         clear_output_dir=True)
-        # Save params
-        save_as_yaml(output_path(self.output_dir, 'params'),
-                     self.params)
+        # Save params tree
+        save_as_yaml(output_path(self.output_dir, 'tree'),
+                     self.tree)
         # Drop git hash
         misc.drop_git_hash(self.output_dir)
         # Save sessions

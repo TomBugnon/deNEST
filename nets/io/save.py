@@ -16,7 +16,7 @@ import yaml
 
 # Modify along with FILENAME_FUNCS dict (see end of file)
 OUTPUT_SUBDIRS = {
-    'params': (),
+    'tree': (),
     'git_hash': (),
     'raw_data': ('data',),  # Raw recorder data (NEST output)
     # Metadata for recorders (contains filenames and gid/location mappings)
@@ -147,8 +147,8 @@ def session_times_filename():
     return 'session_times'
 
 
-def params_filename():
-    return 'params'
+def tree_filename():
+    return 'parameter_tree.yml'
 
 
 def rasters_filename(layer, pop):
@@ -160,7 +160,7 @@ def git_hash_filename():
 
 
 FILENAME_FUNCS = {
-    'params': params_filename,
+    'tree': tree_filename,
     'recorders_metadata': recorder_metadata_filename,
     'connection_recorders': recorder_metadata_filename,
     'connection_recorders_metadata': recorder_metadata_filename,

@@ -30,37 +30,37 @@ class Network(object):
     """Represent a full network.
 
     Args:
-        params (``Params``): "network" parameter tree. The following ``Params``
-            subtrees are expected:
-                - ``neuron_models`` (``Params``). Parameter tree, the leaves of
+        tree (``Tree``): "network" parameter tree. The following ``Tree``
+            children are expected:
+                - ``neuron_models`` (``Tree``). Parameter tree, the leaves of
                     which define neuron models. Each leave is used to initialize
                     a ``Model`` object
-                - ``synapse_models`` (``Params``). Parameter tree, the leaves of
+                - ``synapse_models`` (``Tree``). Parameter tree, the leaves of
                     which define synapse models. Each leave is used to
                     initialize a ``SynapseModel`` object
-                - ``layers`` (``Params``). Parameter tree, the leaves of
+                - ``layers`` (``Tree``). Parameter tree, the leaves of
                     which define layers. Each leave is used to initialize  a
                     ``Layer`` or ``InputLayer`` object depending on the value of
                     their ``type`` ``params`` parameter.
-                - ``connection_models`` (``Params``). Parameter tree, the leaves
+                - ``connection_models`` (``Tree``). Parameter tree, the leaves
                     of which define connection models. Each leave is used to
                     initialize a ``ConnectionModel`` object.
-                - ``recorder_models`` (``Params``). Parameter tree, the leaves
+                - ``recorder_models`` (``Tree``). Parameter tree, the leaves
                     of which define recorder models. Each leave is used to
                     initialize a ``Model`` object.
-                - ``topology`` (``Params``). ``Params`` object without children,
+                - ``topology`` (``Tree``). ``Tree`` object without children,
                     the ``params`` of which may contain a ``connections`` key
                     specifying all the individual population-to-population
                     connections within the network as a list. ``Connection``
-                    objects  are created from the ``topology`` ``Params`` object
+                    objects  are created from the ``topology`` ``Tree`` object
                     by the ``Network.build_connections`` method. Refer to this
                     method for a description of the ``topology`` parameter.
-                - ``recorders`` (``Params``). ``Params`` object without
+                - ``recorders`` (``Tree``). ``Tree`` object without
                     children, the ``params`` of which may contain a
                     ``population_recorders`` and a ``connection_recorders`` key
                     specifying all the network recorders. ``PopulationRecorder``
                     and ``ConnectionRecorder`` objects  are created from the
-                    ``recorders`` ``Params`` object by the
+                    ``recorders`` ``Tree`` object by the
                     ``Network.build_recorders`` method. Refer to this
                     method for a description of the ``recorders`` parameter.
     """
@@ -70,45 +70,45 @@ class Network(object):
         'topology', 'recorder_models', 'recorders'
     ]
 
-    def __init__(self, params):
+    def __init__(self, tree):
         """Initialize the network object without creating it in NEST."""
         self._created = False
         self._changed = False
-        self.params = params
+        self.tree = tree
 
-        # Validate params
+        # Validate tree
         # ~~~~~~~~~~~~~~~~~~~~~~~~
         # Check that the "network" tree's data key is empty
         validation.validate(
-            "network", dict(params), mandatory=[], optional={})
+            "network", dict(tree), mandatory=[], optional={})
         # Check that the "network" tree has the correct children
         validation.validate_children(
-            'network', list(params.c.keys()),
+            'network', list(tree.c.keys()),
             mandatory_children=self.MANDATORY_CHILDREN
         )
 
         # Build network components
         # ~~~~~~~~~~~~~~~~~~~~~~~~
         self.neuron_models = self.build_named_leaves_dict(
-            Model, self.params.c['neuron_models'])
+            Model, self.tree.c['neuron_models'])
         self.synapse_models = self.build_named_leaves_dict(
-            SynapseModel, self.params.c['synapse_models'])
+            SynapseModel, self.tree.c['synapse_models'])
         self.recorder_models = self.build_named_leaves_dict(
-            Model, self.params.c['recorder_models'])
+            Model, self.tree.c['recorder_models'])
         self.layers = {
             name: LAYER_TYPES[leaf.get('type', None)](name, leaf)
-            for name, leaf in self.params.c['layers'].named_leaves()
+            for name, leaf in self.tree.c['layers'].named_leaves()
         }
         self.connection_models = self.build_named_leaves_dict(
-            ConnectionModel, self.params.c['connection_models'])
+            ConnectionModel, self.tree.c['connection_models'])
         # Connections must be built after layers and connection models
         self.connections = self.build_connections(
-            self.params.c['topology']
+            self.tree.c['topology']
         )
         # Initialize population recorders and connection recorders
         self.population_recorders, self.connection_recorders = \
             self.build_recorders(
-                self.params.c['recorders']
+                self.tree.c['recorders']
             )
 
     @staticmethod
@@ -119,12 +119,12 @@ class Network(object):
             for name, leaf in node.named_leaves()
         }
 
-    def build_connections(self, topology_params):
-        """Return list of ``Connection`` objects from ``topology`` Params tree.
+    def build_connections(self, topology_tree):
+        """Return list of ``Connection`` objects from ``topology`` Tree tree.
 
         Args:
             self (``Network``): Network object
-            topology_params (``Params``): ``Params`` object without children.
+            topology_tree (``Tree``): ``Tree`` object without children.
                 The parameters of which may contain a ``connections`` parameter
                 entry (default []). THe value of the ``connections`` parameter
                 is a list of items describing the connections to be created.
@@ -164,11 +164,11 @@ class Network(object):
         # Validate ``topology`` parameter
         # No children
         validation.validate_children(
-            'topology', list(topology_params.c.keys()), []
+            'topology', list(topology_tree.c.keys()), []
         )
         # Only a 'connections' `params` entry
         connection_items = validation.validate(
-            'topology', dict(topology_params), param_type=['params'],
+            'topology', dict(topology_tree), param_type=['params'],
             mandatory=[], optional=OPTIONAL_TOPOLOGY_PARAMS
         )['connections']
 
@@ -232,7 +232,7 @@ class Network(object):
 
         return sorted(set(connection_args))
 
-    def build_recorders(self, recorders_params):
+    def build_recorders(self, recorders_tree):
         """Build PopulationRecorder and ConnectionRecorder objects.
 
         Validates the ``recorders`` parameter tree and calls
@@ -241,7 +241,7 @@ class Network(object):
 
         Args:
             self (``Network``): Network object
-            recorders_params (``Params``): ``Params`` object without children.
+            recorders_tree (``Tree``): ``Tree`` object without children.
                 The parameters of which may contain a ``population_recorders``
                 (default []) and a ``connection_recorders`` (default []) entry
                 specifying the network's recorders.
@@ -259,23 +259,23 @@ class Network(object):
             'connection_recorders': [],
         }
 
-        # Validate recorders params
+        # Validate recorders tree
         # No children
         validation.validate_children(
-            'recorders', list(recorders_params.c.keys()), []
+            'recorders', list(recorders_tree.c.keys()), []
         )
         # Only a 'population_params' or 'connection_params' `params` entry
-        recorders_params = validation.validate(
-            'recorders', dict(recorders_params), param_type=['params'],
+        recorders_tree = validation.validate(
+            'recorders', dict(recorders_tree), param_type=['params'],
             mandatory=[], optional=OPTIONAL_RECORDERS_PARAMS
         )
 
         return (
             self.build_population_recorders(
-                recorders_params['population_recorders']
+                recorders_tree['population_recorders']
             ),
             self.build_connection_recorders(
-                recorders_params['connection_recorders']
+                recorders_tree['connection_recorders']
             )
         )
 
@@ -430,8 +430,8 @@ class Network(object):
         ]
 
     def __repr__(self):
-        return '{classname}({params})'.format(
-            classname=type(self).__name__, params=(self.params))
+        return '{classname}({tree})'.format(
+            classname=type(self).__name__, tree=(self.tree))
 
     def __str__(self):
         return repr(self)
