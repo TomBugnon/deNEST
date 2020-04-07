@@ -5,7 +5,15 @@
 """Provide the ``Tree`` class."""
 
 from collections import ChainMap, UserDict
+from collections.abc import Mapping
+from pprint import pformat
+
 import yaml
+
+
+class InvalidTreeError(ValueError):
+    """Raised when a mapping is not a valid ``Tree``."""
+    pass
 
 
 class DeepChainMap(ChainMap):
@@ -30,14 +38,17 @@ class Tree(UserDict):
 
     DATA_KEYS = ["params", "nest_params"]
 
-    def __init__(self, mapping=None, parent=None, name=None):
+    def __init__(self, mapping=None, parent=None, name=None, validate=True):
         # Parent
         self._parent = parent
         # Name
         self._name = name
-        # No data & no children if mapping is None.
+        # Validate mapping
         if mapping is None:
+            # No data & no children
             mapping = {}
+        if validate:
+            mapping = self.validate(mapping)
         # Data internal to this node. Keys are keys in DATA_KEYS. data keys
         # contain empty dictionaries by default.
         self._data = {
@@ -168,3 +179,26 @@ class Tree(UserDict):
     def print(self):
         # TODO print tree
         pass
+
+    def validate(self, mapping, path=None):
+        """Check that a mapping is a valid ``Tree``."""
+        if path is None:
+            path = list()
+        if mapping:
+            self._validate(mapping, path)
+            for name, child in mapping.items():
+                # Validate data
+                if name in self.DATA_KEYS:
+                    self._validate(child, path)
+                # Validate children
+                else:
+                    self.validate(child, path + [name])
+        return mapping
+
+    @staticmethod
+    def _validate(mapping, path):
+        if not isinstance(mapping, Mapping):
+            raise InvalidTreeError('Invalid tree at {node}:\n{mapping}'.format(
+                node=f'node {path}' if path else 'root node',
+                mapping=pformat(mapping, indent=2)
+            ))
