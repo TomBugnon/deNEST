@@ -35,6 +35,31 @@ class DeepChainMap(ChainMap):
 
 
 class Tree(UserDict):
+    """A tree of nodes that inherit and override ancestors' data.
+
+    A tree is created from a tree-like mapping. The key-value pairs
+    containing the node's data are defined in ``self.DATA_KEYS`` (``params``
+    and ``nest_params``). Data is inherited from ancestors for each of those
+    keys.
+    Note that the order of traversals is undefined.
+
+    Keyword Args:
+        mapping (Mapping): A dictionary-like object that maps names to
+            children, but with special key-value pairs containing the node's
+            data. Defaults to an empty dictionary.
+        parent (Tree): The parent tree. Data from each of the data keys is
+            inherited from ancestors.
+
+    Attributes:
+        name (str | None): Name of the node.
+        children (dict): A dictionary of named children.
+        parent (type(self)): The parent of this node.
+        data (dict): Dictionary containing the data accessible from this node
+            (ie the node's data and that inherited from its parents). Keys are
+            values of ``self.DATA_KEYS`` (``params`` and ``nest_params``)
+        params, nest_params (dict-like): Contain the node data. Syntactic sugar
+            to allow access to the node's data.
+    """
 
     DATA_KEYS = ["params", "nest_params"]
 
@@ -103,7 +128,7 @@ class Tree(UserDict):
     def ancestors(self):
         """Return a list of ancestors of this node.
 
-        More recent ancestors appear earlier in the list.
+        Doesn't include self. More recent ancestors appear earlier in the list.
         """
         ancestors = []
         node = self
@@ -142,6 +167,8 @@ class Tree(UserDict):
         nodes have duplicate keys, the values from the nodes in the trees that
         appear earlier in the argument list will take precedence over those
         from later trees.
+        Equivalent nodes' data is merged horizontally before hierarchical
+        inheritance.
         """
         # Merge node's own data
         node_data = {
@@ -168,6 +195,7 @@ class Tree(UserDict):
 
     @classmethod
     def read(cls, path):
+        """Load a YAML representation of a tree."""
         with open(path, 'rt') as f:
             return cls(yaml.load(f, Loader=yaml.SafeLoader))
 
