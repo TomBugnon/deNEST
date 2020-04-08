@@ -10,7 +10,7 @@ import random
 import numpy as np
 
 from ..utils import spike_times
-from .nest_object import NestObject
+from ..base_object import NestObject
 from .utils import flatten, if_created, if_not_created
 
 # pylint:disable=missing-docstring
@@ -24,15 +24,13 @@ class AbstractLayer(NestObject):
 
     # pylint:disable=too-many-instance-attributes
 
-    def __init__(self, name, params):
-        super().__init__(name, params)
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
         self._gid = None
         self._gids = None  # list of layer GIDs
         self._locations = {}  # {<gid>: (row, col)}
         self._populations = params['populations']  # {<population>: <number>}
-        self.shape = params['nrows'], params['ncols']
-        self.extent = params['extent']
-        self.edge_wrap = params['edge_wrap']
+        self.shape = nest_params['rows'], nest_params['columns']
         # Record if we change some of the layer units' state probabilistically
         self._prob_changed = False
 
@@ -40,17 +38,6 @@ class AbstractLayer(NestObject):
         """Iterate on layer locations."""
         yield from itertools.product(range(self.shape[0]),
                                      range(self.shape[1]))
-
-    @staticmethod
-    def to_extent_units(value, extent, rows, columns):
-        """Convert a value from grid units to extent units."""
-        size = max(rows, columns)
-        units = extent / size
-        return value * units
-
-    def extent_units(self, value):
-        """Convert a value from grid units to extent units."""
-        raise NotImplementedError
 
     @if_not_created
     def create(self):
@@ -93,7 +80,7 @@ class AbstractLayer(NestObject):
     def change_unit_states(self, changes_dict, population=None, proportion=1.0,
                            change_type='constant'):
         """Set parameters for some units.
-        
+
         Args:
             changes_dict (dict): Dictionary specifying changes applied to
                 selected units, of the form::
@@ -171,21 +158,36 @@ class AbstractLayer(NestObject):
 
 
 class Layer(AbstractLayer):
+    """Represents a NEST layer composed of populations of units
 
-    def __init__(self, name, params):
-        super().__init__(name, params)
-        # TODO: use same names
-        self.nest_params = {
-            'rows': self.shape[0],
-            'columns': self.shape[1],
-            'extent': self.extent,
-            'edge_wrap': self.edge_wrap,
-            'elements': self.build_elements(),
-        }
+    Args:
+        name (str): Name of the layer
+        params (dict-like): Dictionary of parameters. The following parameters
+            are expected:
+                populations (dict): Dictionary of the form ``{<model>: <number>}
+                    specifying the elements within the layer. Analogous to the
+                    ``elements`` nest.Topology parameter
+        nest_params (dict-like): Dictionary of parameters that will be passed
+            to NEST during the ``nest.CreateLayer`` call. The following
+            parameters are mandatory: ``['rows', 'columns']``. The
+            ``elements`` parameter is reserved. Please use the ``populations``
+            parameter instead to specify layer elements.
+    """
 
-    def extent_units(self, value):
-        return self.to_extent_units(value, self.extent[0],
-                                    self.shape[0], self.shape[1])
+    # Validation of `params`
+    RESERVED_PARAMS = None
+    MANDATORY_PARAMS = ['populations']
+    OPTIONAL_PARAMS = {
+        'type': None
+    }
+    # Validation of `nest_params`
+    RESERVED_NEST_PARAMS = ['elements']
+    MANDATORY_NEST_PARAMS = ['rows', 'columns']
+    OPTIONAL_NEST_PARAMS = None
+
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
+        self.nest_params['elements'] = self.build_elements()
 
     def build_elements(self):
         """Convert ``populations`` parameters to format expected by NEST
@@ -200,7 +202,7 @@ class Layer(AbstractLayer):
         """
         populations = self.params['populations']
         if (
-            not populations 
+            not populations
             or any([not isinstance(n, int) for n in populations.values()])
         ):
             raise ValueError(
@@ -215,7 +217,6 @@ class Layer(AbstractLayer):
     @if_not_created
     def create(self):
         """Create the layer in NEST and update attributes."""
-        import nest
         from nest import topology as tp
         self._gid = tp.CreateLayer(self.nest_params)
         # Update _locations: ``{gid: (row, col)}``
@@ -285,25 +286,37 @@ class Layer(AbstractLayer):
 class InputLayer(Layer):
     """A layer that provides input to the network.
 
-    A layer with a population of stimulation devices connected to an extra
-    population of parrot neurons, and that can handle input arrays
+    ``InputLayer`` extends the ``Layer`` class to handle layers of stimulation
+    devices.
+
+    `InputLayer` parameters should specify a single population of stimulation
+    devices. A second population of parrot neurons will be created and connected
+    one-to-one to the population of stimulators, to allow recording of activity
+    in the layer.
+
+    The state of stimulators within the `InputLayer` can be set from an input
+    array via the ``InputLayer.set_input`` method.
     """
+    # Append ``Layer`` docstring
+    __doc__ += '\n'.join(Layer.__doc__.split('\n')[1:])
 
     PARROT_MODEL = 'parrot_neuron'
     STIMULATORS = ['spike_generator', 'poisson_generator']
 
-    def __init__(self, name, params):
+    def __init__(self, name, params, nest_params):
+
+        # Check populations and add a population of parrot neurons
         populations = params['populations']
-        if len(populations) != 1:
-            raise ValueError('InputLayer must have only one population (of'
-                             'stimulation devices)')
+        if (len(populations) != 1 or list(populations.values())[0] != 1):
+            raise ValueError(
+                f"Invalid `population` parameter for `InputLayer` layer {name}."
+                f"InputLayers should be composed of a single population, of"
+                f"stimulation devices, with a single element per location."
+                f"Please check the `population` parameter: {populations}"
+            )
         # Save the stimulator type
         stimulator_model, nunits = list(populations.items())[0]
-        if nunits != 1:
-            raise ValueError(
-                'InputLayer can have only one stimution device per location.'
-                f'Please check the `population` parameter: {populations}'
-        )
+        assert nunits == 1
         self.stimulator_model = stimulator_model
         self.stimulator_type = None  # TODO: Check stimulator type
         # Add a parrot population entry
@@ -311,36 +324,39 @@ class InputLayer(Layer):
         params['populations'] = populations
 
         # Initialize the layer
-        super().__init__(name, params)
+        super().__init__(name, params, nest_params)
 
     def create(self):
         """Create the layer and connect the stimulator and parrot populations"""
         super().create()
-        from nest import topology as tp
         import nest
         # Connect stimulators to parrots, one-to-one
-        radius = self.extent_units(0.1)
-        one_to_one_connection = {
-            'sources': {'model': self.stimulator_model},
-            'targets': {'model': self.PARROT_MODEL},
-            'connection_type': 'convergent',
-            'synapse_model': 'static_synapse',
-            'mask': {'circular': {'radius': radius}}
-        }
-        tp.ConnectLayers(self._gid, self._gid, one_to_one_connection)
+        assert all([n == 1 for n in self.populations.values()])
+        stim_gids = [
+            self.gids(location=loc, population=self.stimulator_model)
+            for loc in self
+        ]
+        parrot_gids = [
+            self.gids(location=loc, population=self.PARROT_MODEL)
+            for loc in self
+        ]
+        nest.Connect(
+            stim_gids, parrot_gids, 'one_to_one', {'model': 'static_synapse'}
+        )
         # Get stimulator type
         self.stimulator_type = nest.GetDefaults(self.stimulator_model,
                                                 'type_id')
-        if self.stimulator_type not in self.STIMULATORS:
-            raise ValueError(
-                f"The stimulation device in input layer {self.name} if not"
-                f" of an accepted type. stimulator_type={self.stimulator_type},"
-                f" Supported types: {self.STIMULATORS}"
-            )
 
-
+    # TODO: DOc
     def set_input(self, input_array, start_time=0.):
         """Set stimulator state from input_array."""
+
+        if self.stimulator_type not in self.STIMULATORS:
+            raise ValueError(
+                f"Input can be set for `InputLayer` only for stimulators of the"
+                f"following type: {self.STIMULATORS}."
+            )
+
         max_rate = np.max(input_array)
         assert input_array.ndim == 3
         print(f'-> Setting input for `{self.name}`.')
@@ -362,7 +378,7 @@ class InputLayer(Layer):
             self.set_state('spike_times', all_spike_times,
                            population=self.stimulator_model)
         else:
-            raise NotImplementedError
+            assert False
     # pylint: disable=arguments-differ
 
     def recordable_population_names(self):

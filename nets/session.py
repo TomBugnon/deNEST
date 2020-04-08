@@ -8,41 +8,84 @@ from pprint import pformat
 
 import numpy as np
 
+from .base_object import ParamObject
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
 
 # pylint:disable=missing-docstring
 
 
-class Session:
+class Session(ParamObject):
     """Represents a sequence of stimuli.
 
     Args:
-        name: Session name.
-        params: Session parameters.
-    
+        name (str): Name of the session
+        params (dict-like): Dictionary specifying session parameters. The
+            following keys are recognized:
+                - ``simulation_time`` (float): Duration of the session in msec.
+                    (mandatory)
+                - ``reset_network`` (bool): If true, ``nest.ResetNetwork()`` is
+                    called during session initialization (default ``False``)
+                - ``record`` (bool): If false, the ``start_time`` field of
+                    recorder nodes in NEST is set to the end time of the
+                    session, so that no data is recorded during the session
+                    (default ``True``)
+                - ``unit_changes`` (list): List describing the changes applied
+                    to certain units before the start of the session.
+                    Passed to ``Network.change_unit_states``. Refer to that
+                    method for a description of how ``unit_changes`` is
+                    formatted and interpreted. No changes happen if empty.
+                    (default [])
+                - ``synapse_changes`` (list): List describing the changes
+                    applied to certain synapses before the start of the session.
+                    Passed to ``Network.change_synapse_changes``. Refer to that
+                    method for a description of how ``synapse_changes`` is
+                    formatted and interpreted. No changes happen if empty.
+                    (default [])
+                - ``inputs`` (list): List describing the input applied to each
+                    of the network's ``InputLayer`` objects during the session.
+                    Refer to ``Session.load_input_array`` and
+                    ``InputLayer.set_input`` for a description of how the inputs
+                    are loaded and converted to stimulator activity. (default
+                    [])
+
     Kwargs:
-        start_time: Time of kernel in seconds when session starts running.
+        start_time (float): Time of kernel in msec when the session starts
+            running.
+        input_path (str): Path to an input file or to the directory in which
+            input files are searched for for each session. If ``input_path``
+            points towards a loadable numpy input array, it will be used for
+            setting the `InputLayer` layers' input. Otherwise, ``input_path`` is
+            interpreted as a directory in which input array files are searched.
     """
+
+    # Validation of `params`
+    RESERVED_PARAMS = None
+    MANDATORY_PARAMS = ['simulation_time']
+    OPTIONAL_PARAMS = {
+        'reset_network': False,
+        'record': True,
+        'unit_changes': [],
+        'synapse_changes': [],
+        'inputs': []
+    }
 
     def __init__(self, name, params, start_time=0, input_path=None):
         print(f'-> Creating session `{name}`')
-        self.name = name
-        self.params = params
+        # Sets self.name / self.params  and validates params
+        super().__init__(name, params)
         self.input_path = input_path
         # Initialize the session start and end times
         self._start = start_time
         self._simulation_time = int(self.params['simulation_time'])
         if not self._simulation_time > 0:
             raise ValueError(
-                f"Session parameter `simulation_time` should be strictly"
-                f"positive."
+                f"Parameter `simulation_time` of session {name} should be"
+                f"strictly positive."
             )
         self._end = self._start + self._simulation_time
         # Initialize input arrays
         self._input_arrays = None
-        # Whether we inactivate all recorders
-        self._record = self.params.get('record', True)
 
     @property
     def end(self):
@@ -74,18 +117,22 @@ class Session:
             4. For each InputLayer
                 1. Load input array
                 2. Set layer's spike times or input rates from input array
+
+        Args:
+            self (Session): ``Session`` object
+            network (Network): ``Network`` object.
         """
         # Reset network
-        if self.params.get('reset_network', False):
+        if self.params['reset_network']:
             network.reset()
 
         # Change dynamic variables
-        network.change_synapse_states(self.params.get('synapse_changes', []))
-        network.change_unit_states(self.params.get('unit_changes', []))
+        network.change_synapse_states(self.params['synapse_changes'])
+        network.change_unit_states(self.params['unit_changes'])
 
         # Inactivate all the recorders and connection_recorders for
         # `self._simulation_time`
-        if not self._record:
+        if not self.params['record']:
             self.inactivate_recorders(network)
 
         # Set input for each inputlayer
@@ -94,12 +141,14 @@ class Session:
         for inputlayer in inputlayers:
             if inputlayer.name not in self.params['inputs'].keys():
                 raise ValueError(
-                    f"No input defined for InputLayer {str(inputlayer)}"
+                    f"No input defined in session {self.name} for InputLayer"
+                    f"{str(inputlayer)}. Please check the `inputs` session"
+                    f"parameter"
                 )
 
             print(f"Setting input for InputLayer `{inputlayer.name}`")
 
-            # Load input array 
+            # Load input array
             input_array = self.load_input_array(
                 inputlayer,
                 self.params['inputs'][inputlayer.name]
@@ -110,7 +159,12 @@ class Session:
             inputlayer.set_input(input_array, start_time=self._start)
 
     def inactivate_recorders(self, network):
-        """Set 'start' of all (connection_)recorders at the end of session."""
+        """Set 'start' of all (connection_)recorders at the end of session.
+
+        Args:
+            self (Session): ``Session`` object
+            network (Network): ``Network`` object.
+        """
         # TODO: We need to do this differently if we start playing with the
         # `origin` flag of recorders, eg to repeat experiments. Hence the
         # safeguard:
@@ -147,10 +201,6 @@ class Session:
         pass
 
     @property
-    def input_array(self):
-        return self._input_array
-
-    @property
     def duration(self):
         return range(self._start, self._end)
 
@@ -181,6 +231,9 @@ class Session:
                     - <time_per_frame> is the time in msec during which each of
                         the input array's "frames" is shown to the network.
         """
+
+        # TODO: Validate params
+
         # Input path can be either to an input array or to the directory in
         # which input # arrays are searched
         file = input_params['file']
@@ -189,8 +242,8 @@ class Session:
         # Crop to adjust to network's input layer shape
         layer_shape = input_layer.shape  # (row, col)
         raw_input_array_rowcol = (raw_input_array.shape[1],
-                                  raw_input_array.shape[2]) # (row, col)
-        
+                                  raw_input_array.shape[2])  # (row, col)
+
         if not np.all(layer_shape <= raw_input_array_rowcol):
             raise ValueError(
                 f"Invalid shape for input array at `file` for layer"

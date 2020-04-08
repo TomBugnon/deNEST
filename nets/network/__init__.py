@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/__init__.py
-"""Provide a class to construct a network from independent parameters."""
+"""Provide a class to construct a network."""
 
-import os
 import itertools
 
 from tqdm import tqdm
 
-from .connections import (ConnectionModel, TopoConnection)
+from ..utils import validation
+from .connections import ConnectionModel, TopoConnection
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
-from .recorders import PopulationRecorder, ConnectionRecorder
+from .recorders import ConnectionRecorder, PopulationRecorder
 from .utils import if_not_created, log
 
 # pylint: disable=too-few-public-methods
@@ -26,64 +26,115 @@ CONNECTION_TYPES = {
 }
 
 
-class Network:
-    """Represent a full network."""
+class Network(object):
+    """Represent a full network.
 
-    # pylint: disable=too-many-instance-attributes
+    Args:
+        tree (``Tree``): "network" parameter tree. The following ``Tree``
+            children are expected:
+                - ``neuron_models`` (``Tree``). Parameter tree, the leaves of
+                    which define neuron models. Each leave is used to initialize
+                    a ``Model`` object
+                - ``synapse_models`` (``Tree``). Parameter tree, the leaves of
+                    which define synapse models. Each leave is used to
+                    initialize a ``SynapseModel`` object
+                - ``layers`` (``Tree``). Parameter tree, the leaves of
+                    which define layers. Each leave is used to initialize  a
+                    ``Layer`` or ``InputLayer`` object depending on the value of
+                    their ``type`` ``params`` parameter.
+                - ``connection_models`` (``Tree``). Parameter tree, the leaves
+                    of which define connection models. Each leave is used to
+                    initialize a ``ConnectionModel`` object.
+                - ``recorder_models`` (``Tree``). Parameter tree, the leaves
+                    of which define recorder models. Each leave is used to
+                    initialize a ``Model`` object.
+                - ``topology`` (``Tree``). ``Tree`` object without children,
+                    the ``params`` of which may contain a ``connections`` key
+                    specifying all the individual population-to-population
+                    connections within the network as a list. ``Connection``
+                    objects  are created from the ``topology`` ``Tree`` object
+                    by the ``Network.build_connections`` method. Refer to this
+                    method for a description of the ``topology`` parameter.
+                - ``recorders`` (``Tree``). ``Tree`` object without
+                    children, the ``params`` of which may contain a
+                    ``population_recorders`` and a ``connection_recorders`` key
+                    specifying all the network recorders. ``PopulationRecorder``
+                    and ``ConnectionRecorder`` objects  are created from the
+                    ``recorders`` ``Tree`` object by the
+                    ``Network.build_recorders`` method. Refer to this
+                    method for a description of the ``recorders`` parameter.
+    """
 
-    def __init__(self, params):
+    MANDATORY_CHILDREN = [
+        'neuron_models', 'synapse_models', 'layers', 'connection_models',
+        'topology', 'recorder_models', 'recorders'
+    ]
+
+    def __init__(self, tree):
         """Initialize the network object without creating it in NEST."""
         self._created = False
         self._changed = False
-        self.params = params
+        self.tree = tree
+
+        # Validate tree
+        # ~~~~~~~~~~~~~~~~~~~~~~~~
+        # Check that the "network" tree's params and nest_params keys are empty
+        validation.validate(
+            "network", dict(tree.params), param_type='params', mandatory=[],
+            optional={})
+        validation.validate(
+            "network", dict(tree.nest_params), param_type='nest_params',
+            mandatory=[], optional={})
+        # Check that the "network" tree has the correct children
+        validation.validate_children(
+            'network', list(tree.children.keys()),
+            mandatory_children=self.MANDATORY_CHILDREN
+        )
+
         # Build network components
         # ~~~~~~~~~~~~~~~~~~~~~~~~
         self.neuron_models = self.build_named_leaves_dict(
-            Model, self.params.c['neuron_models'])
+            Model, self.tree.children['neuron_models'])
         self.synapse_models = self.build_named_leaves_dict(
-            SynapseModel, self.params.c['synapse_models'])
+            SynapseModel, self.tree.children['synapse_models'])
         self.recorder_models = self.build_named_leaves_dict(
-            Model, self.params.c['recorder_models'])
-        # Layers can have different types
+            Model, self.tree.children['recorder_models'])
         self.layers = {
-            name: LAYER_TYPES[leaf['type']](name, leaf)
-            for name, leaf in self.params.c['layers'].named_leaves()
+            name: LAYER_TYPES[leaf.get('type', None)](name,
+                                                      dict(leaf.params),
+                                                      dict(leaf.nest_params))
+            for name, leaf in self.tree.children['layers'].named_leaves()
         }
         self.connection_models = self.build_named_leaves_dict(
-            ConnectionModel, self.params.c['connection_models'])
+            ConnectionModel, self.tree.children['connection_models'])
         # Connections must be built after layers and connection models
         self.connections = self.build_connections(
-            self.params.c['topology']['connections']
+            self.tree.children['topology']
         )
-        # Initialize population recorders
-        self.population_recorders = self.build_population_recorders(
-            self.params.c['recorders']['population_recorders']
-        )
-        # Initialize connection recorders
-        self.connection_recorders = self.build_connection_recorders(
-            self.params.c['recorders']['connection_recorders']
-        )
+        # Initialize population recorders and connection recorders
+        self.population_recorders, self.connection_recorders = \
+            self.build_recorders(
+                self.tree.children['recorders']
+            )
 
     @staticmethod
     def build_named_leaves_dict(constructor, node):
         """Construct and return as dict all leaves of a tree."""
         return {
-            name: constructor(name, leaf)
+            name: constructor(name, dict(leaf.params), dict(leaf.nest_params))
             for name, leaf in node.named_leaves()
         }
 
-    @staticmethod
-    def build_named_leaves_list(constructor, node):
-        """Construct and return as list all leaves of a tree."""
-        return [constructor(name, leaf) for name, leaf in node.named_leaves()]
+    def build_connections(self, topology_tree):
+        """Return list of ``Connection`` objects from ``topology`` Tree tree.
 
-    def build_connections(self, connections_params):
-        """Return ``Connection`` objects specified by ``connections`` params
-
-        Arguments:
-            connections_params (list): Content of the ``connections``
-                network/topology parameter. A list of items describing the
-                connections to be created. Each item must be a ``dict`` of the
+        Args:
+            self (``Network``): Network object
+            topology_tree (``Tree``): ``Tree`` object without children.
+                The parameters of which may contain a ``connections`` parameter
+                entry (default []). THe value of the ``connections`` parameter
+                is a list of items describing the connections to be created.
+                Each item must be a ``dict`` of the
                 following form::
                     dict: {
                         'connection_model' : <connection_model>,
@@ -112,9 +163,29 @@ class Network:
             list: List of ``Connection`` objects specifying all the connections
                 in the network.
         """
+        OPTIONAL_TOPOLOGY_PARAMS = {
+            'connections': []
+        }
+
+        # Validate ``topology`` parameter
+        # No children
+        validation.validate_children(
+            'topology', list(topology_tree.children.keys()), []
+        )
+        # No nest_params
+        validation.validate(
+            'topology', dict(topology_tree.nest_params),
+            param_type='nest_params', mandatory=[], optional={}
+        )
+        # Only a 'connections' `params` entry
+        connection_items = validation.validate(
+            'topology', dict(topology_tree.params), param_type='params',
+            mandatory=[], optional=OPTIONAL_TOPOLOGY_PARAMS
+        )['connections']
+
         # Get all unique ``(connection_model, source_layer, source_population,
         # target_layer, target_population)`` tuples
-        connection_args = self.parse_connection_params(connections_params)
+        connection_args = self.parse_connection_params(connection_items)
         # Build Connection objects
         connections = []
         for (conn_model, src_lyr, src_pop, tgt_lyr, tgt_pop) in connection_args:
@@ -130,11 +201,11 @@ class Network:
             )
         return connections
 
-    def parse_connection_params(self, connection_params):
+    def parse_connection_params(self, connection_items):
         """Return list of tuples specifying all unique connections
 
         Args:
-            connection_params: Content of the ``connections``
+            connection_items: Content of the ``connections``
                 network/topology parameter. See ``self.build_connections`` for
                 detailed description.
 
@@ -145,7 +216,7 @@ class Network:
                 the network.
         """
         connection_args = []
-        for connection_item in connection_params:
+        for connection_item in connection_items:
             for source_layer_name, target_layer_name in itertools.product(
                 connection_item['source_layers'],
                 connection_item['target_layers']
@@ -163,8 +234,8 @@ class Network:
         # Check that there are no duplicates.
         if not len(set(connection_args)) == len(connection_args):
             raise ValueError(
-                """Duplicate connections specified by `connections` network
-                parameters. (<connection_model_name>, <source_layer_name>,
+                """Duplicate connections specified by `connections` topology
+                parameter. (<connection_model_name>, <source_layer_name>,
                 <source_population_name>, <target_layer_name>,
                 <target_population_name>) tuples should uniquely specify
                 connections."""
@@ -172,13 +243,67 @@ class Network:
 
         return sorted(set(connection_args))
 
-    def build_connection_recorders(self, connection_recorders_params):
+    def build_recorders(self, recorders_tree):
+        """Build PopulationRecorder and ConnectionRecorder objects.
+
+        Validates the ``recorders`` parameter tree and calls
+        ``Network.build_population_recorders`` and
+        ``Network.build_connection_recorders``
+
+        Args:
+            self (``Network``): Network object
+            recorders_tree (``Tree``): ``Tree`` object without children nor 
+                ``nest_params``.
+                The parameters of which may contain a ``population_recorders``
+                (default []) and a ``connection_recorders`` (default []) entry
+                specifying the network's recorders.
+                The ``population_recorders`` and ``connection_recorders``
+                entries are passed to (respectively)
+                ``Network.build_population_recorders`` and
+                ``Network.build_connection_recorders``
+
+        Returns:
+            (list(PopulationRecorder), list(ConnectionRecorder))
+        """
+
+        OPTIONAL_RECORDERS_PARAMS = {
+            'population_recorders': [],
+            'connection_recorders': [],
+        }
+
+        # Validate recorders tree
+        # No children
+        validation.validate_children(
+            'recorders', list(recorders_tree.children.keys()), []
+        )
+        # No nest_params
+        validation.validate(
+            'recorders', dict(recorders_tree.nest_params),
+            param_type='nest_params',
+            mandatory=[], optional={}
+        )
+        # Only a 'population_params' or 'connection_params' `params` entry
+        recorders_params = validation.validate(
+            'recorders', dict(recorders_tree.params), param_type='params',
+            mandatory=[], optional=OPTIONAL_RECORDERS_PARAMS
+        )
+
+        return (
+            self.build_population_recorders(
+                recorders_params['population_recorders']
+            ),
+            self.build_connection_recorders(
+                recorders_params['connection_recorders']
+            )
+        )
+
+    def build_connection_recorders(self, connection_recorders_items):
         """Return connection recorders specified by a list of recorder params.
 
         ConnectionRecorders must be built after Connections.
 
         Arguments:
-            connection_recorders_params (list): Content of the
+            connection_recorders_items (list): Content of the
                 ``connection_recorders`` network/recorders parameter. A list of
                 items describing the connection recorders to be created. Each
                 item must be a ``dict`` of the following form::
@@ -195,7 +320,7 @@ class Network:
                 population-to-population connections of a certain model that
                 a connection recorder is created for. Refer to
                 `Network.build_connections` for a full description of how
-                the <connection_model>, <source_layers>, <source_population>, 
+                the <connection_model>, <source_layers>, <source_population>,
                 <target_layers>, <target_population> keys are interpreted.
 
         Returns:
@@ -204,7 +329,7 @@ class Network:
         # Get all unique ``(model, connection_model, source_layer,
         # source_population, target_layer, target_population)`` tuples
         conn_recorder_args = []
-        for item in connection_recorders_params:
+        for item in connection_recorders_items:
             model = item.pop('model')
             conn_recorder_args += [
                 (model,) + conn_args
@@ -222,7 +347,7 @@ class Network:
                 <target_population_name>) tuples should uniquely specify
                 connections and connection recorders."""
             )
-        
+
         connection_recorders = []
         for (
             model, conn_model, src_layer, src_pop, tgt_layer, tgt_pop
@@ -257,12 +382,11 @@ class Network:
 
         return connection_recorders
 
-
-    def build_population_recorders(self, population_recorders_params):
+    def build_population_recorders(self, population_recorders_items):
         """Return population recorders specified by a list of recorder params.
 
         Arguments:
-            population_recorders_params (list): Content of the
+            population_recorders_items (list): Content of the
                 ``population_recorders`` network/recorders parameter. A list of
                 items describing the population recorders to be created and
                 connected to the network. Each item must be a ``dict`` of the
@@ -290,7 +414,7 @@ class Network:
         # Get all (model, layer_name, population_name) tuples
         population_recorders_args = []
         # Iterate on layers x population for each item in list
-        for item in population_recorders_params:
+        for item in population_recorders_items:
             model = item['model']
             layer_names = item['layers']
             # Use all layers if <layers> is None
@@ -324,8 +448,8 @@ class Network:
         ]
 
     def __repr__(self):
-        return '{classname}({params})'.format(
-            classname=type(self).__name__, params=(self.params))
+        return '{classname}({tree})'.format(
+            classname=type(self).__name__, tree=(self.tree))
 
     def __str__(self):
         return repr(self)
@@ -456,11 +580,11 @@ class Network:
             synapse_changes (list): List of dictionaries each of the form::
                     {
                         'synapse_model': <synapse_model>,
-                        'params': {<key>: <value>,
-                                    ...}
+                        'params': {<param1>: <value1>}
                     }
-                where the ``'params'`` key contains the parameters to set for
-                all synapses of a given model.
+                where the dictionary in ``params`` is passed to nest.SetStatus
+                to set the parameters for all connections with synapse model
+                ``<synapse_model>``
         """
         import nest
         for changes in tqdm(
@@ -545,7 +669,7 @@ class Network:
 
     def save_metadata(self, output_dir):
         """Save network metadata.
-        
+
             - Save recorder metadata
         """
         # Save recorder metadata
@@ -555,7 +679,7 @@ class Network:
     def print_network_size():
         import nest
         print('------------------------')
-        print('Network size (without recorders)')
+        print('Network size (with recorders and parrot neurons)')
         print('Number of nodes: ', nest.GetKernelStatus('network_size'))
         print('Number of connections: ',
               nest.GetKernelStatus('num_connections'))

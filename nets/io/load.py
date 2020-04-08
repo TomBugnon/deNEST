@@ -19,7 +19,7 @@ def load_yaml(*args):
     path = join(*args)  # pylint:disable=no-value-for-parameter
     if exists(path):
         with open(join(*args), 'rt') as f:  # pylint:disable=no-value-for-parameter
-            return yaml.load(f)
+            return yaml.load(f, Loader=yaml.SafeLoader)
     else:
         return []
 

@@ -139,9 +139,9 @@ A full NETS simulation consists of the following steps:
 
 ## Parameters
 
-#### `Params` parameter trees
+#### `Tree` parameter trees
 
-Simulation parameter trees are specified as tree-like `Params` objects. The
+Simulation parameter trees are specified as tree-like `Tree` objects. The
 hierarchical tree structure provides a concise means of specifying parameters
 for nested 'scopes', which inherit parameters from ancestor scopes. The leaves
 of the tree specify models, etc. that are instantiated in the simulation. 
@@ -149,7 +149,7 @@ of the tree specify models, etc. that are instantiated in the simulation.
 ##### Example parameter tree
 
 Below is an example of a YAML file with a tree-like structure that can be loaded
-and represented by the `Params` class:
+and represented by the `Tree` class:
 
 ```yaml
 network:                # name of node (non-leaf)
@@ -198,7 +198,7 @@ NMDA_syn:
 
 #### Merging trees
 
-`Params` objects can be merged horizontally, meaning the parameters (contents of
+`Tree` objects can be merged horizontally, meaning the parameters (contents of
 the `params` key) of nodes with the same name and at the same position in the
 tree are combined in a `ChainMap` _before_ leaves inherit the parameters of
 their parent nodes.
@@ -354,11 +354,6 @@ defined in the final parameter tree.
   - `layers` (subtree): Defines layer parameters. Each leaf is a layer. The
     following parameters are recognized for each layer-leaf:
     - `type` (str): `'InputLayer'`, `'Layer'` or `None` (default `'Layer'`).
-    - `nrows`, `ncols` (int): Number of rows/columns for the layer (mandatory)
-    - `edge_wrap` (bool): Whether the layer is wrapped in NEST. (default
-      `False`)
-    - `visSize` (bool): NEST physical 'extent' of each the layer's side. We only
-      consider square layers for now (possible TODO) (mandatory)
     - `populations` (dict): Non-empty dictionary containing the neuron model
       (keys) and the number of units of that model at each grid location
       (values). (mandatory)

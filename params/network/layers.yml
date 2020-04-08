@@ -2,8 +2,9 @@ network:
   layers:
     params:
       type: null
-      nrows: 5
-      ncols: 5
+    nest_params:
+      rows: 5
+      columns: 5
       extent: [8.0, 8.0]
       edge_wrap: true
     # Areas
@@ -22,8 +23,6 @@ network:
             l1_exc: 2
             l1_inh: 1
     l2_area:
-      params:
-        area: l2_area
       l2:
         params:
           populations:

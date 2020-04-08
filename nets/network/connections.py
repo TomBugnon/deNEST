@@ -1,59 +1,64 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/connections.py
-"""Connection classes."""
+"""ConnectionModel and Connection objects."""
 
 # pylint:disable=missing-docstring
 
-from copy import deepcopy
-
-from .nest_object import NestObject
+from ..base_object import NestObject
 from .utils import if_not_created
-
-# List of Connection and ConnectionModel parameters (and their default values
-# that shouldn't be considered as 'nest_parameters'
-NON_NEST_CONNECTION_PARAMS = {
-    'type': 'topological',  # 'Topological'
-}
 
 
 class ConnectionModel(NestObject):
     """Represent a NEST connection model.
 
-    The nest parameters (`self.nest_params`) of a ConnectionModel object contain
-    the base nest parameters used in Connection objects. The parameters that
-    should not be considered as "nest-parameters" (listed along with their
-    default values in the global variable NON_NEST_CONNECTION_PARAMS) are popped
-    off the `self.nest_params` dictionary and kept in the `self.params`
-    attribute.
-    The population-to-population Connection objects inherit from both the params
-    and the nest_params dictionaries.
+    Connection objects inherit ``nest_params`` and ``params`` attributes from
+    ConnectionModel objects.
+
+    Args:
+        name (str): Name of the connection model.
+        params (dict-like): Dictionary of parameters. The following parameters
+            are recognized:
+                type (str): Type of connection. Currently, only connections of
+                    type 'topological' are supported
+        nest_params (dict-like): Dictionary of parameters that will be passed
+            to NEST during the ``tp.ConnectLayer`` call. The following
+            parameters are mandatory: ``['synapse_model'``. The ``sources`` and
+            ``targets`` NEST parameters are reserved. The source and target
+            populations are set by ``Connection`` objects via the
+            ``source_population`` and ``target_population`` connection
+            parameters.
     """
 
-    def __init__(self, name, all_params):
-        # Pop off the params that shouldn't be considered as NEST parameters
-        nest_params = deepcopy(dict(all_params))
-        params = {}
-        for non_nest_param, default in NON_NEST_CONNECTION_PARAMS.items():
-            params[non_nest_param] = nest_params.pop(non_nest_param, default)
-        # We now save the params and nest_params dictionaries as attributes
-        super().__init__(name, params)
-        self.nest_params = nest_params
+    # Validation of `params`
+    RESERVED_PARAMS = []
+    MANDATORY_PARAMS = []
+    OPTIONAL_PARAMS = {
+        'type': 'topological'
+    }
+    # Validation of `nest_params`
+    RESERVED_NEST_PARAMS = ['sources', 'targets']
+    MANDATORY_NEST_PARAMS = ['synapse_model']
+    OPTIONAL_NEST_PARAMS = None
+
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
+        self._type = self.params['type']
         # Check that the connection types are recognized and nothing is missing.
         assert self.type in ['topological']
 
     @property
     def type(self):
-        return self.params['type']
+        return self._type
 
 
 class BaseConnection(NestObject):
     """Base class for all population-to-population connections.
 
     A Connection consists in synapses between two populations that have a
-    specific  model. Population-to-population connections are specified
-    in the ``connections`` network/topology parameter. Connection models are
-    specified in the ``connection_models`` network parameter.
+    specific connection model. Population-to-population connections are
+    specified in the ``connections`` network/topology parameter. Connection
+    models are specified in the ``connection_models`` network parameter.
 
     ``(<connection_model_name>, <source_layer_name>, <source_population_name>,
     <target_layer_name>, <target_population_name>)`` tuples fully specify each
@@ -69,12 +74,13 @@ class BaseConnection(NestObject):
     one specified in the connection's parameters (`self.base_synapse_model`)
 
     Args:
-        model (ConnectionModel): ConnectionModel object. Provide base
-            'params' and 'nest_params' parameter dictionaries.
-        source_layer, target_layer (Layer): source and target Layer object
+        model (``ConnectionModel``): ``ConnectionModel`` object. The ``params``
+            and ``nest_params`` parameter dictionaries are inherited from the
+            ``ConnectionModel`` object.
+        source_layer, target_layer (``Layer``): source and target Layer object
         source_population, target_population (str | None): Name of the
             source and target population. If None, all populations are used.
-            Wrapper for the `sources` and `targets` `nest.ConnectLayers`
+            Wrapper for the ``sources`` and ``targets`` ``nest.ConnectLayers``
             parameters.
     """
 
@@ -84,11 +90,8 @@ class BaseConnection(NestObject):
     def __init__(self, model, source_layer, source_population, target_layer,
                  target_population):
         """Initialize Connection object."""
-        ##
         # Inherit params and nest_params from connection model
-        self.params = dict(model.params)
-        self.nest_params = dict(model.nest_params)
-        super().__init__(model.name, self.params)
+        super().__init__(model.name, model.params, model.nest_params)
         ##
         # Define the source and targets
         self.model = model
@@ -206,5 +209,5 @@ class TopoConnection(BaseConnection):
 
     @if_not_created
     def create(self):
-        """Create the connections in NEST."""
+        """Create the connections in NEST using ``tp.ConnectLayers``."""
         self.source.connect(self.target, self.nest_params)

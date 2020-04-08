@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 # recorders.py
 
-"""Create and save population and connection recorder objects."""
+"""PopulationRecorder and ConnectionRecorder objects."""
 
 # pylint:disable=missing-docstring
 
 from ..io import save
-from .nest_object import NestObject
+from ..base_object import NestObject
 from .utils import if_created, if_not_created
 
 
@@ -18,16 +18,15 @@ NON_NEST_PARAMS = {}
 
 class BaseRecorder(NestObject):
     """Base class for all recorder classes. Represent nodes (not models).
-    
+
     Args:
-        model (str): Model of the recorder in NEST. This should be a native 
+        model (str): Model of the recorder in NEST. This should be a native
             model in NEST, or a recorder model defined via ``recorder_models``
             network parameters.
     """
 
     def __init__(self, model):
-        # We now save the params and nest_params dictionaries as attributes
-        super().__init__(model, {})
+        super().__init__(model, {}, {})
         self._model = model
         self._type = None
         # Attributes below may depend on NEST default and recorder models and
@@ -37,7 +36,7 @@ class BaseRecorder(NestObject):
         self._record_to = None  # eg ['memory', 'file']
         self._withtime = None
         self._label = None  # Only affects raw data filenames.
-    
+
     @property
     def model(self):
         """Return NEST model of recorder node."""
@@ -63,11 +62,11 @@ class BaseRecorder(NestObject):
     def __str__(self):
         raise NotImplementedError
 
-    def set_status(self, params):
+    def set_status(self, nest_params):
         """Call nest.SetStatus on node."""
         import nest
-        print(f'--> Setting status for recorder {str(self)}: {params}')
-        nest.SetStatus(self.gid, params)
+        print(f'--> Setting status for recorder {str(self)}: {nest_params}')
+        nest.SetStatus(self.gid, nest_params)
 
     def set_label(self):
         """Set self._label and node's NEST ``label`` from self.__str__."""
@@ -101,7 +100,7 @@ class BaseRecorder(NestObject):
         """
         import nest
         # TODO: Deal with case where multimeter is only recorded to memory?
-        if not 'file' in self._record_to:
+        if 'file' not in self._record_to:
             raise ValueError(
                 f"Recorder {str(self)} was not saved to file. Please modify"
                 f" `record_to` recorder parameter"
@@ -147,7 +146,7 @@ class PopulationRecorder(BaseRecorder):
     in the `recorder_models` parameters at network/recorders.
 
     Args:
-        model (str): Model of the recorder in NEST. This should be a native 
+        model (str): Model of the recorder in NEST. This should be a native
             model in NEST, or a recorder model defined via ``recorder_models``
             network parameters. (eg: 'multimeter' or 'modified_multimeter')
         layer (Layer): Layer object
@@ -163,8 +162,8 @@ class PopulationRecorder(BaseRecorder):
         self._population_name = population_name  # Name of recorded population
         self._layer_name = self.layer.name  # Name of recorded pop's layer
         self._layer_shape = self.layer.shape  # (nrows, cols) for recorded pop
-        # TODO: unit_numbers as layer attribute
-        self._units_number = self.layer.populations[population_name]  # Number of nodes per grid position for pop
+        # Number of nodes per grid position for pop
+        self._units_number = self.layer.populations[population_name]
         # Attributes below are necessary for creating the output metadata file
         # and are defined during the `self.create()` call.
         self._gids = None  # all gids of recorded nodes
@@ -290,7 +289,7 @@ class ConnectionRecorder(BaseRecorder):
 
     ConnectionRecorders are connected to synapses of a single
     population-to-population ``Connection`` object.
-    
+
     Args:
         model (str): Model of the connection recorder in NEST. This should be a
             native model in NEST, or a recorder model defined via
@@ -308,7 +307,7 @@ class ConnectionRecorder(BaseRecorder):
         self._connection = connection
         self._connection_name = str(connection)
         # "type" or ConnectionRecorder ("weight_recorder")
-        self._type = None 
+        self._type = None
         for type in self.CONNECTION_RECORDER_TYPES:
             if type in self._model:
                 self._type = type

@@ -1,12 +1,3 @@
-numpy
-pyyaml
-tqdm
-docopt
-ipython
-scipy
-pillow
-watchdog
-seaborn
-pandas
-bokeh
-joblib
+-e .
+-r dev_requirements.txt
+-r plotting_requirements.txt
