@@ -110,6 +110,14 @@ class Tree(UserDict):
     def __str__(self):
         return repr(self)
 
+    def __eq__(self, other):
+        """Nodes are equal when their (own) data and children are equal.
+
+        Note that parents can differ. Note that we compare node's own data
+        rather than inherited
+        """
+        return self._data == other._data and self.children == other.children
+
     @property
     def parent(self):
         """This node's parent. ``None`` if node is the root."""
