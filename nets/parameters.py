@@ -185,17 +185,14 @@ class Tree(UserDict):
         merged = cls(mapping=data, parent=parent, name=name)
         # Merge children recursively, passing parent so that children inherit
         # merged node's data
-        all_names = set.union(*[set(tree.children.keys()) for tree in trees])
+        children = set.union(*(set(tree.children) for tree in trees))
         merged._children = {
             name: cls.merge(
-                *[
-                    tree.children[name] for tree in trees
-                    if name in tree.children
-                ],
+                *(tree.children[name] for tree in trees if name in tree.children),
                 parent=merged,
-                name=name
+                name=name,
             )
-            for name in all_names
+            for name in children
         }
         return merged
 
