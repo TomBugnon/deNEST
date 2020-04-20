@@ -1,27 +1,34 @@
+params:
+  c0_1: '1'
+  a: c0_a1
+  b: c0_b1
+nest_params:
+  c0_2: '2'
+  a: c0_a2
+  b: c0_b2
 c1:
-  nest_params:
-    a: c1_a2
-    b: c1_b2
   params:
     a: c1_a1
     b: c1_b1
+  nest_params:
+    a: c1_a2
+    b: c1_b2
 c2:
-  cc2:
-    ccc2:
-      nest_params:
-        b: ccc2_b2
-      params:
-        a: ccc2_a1
   params:
     a: c2_a1
     b: c2_b1
+  nest_params: {}
+  cc2:
+    params: {}
+    nest_params: {}
+    ccc2:
+      params:
+        a: ccc2_a1
+      nest_params:
+        b: ccc2_b2
 c3:
-  cc3: {}
-nest_params:
-  a: c0_a2
-  b: c0_b2
-  c0_2: '2'
-params:
-  a: c0_a1
-  b: c0_b1
-  c0_1: '1'
+  params: {}
+  nest_params: {}
+  cc3:
+    params: {}
+    nest_params: {}

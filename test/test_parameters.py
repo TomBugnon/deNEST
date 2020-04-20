@@ -9,7 +9,6 @@
 
 import os
 
-import yaml
 import pytest
 
 from nets.parameters import Tree
@@ -170,11 +169,14 @@ def test_named_leaves(t):
     ]
 
 
-def test_load(x, t):
+def test_read_write(x, t):
     path = os.path.join(HERE, 'tree.yml')
-    with open(path, 'wt') as f:
-        yaml.dump(x, f)
+    t.write(path)
     assert Tree.read(path) == t
+
+
+def test_asdict(t):
+    assert t == Tree(t.asdict())
 
 
 @pytest.fixture
