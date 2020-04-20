@@ -13,6 +13,7 @@ import yaml
 
 class InvalidTreeError(ValueError):
     """Raised when a mapping is not a valid ``Tree``."""
+
     pass
 
 
@@ -55,8 +56,9 @@ class Tree(UserDict):
         children (dict): A dictionary of named children.
         parent (type(self)): The parent of this node.
         data (dict): Dictionary containing the data accessible from this node
-            (ie the node's data and that inherited from its parents). Keys are
-            values of ``self.DATA_KEYS`` (``params`` and ``nest_params``)
+            (i.e., the node's data and that inherited from its parents). Keys
+            are values of ``self.DATA_KEYS`` (``'params'`` and
+            ``'nest_params'``).
         params, nest_params (dict-like): Contain the node data. Syntactic sugar
             to allow access to the node's data.
     """
@@ -74,16 +76,11 @@ class Tree(UserDict):
             mapping = {}
         if validate:
             mapping = self.validate(mapping)
-        # Data internal to this node. Keys are keys in DATA_KEYS. data keys
-        # contain empty dictionaries by default.
-        self._data = {
-            key: mapping.get(key, {})
-            for key in self.DATA_KEYS
-        }
+        # Data internal to this node. Keys are those specified by DATA_KEYS.
+        # Each data key contains an empty dictionary by default.
+        self._data = {key: mapping.get(key, {}) for key in self.DATA_KEYS}
         # Accessible data (inherits from parents)
         super().__init__(self._data)
-        # if name == 'warmup':
-        #     import ipdb; ipdb.set_trace()
         self.data = {
             key: DeepChainMap(
                 self.data[key],
@@ -154,10 +151,11 @@ class Tree(UserDict):
         return leaves
 
     def named_leaves(self):
-        """Return list of `(<name>, <node>)` tuples for all the leaves.
+        """Return list of ``(<name>, <node>)`` tuples for all the leaves.
 
-        Traversal order is not defined."""
-        return [(leave.name, leave) for leave in self.leaves()]
+        Traversal order is not defined.
+        """
+        return [(leaf.name, leaf) for leaf in self.leaves()]
 
     @classmethod
     def merge(cls, *trees, parent=None, name=None):
@@ -167,6 +165,7 @@ class Tree(UserDict):
         nodes have duplicate keys, the values from the nodes in the trees that
         appear earlier in the argument list will take precedence over those
         from later trees.
+
         Equivalent nodes' data is merged horizontally before hierarchical
         inheritance.
         """
@@ -223,7 +222,9 @@ class Tree(UserDict):
     @staticmethod
     def _validate(mapping, path):
         if not isinstance(mapping, Mapping):
-            raise InvalidTreeError('Invalid tree at {node}:\n{mapping}'.format(
-                node=f'node {path}' if path else 'root node',
-                mapping=pformat(mapping, indent=2)
-            ))
+            raise InvalidTreeError(
+                "Invalid tree at {node}:\n{mapping}".format(
+                    node=f"node {path}" if path else "root node",
+                    mapping=pformat(mapping, indent=2),
+                )
+            )
