@@ -84,7 +84,7 @@ class Tree(UserDict):
         self.data = {
             key: DeepChainMap(
                 self.data[key],
-                *(ancestor._data[key] for ancestor in self.ancestors()),
+                *(ancestor.node_data[key] for ancestor in self.ancestors()),
             )
             for key in self.DATA_KEYS
         }
@@ -97,6 +97,11 @@ class Tree(UserDict):
         # Syntactic sugar to allow data keys to be accessed as attributes
         for data_key, value in self.data.items():
             setattr(self, data_key, value)
+
+    @property
+    def node_data(self):
+        """The data associated with this node (not inherited from parents)."""
+        return self._data
 
     def __repr__(self):
         return (
@@ -170,13 +175,15 @@ class Tree(UserDict):
         inheritance.
         """
         # Merge node's own data
-        node_data = {
-            key: ChainMap(*(tree._data[key] for tree in trees))
-            for key in cls.DATA_KEYS
+        data = {
+            key: dict(
+                ChainMap(*(tree.node_data[key] for tree in trees))
+                for key in cls.DATA_KEYS
+            )
         }
-        # Initialize tree with node data and no children.
-        merged = cls(mapping=node_data, parent=parent, name=name)
-        # Merge children recursively. Pass parent so that children inherit
+        # Initialize tree with node data and no children
+        merged = cls(mapping=data, parent=parent, name=name)
+        # Merge children recursively, passing parent so that children inherit
         # merged node's data
         all_names = set.union(*[set(tree.children.keys()) for tree in trees])
         merged._children = {
