@@ -101,9 +101,11 @@ class Network(object):
         self.recorder_models = self.build_named_leaves_dict(
             Model, self.tree.children['recorder_models'])
         self.layers = {
-            name: LAYER_TYPES[leaf.get('type', None)](name,
-                                                      dict(leaf.params),
-                                                      dict(leaf.nest_params))
+            name: LAYER_TYPES[leaf.params.get('type', None)](
+                name,
+                dict(leaf.params),
+                dict(leaf.nest_params)
+            )
             for name, leaf in self.tree.children['layers'].named_leaves()
         }
         self.connection_models = self.build_named_leaves_dict(

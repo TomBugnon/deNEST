@@ -335,14 +335,15 @@ class InputLayer(Layer):
         import nest
         # Connect stimulators to parrots, one-to-one
         assert all([n == 1 for n in self.populations.values()])
-        stim_gids = [
-            self.gids(location=loc, population=self.stimulator_model)
-            for loc in self
-        ]
-        parrot_gids = [
-            self.gids(location=loc, population=self.PARROT_MODEL)
-            for loc in self
-        ]
+        stim_gids = []
+        parrot_gids = []
+        for loc in self:
+            stim_gids += self.gids(
+                location=loc, population=self.stimulator_model
+            )
+            parrot_gids += self.gids(
+                location=loc, population=self.PARROT_MODEL
+            )
         nest.Connect(
             stim_gids, parrot_gids, 'one_to_one', {'model': 'static_synapse'}
         )
