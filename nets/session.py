@@ -11,6 +11,7 @@ import numpy as np
 from .base_object import ParamObject
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
+from .utils.validation import ParameterError
 
 # pylint:disable=missing-docstring
 
@@ -79,7 +80,7 @@ class Session(ParamObject):
         self._start = start_time
         self._simulation_time = int(self.params['simulation_time'])
         if not self._simulation_time > 0:
-            raise ValueError(
+            raise ParameterError(
                 f"Parameter `simulation_time` of session {name} should be"
                 f"strictly positive."
             )
@@ -140,7 +141,7 @@ class Session(ParamObject):
         self._input_arrays = {}
         for inputlayer in inputlayers:
             if inputlayer.name not in self.params['inputs'].keys():
-                raise ValueError(
+                raise ParameterError(
                     f"No input defined in session {self.name} for InputLayer"
                     f"{str(inputlayer)}. Please check the `inputs` session"
                     f"parameter"
