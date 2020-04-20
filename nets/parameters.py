@@ -196,6 +196,12 @@ class Tree(UserDict):
         }
         return merged
 
+    def to_dict(self):
+        """Convert this ``Tree`` to a nested dictionary."""
+        dct = self.node_data.copy()
+        dct.update({name: child.to_dict() for name, child in self.children.items()})
+        return dct
+
     @classmethod
     def read(cls, path):
         """Load a YAML representation of a tree from disk."""
