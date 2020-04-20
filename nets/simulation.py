@@ -165,7 +165,8 @@ class Simulation(object):
             # start of next session = end of current session
             session_start_time = self.sessions[-1].end
         self.session_times = {
-            session.name: session.duration for session in self.sessions
+            session.name: (session.start, session.end)
+            for session in self.sessions
         }
         print(f'-> Sessions: {self.sessions_order}')
         print('Done...\n', flush=True)
