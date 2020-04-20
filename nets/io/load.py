@@ -13,13 +13,21 @@ import yaml
 from .save import output_subdir, output_path
 
 
-def load_yaml(*args):
-    """Load yaml file from joined (os.path.join) arguments.
+def load_session_times(output_dir):
+    """Load session time from output dir."""
+    return load_yaml(output_path(output_dir, 'session_times'))
 
-    Return empty list if the file doesn't exist.
-    """
-    with open(join(*args), 'rt') as f:
-        return yaml.load(f, Loader=yaml.FullLoader)
+
+def metadata_paths(output_dir):
+    """Return list of paths to all recorder metadata files."""
+    metadata_dir = output_subdir(output_dir,
+                                 'recorders_metadata',
+                                 create_dir=False)
+    # "metadata" files are the ones without .ext
+    return sorted([
+        os.path.join(metadata_dir, f) for f in os.listdir(metadata_dir)
+        if os.path.splitext(f)[1] == '.yml'
+    ])
 
 
 def load(metadata_path):
@@ -62,29 +70,10 @@ def load_as_df(colnames, *paths, sep='\t', **kwargs):
     # Read data from disk
     return pd.concat(
         [
-            pd.read_csv(path, sep=sep, **kwargs)
+            pd.read_csv(path, names=colnames, sep=sep, **kwargs)
             for path in paths
         ]
     )
-
-
-def load_metadata_filenames(output_dir, recorder_type):
-    """Return list of all recorder filenames for a certain recorder type"""
-    if recorder_type not in ['multimeter', 'spike_detector', 'weight_recorder']:
-        raise ValueError("Recorder type not recognized")
-    if recorder_type in ['multimeter', 'spike_detector']:
-        metadata_dir = output_subdir(output_dir,
-                                     'recorders_metadata',
-                                     create_dir=False)
-    elif recorder_type in ['weight_recorder']:
-        metadata_dir = output_subdir(output_dir,
-                                     'connection_recorders_metadata',
-                                     create_dir=False)
-    return sorted([
-        f for f in os.listdir(metadata_dir)
-        if recorder_type in os.path.splitext(f)[0]
-        and not os.path.splitext(f)[1]  # "metadata" files are the ones without .ext
-    ])  # TODO
 
 
 def get_filepaths(metadata_path):
@@ -96,6 +85,10 @@ def get_filepaths(metadata_path):
             for filename in metadata['filenames']]
 
 
-def load_session_times(output_dir):
-    """Load session time from output dir."""
-    return load_yaml(output_path(output_dir, 'session_times'))
+def load_yaml(*args):
+    """Load yaml file from joined (os.path.join) arguments.
+
+    Return empty list if the file doesn't exist.
+    """
+    with open(join(*args), 'rt') as f:
+        return yaml.load(f, Loader=yaml.FullLoader)
