@@ -58,6 +58,8 @@ def load_tree(path, *overrides):
     Returns:
         Tree: The loaded parameter tree with overrides applied.
     """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"No parameter file at {path}")
     print(f'Loading parameters from list at: `{path}`', flush=True)
     if overrides:
         print(f' with {len(overrides)} override trees.', end='')
