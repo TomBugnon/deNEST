@@ -206,7 +206,7 @@ their parent nodes.
 During a `nets.run()` call, the following parameters are combined (from lowest
 to highest precedence):
 - `constants.DEFAULT_PARAMS_PATH`: Default path to a parameter file to load.
-- `run(input_path)`: Path to a parameter file to load.
+- `run(input_dir)`: Path to a parameter file to load.
 - `run(overrides=<params_object>): A parameter object given directly to `run()`.
 - CLI input: Parameters in the file given by the `--input=<path>` command-line
   flag.
@@ -278,7 +278,7 @@ defined in the final parameter tree.
   - `reset_network` (bool): Whether to call `nest.ResetNetwork()` before running
     the session (default `False`)
   - `session_input` (bool): Absolute or relative path to a NumPy array defining
-    the stimulus for that session. Possibly ignored if the `input_path` session
+    the stimulus for that session. Possibly ignored if the `input_dir` session
     parameter points to a NumPy array. Please refer to the 'Inputs' paragraph for details on how this parameter is interpreted.
     (default `None`)
   - `time_per_frame` (float): Number of milliseconds during which each 'frame'
@@ -455,27 +455,6 @@ In both cases __the scaling factor from np-array values to firing rates is equal
 
 #### Loading of the input arrays
 
-The input stimulus "shown" to the network is loaded using the following steps
-during the initialization of each session:
-
-1. (option 1): If the `input_path` simulation parameter is an absolute path
-    pointing towards a NumPy array, this array will be loaded for all sessions.
-    Otherwise...
-2. (option 2): If the `session_input` session parameter for the considered
-    session is an absolute path pointing towards a NumPy array, it will be
-    loaded for that session. Otherwise...
-3. (option 3): If the `input_path` simulation parameter is a path pointing
-    towards a directory, and the `session_input` session parameter can be
-    interpreted as a relative path, from the `input_path` directory, pointing
-    towards a NumPy array, it will be loaded for the session.
-
-In summary, if an absolute path to an array is specified in the command line
-`input` optional argument, it will be used for all sessions. Otherwise, a good
-approach is to specify the absolute path to an 'input directory' in the
-nets.constants, leave the `'input_path'` simulation parameter otherwise
-unspecified and specify the relative path (from the `'input directory'`) to each
-session's input in the session parameters.
-
 ### Duration of a session
 
 The simulation time is equal to the 'simulation_time' session
@@ -518,7 +497,7 @@ input_dir = None  # Path to an input directory. NOTE: This can also be a path
 output_dir = None # Path to output directory.
 
 # Create the simulation.
-sim = nets.Simulation(params, input_path=input_path, output_dir=output_dir)
+sim = nets.Simulation(params, input_dir=input_dir, output_dir=output_dir)
 
 # Run the simulation.
 sim.run()

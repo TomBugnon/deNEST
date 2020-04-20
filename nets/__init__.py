@@ -74,7 +74,7 @@ def load_tree(path, *overrides):
     )
 
 
-def run(path, *overrides, output_dir=None, input_path=None):
+def run(path, *overrides, output_dir=None, input_dir=None):
     """Run the simulation described by the parameter tree at ``path``.
 
     Args:
@@ -83,8 +83,8 @@ def run(path, *overrides, output_dir=None, input_path=None):
             should override those from the path. Last in list is applied first.
 
     Kwargs:
-        input_path (str | None): None or the path to the input. Passed to
-            ``Simulation.__init__``. If defined, overrides the `input_path`
+        input_dir (str | None): None or the path to the input. Passed to
+            ``Simulation.__init__``. If defined, overrides the `input_dir`
             simulation parameter
         output_dir (str | None): None or the path to the output directory.
             Passed to ``Simulation.__init__`` If defined, overrides `output_dir`
@@ -100,7 +100,7 @@ def run(path, *overrides, output_dir=None, input_path=None):
 
     # Initialize simulation
     print('Initialize simulation...\n', flush=True)
-    sim = Simulation(tree, input_path=input_path, output_dir=output_dir)
+    sim = Simulation(tree, input_dir=input_dir, output_dir=output_dir)
     print('\n...done initializing simulation...', flush=True, end=SEPARATOR)
 
     # Simulate

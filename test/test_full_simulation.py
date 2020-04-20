@@ -12,13 +12,13 @@ import nets
 import nets.io.load
 
 PARAMS_PATH = './params/default.yml'
-INPUT_PATH = './input'
+INPUT_DIR = './input'
 OUTPUT_DIR = './output'
 
 
 @pytest.fixture(scope='module')
 def output_dir():
-    nets.run(PARAMS_PATH, input_path=INPUT_PATH, output_dir=OUTPUT_DIR)
+    nets.run(PARAMS_PATH, input_dir=INPUT_DIR, output_dir=OUTPUT_DIR)
     return OUTPUT_DIR
 
 

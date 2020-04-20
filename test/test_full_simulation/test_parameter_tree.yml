@@ -340,7 +340,7 @@ session_models:
     params:
       inputs:
         input_layer:
-          file: sinusoidal_grating_0_degrees_40x40x40_frames_rows_cols.npy
+          filename: sinusoidal_grating_0_degrees_40x40x40_frames_rows_cols.npy
           rate_scaling_factor: 50.0
           time_per_frame: 30.0
       simulation_time: 50.0
@@ -350,7 +350,7 @@ session_models:
     params:
       inputs:
         input_layer:
-          file: noise_constant_x0.5_40x40x40_frames_rows_cols.npy
+          filename: noise_constant_x0.5_40x40x40_frames_rows_cols.npy
           rate_scaling_factor: 50.0
           time_per_frame: 1000.0
       simulation_time: 50.0
@@ -362,7 +362,7 @@ session_models:
     params:
       inputs:
         input_layer:
-          file: noise_constant_x0.5_40x40x40_frames_rows_cols.npy
+          filename: noise_constant_x0.5_40x40x40_frames_rows_cols.npy
           rate_scaling_factor: 50.0
           time_per_frame: 1000.0
       record: false
@@ -378,7 +378,7 @@ session_models:
 simulation:
   nest_params: {}
   params:
-    input_path: input
+    input_dir: input
     output_dir: output
     sessions:
     - warmup
