@@ -39,7 +39,7 @@ class ConnectionModel(NestObject):
     }
     # Validation of `nest_params`
     RESERVED_NEST_PARAMS = ['sources', 'targets']
-    MANDATORY_NEST_PARAMS = ['synapse_model']
+    MANDATORY_NEST_PARAMS = ['synapse_model', 'connection_type']
     OPTIONAL_NEST_PARAMS = None
 
     def __init__(self, name, params, nest_params):
