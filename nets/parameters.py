@@ -10,6 +10,8 @@ from pprint import pformat
 
 import yaml
 
+_MAX_LINES = 30
+
 
 class InvalidTreeError(ValueError):
     """Raised when a mapping is not a valid ``Tree``."""
@@ -103,15 +105,6 @@ class Tree(UserDict):
         """The data associated with this node (not inherited from parents)."""
         return self._data
 
-    def __repr__(self):
-        return (
-            f'{type(self).__name__}[{len(self.children)}]'
-            f'(`{self._name}`, {dict(self._data)})'
-        )
-
-    def __str__(self):
-        return repr(self)
-
     @property
     def parent(self):
         """This node's parent. ``None`` if node is the root."""
@@ -201,6 +194,23 @@ class Tree(UserDict):
         dct = self.node_data.copy()
         dct.update({name: child.to_dict() for name, child in self.children.items()})
         return dct
+
+    def __str__(self):
+        return yaml.dump(self.to_dict(), sort_keys=False)
+
+    def __repr__(self):
+        lines = str(self).split("\n")
+        n = len(lines)
+        if n >= _MAX_LINES:
+            lines = (
+                lines[: (_MAX_LINES // 2)]
+                + [f"\n  ... [{n - _MAX_LINES} lines] ...\n"]
+                + lines[-(_MAX_LINES // 2) :]
+            )
+        return (
+            f"Tree(name='{self.name}', parent='{None if self.parent is None else self.parent.name}')\n"
+            + "\n".join(["  " + line for line in lines])
+        )
 
     @classmethod
     def read(cls, path):
