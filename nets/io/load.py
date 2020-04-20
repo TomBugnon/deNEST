@@ -10,6 +10,8 @@ from os.path import dirname, exists, join
 import pandas as pd
 import yaml
 
+from .save import output_subdir, output_path
+
 
 def load_yaml(*args):
     """Load yaml file from joined (os.path.join) arguments.
