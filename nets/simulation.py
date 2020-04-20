@@ -196,8 +196,7 @@ class Simulation(object):
         make_output_dir(self.output_dir,
                         clear_output_dir=True)
         # Save params tree
-        save_as_yaml(output_path(self.output_dir, 'tree'),
-                     self.tree)
+        self.tree.write(output_path(self.output_dir, 'tree'))
         # Drop git hash
         misc.drop_git_hash(self.output_dir)
         # Save sessions

@@ -118,6 +118,18 @@ class Tree(UserDict):
         """
         return self._data == other._data and self.children == other.children
 
+    def asdict(self):
+        return {
+            **{
+                key: dict(value)
+                for key, value in self._data.items()
+            },
+            **{
+                name: child.asdict()
+                for name, child in self.children.items()
+            }
+        }
+
     @property
     def parent(self):
         """This node's parent. ``None`` if node is the root."""
@@ -210,9 +222,10 @@ class Tree(UserDict):
             return cls(yaml.load(f, Loader=yaml.SafeLoader))
 
     def write(self, path):
-        # TODO save (in yaml)
-        # with open(path, 'wt') as f:
-        pass
+        with open(path, 'wt') as f:
+            yaml.dump(self.asdict(), f,
+                      default_flow_style=False,
+                      sort_keys=False)
 
     def print(self):
         # TODO print tree
