@@ -1,3 +1,2 @@
 -e .
 -r dev_requirements.txt
--r plotting_requirements.txt
