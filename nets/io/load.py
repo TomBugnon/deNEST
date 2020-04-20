@@ -5,7 +5,7 @@
 """Utility functions for data loading."""
 
 import os
-from os.path import dirname, exists, join
+from os.path import dirname, join
 
 import pandas as pd
 import yaml
@@ -18,12 +18,8 @@ def load_yaml(*args):
 
     Return empty list if the file doesn't exist.
     """
-    path = join(*args)  # pylint:disable=no-value-for-parameter
-    if exists(path):
-        with open(join(*args), 'rt') as f:  # pylint:disable=no-value-for-parameter
-            return yaml.load(f, Loader=yaml.SafeLoader)
-    else:
-        return []
+    with open(join(*args), 'rt') as f:
+        return yaml.load(f, Loader=yaml.FullLoader)
 
 
 def load(metadata_path):
