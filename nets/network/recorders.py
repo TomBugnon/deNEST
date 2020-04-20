@@ -365,7 +365,7 @@ class ConnectionRecorder(BaseRecorder):
         """Save recorder metadata."""
         metadata_path = save.output_path(
             output_dir,
-            'connection_recorders_metadata',
+            'recorders_metadata',
             self._label
         )
         save.save_as_yaml(metadata_path,
