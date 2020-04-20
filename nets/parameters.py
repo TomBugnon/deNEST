@@ -195,18 +195,15 @@ class Tree(UserDict):
 
     @classmethod
     def read(cls, path):
-        """Load a YAML representation of a tree."""
-        with open(path, 'rt') as f:
+        """Load a YAML representation of a tree from disk."""
+        with open(path, "rt") as f:
             return cls(yaml.load(f, Loader=yaml.SafeLoader))
 
     def write(self, path):
-        # TODO save (in yaml)
-        # with open(path, 'wt') as f:
-        pass
-
-    def print(self):
-        # TODO print tree
-        pass
+        """Write a YAML representation of a tree to disk."""
+        with open(path, "wt") as f:
+            yaml.dump(self.to_dict())
+        return path
 
     def validate(self, mapping, path=None):
         """Check that a mapping is a valid ``Tree``."""
