@@ -4,8 +4,7 @@
 
 """Utility functions for data loading."""
 
-import os
-from os.path import dirname, join
+from pathlib import Path
 
 import pandas as pd
 import yaml
@@ -24,10 +23,7 @@ def metadata_paths(output_dir):
                                  'recorders_metadata',
                                  create_dir=False)
     # "metadata" files are the ones without .ext
-    return sorted([
-        os.path.join(metadata_dir, f) for f in os.listdir(metadata_dir)
-        if os.path.splitext(f)[1] == '.yml'
-    ])
+    return sorted(metadata_dir.glob('*.yml'))
 
 
 def load(metadata_path):
@@ -86,9 +82,12 @@ def get_filepaths(metadata_path):
 
 
 def load_yaml(*args):
-    """Load yaml file from joined (os.path.join) arguments.
+    """Load a YAML file from a path.
 
-    Return empty list if the file doesn't exist.
+    Return an empty list if the file doesn't exist.
     """
-    with open(join(*args), 'rt') as f:
+    path = Path(*args)
+    if not path.exists():
+        return []
+    with path.open('rt') as f:
         return yaml.load(f, Loader=yaml.FullLoader)

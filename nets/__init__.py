@@ -4,8 +4,8 @@
 
 """Spiking VisNet."""
 
+from pathlib import Path
 import logging
-import os
 
 import time
 from .parameters import Tree
@@ -58,18 +58,18 @@ def load_tree(path, *overrides):
     Returns:
         Tree: The loaded parameter tree with overrides applied.
     """
-    if not os.path.exists(path):
+    path = Path(path)
+    if not path.exists():
         raise FileNotFoundError(f"No parameter file at {path}")
     print(f'Loading parameters from list at: `{path}`', flush=True)
     if overrides:
         print(f' with {len(overrides)} override trees.', end='')
-    path_dir = os.path.dirname(os.path.abspath(path))
     rel_path_list = load_yaml(path)
     print(f"List of loaded parameter files: {rel_path_list}", flush=True)
     return Tree.merge(
         *[Tree(overrides_tree)
           for overrides_tree in overrides],
-        *[Tree.read(os.path.join(path_dir, relative_path))
+        *[Tree.read(Path(path.parent, relative_path))
           for relative_path in rel_path_list]
     )
 
@@ -113,4 +113,4 @@ def run(path, *overrides, output_dir=None, input_dir=None):
     print(f"Total simulation virtual time: {sim.total_time()}ms")
     print(f"Total simulation real time: {misc.pretty_time(start_time)}")
     print('\nSimulation output can be found at the following path:')
-    print(os.path.abspath(sim.output_dir), '\n')
+    print(Path(sim.output_dir).resolve(), '\n')

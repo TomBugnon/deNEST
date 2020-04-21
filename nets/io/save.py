@@ -7,9 +7,7 @@
 
 # pylint: disable=missing-docstring,ungrouped-imports
 
-import os
 import shutil
-from os.path import isdir, join
 from pathlib import Path
 
 import yaml
@@ -51,14 +49,14 @@ def output_subdir(output_dir, data_keyword, create_dir=True):
         data_keyword (str): String designating the type of data for which we
             return an output subdirectory. Should be a key of the OUTPUT_SUBDIRS
             dictionary.
-    
+
     Kwargs:
         create_dir (bool): If true, the returned directory is created.
     """
-    subdir = join(output_dir, *OUTPUT_SUBDIRS[data_keyword])
+    path = Path(output_dir, *OUTPUT_SUBDIRS[data_keyword])
     if create_dir:
-        os.makedirs(subdir, exist_ok=True)
-    return subdir
+        path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def output_filename(data_keyword, *args, **kwargs):
@@ -96,34 +94,45 @@ def make_output_dir(output_dir, clear_output_dir=True,
         delete_subdirs_list (list of str or None): List of subdirectories of
             CLEAR_SUBDIRS that we delete.
     """
+    output_dir = Path(output_dir)
     if delete_subdirs_list is None:
         delete_subdirs_list = []
-    os.makedirs(output_dir, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
     if clear_output_dir:
-        for clear_dir in [join(output_dir, *subdir)
-                          for subdir in CLEAR_SUBDIRS
-                          if isdir(join(output_dir, *subdir))]:
-            print(f'-> Clearing directory {clear_dir}')
-            # Delete files in the CLEAR_SUBDIRS
-            delete_files(clear_dir)
-            # Delete the contents of all the delete_subdirs we encounter
-            delete_subdirs(clear_dir, delete_subdirs_list)
+        for path in [Path(output_dir, *subdir) for subdir in CLEAR_SUBDIRS]:
+            if path.exists():
+                print(f'-> Clearing directory {path}')
+                # Delete files in the CLEAR_SUBDIRS
+                delete_files(path)
+                # Delete the contents of all the delete_subdirs we encounter
+                delete_subdirs(path, delete_subdirs_list)
 
 
-def delete_files(clear_dir):
-    """Delete all files in a directory."""
-    for f in os.listdir(clear_dir):
-        path = join(clear_dir, f)
-        if os.path.isfile(path):
-            os.remove(path)
-
-
-def delete_subdirs(clear_dir, delete_subdirs_list):
-    """Delete some subdirectories in a directory."""
-    for f in os.listdir(clear_dir):
-        path = join(clear_dir, f)
-        if os.path.isdir(path) and f in delete_subdirs_list:
+def _delete_contents(path, to_delete='files', missing_ok=True):
+    if missing_ok and not path.is_dir():
+        return path
+    for child in path.iterdir():
+        if to_delete == 'files' and child.is_file():
+            child.unlink()
+        elif child.is_dir() and child in to_delete:
             shutil.rmtree(path)
+    return path
+
+
+def delete_files(path, missing_ok=True):
+    """Delete all files in a directory.
+
+    Not recursive. Only deletes files, not subdirectories.
+    """
+    return _delete_contents(path, to_delete='files', missing_ok=missing_ok)
+
+
+def delete_subdirs(path, to_delete, missing_ok=True):
+    """Delete some subdirectories in a directory.
+
+    Not recursive. Only deletes the subdirectories in ``to_delete``.
+    """
+    return _delete_contents(path, to_delete=to_delete, missing_ok=missing_ok)
 
 
 def recorder_metadata_filename(label):

@@ -7,7 +7,6 @@
 # pylint: disable=missing-docstring,invalid-name,redefined-outer-name
 # pylint: disable=not-an-iterable
 
-import os
 from pathlib import Path
 import tempfile
 
