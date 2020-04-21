@@ -170,7 +170,8 @@ def test_named_leaves(t):
 
 def test_read_write(x, t):
     with tempfile.TemporaryDirectory() as tmp:
-        t.write(Path(tmp)/'tree.yml')
+        path = Path(tmp)/'tree.yml'
+        t.write(path)
         assert Tree.read(path) == t
 
 
