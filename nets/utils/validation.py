@@ -102,7 +102,7 @@ def validate(name, params, param_type='params', reserved=None,
     assert param_type in ['params', 'nest_params']
 
     error_msg_base = (
-        f"Invalid parameter for object `{name}` in `{param_type}` parameter"
+        f"Invalid parameter for object `{name}` in `{param_type}` parameter "
         f"dictionary: \n`{params}`.\n"
     )
 
