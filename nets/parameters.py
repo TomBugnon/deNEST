@@ -177,10 +177,8 @@ class Tree(UserDict):
         """
         # Merge node's own data
         data = {
-            key: dict(
-                ChainMap(*(tree.node_data[key] for tree in trees))
-                for key in cls.DATA_KEYS
-            )
+            key: dict(ChainMap(*(tree.node_data[key] for tree in trees)))
+            for key in cls.DATA_KEYS
         }
         # Initialize tree with node data and no children
         merged = cls(mapping=data, parent=parent, name=name)
