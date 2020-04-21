@@ -13,6 +13,7 @@ sessions:
       unit_changes:
         - layers: [l1,]
           population: null
+          subnet_x_y_max: 3
           proportion: 0.5
           filter:
             V_m:

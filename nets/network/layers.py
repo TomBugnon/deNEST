@@ -125,8 +125,9 @@ class AbstractLayer(NestObject):
         raise NotImplementedError
 
     def change_unit_states(self, changes_dict, population=None, proportion=1.0,
-                           filter_dict={}, change_type='constant'):
-        """Call nest.SetStatus for a proportion of units which pass the filter."""
+                           filter_dict={}, change_type='constant',
+                           subnet_x_y_max=None):
+        """Call nest.SetStatus for a subset of units."""
         if not changes_dict:
             return
         if self._prob_changed and proportion != 1.0:
@@ -135,10 +136,16 @@ class AbstractLayer(NestObject):
         all_gids = self.gids(population=population)
         if proportion != 1.0:
             print(f'----> Select subset of gids (proportion = {proportion})')
-        gids_to_filter = self.get_gids_subset(
+        gids_to_subnet = self.get_gids_subset(
             all_gids,
             proportion
         )
+        if subnet_x_y_max is not None:
+            print(f'----> Select subnet (subnet_x_y_max = {subnet_x_y_max})')
+            gids_to_filter = [
+                gid for gid in gids_to_subnet
+                if all([x_y <= subnet_x_y_max for x_y in self._locations[gid]])
+            ]
         if filter_dict:
             print(f'----> Apply filter on gids (filter = {filter_dict})')
         gids_to_change = self.filter_gids(

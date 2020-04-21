@@ -287,6 +287,9 @@ class Network:
                     Where <float_min> and <float_max> define the (inclusive)
                     min and max of the filtering interval for the considered
                     parameter (default resp. -inf and +inf)
+                ``subnet_x_y_max`` (default None): Specifies a subnet to which
+                    the changes are applied. Only units whose x and y locations
+                    are <= to ``subnet_x_y_max`` are affected by the changes.
                 ``'params'`` (default {}) is the dictionary of parameter changes
                     applied to the selected units.
         """
@@ -314,7 +317,8 @@ class Network:
                     population=changes.get('population', None),
                     proportion=changes.get('proportion', 1.),
                     filter_dict=changes.get('filter', {}),
-                    change_type= changes.get('change_type', 'constant')
+                    change_type= changes.get('change_type', 'constant'),
+                    subnet_x_y_max=changes.get('subnet_x_y_max', None),
                 )
             print(f'\n')
 
