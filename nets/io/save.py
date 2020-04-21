@@ -109,10 +109,9 @@ def _delete_contents(path, to_delete='files', missing_ok=True):
     if missing_ok and not path.is_dir():
         return path
     for child in path.iterdir():
-        if to_delete == 'files' and child.is_file():
-            child.unlink()
-        elif to_delete == 'files' and child.is_dir():
-            continue
+        if to_delete == 'files':
+            if child.is_file():
+                child.unlink()
         elif child.is_dir() and child in to_delete:
             shutil.rmtree(path)
     return path

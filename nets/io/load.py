@@ -78,7 +78,7 @@ def get_filepaths(metadata_path):
     # Check loaded metadata
     assert 'filenames' in metadata
     # We assume metadata and data are in the same directory
-    return [metadata_path.parents[0]/filename
+    return [metadata_path.parent/filename
             for filename in metadata['filenames']]
 
 
