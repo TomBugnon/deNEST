@@ -220,8 +220,9 @@ class Tree(UserDict):
                 + [f"\n  ... [{n - _MAX_LINES} lines] ...\n"]
                 + lines[-(_MAX_LINES // 2) :]
             )
+        parent_str = f"'{self.parent.name}'" if self.parent is not None else None
         return (
-            f"Tree(name='{self.name}', parent='{None if self.parent is None else self.parent.name}')\n"
+            f"Tree(name='{self.name}', parent={parent_str})\n"
             + "\n".join(["  " + line for line in lines])
         )
 
