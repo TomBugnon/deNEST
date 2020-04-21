@@ -27,12 +27,12 @@ class Simulation(object):
                     (`params` field) are recognized:
                         - ``output_dir` (str): Path to the output directory
                             (default 'output').
-                        - ``input_path`` (str): Path to an input file or to the
+                        - ``input_dir`` (str): Path to an input file or to the
                           directory in which input files are searched for for
-                          each session. If ``input_path`` points towards a
+                          each session. If ``input_dir`` points towards a
                           loadable numpy input array, it will be used for
                           setting the `InputLayer` layers' input. Otherwise,
-                          ``input_path`` is interpreted as a directory in which
+                          ``input_dir`` is interpreted as a directory in which
                           input array files are searched. (default 'input')
                         - ``sessions`` (list(str)): Order in which sessions are
                             run. Elements of the list should be the name of
@@ -49,8 +49,8 @@ class Simulation(object):
                     network parameters.
 
     Kwargs:
-        input_path (str | None): None or the path to the input. If defined,
-            overrides the `input_path` simulation parameter
+        input_dir (str | None): None or the path to the input. If defined,
+            overrides the `input_dir` simulation parameter
         output_dir (str | None): None or the path to the output directory. If
             defined, overrides `output_dir` simulation parameter.
     """
@@ -63,11 +63,11 @@ class Simulation(object):
     MANDATORY_SIM_PARAMS = []
     OPTIONAL_SIM_PARAMS = {
         'sessions': [],
-        'input_path': 'input',
+        'input_dir': 'input',
         'output_dir': 'output',
     }
 
-    def __init__(self, tree, input_path=None, output_dir=None):
+    def __init__(self, tree, input_dir=None, output_dir=None):
         """Initialize simulation.
 
             - Set input and output paths
@@ -113,14 +113,14 @@ class Simulation(object):
             optional=self.OPTIONAL_SIM_PARAMS
         )
 
-        # Incorporate `input_path` and `output_dir` kwargs
+        # Incorporate `input_dir` and `output_dir` kwargs
         if output_dir is not None:
             self.sim_params['output_dir'] = output_dir
         self.output_dir = self.sim_params['output_dir']
         # Get input dir
-        if input_path is not None:
-            self.sim_params['input_path'] = input_path
-        self.input_path = self.sim_params['input_path']
+        if input_dir is not None:
+            self.sim_params['input_dir'] = input_dir
+        self.input_dir = self.sim_params['input_dir']
 
         # Initialize kernel (should be after getting output dirs)
         print('Initialize NEST kernel and seeds...', flush=True)
@@ -160,12 +160,13 @@ class Simulation(object):
                 Session(self.make_session_name(session_model, i),
                         dict(session_model_nodes[session_model].params),
                         start_time=session_start_time,
-                        input_path=self.input_path)
+                        input_dir=self.input_dir)
             )
             # start of next session = end of current session
             session_start_time = self.sessions[-1].end
         self.session_times = {
-            session.name: session.duration for session in self.sessions
+            session.name: (session.start, session.end)
+            for session in self.sessions
         }
         print(f'-> Sessions: {self.sessions_order}')
         print('Done...\n', flush=True)
@@ -195,8 +196,7 @@ class Simulation(object):
         make_output_dir(self.output_dir,
                         clear_output_dir=True)
         # Save params tree
-        save_as_yaml(output_path(self.output_dir, 'tree'),
-                     self.tree)
+        self.tree.write(output_path(self.output_dir, 'tree'))
         # Drop git hash
         misc.drop_git_hash(self.output_dir)
         # Save sessions

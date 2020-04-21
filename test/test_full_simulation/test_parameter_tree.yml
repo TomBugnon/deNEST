@@ -1,0 +1,386 @@
+kernel:
+  nest_params:
+    local_num_threads: 20
+    overwrite_files: true
+    print_time: true
+    resolution: 1.0
+  params:
+    extension_modules: []
+    nest_seed: 94
+    python_seed: 94
+nest_params: {}
+network:
+  connection_models:
+    FF_exc:
+      nest_params:
+        connection_type: convergent
+        delays:
+          uniform:
+            max: 2.25
+            min: 1.75
+        kernel: 0.8
+        mask:
+          circular:
+            radius: 12.0
+        synapse_model: AMPA_syn
+        weights: 1.0
+      params: {}
+    horizontal_exc:
+      nest_params:
+        connection_type: divergent
+        delays:
+          uniform:
+            max: 2.25
+            min: 1.75
+        kernel:
+          gaussian:
+            p_center: 0.05
+            sigma: 7.5
+        mask:
+          circular:
+            radius: 12.0
+        synapse_model: AMPA_syn
+        weights: 1.0
+      params: {}
+    horizontal_inh:
+      nest_params:
+        connection_type: divergent
+        delays:
+          uniform:
+            max: 2.25
+            min: 1.75
+        kernel:
+          gaussian:
+            p_center: 0.25
+            sigma: 7.5
+        mask:
+          circular:
+            radius: 7.0
+        synapse_model: GABA_A_syn
+        weights: 1.0
+      params: {}
+    input_connection:
+      input_connection_AMPA:
+        nest_params:
+          synapse_model: input_synapse_AMPA
+        params: {}
+      input_connection_NMDA:
+        nest_params:
+          synapse_model: input_synapse_NMDA
+        params: {}
+      nest_params:
+        connection_type: convergent
+        delays:
+          uniform:
+            max: 2.25
+            min: 1.75
+        kernel: 0.8
+        mask:
+          circular:
+            radius: 12.0
+        weights: 1.0
+      params: {}
+    nest_params:
+      allow_autapses: false
+      allow_multapses: false
+      allow_oversized_mask: true
+    params:
+      type: topological
+  layers:
+    input_area:
+      input_layer:
+        nest_params: {}
+        params:
+          populations:
+            input_exc: 1
+            parrot_neuron: 1
+      nest_params: {}
+      params:
+        type: InputLayer
+    l1_area:
+      l1:
+        nest_params: {}
+        params:
+          populations:
+            l1_exc: 2
+            l1_inh: 1
+      nest_params: {}
+      params: {}
+    l2_area:
+      l2:
+        nest_params: {}
+        params:
+          populations:
+            l2_exc: 2
+            l2_inh: 1
+      nest_params: {}
+      params: {}
+    nest_params:
+      columns: 5
+      edge_wrap: true
+      extent:
+      - 8.0
+      - 8.0
+      rows: 5
+    params:
+      type: null
+  nest_params: {}
+  neuron_models:
+    ht_neuron:
+      cortical_excitatory:
+        l1_exc:
+          nest_params: {}
+          params: {}
+        l2_exc:
+          nest_params: {}
+          params: {}
+        nest_params:
+          tau_m: 16.0
+          tau_spike: 1.75
+          tau_theta: 2.0
+          theta_eq: -51.0
+        params: {}
+      cortical_inhibitory:
+        l1_inh:
+          nest_params: {}
+          params: {}
+        l2_inh:
+          nest_params: {}
+          params: {}
+        nest_params:
+          tau_m: 8.0
+          tau_spike: 0.5
+          tau_theta: 1.0
+          theta_eq: -53.0
+        params: {}
+      nest_params:
+        E_rev_NaP: 55.0
+        S_act_NMDA: 0.4
+        V_act_NMDA: -58.0
+        g_KL: 1.0
+        g_peak_AMPA: 0.1
+        g_peak_GABA_A: 0.33
+        g_peak_GABA_B: 0.0132
+        g_peak_KNa: 0.5
+        g_peak_NMDA: 0.15
+        g_peak_NaP: 0.5
+        g_peak_T: 0.0
+        g_peak_h: 0.0
+        instant_unblock_NMDA: true
+      params:
+        nest_model: ht_neuron
+    input_exc:
+      nest_params: {}
+      params:
+        nest_model: spike_generator
+    nest_params: {}
+    params: {}
+  params: {}
+  recorder_models:
+    multimeter:
+      nest_params:
+        interval: 1.0
+        record_from:
+        - V_m
+      params:
+        nest_model: multimeter
+    nest_params:
+      record_to:
+      - file
+      - memory
+      withgid: true
+      withtime: true
+    params: {}
+    spike_detector:
+      nest_params: {}
+      params:
+        nest_model: spike_detector
+    weight_recorder:
+      nest_params:
+        record_to:
+        - file
+        - memory
+        withport: false
+        withrport: true
+      params:
+        nest_model: weight_recorder
+  recorders:
+    nest_params: {}
+    params:
+      connection_recorders:
+      - connection_model: input_connection_AMPA
+        source_layers:
+        - input_layer
+        source_population: parrot_neuron
+        target_layers:
+        - l1
+        target_population: l1_exc
+      - connection_model: horizontal_exc
+        source_layers:
+        - l1
+        source_population: l1_exc
+        target_layers:
+        - l1
+        target_population: l1_exc
+      population_recorders:
+      - layers: []
+        model: multimeter
+        populations: []
+      - layers:
+        - l2
+        model: multimeter
+        populations:
+        - l2_inh
+      - layers: null
+        model: multimeter
+        populations:
+        - l2_exc
+      - layers:
+        - l1
+        model: spike_detector
+        populations: null
+      - layers: null
+        model: spike_detector
+        populations: null
+  synapse_models:
+    ht_synapse:
+      AMPA_syn:
+        nest_params: {}
+        params:
+          receptor_type: AMPA
+      GABA_A_syn:
+        nest_params: {}
+        params:
+          receptor_type: GABA_A
+      GABA_B_syn:
+        nest_params: {}
+        params:
+          receptor_type: GABA_B
+      NMDA_syn:
+        nest_params: {}
+        params:
+          receptor_type: NMDA
+      nest_params: {}
+      params:
+        nest_model: ht_synapse
+        target_neuron: ht_neuron
+    nest_params: {}
+    params: {}
+    static_synapse:
+      input_synapse_AMPA:
+        nest_params: {}
+        params:
+          receptor_type: AMPA
+          target_neuron: ht_neuron
+      input_synapse_NMDA:
+        nest_params: {}
+        params:
+          receptor_type: NMDA
+          target_neuron: ht_neuron
+      nest_params: {}
+      params:
+        nest_model: static_synapse_lbl
+  topology:
+    nest_params: {}
+    params:
+      connections:
+      - connection_model: input_connection_AMPA
+        source_layers:
+        - input_layer
+        source_population: parrot_neuron
+        target_layers:
+        - l1
+        target_population: l1_exc
+      - connection_model: input_connection_AMPA
+        source_layers:
+        - input_layer
+        source_population: parrot_neuron
+        target_layers:
+        - l1
+        target_population: l1_inh
+      - connection_model: input_connection_NMDA
+        source_layers:
+        - input_layer
+        source_population: parrot_neuron
+        target_layers:
+        - l1
+        target_population: l1_inh
+      - connection_model: horizontal_exc
+        source_layers:
+        - l1
+        source_population: l1_exc
+        target_layers:
+        - l1
+        target_population: l1_exc
+      - connection_model: horizontal_exc
+        source_layers:
+        - l1
+        source_population: l1_exc
+        target_layers:
+        - l1
+        target_population: l1_inh
+      - connection_model: FF_exc
+        source_layers:
+        - l1
+        source_population: l1_exc
+        target_layers:
+        - l2
+        target_population: l2_exc
+      - connection_model: FF_exc
+        source_layers:
+        - l1
+        source_population: l1_exc
+        target_layers:
+        - l2
+        target_population: l2_inh
+params: {}
+session_models:
+  grating:
+    nest_params: {}
+    params:
+      inputs:
+        input_layer:
+          filename: sinusoidal_grating_0_degrees_40x40x40_frames_rows_cols.npy
+          rate_scaling_factor: 50.0
+          time_per_frame: 30.0
+      simulation_time: 50.0
+  nest_params: {}
+  noise:
+    nest_params: {}
+    params:
+      inputs:
+        input_layer:
+          filename: noise_constant_x0.5_40x40x40_frames_rows_cols.npy
+          rate_scaling_factor: 50.0
+          time_per_frame: 1000.0
+      simulation_time: 50.0
+  params:
+    record: true
+    reset_network: false
+  warmup:
+    nest_params: {}
+    params:
+      inputs:
+        input_layer:
+          filename: noise_constant_x0.5_40x40x40_frames_rows_cols.npy
+          rate_scaling_factor: 50.0
+          time_per_frame: 1000.0
+      record: false
+      reset_network: true
+      simulation_time: 50.0
+      unit_changes:
+      - layers:
+        - l1
+        params:
+          V_m: -70.0
+        population: null
+        proportion: 0.5
+simulation:
+  nest_params: {}
+  params:
+    input_dir: input
+    output_dir: output
+    sessions:
+    - warmup
+    - noise
+    - grating

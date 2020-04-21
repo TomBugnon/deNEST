@@ -14,23 +14,23 @@ session_models:
             V_m: -70.0
       inputs:
         input_layer:
-          file: 'noise_constant_x0.5_40x40x40_frames_rows_cols.npy' 
+          filename: 'noise_constant_x0.5_40x40x40_frames_rows_cols.npy' 
           time_per_frame: 1000.0
           rate_scaling_factor: 50.0
-      simulation_time: 500.
+      simulation_time: 50.
   noise:
     params:
-      simulation_time: 2000.
+      simulation_time: 50.
       inputs:
         input_layer:
-          file: 'noise_constant_x0.5_40x40x40_frames_rows_cols.npy' 
+          filename: 'noise_constant_x0.5_40x40x40_frames_rows_cols.npy' 
           time_per_frame: 1000.0
           rate_scaling_factor: 50.0
   grating:
     params:
-      simulation_time: 2000.
+      simulation_time: 50.
       inputs:
         input_layer:
-          file: 'sinusoidal_grating_0_degrees_40x40x40_frames_rows_cols.npy'
+          filename: 'sinusoidal_grating_0_degrees_40x40x40_frames_rows_cols.npy'
           time_per_frame: 30.0
           rate_scaling_factor: 50.0

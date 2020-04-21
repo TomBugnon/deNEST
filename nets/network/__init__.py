@@ -8,6 +8,7 @@ import itertools
 from tqdm import tqdm
 
 from ..utils import validation
+from ..utils.validation import ParameterError
 from .connections import ConnectionModel, TopoConnection
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
@@ -100,9 +101,11 @@ class Network(object):
         self.recorder_models = self.build_named_leaves_dict(
             Model, self.tree.children['recorder_models'])
         self.layers = {
-            name: LAYER_TYPES[leaf.get('type', None)](name,
-                                                      dict(leaf.params),
-                                                      dict(leaf.nest_params))
+            name: LAYER_TYPES[leaf.params.get('type', None)](
+                name,
+                dict(leaf.params),
+                dict(leaf.nest_params)
+            )
             for name, leaf in self.tree.children['layers'].named_leaves()
         }
         self.connection_models = self.build_named_leaves_dict(
@@ -233,7 +236,7 @@ class Network(object):
 
         # Check that there are no duplicates.
         if not len(set(connection_args)) == len(connection_args):
-            raise ValueError(
+            raise ParameterError(
                 """Duplicate connections specified by `connections` topology
                 parameter. (<connection_model_name>, <source_layer_name>,
                 <source_population_name>, <target_layer_name>,
@@ -339,7 +342,7 @@ class Network(object):
 
         # Check that there are no duplicates.
         if not len(set(conn_recorder_args)) == len(conn_recorder_args):
-            raise ValueError(
+            raise ParameterError(
                 """Duplicate connection recorders specified by
                 ``connection_recorders`` network/recorders parameter.
                 (<recorder_model>, <connection_model_name>, <source_layer_name>,
@@ -364,7 +367,7 @@ class Network(object):
 
             # Check that all the connections exist in the network
             if not any(matching_connections):
-                raise ValueError(
+                raise ParameterError(
                     f"Could not create connection recorder {model} for"
                     f" connection `{conn_model}, {src_layer}, {src_pop},"
                     f" {tgt_layer}, {tgt_pop}`: Connection does not exist in "
@@ -372,7 +375,7 @@ class Network(object):
                 )
             # Check (again) that connections are unique
             if len(matching_connections) > 1:
-                raise ValueError("Multiple identical connections")
+                raise ParameterError("Multiple identical connections")
 
             connection = matching_connections[0]
             # Create connection recorder

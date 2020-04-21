@@ -9,8 +9,9 @@ import random
 
 import numpy as np
 
-from ..utils import spike_times
 from ..base_object import NestObject
+from ..utils import spike_times
+from ..utils.validation import ParameterError
 from .utils import flatten, if_created, if_not_created
 
 # pylint:disable=missing-docstring
@@ -103,11 +104,13 @@ class AbstractLayer(NestObject):
                 unit.
         """
         if change_type not in ['constant', 'multiplicative']:
-            raise ValueError(
+            raise ParameterError(
                 "``change_type`` argument should 'constant' or 'multiplicative'"
             )
         if proportion > 1 or proportion < 0:
-            raise ValueError('``proportion`` parameter should be within [0, 1]')
+            raise ParameterError(
+                '``proportion`` parameter should be within [0, 1]'
+            )
         if not changes_dict:
             return
         if self._prob_changed and proportion != 1.0:
@@ -205,7 +208,7 @@ class Layer(AbstractLayer):
             not populations
             or any([not isinstance(n, int) for n in populations.values()])
         ):
-            raise ValueError(
+            raise ParameterError(
                 "Invalid format for `populations` parameter {populations} of "
                 f"layer {str(self)}: expects non-empty dictionary of the form"
                 "`{<population_name>: <number_of_units>}` with integer values"
@@ -308,7 +311,7 @@ class InputLayer(Layer):
         # Check populations and add a population of parrot neurons
         populations = params['populations']
         if (len(populations) != 1 or list(populations.values())[0] != 1):
-            raise ValueError(
+            raise ParameterError(
                 f"Invalid `population` parameter for `InputLayer` layer {name}."
                 f"InputLayers should be composed of a single population, of"
                 f"stimulation devices, with a single element per location."
@@ -332,14 +335,15 @@ class InputLayer(Layer):
         import nest
         # Connect stimulators to parrots, one-to-one
         assert all([n == 1 for n in self.populations.values()])
-        stim_gids = [
-            self.gids(location=loc, population=self.stimulator_model)
-            for loc in self
-        ]
-        parrot_gids = [
-            self.gids(location=loc, population=self.PARROT_MODEL)
-            for loc in self
-        ]
+        stim_gids = []
+        parrot_gids = []
+        for loc in self:
+            stim_gids += self.gids(
+                location=loc, population=self.stimulator_model
+            )
+            parrot_gids += self.gids(
+                location=loc, population=self.PARROT_MODEL
+            )
         nest.Connect(
             stim_gids, parrot_gids, 'one_to_one', {'model': 'static_synapse'}
         )

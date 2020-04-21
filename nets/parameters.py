@@ -105,6 +105,14 @@ class Tree(UserDict):
         """The data associated with this node (not inherited from parents)."""
         return self._data
 
+    def __eq__(self, other):
+        """Nodes are equal when their (own) data and children are equal.
+
+        Note that parents can differ. We compare node's own data rather than
+        inherited data.
+        """
+        return self.node_data == other.node_data and self.children == other.children
+
     @property
     def parent(self):
         """This node's parent. ``None`` if node is the root."""
@@ -189,14 +197,21 @@ class Tree(UserDict):
         }
         return merged
 
-    def to_dict(self):
+    def asdict(self):
         """Convert this ``Tree`` to a nested dictionary."""
-        dct = self.node_data.copy()
-        dct.update({name: child.to_dict() for name, child in self.children.items()})
-        return dct
+        return {
+            **{
+                key: dict(value)
+                for key, value in self.node_data.items()
+            },
+            **{
+                name: child.asdict()
+                for name, child in self.children.items()
+            }
+        }
 
     def __str__(self):
-        return yaml.dump(self.to_dict(), sort_keys=False)
+        return yaml.dump(self.asdict(), sort_keys=False)
 
     def __repr__(self):
         lines = str(self).split("\n")
@@ -221,7 +236,7 @@ class Tree(UserDict):
     def write(self, path):
         """Write a YAML representation of a tree to disk."""
         with open(path, "wt") as f:
-            yaml.dump(self.to_dict())
+            yaml.dump(self.asdict(), f, default_flow_style=False, sort_keys=False)
         return path
 
     def validate(self, mapping, path=None):

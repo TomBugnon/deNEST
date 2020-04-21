@@ -11,6 +11,7 @@ import numpy as np
 from .base_object import ParamObject
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
+from .utils.validation import ParameterError
 
 # pylint:disable=missing-docstring
 
@@ -52,11 +53,8 @@ class Session(ParamObject):
     Kwargs:
         start_time (float): Time of kernel in msec when the session starts
             running.
-        input_path (str): Path to an input file or to the directory in which
-            input files are searched for for each session. If ``input_path``
-            points towards a loadable numpy input array, it will be used for
-            setting the `InputLayer` layers' input. Otherwise, ``input_path`` is
-            interpreted as a directory in which input array files are searched.
+        input_dir (str): Path to the directory in which input files are searched
+            for for each session.
     """
 
     # Validation of `params`
@@ -70,16 +68,16 @@ class Session(ParamObject):
         'inputs': []
     }
 
-    def __init__(self, name, params, start_time=0, input_path=None):
+    def __init__(self, name, params, start_time=0, input_dir=None):
         print(f'-> Creating session `{name}`')
         # Sets self.name / self.params  and validates params
         super().__init__(name, params)
-        self.input_path = input_path
+        self.input_dir = input_dir
         # Initialize the session start and end times
         self._start = start_time
         self._simulation_time = int(self.params['simulation_time'])
         if not self._simulation_time > 0:
-            raise ValueError(
+            raise ParameterError(
                 f"Parameter `simulation_time` of session {name} should be"
                 f"strictly positive."
             )
@@ -140,7 +138,7 @@ class Session(ParamObject):
         self._input_arrays = {}
         for inputlayer in inputlayers:
             if inputlayer.name not in self.params['inputs'].keys():
-                raise ValueError(
+                raise ParameterError(
                     f"No input defined in session {self.name} for InputLayer"
                     f"{str(inputlayer)}. Please check the `inputs` session"
                     f"parameter"
@@ -217,15 +215,15 @@ class Session(ParamObject):
                 One of the keys of the ``inputs`` session parameter. Should have
                 the following form::
                     {
-                        'file': <input_file>
+                        'filename': <input_file>
                         'time_per_frame': <time_per_frame>
                         'rate_scaling_factor': <rate_scaling_factor>
                     }
                 Where:
-                    - <file> points to the input array used to set the
+                    - <filename> points to the input array used to set the
                         stimulator's firing rates. Refer to
                         `utils.load_stimulus` for a description of how the array
-                        is loaded from this parameter and the `input_path`
+                        is loaded from this parameter and the `input_dir`
                         simulation parameter
                     - <rate_scaling_factor> scales the input array's values
                     - <time_per_frame> is the time in msec during which each of
@@ -236,8 +234,8 @@ class Session(ParamObject):
 
         # Input path can be either to an input array or to the directory in
         # which input # arrays are searched
-        file = input_params['file']
-        raw_input_array = load_raw_stimulus(self.input_path, file)
+        filename = input_params['filename']
+        raw_input_array = load_raw_stimulus(self.input_dir, filename)
 
         # Crop to adjust to network's input layer shape
         layer_shape = input_layer.shape  # (row, col)
@@ -246,7 +244,7 @@ class Session(ParamObject):
 
         if not np.all(layer_shape <= raw_input_array_rowcol):
             raise ValueError(
-                f"Invalid shape for input array at `file` for layer"
+                f"Invalid shape for input array at `filename` for layer"
                 f"{input_layer} "
             )
         cropped_input_array = raw_input_array[

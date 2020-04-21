@@ -6,6 +6,7 @@
 # pylint:disable=missing-docstring
 
 from ..base_object import NestObject
+from ..utils.validation import ParameterError
 from .utils import if_not_created
 
 
@@ -38,7 +39,7 @@ class ConnectionModel(NestObject):
     }
     # Validation of `nest_params`
     RESERVED_NEST_PARAMS = ['sources', 'targets']
-    MANDATORY_NEST_PARAMS = ['synapse_model']
+    MANDATORY_NEST_PARAMS = ['synapse_model', 'connection_type']
     OPTIONAL_NEST_PARAMS = None
 
     def __init__(self, name, params, nest_params):
@@ -164,8 +165,9 @@ class BaseConnection(NestObject):
             # Use modified synapse model for connection
             self.nest_params['synapse_model'] = self._nest_synapse_model
         else:
-            raise ValueError(f"ConnectionRecorder type `{recorder_type}` not"
-                             "recognized")
+            raise ParameterError(
+                f"ConnectionRecorder type `{recorder_type}` not recognized"
+            )
 
     def nest_synapse_model_name(self):
         return f"{self._base_synapse_model}-{self.__str__()}"

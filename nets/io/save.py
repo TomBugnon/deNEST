@@ -131,20 +131,12 @@ def recorder_metadata_filename(label):
     return label
 
 
-def movie_filename():
-    return 'session_movie'
-
-
-def labels_filename():
-    return 'session_labels'
-
-
 def metadata_filename():
-    return 'session_metadata'
+    return 'session_metadata.yml'
 
 
 def session_times_filename():
-    return 'session_times'
+    return 'session_times.yml'
 
 
 def tree_filename():
@@ -162,12 +154,7 @@ def git_hash_filename():
 FILENAME_FUNCS = {
     'tree': tree_filename,
     'recorders_metadata': recorder_metadata_filename,
-    'connection_recorders': recorder_metadata_filename,
-    'connection_recorders_metadata': recorder_metadata_filename,
     'session_times': session_times_filename,
     'session_metadata': metadata_filename,
-    'session_labels': labels_filename,
-    'session_movie': movie_filename,
-    'rasters': rasters_filename,
     'git_hash': git_hash_filename,
 }

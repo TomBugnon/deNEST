@@ -1,4 +1,0 @@
-bokeh
-jupyter
-pillow
-seaborn

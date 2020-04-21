@@ -1,2 +1,5 @@
 pytest
 watchdog
+pytest-regressions
+pickle
+pytest-cov
