@@ -70,7 +70,8 @@ def load_tree(path, *overrides):
         *[Tree(overrides_tree)
           for overrides_tree in overrides],
         *[Tree.read(Path(path.parent, relative_path))
-          for relative_path in rel_path_list]
+          for relative_path in rel_path_list],
+        name=path,
     )
 
 
