@@ -8,13 +8,13 @@
 # pylint: disable=not-an-iterable
 
 import os
+from pathlib import Path
+import tempfile
 
 import pytest
 
 from nets.parameters import Tree
 
-
-HERE = os.path.dirname(os.path.abspath(__file__))
 
 assert len(Tree.DATA_KEYS) == 2
 DATA_KEYS = Tree.DATA_KEYS
@@ -170,9 +170,9 @@ def test_named_leaves(t):
 
 
 def test_read_write(x, t):
-    path = os.path.join(HERE, 'tree.yml')
-    t.write(path)
-    assert Tree.read(path) == t
+    with tempfile.TemporaryDirectory() as tmp:
+        t.write(Path(tmp)/'tree.yml')
+        assert Tree.read(path) == t
 
 
 def test_asdict(t):
