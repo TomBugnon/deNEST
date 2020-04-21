@@ -46,14 +46,14 @@ def test_recorder_metadata(metadata_paths, data_regression):
     all_metadatas = {}
     for metadata_path in metadata_paths:
         metadata = nets.io.load.load_yaml(metadata_path)
-        all_metadatas[metadata_path] = metadata
+        all_metadatas[str(metadata_path)] = metadata
     # Compare all
     data_regression.check(all_metadatas)
 
 
 def test_data(metadata_paths, file_regression):
     all_datas = {
-        metadata_path: nets.io.load.load(metadata_path)
+        str(metadata_path): nets.io.load.load(metadata_path)
         for metadata_path in metadata_paths
     }
     file_regression.check(pickle.dumps(all_datas), binary=True, extension='')

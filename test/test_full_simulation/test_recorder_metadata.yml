@@ -1,4 +1,4 @@
-./output/data/multimeter_l2_l2_exc.yml:
+output/data/multimeter_l2_l2_exc.yml:
   colnames:
   - gid
   - time
@@ -91,7 +91,7 @@
   - V_m
   type: multimeter
   units_number: 2
-./output/data/multimeter_l2_l2_inh.yml:
+output/data/multimeter_l2_l2_inh.yml:
   colnames:
   - gid
   - time
@@ -159,7 +159,7 @@
   - V_m
   type: multimeter
   units_number: 1
-./output/data/spike_detector_input_layer_parrot_neuron.yml:
+output/data/spike_detector_input_layer_parrot_neuron.yml:
   colnames:
   - gid
   - time
@@ -226,7 +226,7 @@
   - spikes
   type: spike_detector
   units_number: 1
-./output/data/spike_detector_l1_l1_exc.yml:
+output/data/spike_detector_l1_l1_exc.yml:
   colnames:
   - gid
   - time
@@ -318,7 +318,7 @@
   - spikes
   type: spike_detector
   units_number: 2
-./output/data/spike_detector_l1_l1_inh.yml:
+output/data/spike_detector_l1_l1_inh.yml:
   colnames:
   - gid
   - time
@@ -385,7 +385,7 @@
   - spikes
   type: spike_detector
   units_number: 1
-./output/data/spike_detector_l2_l2_exc.yml:
+output/data/spike_detector_l2_l2_exc.yml:
   colnames:
   - gid
   - time
@@ -477,7 +477,7 @@
   - spikes
   type: spike_detector
   units_number: 2
-./output/data/spike_detector_l2_l2_inh.yml:
+output/data/spike_detector_l2_l2_inh.yml:
   colnames:
   - gid
   - time
@@ -544,7 +544,7 @@
   - spikes
   type: spike_detector
   units_number: 1
-./output/data/weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc.yml:
+output/data/weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc.yml:
   colnames: null
   connection_name: horizontal_exc-l1-l1_exc-l1-l1_exc
   filenames:
@@ -570,7 +570,7 @@
   - weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc-211-19.csv
   label: weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc
   type: weight_recorder
-./output/data/weight_recorder_input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc.yml:
+output/data/weight_recorder_input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc.yml:
   colnames: null
   connection_name: input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc
   filenames:

@@ -73,7 +73,7 @@ def output_filename(data_keyword, *args, **kwargs):
 
 def output_path(output_dir, data_keyword, *args, **kwargs):
     """Return the full path at which an object is saved."""
-    return join(output_subdir(output_dir,
+    return Path(output_subdir(output_dir,
                               data_keyword),
                 output_filename(data_keyword, *args, **kwargs))
 
@@ -114,6 +114,8 @@ def _delete_contents(path, to_delete='files', missing_ok=True):
     for child in path.iterdir():
         if to_delete == 'files' and child.is_file():
             child.unlink()
+        elif to_delete == 'files' and child.is_dir():
+            continue
         elif child.is_dir() and child in to_delete:
             shutil.rmtree(path)
     return path

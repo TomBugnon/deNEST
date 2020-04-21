@@ -274,7 +274,7 @@ class Simulation(object):
         n_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
         msd = params['nest_seed']
         kernel_params = {
-            'data_path': data_path,
+            'data_path': str(data_path),
             'grng_seed': msd + n_vp,
             'rng_seeds': range(msd + n_vp + 1, msd + 2 * n_vp + 1),
         }

@@ -73,11 +73,12 @@ def load_as_df(colnames, *paths, sep='\t', **kwargs):
 
 
 def get_filepaths(metadata_path):
+    metadata_path = Path(metadata_path)
     metadata = load_yaml(metadata_path)
     # Check loaded metadata
     assert 'filenames' in metadata
     # We assume metadata and data are in the same directory
-    return [join(dirname(metadata_path), filename)
+    return [metadata_path.parents[0]/filename
             for filename in metadata['filenames']]
 
 
