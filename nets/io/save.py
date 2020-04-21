@@ -21,9 +21,6 @@ OUTPUT_SUBDIRS = {
     'recorders_metadata': ('data',),
     'connection_recorders_metadata': ('data',),
     'session_times': (),
-    'dump': ('network_dump',),  # Network dump
-    'rasters': ('rasters',),
-    'plots': ('plots',),
 }
 
 # Subdirectories that are cleared during OUTPUT_DIR initialization
