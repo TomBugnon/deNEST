@@ -237,7 +237,7 @@ network:
         - l2_exc
       - layers:
         - l1
-        model: spike_detector
+        model: multimeter
         populations: null
       - layers: null
         model: spike_detector
