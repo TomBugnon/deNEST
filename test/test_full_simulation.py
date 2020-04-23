@@ -52,8 +52,11 @@ def test_recorder_metadata(metadata_paths, data_regression):
 
 
 def test_data(metadata_paths, file_regression):
-    all_datas = {
-        str(metadata_path): nets.io.load.load(metadata_path)
-        for metadata_path in metadata_paths
-    }
+    all_datas = {}
+    for metadata_path in metadata_paths:
+        recorder_data = nets.io.load.load(metadata_path)
+        # Sort dataframe
+        all_datas[str(metadata_path)] = recorder_data.sort_values(
+            list(recorder_data.columns)
+        ).reset_index(drop=True)
     file_regression.check(pickle.dumps(all_datas), binary=True, extension='')
