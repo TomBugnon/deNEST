@@ -52,11 +52,12 @@ def test_recorder_metadata(metadata_paths, data_regression):
 
 
 def test_data(metadata_paths, file_regression):
+    # Test equality of sorted data, rounded to 4 decimals
     all_datas = {}
     for metadata_path in metadata_paths:
         recorder_data = nets.io.load.load(metadata_path)
-        # Sort dataframe
+        # Sort dataframe and round 4
         all_datas[str(metadata_path)] = recorder_data.sort_values(
             list(recorder_data.columns)
-        ).reset_index(drop=True)
+        ).reset_index(drop=True).round(4).fillna('NaN')
     file_regression.check(pickle.dumps(all_datas), binary=True, extension='')
