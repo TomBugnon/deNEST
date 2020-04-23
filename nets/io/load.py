@@ -85,12 +85,7 @@ def get_filepaths(metadata_path):
 
 
 def load_yaml(*args):
-    """Load a YAML file from a path.
-
-    Return an empty list if the file doesn't exist.
-    """
+    """Load a YAML file from a path."""
     path = Path(*args)
-    if not path.exists():
-        return []
     with path.open('rt') as f:
         return yaml.load(f, Loader=yaml.FullLoader)
