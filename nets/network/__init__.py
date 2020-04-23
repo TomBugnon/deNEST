@@ -306,7 +306,7 @@ class Network(object):
         ConnectionRecorders must be built after Connections.
 
         Arguments:
-            connection_recorders_items (list): Content of the
+            connection_recorders_items (list | None): Content of the
                 ``connection_recorders`` network/recorders parameter. A list of
                 items describing the connection recorders to be created. Each
                 item must be a ``dict`` of the following form::
@@ -329,6 +329,8 @@ class Network(object):
         Returns:
             list: List of ``ConnectionRecorder`` objects.
         """
+        if connection_recorders_items is None:
+            connection_recorders_items = []
         # Get all unique ``(model, connection_model, source_layer,
         # source_population, target_layer, target_population)`` tuples
         conn_recorder_args = []
@@ -389,7 +391,7 @@ class Network(object):
         """Return population recorders specified by a list of recorder params.
 
         Arguments:
-            population_recorders_items (list): Content of the
+            population_recorders_items (list | None): Content of the
                 ``population_recorders`` network/recorders parameter. A list of
                 items describing the population recorders to be created and
                 connected to the network. Each item must be a ``dict`` of the
@@ -414,6 +416,8 @@ class Network(object):
         Returns:
             list: List of ``PopulationRecorder`` objects.
         """
+        if population_recorders_items is None:
+            population_recorders_items = []
         # Get all (model, layer_name, population_name) tuples
         population_recorders_args = []
         # Iterate on layers x population for each item in list
