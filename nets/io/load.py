@@ -47,7 +47,8 @@ def load(metadata_path):
     return load_as_df(metadata['colnames'], *filepaths)
 
 
-def load_as_df(colnames, *paths, sep='\t', **kwargs):
+def load_as_df(colnames, *paths, sep='\t', index_col=False, header=None,
+               **kwargs):
     """Load tabular data from one or more files and return a pandas df.
 
     Keyword arguments are passed to ``pandas.read_csv()``.
@@ -66,7 +67,8 @@ def load_as_df(colnames, *paths, sep='\t', **kwargs):
     # Read data from disk
     return pd.concat(
         [
-            pd.read_csv(path, names=colnames, sep=sep, **kwargs)
+            pd.read_csv(path, names=colnames, sep=sep, index_col=index_col,
+                        header=header, **kwargs)
             for path in paths
         ]
     )
