@@ -25,15 +25,11 @@ class Simulation(object):
                 - ``simulation`` (``ParamsTree``). Defines input and output
                     paths, and the simulation steps performed. The following
                     parameters (`params` field) are recognized:
-                        - ``output_dir` (str): Path to the output directory
+                        - ``output_dir`` (str): Path to the output directory
                             (default 'output').
-                        - ``input_dir`` (str): Path to an input file or to the
-                          directory in which input files are searched for for
-                          each session. If ``input_dir`` points towards a
-                          loadable numpy input array, it will be used for
-                          setting the `InputLayer` layers' input. Otherwise,
-                          ``input_dir`` is interpreted as a directory in which
-                          input array files are searched. (default 'input')
+                        - ``input_dir`` (str): Path to the directory in which
+                            input files are searched for for each session.
+                            (default 'input')
                         - ``sessions`` (list(str)): Order in which sessions are
                             run. Elements of the list should be the name of
                             session models defined in the ``session_models``
