@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # parameters.py
 
-"""Provide the ``Tree`` class."""
+"""Provide the ``ParamsTree`` class."""
 
 from collections import ChainMap, UserDict
 from collections.abc import Mapping
@@ -14,7 +14,7 @@ _MAX_LINES = 30
 
 
 class InvalidTreeError(ValueError):
-    """Raised when a mapping is not a valid ``Tree``."""
+    """Raised when a mapping is not a valid ``ParamsTree``."""
 
     pass
 
@@ -37,7 +37,7 @@ class DeepChainMap(ChainMap):
         raise KeyError(key)
 
 
-class Tree(UserDict):
+class ParamsTree(UserDict):
     """A tree of nodes that inherit and override ancestors' data.
 
     A tree is created from a tree-like mapping. The key-value pairs
@@ -50,7 +50,7 @@ class Tree(UserDict):
         mapping (Mapping): A dictionary-like object that maps names to
             children, but with special key-value pairs containing the node's
             data. Defaults to an empty dictionary.
-        parent (Tree): The parent tree. Data from each of the data keys is
+        parent (ParamsTree): The parent tree. Data from each of the data keys is
             inherited from ancestors.
 
     Attributes:
@@ -92,7 +92,7 @@ class Tree(UserDict):
         }
         # Children
         self._children = {
-            key: Tree(value, parent=self, name=key)
+            key: ParamsTree(value, parent=self, name=key)
             for key, value in mapping.items()
             if key not in self.DATA_KEYS
         }
@@ -196,7 +196,7 @@ class Tree(UserDict):
         return merged
 
     def asdict(self):
-        """Convert this ``Tree`` to a nested dictionary."""
+        """Convert this ``ParamsTree`` to a nested dictionary."""
         return {
             **{
                 key: dict(value)
@@ -222,7 +222,7 @@ class Tree(UserDict):
             )
         parent_str = f"'{self.parent.name}'" if self.parent is not None else None
         return (
-            f"Tree(name='{self.name}', parent={parent_str})\n"
+            f"ParamsTree(name='{self.name}', parent={parent_str})\n"
             + "\n".join(["  " + line for line in lines])
         )
 
@@ -239,7 +239,7 @@ class Tree(UserDict):
         return path
 
     def validate(self, mapping, path=None):
-        """Check that a mapping is a valid ``Tree``."""
+        """Check that a mapping is a valid ``ParamsTree``."""
         if path is None:
             path = list()
         if mapping:

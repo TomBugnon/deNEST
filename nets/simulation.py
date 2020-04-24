@@ -19,12 +19,12 @@ class Simulation(object):
     saving output.
 
     Args:
-        tree (Tree): Full simulation parameter tree. The following
-            ``Tree`` subtrees are expected:
+        tree (ParamsTree): Full simulation parameter tree. The following
+            ``ParamsTree`` subtrees are expected:
 
-                - ``simulation`` (``Tree``). Defines input and output paths,
-                    and the simulation steps performed. The following parameters
-                    (`params` field) are recognized:
+                - ``simulation`` (``ParamsTree``). Defines input and output
+                    paths, and the simulation steps performed. The following
+                    parameters (`params` field) are recognized:
                         - ``output_dir` (str): Path to the output directory
                             (default 'output').
                         - ``input_dir`` (str): Path to an input file or to the
@@ -38,15 +38,15 @@ class Simulation(object):
                             run. Elements of the list should be the name of
                             session models defined in the ``session_models``
                             parameter subtree (default [])
-                - ``kernel`` (``Tree``): Used for NEST kernel initialization.
-                    Refer to ``Simulation.init_kernel`` for a description of
-                    kernel parameters.
-                - ``session_models`` (``Tree``): Parameter tree, the leaves of
-                    which define session models. Refer to ``Sessions`` for a
-                    description of session parameters.
-                - ``network`` (``Tree``): Parameter tree defining the network
-                    in NEST. Refer to `Network` for a full description of
-                    network parameters.
+                - ``kernel`` (``ParamsTree``): Used for NEST kernel
+                    initialization. Refer to ``Simulation.init_kernel`` for a
+                    description of kernel parameters.
+                - ``session_models`` (``ParamsTree``): Parameter tree, the
+                  leaves of which define session models. Refer to ``Sessions``
+                  for a description of session parameters.
+                - ``network`` (``ParamsTree``): Parameter tree defining the
+                  network in NEST. Refer to `Network` for a full description of
+                  network parameters.
 
     Kwargs:
         input_dir (str | None): None or the path to the input. If defined,

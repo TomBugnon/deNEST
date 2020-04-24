@@ -8,14 +8,14 @@ from pathlib import Path
 import logging
 
 import time
-from .parameters import Tree
+from .parameters import ParamsTree
 from .simulation import Simulation
 from .network import Network
 from .io.load import load_yaml
 
 from .utils import misc
 
-__all__ = ['load_tree', 'run', 'Simulation', 'Network']
+__all__ = ['load_paramstree', 'run', 'Simulation', 'Network']
 
 logging.config.dictConfig({
     'version': 1,
@@ -47,7 +47,7 @@ SEPARATOR = ('\n'
              '==============================================================\n')
 
 
-def load_tree(path, *overrides):
+def load_paramstree(path, *overrides):
     """Load a list of parameter files, optionally overriding some values.
 
     Args:
@@ -56,7 +56,7 @@ def load_tree(path, *overrides):
             should override those from the path. Last in list is applied first.
 
     Returns:
-        Tree: The loaded parameter tree with overrides applied.
+        ParamsTree: The loaded parameter tree with overrides applied.
     """
     path = Path(path)
     if not path.exists():
@@ -66,10 +66,10 @@ def load_tree(path, *overrides):
         print(f' with {len(overrides)} override trees.', end='')
     rel_path_list = load_yaml(path)
     print(f"List of loaded parameter files: {rel_path_list}", flush=True)
-    return Tree.merge(
-        *[Tree(overrides_tree)
+    return ParamsTree.merge(
+        *[ParamsTree(overrides_tree)
           for overrides_tree in overrides],
-        *[Tree.read(Path(path.parent, relative_path))
+        *[ParamsTree.read(Path(path.parent, relative_path))
           for relative_path in rel_path_list],
         name=path,
     )
@@ -96,7 +96,7 @@ def run(path, *overrides, output_dir=None, input_dir=None):
 
     # Load parameters
     print('Load parameter tree...\n')
-    tree = load_tree(path, *overrides)
+    tree = load_paramstree(path, *overrides)
     print('\n...done loading parameter tree.', flush=True, end=SEPARATOR)
 
     # Initialize simulation

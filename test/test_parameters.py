@@ -12,11 +12,11 @@ import tempfile
 
 import pytest
 
-from nets.parameters import Tree
+from nets.parameters import ParamsTree
 
 
-assert len(Tree.DATA_KEYS) == 2
-DATA_KEYS = Tree.DATA_KEYS
+assert len(ParamsTree.DATA_KEYS) == 2
+DATA_KEYS = ParamsTree.DATA_KEYS
 DK1, DK2 = DATA_KEYS
 
 
@@ -47,49 +47,49 @@ def x():
 
 @pytest.fixture
 def t(x):
-    return Tree(x)
+    return ParamsTree(x)
 
 
 def test_init(x):
-    Tree(x)
+    ParamsTree(x)
 
 
 def test_eq(t):
     # Identity
     assert t == t
     # No data, no children
-    assert (Tree() ==
-            Tree())
+    assert (ParamsTree() ==
+            ParamsTree())
     # No data, same children
-    assert (Tree({0: {}, 1: {}}) ==
-            Tree({0: {}, 1: {}}))
+    assert (ParamsTree({0: {}, 1: {}}) ==
+            ParamsTree({0: {}, 1: {}}))
     # No data, different children
-    assert (Tree({0: {}, 1: {}}) !=
-            Tree({1: {}, 2: {}}))
+    assert (ParamsTree({0: {}, 1: {}}) !=
+            ParamsTree({1: {}, 2: {}}))
     # Same data, no children
-    assert (Tree({DK1: {0: 0}}) ==
-            Tree({DK1: {0: 0}}))
-    assert (Tree({DK2: {0: 0}}) ==
-            Tree({DK2: {0: 0}}))
-    assert (Tree({DK1: {0: 0}, DK2: {1: 1}}) ==
-            Tree({DK1: {0: 0}, DK2: {1: 1}}))
+    assert (ParamsTree({DK1: {0: 0}}) ==
+            ParamsTree({DK1: {0: 0}}))
+    assert (ParamsTree({DK2: {0: 0}}) ==
+            ParamsTree({DK2: {0: 0}}))
+    assert (ParamsTree({DK1: {0: 0}, DK2: {1: 1}}) ==
+            ParamsTree({DK1: {0: 0}, DK2: {1: 1}}))
     # Same data, same children
-    assert (Tree({DK1: {0: 0}, 0: {}, 1: {}}) ==
-            Tree({DK1: {0: 0}, 0: {}, 1: {}}))
-    assert (Tree({DK2: {0: 0}, 0: {}, 1: {}}) ==
-            Tree({DK2: {0: 0}, 0: {}, 1: {}}))
+    assert (ParamsTree({DK1: {0: 0}, 0: {}, 1: {}}) ==
+            ParamsTree({DK1: {0: 0}, 0: {}, 1: {}}))
+    assert (ParamsTree({DK2: {0: 0}, 0: {}, 1: {}}) ==
+            ParamsTree({DK2: {0: 0}, 0: {}, 1: {}}))
     # Same data, different children
-    assert (Tree({DK1: {0: 0}, 0: {}}) !=
-            Tree({DK1: {0: 0}, 0: {}, 1: {}}))
+    assert (ParamsTree({DK1: {0: 0}, 0: {}}) !=
+            ParamsTree({DK1: {0: 0}, 0: {}, 1: {}}))
     # Different data, no children
-    assert (Tree({DK1: {0: 0}}) !=
-            Tree({DK1: {0: 1}}))
+    assert (ParamsTree({DK1: {0: 0}}) !=
+            ParamsTree({DK1: {0: 1}}))
     # Different data, same children
-    assert (Tree({DK1: {0: 0}, 0: {}, 1: {}}) !=
-            Tree({DK1: {0: 1}, 0: {}, 1: {}}))
+    assert (ParamsTree({DK1: {0: 0}, 0: {}, 1: {}}) !=
+            ParamsTree({DK1: {0: 1}, 0: {}, 1: {}}))
     # Different data, different children
-    assert (Tree({DK1: {0: 0}, 0: {}, 1: {}}) !=
-            Tree({DK1: {0: 1}, 1: {}, 2: {}}))
+    assert (ParamsTree({DK1: {0: 0}, 0: {}, 1: {}}) !=
+            ParamsTree({DK1: {0: 1}, 1: {}, 2: {}}))
 
 
 def test_access(t):
@@ -142,29 +142,29 @@ def test_keys(t):
 
 def test_leaves(t):
     assert t.leaves() == [
-        Tree({
+        ParamsTree({
             DK1: {'a': 'c1_a1', 'b': 'c1_b1'},
             DK2: {'a': 'c1_a2', 'b': 'c1_b2'},
         }),  # c1
-        Tree({
+        ParamsTree({
             DK1: {'a': 'ccc2_a1'},
             DK2: {'b': 'ccc2_b2'},
         }),  # ccc2
-        Tree({}),  # cc3
+        ParamsTree({}),  # cc3
     ]
 
 
 def test_named_leaves(t):
     assert t.named_leaves() == [
-        ('c1', Tree({
+        ('c1', ParamsTree({
             DK1: {'a': 'c1_a1', 'b': 'c1_b1'},
             DK2: {'a': 'c1_a2', 'b': 'c1_b2'},
         })),  # c1
-        ('ccc2', Tree({
+        ('ccc2', ParamsTree({
             DK1: {'a': 'ccc2_a1'},
             DK2: {'b': 'ccc2_b2'},
         })),  # ccc2
-        ('cc3', Tree({})),  # cc3
+        ('cc3', ParamsTree({})),  # cc3
     ]
 
 
@@ -172,38 +172,38 @@ def test_read_write(x, t):
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp)/'tree.yml'
         t.write(path)
-        assert Tree.read(path) == t
+        assert ParamsTree.read(path) == t
 
 
 def test_asdict(t):
-    assert t == Tree(t.asdict())
+    assert t == ParamsTree(t.asdict())
 
 
 @pytest.fixture
 def trees():
     return [
-        Tree({
+        ParamsTree({
             DK1: {0: 0},
             0: {DK1: {}},
         }),
-        Tree({
+        ParamsTree({
             DK1: {0: 1, 1: 1},
             DK2: {0: 1, 1: 1},
             0: {DK1: {'test_key': 'test_value'}}
         }),
-        Tree({
+        ParamsTree({
             DK1: {0: 0},
             DK2: {0: 0},
             0: {DK1: {'test_key': 'overriden_value'}},
             1: {}
         }),
-        Tree({
+        ParamsTree({
             DK1: {0: 0, 2: 2, 3: 3},
             DK2: {0: 0, 2: 2, 3: 3},
             1: {DK1: {0: 0}},
             2: {}
         }),
-        Tree({
+        ParamsTree({
             DK1: {0: 0, 1: 2, 'hello': 0},
             DK2: {'hello': 0},
             'hi': {}
@@ -214,11 +214,11 @@ def trees():
 @pytest.fixture
 def inheritance_trees():
     return [
-        Tree({
+        ParamsTree({
             'intermediate1': {DK1: {'key': 'intermediate',
                                     'NEW_KEY': 'intermediate'}}
         }),
-        Tree({
+        ParamsTree({
             DK1: {'key': 'root'},
             'intermediate1': {
                 DK1: {'key': 'overriden'},
@@ -234,11 +234,11 @@ def inheritance_trees():
 
 @pytest.fixture
 def merged(trees):
-    return Tree.merge(*trees)
+    return ParamsTree.merge(*trees)
 
 
 def test_merge(trees):
-    merged = Tree.merge(*trees)
+    merged = ParamsTree.merge(*trees)
     # Check that it's a new object
     for tree in trees:
         assert merged != tree
@@ -261,7 +261,7 @@ def test_merge(trees):
 
 
 def test_merge_inheritance(inheritance_trees):
-    merged = Tree.merge(*inheritance_trees)
+    merged = ParamsTree.merge(*inheritance_trees)
     assert merged.children['intermediate1'].children['leaf1'][DK1]['key'] \
         == 'leaf'
     assert merged.children['intermediate1'].children['leaf2'][DK1]['key'] \

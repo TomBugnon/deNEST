@@ -31,37 +31,38 @@ class Network(object):
     """Represent a full network.
 
     Args:
-        tree (``Tree``): "network" parameter tree. The following ``Tree``
-            children are expected:
-                - ``neuron_models`` (``Tree``). Parameter tree, the leaves of
-                    which define neuron models. Each leave is used to initialize
-                    a ``Model`` object
-                - ``synapse_models`` (``Tree``). Parameter tree, the leaves of
-                    which define synapse models. Each leave is used to
+        tree (``ParamsTree``): "network" parameter tree. The following
+            ``ParamsTree`` children are expected:
+                - ``neuron_models`` (``ParamsTree``). Parameter tree, the leaves
+                    of which define neuron models. Each leave is used to
+                    initialize a ``Model`` object
+                - ``synapse_models`` (``ParamsTree``). Parameter tree, the
+                    leaves of which define synapse models. Each leave is used to
                     initialize a ``SynapseModel`` object
-                - ``layers`` (``Tree``). Parameter tree, the leaves of
+                - ``layers`` (``ParamsTree``). Parameter tree, the leaves of
                     which define layers. Each leave is used to initialize  a
                     ``Layer`` or ``InputLayer`` object depending on the value of
                     their ``type`` ``params`` parameter.
-                - ``connection_models`` (``Tree``). Parameter tree, the leaves
-                    of which define connection models. Each leave is used to
-                    initialize a ``ConnectionModel`` object.
-                - ``recorder_models`` (``Tree``). Parameter tree, the leaves
-                    of which define recorder models. Each leave is used to
-                    initialize a ``Model`` object.
-                - ``topology`` (``Tree``). ``Tree`` object without children,
-                    the ``params`` of which may contain a ``connections`` key
-                    specifying all the individual population-to-population
-                    connections within the network as a list. ``Connection``
-                    objects  are created from the ``topology`` ``Tree`` object
-                    by the ``Network.build_connections`` method. Refer to this
-                    method for a description of the ``topology`` parameter.
-                - ``recorders`` (``Tree``). ``Tree`` object without
+                - ``connection_models`` (``ParamsTree``). Parameter tree, the
+                    leaves of which define connection models. Each leave is used
+                    to initialize a ``ConnectionModel`` object.
+                - ``recorder_models`` (``ParamsTree``). Parameter tree, the
+                    leaves of which define recorder models. Each leave is used
+                    to initialize a ``Model`` object.
+                - ``topology`` (``ParamsTree``). ``ParamsTree`` object without
+                    children, the ``params`` of which may contain a
+                    ``connections`` key specifying all the individual
+                    population-to-population connections within the network as a
+                    list. ``Connection`` objects  are created from the
+                    ``topology`` ``ParamsTree`` object by the
+                    ``Network.build_connections`` method. Refer to this method
+                    for a description of the ``topology`` parameter.
+                - ``recorders`` (``ParamsTree``). ``ParamsTree`` object without
                     children, the ``params`` of which may contain a
                     ``population_recorders`` and a ``connection_recorders`` key
                     specifying all the network recorders. ``PopulationRecorder``
                     and ``ConnectionRecorder`` objects  are created from the
-                    ``recorders`` ``Tree`` object by the
+                    ``recorders`` ``ParamsTree`` object by the
                     ``Network.build_recorders`` method. Refer to this
                     method for a description of the ``recorders`` parameter.
     """
@@ -129,16 +130,15 @@ class Network(object):
         }
 
     def build_connections(self, topology_tree):
-        """Return list of ``Connection`` objects from ``topology`` Tree tree.
+        """Return list of ``Connection`` objects from ``topology`` ParamsTree tree.
 
         Args:
             self (``Network``): Network object
-            topology_tree (``Tree``): ``Tree`` object without children.
-                The parameters of which may contain a ``connections`` parameter
-                entry (default []). THe value of the ``connections`` parameter
-                is a list of items describing the connections to be created.
-                Each item must be a ``dict`` of the
-                following form::
+            topology_tree (``ParamsTree``): ``ParamsTree`` object without
+                children. The parameters of which may contain a ``connections``
+                parameter entry (default []). THe value of the ``connections``
+                parameter is a list of items describing the connections to be
+                created. Each item must be a ``dict`` of the following form::
                     dict: {
                         'connection_model' : <connection_model>,
                         'source_layers': <source_layers_list>,
@@ -255,8 +255,8 @@ class Network(object):
 
         Args:
             self (``Network``): Network object
-            recorders_tree (``Tree``): ``Tree`` object without children nor 
-                ``nest_params``.
+            recorders_tree (``ParamsTree``): ``ParamsTree`` object without
+                children nor ``nest_params``.
                 The parameters of which may contain a ``population_recorders``
                 (default []) and a ``connection_recorders`` (default []) entry
                 specifying the network's recorders.

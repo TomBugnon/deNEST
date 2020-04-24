@@ -139,9 +139,9 @@ A full NETS simulation consists of the following steps:
 
 ## Parameters
 
-#### `Tree` parameter trees
+#### `ParamsTree` parameter trees
 
-Simulation parameter trees are specified as tree-like `Tree` objects. The
+Simulation parameter trees are specified as tree-like `ParamsTree` objects. The
 hierarchical tree structure provides a concise means of specifying parameters
 for nested 'scopes', which inherit parameters from ancestor scopes. The leaves
 of the tree specify models, etc. that are instantiated in the simulation. 
@@ -149,7 +149,7 @@ of the tree specify models, etc. that are instantiated in the simulation.
 ##### Example parameter tree
 
 Below is an example of a YAML file with a tree-like structure that can be loaded
-and represented by the `Tree` class:
+and represented by the `ParamsTree` class:
 
 ```yaml
 network:                # name of node (non-leaf)
@@ -198,7 +198,7 @@ NMDA_syn:
 
 #### Merging trees
 
-`Tree` objects can be merged horizontally, meaning the parameters (contents of
+`ParamsTree` objects can be merged horizontally, meaning the parameters (contents of
 the `params` key) of nodes with the same name and at the same position in the
 tree are combined in a `ChainMap` _before_ leaves inherit the parameters of
 their parent nodes.
@@ -488,7 +488,7 @@ override2 = {'kernel': {'params': {'local_num_thread': 10}}}
 overrides = [override2, override1]
 
 # Load the parameters and apply the overrides
-params = nets.load_params(params_path, *overrides)
+params = nets.load_tree(params_path, *overrides)
 
 # You can also override the input and output settings in the parameter file by
 # passing them as kwargs when you create the simulation:
