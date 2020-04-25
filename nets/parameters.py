@@ -197,6 +197,10 @@ class ParamsTree(UserDict):
         }
         return merged
 
+    def copy(self):
+        """Copy this ``ParamsTree``."""
+        return ParamsTree(self.asdict())
+
     def asdict(self):
         """Convert this ``ParamsTree`` to a nested dictionary."""
         return {
