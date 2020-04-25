@@ -317,9 +317,9 @@ class InputLayer(Layer):
         if (len(populations) != 1 or list(populations.values())[0] != 1):
             raise ParameterError(
                 f"Invalid `population` parameter for `InputLayer` layer {name}."
-                f"InputLayers should be composed of a single population, of"
+                f" InputLayers should be composed of a single population of"
                 f"stimulation devices, with a single element per location."
-                f"Please check the `population` parameter: {populations}"
+                f" Please check the `population` parameter: {populations}"
             )
         # Save the stimulator type
         stimulator_model, nunits = list(populations.items())[0]
