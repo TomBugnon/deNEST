@@ -17,8 +17,6 @@ Arguments:
 Options:
     -o --output=PATH  Directory in which simulation results will be saved.
                       Overrides ``'output_dir'`` simulation parameter.
-    -i --input=PATH   Path to a stimuli array to present to the network during
-                      each session. Overrides <tree_paths.yml>.
     -h --help         Show this.
     -v --version      Show version.
 """
@@ -33,7 +31,6 @@ from .utils.autodict import AutoDict
 
 # Maps CLI options to their corresponding path in the parameter tree.
 _CLI_ARG_MAP = {
-    '--input': ('simulation', 'params', 'input_dir'),
     '--output': ('simulation', 'params', 'output_dir'),
 }
 
