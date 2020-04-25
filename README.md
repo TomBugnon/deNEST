@@ -187,7 +187,7 @@ A full NETS simulation consists of the following steps:
     ]
     
     # Load the parameters
-    params = nets.load_params(params_path, *overrides)
+    params = nets.load_trees(params_path, *overrides)
     
     # Initialize the simulation
     sim = nets.Simulation(params, output_dir='output')
