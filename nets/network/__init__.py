@@ -4,6 +4,7 @@
 """Provide a class to construct a network."""
 
 import itertools
+from copy import deepcopy
 
 from tqdm import tqdm
 
@@ -76,7 +77,7 @@ class Network(object):
         """Initialize the network object without creating it in NEST."""
         self._created = False
         self._changed = False
-        self.tree = tree
+        self.tree = tree.copy()
 
         # Validate tree
         # ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -335,6 +336,7 @@ class Network(object):
         # source_population, target_layer, target_population)`` tuples
         conn_recorder_args = []
         for item in connection_recorders_items:
+            item = dict(item)  # TODO Fix this 
             model = item.pop('model')
             conn_recorder_args += [
                 (model,) + conn_args

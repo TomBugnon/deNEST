@@ -308,6 +308,10 @@ class InputLayer(Layer):
 
     def __init__(self, name, params, nest_params):
 
+        # TODO make deepcopies everywhere
+        import copy
+        params = copy.deepcopy(params)
+
         # Check populations and add a population of parrot neurons
         populations = params['populations']
         if (len(populations) != 1 or list(populations.values())[0] != 1):

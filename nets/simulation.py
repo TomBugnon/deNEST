@@ -73,7 +73,7 @@ class Simulation(object):
             - Save simulation metadata
         """
         # Full parameter tree
-        self.tree = tree
+        self.tree = tree.copy()
 
         # Validate params tree
         # ~~~~~~~~~~~~~~~~~~~~~~~~
