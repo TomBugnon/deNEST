@@ -64,6 +64,8 @@ def load_as_df(colnames, *paths, sep='\t', index_col=False, header=None,
         pd.DataFrame: The loaded data.
     """
 
+    if not paths:
+        return pd.DataFrame()
     # Read data from disk
     return pd.concat(
         [
