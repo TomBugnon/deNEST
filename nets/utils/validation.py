@@ -5,6 +5,7 @@
 """Validation and update of parameters dictionaries."""
 
 import copy as cp
+from ..parameters import ParamsTree
 
 
 class ParameterError(ValueError):
@@ -37,41 +38,58 @@ class UnrecognizedChildNodeError(ValueError):
     pass
 
 
-def validate_children(name, children_list, mandatory_children=None):
-    """Validate a `Params` node children.
+# TODO Add as ParamsTree method
+def validate_children(tree, mandatory_children=None, optional_children=None):
+    """Validate a `ParamsTree` node children.
 
     Args:
-        name (str): Name of the `Params` node we're validating
+        tree (ParamsTree): The tree we're validating. Missing children are added
+            in place as empty ParamsTree nodes.
 
     Kwargs:
-        children_list (list(str) | None): ``None`` or the list of names of
-            children nodes that are expected in the validated node. Ignored if
+        mandatory_children (list(str) | None): ``None`` or the list of names of
+            children nodes that are expected in the tree. Ignored if
             ``None``
+        optional_children (list(str) | None): ``None`` or the list of names of
+            children nodes that are optional in the tree. Ignored if
+            ``None``. If missing, empty children ParamsTree are added in place.
     """
 
     if mandatory_children is None:
-        return
+        mandatory_children = []
+    if optional_children is None:
+        optional_children = []
 
+    children_list = tree.children.keys()
     error_msg_base = (
-        f"Invalid set of children for ``Params`` node ``{name}``:\n"
+        f"Invalid set of children for ``ParamsTree`` node ``{tree}``:\n"
     )
 
-    missing_children = list(set(mandatory_children) - set(children_list))
-    if any(missing_children):
+    missing = list(set(mandatory_children) - set(children_list))
+    if any(missing):
         raise MissingChildNodeError((
             error_msg_base +
-            f"The following `Params` children subtrees are missing: "
-            f"{missing_children}"
+            f"The following children subtrees are missing: "
+            f"{missing}"
         ))
 
-    extra_children = list(set(children_list) - set(mandatory_children))
-    if any(extra_children):
+    extra = list(
+        set(children_list) - set(mandatory_children).union(optional_children)
+    )
+    if any(extra):
         raise UnrecognizedChildNodeError((
             error_msg_base +
-            f"The following `Params` children subtrees are unexpected: "
-            f"{extra_children}"
+            f"The following `ParamsTree` children subtrees are unexpected: "
+            f"{extra}"
         ))
-    return
+
+    for optional in optional_children:
+        if optional is not None:
+            if optional not in tree.children:
+                print(f"`{tree.name}` tree: adding empty child {optional}")
+                tree.children[optional] = ParamsTree(
+                    {}, parent=tree, name=optional
+                )
 
 
 def validate(name, params, param_type='params', reserved=None,

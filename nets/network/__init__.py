@@ -68,7 +68,8 @@ class Network(object):
                     method for a description of the ``recorders`` parameter.
     """
 
-    MANDATORY_CHILDREN = [
+    MANDATORY_CHILDREN = []
+    OPTIONAL_CHILDREN = [
         'neuron_models', 'synapse_models', 'layers', 'connection_models',
         'topology', 'recorder_models', 'recorders'
     ]
@@ -88,10 +89,11 @@ class Network(object):
         validation.validate(
             "network", dict(tree.nest_params), param_type='nest_params',
             mandatory=[], optional={})
-        # Check that the "network" tree has the correct children
+        # Check that the "network" tree has the correct children and add default
+        # children
         validation.validate_children(
-            'network', list(tree.children.keys()),
-            mandatory_children=self.MANDATORY_CHILDREN
+            self.tree, mandatory_children=self.MANDATORY_CHILDREN,
+            optional_children=self.OPTIONAL_CHILDREN,
         )
 
         # Build network components
@@ -108,7 +110,9 @@ class Network(object):
                 dict(leaf.params),
                 dict(leaf.nest_params)
             )
-            for name, leaf in self.tree.children['layers'].named_leaves()
+            for name, leaf in self.tree.children['layers'].named_leaves(
+                root=False
+            )
         }
         self.connection_models = self.build_named_leaves_dict(
             ConnectionModel, self.tree.children['connection_models'])
@@ -127,7 +131,7 @@ class Network(object):
         """Construct and return as dict all leaves of a tree."""
         return {
             name: constructor(name, dict(leaf.params), dict(leaf.nest_params))
-            for name, leaf in node.named_leaves()
+            for name, leaf in node.named_leaves(root=False)
         }
 
     def build_connections(self, topology_tree):
@@ -174,7 +178,7 @@ class Network(object):
         # Validate ``topology`` parameter
         # No children
         validation.validate_children(
-            'topology', list(topology_tree.children.keys()), []
+            topology_tree, [], []
         )
         # No nest_params
         validation.validate(
@@ -278,7 +282,7 @@ class Network(object):
         # Validate recorders tree
         # No children
         validation.validate_children(
-            'recorders', list(recorders_tree.children.keys()), []
+            recorders_tree, [], []
         )
         # No nest_params
         validation.validate(

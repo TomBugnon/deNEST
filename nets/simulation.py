@@ -52,7 +52,8 @@ class Simulation(object):
     """
 
     # Validate children subtrees
-    MANDATORY_CHILDREN = ['kernel', 'simulation', 'session_models', 'network']
+    MANDATORY_CHILDREN = []
+    OPTIONAL_CHILDREN = ['kernel', 'simulation', 'session_models', 'network']
 
     # Validate "simulation" params
     # TODO: Check there is no "nest_params"
@@ -86,8 +87,8 @@ class Simulation(object):
             param_type='nest_params', mandatory=[], optional={})
         # Check that the full parameter tree has the correct children
         validation.validate_children(
-            'Full parameter tree', list(tree.children.keys()),
-            mandatory_children=self.MANDATORY_CHILDREN
+            self.tree, mandatory_children=self.MANDATORY_CHILDREN,
+            optional_children=self.OPTIONAL_CHILDREN
         )
         # Validate "simulation" subtree
         # ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,8 +100,7 @@ class Simulation(object):
         )
         # No children in `simulation` subtree
         validation.validate_children(
-            'simulation', list(simulation_tree.children.keys()),
-            mandatory_children={}
+            simulation_tree, mandatory_children=[], optional_children=[]
         )
         # Validate `params` and save in `simulation` subtree
         self.sim_params = validation.validate(
@@ -124,8 +124,7 @@ class Simulation(object):
         # Validate "kernel" subtree
         # No children in `kernel` subtree
         validation.validate_children(
-            'kernel', list(kernel_tree.children.keys()),
-            mandatory_children={}
+            kernel_tree, mandatory_children=[], optional_children=[]
         )
         self.init_kernel(
             dict(kernel_tree.params),
