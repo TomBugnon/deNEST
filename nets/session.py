@@ -138,11 +138,12 @@ class Session(ParamObject):
         self._input_arrays = {}
         for inputlayer in inputlayers:
             if inputlayer.name not in self.params['inputs'].keys():
-                raise ParameterError(
-                    f"No input defined in session {self.name} for InputLayer"
-                    f"{str(inputlayer)}. Please check the `inputs` session"
-                    f"parameter"
-                )
+                # raise ParameterError(
+                #     f"No input defined in session {self.name} for InputLayer"
+                #     f"{str(inputlayer)}. Please check the `inputs` session"
+                #     f"parameter"
+                # )
+                continue
 
             print(f"Setting input for InputLayer `{inputlayer.name}`")
 
