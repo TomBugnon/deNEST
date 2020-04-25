@@ -277,7 +277,7 @@ network and simulation.
 #### Main parameter file
 
 To facilitate defining parameters in separate files, ``nets.run`` and
-``nets.load_paramstree`` take as input a path to a yaml file
+``nets.load_trees`` take as input a path to a yaml file
  containing the relative paths of the tree-like yaml files to merge
 so as to define the full parameter tree (see the ``params/tree_paths.yml`` file)
 

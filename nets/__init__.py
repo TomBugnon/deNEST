@@ -15,7 +15,7 @@ from .session import Session
 from .simulation import Simulation
 from .utils import misc
 
-__all__ = ['load_paramstree', 'run', 'Simulation', 'Network', 'Session']
+__all__ = ['load_trees', 'run', 'Simulation', 'Network', 'Session']
 
 logging.config.dictConfig({
     'version': 1,
@@ -47,7 +47,7 @@ SEPARATOR = ('\n'
              '==============================================================\n')
 
 
-def load_paramstree(path, *overrides):
+def load_trees(path, *overrides):
     """Load a list of parameter files, optionally overriding some values.
 
     Args:
@@ -96,7 +96,7 @@ def run(path, *overrides, output_dir=None, input_dir=None):
 
     # Load parameters
     print('Load parameter tree...\n')
-    tree = load_paramstree(path, *overrides)
+    tree = load_trees(path, *overrides)
     print('\n...done loading parameter tree.', flush=True, end=SEPARATOR)
 
     # Initialize simulation
