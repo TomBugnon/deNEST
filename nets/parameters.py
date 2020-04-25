@@ -142,26 +142,28 @@ class ParamsTree(UserDict):
             node = node.parent
         return ancestors
 
-    def leaves(self):
+    def leaves(self, root=True):
         """Return a list of leaf nodes of the tree.
 
-        Traversal order is not defined.
+        Traversal order is not defined. If root is False and there is not
+        children, returns an empty list
         """
         leaves = []
         # Recursive case: not a leaf
         for child in self.children.values():
-            leaves.extend(child.leaves())
+            leaves.extend(child.leaves(root=True))
         # Base case: leaf
-        if not leaves:
+        if not leaves and root:
             leaves.append(self)
         return leaves
 
-    def named_leaves(self):
+    def named_leaves(self, root=True):
         """Return list of ``(<name>, <node>)`` tuples for all the leaves.
 
-        Traversal order is not defined.
+        Traversal order is not defined. If root is False and there is not
+        children, returns an empty list
         """
-        return [(leaf.name, leaf) for leaf in self.leaves()]
+        return [(leaf.name, leaf) for leaf in self.leaves(root=root)]
 
     @classmethod
     def merge(cls, *trees, parent=None, name=None):
