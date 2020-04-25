@@ -4,16 +4,15 @@
 
 """Spiking VisNet."""
 
-from pathlib import Path
 import logging
-
 import time
-from .parameters import ParamsTree
-from .simulation import Simulation
-from .session import Session
-from .network import Network
-from .io.load import load_yaml
+from pathlib import Path
 
+from .io.load import load_yaml
+from .network import Network
+from .parameters import ParamsTree
+from .session import Session
+from .simulation import Simulation
 from .utils import misc
 
 __all__ = ['load_paramstree', 'run', 'Simulation', 'Network', 'Session']
