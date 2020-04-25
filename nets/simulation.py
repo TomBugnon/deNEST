@@ -211,10 +211,12 @@ class Simulation(object):
                 parameter
         """
         # Get list of recorders
+        print(f'Running N={len(self.sessions)}')
         for session in self.sessions:
             print(f'Running session: `{session.name}`...\n')
             session.run(self.network)
             print(f'Done running session `{session.name}`\n\n')
+        print(f'Done')
 
     def init_kernel(self, params, nest_params):
         """Initialize NEST kernel and set Python seed
