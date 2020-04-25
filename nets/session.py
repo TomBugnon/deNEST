@@ -68,18 +68,21 @@ class Session(ParamObject):
         'inputs': {}
     }
 
-    def __init__(self, name, params, start_time=0, input_dir=None):
+    def __init__(self, name, params, start_time=None, input_dir=None):
         print(f'-> Creating session `{name}`')
         # Sets self.name / self.params  and validates params
         super().__init__(name, params)
         self.input_dir = input_dir
         # Initialize the session start and end times
+        if start_time is None:
+            import nest
+            start_time = nest.GetKernelStatus('time')
         self._start = start_time
         self._simulation_time = int(self.params['simulation_time'])
-        if not self._simulation_time > 0:
+        if not self._simulation_time >= 0:
             raise ParameterError(
                 f"Parameter `simulation_time` of session {name} should be"
-                f"strictly positive."
+                f" positive."
             )
         self._end = self._start + self._simulation_time
         # Initialize input arrays
