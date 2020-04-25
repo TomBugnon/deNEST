@@ -204,7 +204,7 @@ class Session(ParamObject):
 
     @property
     def duration(self):
-        return range(self._start, self._end)
+        return (self._start, self._end)
 
     @property
     def simulation_time(self):
