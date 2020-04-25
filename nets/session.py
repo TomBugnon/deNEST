@@ -65,7 +65,7 @@ class Session(ParamObject):
         'record': True,
         'unit_changes': [],
         'synapse_changes': [],
-        'inputs': []
+        'inputs': {}
     }
 
     def __init__(self, name, params, start_time=0, input_dir=None):
