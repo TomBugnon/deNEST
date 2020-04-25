@@ -2,22 +2,23 @@
 # -*- coding: utf-8 -*-
 # __main__.py
 """
-Spiking VisNet
-~~~~~~~~~~~~~~
+NETS
+~~~~
 
 Usage:
-    python -m nets <param_file.yml> [options]
+    python -m nets <tree_paths.yml> [options]
     python -m nets -h | --help
     python -m nets -v | --version
 
 Arguments:
-    <param_file.yml>  YAML file containing simulation parameters.
+    <tree_paths.yml>  YAML file containing list of relative paths of files to
+                      load and merge into a parameter tree
 
 Options:
     -o --output=PATH  Directory in which simulation results will be saved.
-                      Overrides <param_file.yml>.
+                      Overrides ``'output_dir'`` simulation parameter.
     -i --input=PATH   Path to a stimuli array to present to the network during
-                      each session. Overrides <param_file.yml>.
+                      each session. Overrides <tree_paths.yml>.
     -h --help         Show this.
     -v --version      Show version.
 """
@@ -32,7 +33,7 @@ from .utils.autodict import AutoDict
 
 # Maps CLI options to their corresponding path in the parameter tree.
 _CLI_ARG_MAP = {
-    '<param_file.yml>': ('simulation', 'params', 'param_file_path'),
+    '<tree_paths.yml>': ('simulation', 'params', 'param_file_path'),
     '--input': ('simulation', 'params', 'input_dir'),
     '--output': ('simulation', 'params', 'output_dir'),
 }
@@ -52,7 +53,7 @@ def main():
         if (value is not None and key in _CLI_ARG_MAP)
     })
     # Run it!
-    run(arguments['<param_file.yml>'], overrides)
+    run(arguments['<tree_paths.yml>'], overrides)
 
 
 if __name__ == '__main__':

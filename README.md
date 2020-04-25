@@ -213,7 +213,7 @@ A full NETS simulation consists of the following steps:
 - From the command line:
 
     ```bash
-    python -m nets <param_file.yml> [-o <output_dir>]
+    python -m nets <tree_paths.yml> [-o <output_dir>]
     ```
 
 ## Loading simulation outputs
