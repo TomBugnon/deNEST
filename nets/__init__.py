@@ -10,12 +10,13 @@ import logging
 import time
 from .parameters import ParamsTree
 from .simulation import Simulation
+from .session import Session
 from .network import Network
 from .io.load import load_yaml
 
 from .utils import misc
 
-__all__ = ['load_paramstree', 'run', 'Simulation', 'Network']
+__all__ = ['load_paramstree', 'run', 'Simulation', 'Network', 'Session']
 
 logging.config.dictConfig({
     'version': 1,
