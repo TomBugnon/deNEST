@@ -1,2 +1,2 @@
 import nets
-nets.run('params/default.yml')
+nets.run('params/tree_paths.yml')

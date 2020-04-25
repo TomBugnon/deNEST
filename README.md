@@ -172,7 +172,7 @@ A full NETS simulation consists of the following steps:
     import nets
     
     # Path to the parameter files to use
-    params_path = 'params/default.yml'
+    params_path = 'params/tree_paths.yml'
     
     # Override some parameters loaded from the file
     overrides = [
@@ -202,7 +202,7 @@ A full NETS simulation consists of the following steps:
     import nets
     
     # Path to the parameter files to use
-    params_path = 'params/default.yml'
+    params_path = 'params/tree_paths.yml'
     
     # Override parameters
     overrides = []
@@ -279,7 +279,7 @@ network and simulation.
 To facilitate defining parameters in separate files, ``nets.run`` and
 ``nets.load_paramstree`` take as input a path to a yaml file
  containing the relative paths of the tree-like yaml files to merge
-so as to define the full parameter tree (see the ``params/default.yml`` file)
+so as to define the full parameter tree (see the ``params/tree_paths.yml`` file)
 
 
 #### The ``ParamsTree`` class

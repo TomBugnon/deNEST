@@ -11,7 +11,7 @@ import pytest
 import nets
 import nets.io.load
 
-PARAMS_PATH = './params/default.yml'
+PARAMS_PATH = './params/tree_paths.yml'
 INPUT_DIR = './input'
 OUTPUT_DIR = './output'
 
