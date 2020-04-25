@@ -86,21 +86,22 @@ class NestObject:
             optional=self.OPTIONAL_NEST_PARAMS,
         )
 
+    def __str__(self):
+        return self.name
+
     # pylint: disable=unused-argument,invalid-name
     def _repr_pretty_(self, p, cycle):
         opener = '{classname}({name}, '.format(
-            classname=type(self).__name__, name=self.name)
+            classname=type(self).__name__, name=self.__str__())
         closer = ')'
         with p.group(p.indentation, opener, closer):
             p.breakable()
             p.pretty(self.params)
             p.pretty(self.nest_params)
 
-    # pylint: enable=unused-argument,invalid-name
-
     def __repr__(self):
         return '{classname}({name}, {params}, {nest_params})'.format(
-            classname=type(self).__name__, name=self.name,
+            classname=type(self).__name__, name=self.__str__(),
             params=pformat(self.params), nest_params=pformat(self.nest_params)
         )
 
