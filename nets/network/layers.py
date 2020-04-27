@@ -8,13 +8,14 @@ import itertools
 import random
 
 import numpy as np
-from tqdm import tqdm
 
-from ..utils import filter_suffixes, spike_times
-from .nest_object import NestObject
+from ..base_object import NestObject
+from ..utils import spike_times
+from ..utils.validation import ParameterError
 from .utils import flatten, if_created, if_not_created
 
 # pylint:disable=missing-docstring
+
 
 class AbstractLayer(NestObject):
     """Abstract base class for a layer.
@@ -22,34 +23,22 @@ class AbstractLayer(NestObject):
     Defines the layer interface.
     """
 
-    #pylint:disable=too-many-instance-attributes
+    # pylint:disable=too-many-instance-attributes
 
-    def __init__(self, name, params):
-        super().__init__(name, params)
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
         self._gid = None
-        self._gids = None
-        self._elements = None
-        self._locations = None
-        self._populations = None
-        self.shape = params['nrows'], params['ncols']
-        self.extent = (params['visSize'],) * 2
+        self._gids = None  # list of layer GIDs
+        self._locations = {}  # {<gid>: (row, col)}
+        self._populations = params['populations']  # {<population>: <number>}
+        self.shape = nest_params['rows'], nest_params['columns']
         # Record if we change some of the layer units' state probabilistically
         self._prob_changed = False
 
     def __iter__(self):
+        """Iterate on layer locations."""
         yield from itertools.product(range(self.shape[0]),
                                      range(self.shape[1]))
-
-    @staticmethod
-    def to_extent_units(value, extent, rows, columns):
-        """Convert a value from grid units to extent units."""
-        size = max(rows, columns)
-        units = extent / size
-        return value * units
-
-    def extent_units(self, value):
-        """Convert a value from grid units to extent units."""
-        raise NotImplementedError
 
     @if_not_created
     def create(self):
@@ -58,16 +47,18 @@ class AbstractLayer(NestObject):
 
     @property
     def populations(self):
+        """Return ``{<population_name>: <number_units>}`` dictionary."""
         return self._populations
 
     @property
     @if_created
     def gid(self):
-        """Return the NEST global ID (GID) of the layer."""
+        """Return the NEST global ID (GID) of the layer object."""
         return self._gid
 
     @if_created
     def connect(self, target, nest_params):
+        """Connect to target layer. Called by `Connection.create()`"""
         # NOTE: Don't use this method directly; use a Connection instead
         from nest import topology as tp
         tp.ConnectLayers(self.gid, target.gid, nest_params)
@@ -87,47 +78,39 @@ class AbstractLayer(NestObject):
         """
         raise NotImplementedError
 
-    def element(self, *args):
-        """Return the element(s) at the given location(s).
-
-        Args:
-            *args (tuple[int]): Coordinate pair(s) of grid location(s).
-
-        Returns:
-            tuple[tuple[int, str-like]]: For each (x, y) coordinate pair in
-            ``args``, returns a tuple of (GID, population) pairs for the
-            elements at that location.
-        """
-        raise NotImplementedError
-
-    def location(self, *args):
-        """Return the location(s) on the layer grid of the GID(s).
-
-        Args:
-            *args (int): The GID(s) of interest.
-
-        Returns:
-            tuple[tuple[int]]: Returns a tuple of (x, y) coordinate pairs, one
-            for each GID in ``gids``, giving the location of the element with
-            that GID.
-        """
-        raise NotImplementedError
-
-    def population(self, *args):
-        """Return the population(s) of the GID(s).
-
-        Args:
-            *args (int): The GID(s) of interest.
-
-        Returns:
-            tuple[str]: Returns a tuple the population names of the GID(s).
-        """
-        raise NotImplementedError
-
     def change_unit_states(self, changes_dict, population=None, proportion=1.0,
-                           filter_dict={}, change_type='constant',
-                           subnet_x_y_max=None):
-        """Call nest.SetStatus for a subset of units."""
+                           change_type='constant'):
+        """Set parameters for some units.
+
+        Args:
+            changes_dict (dict): Dictionary specifying changes applied to
+                selected units, of the form::
+                    {
+                        <param_1>: <change_value_1>,
+                        <param_2>: <change_value_2>
+                    }
+                The values are set multiplicatively or without modification
+                depending on the ``change_type`` parameter.
+            population (str | None): Name of population from which we select
+                units. All layer's populations if None.
+            proportion (float): Proportion of candidate units to which the
+                changes are applied. (default 1.0)
+            change_type (str): 'constant' (default) or 'multiplicative'.
+                Specifies how parameter values are set from ``change_dict``. If
+                "constant", the values in ``change_dict`` are set to the
+                corresponding parameters without modification. If
+                "multiplicative", the values in ``change_dict`` are multiplied
+                to the current value of the corresponding parameter for each
+                unit.
+        """
+        if change_type not in ['constant', 'multiplicative']:
+            raise ParameterError(
+                "``change_type`` argument should 'constant' or 'multiplicative'"
+            )
+        if proportion > 1 or proportion < 0:
+            raise ParameterError(
+                '``proportion`` parameter should be within [0, 1]'
+            )
         if not changes_dict:
             return
         if self._prob_changed and proportion != 1.0:
@@ -136,21 +119,9 @@ class AbstractLayer(NestObject):
         all_gids = self.gids(population=population)
         if proportion != 1.0:
             print(f'----> Select subset of gids (proportion = {proportion})')
-        gids_to_subnet = self.get_gids_subset(
+        gids_to_change = self.get_gids_subset(
             all_gids,
             proportion
-        )
-        if subnet_x_y_max is not None:
-            print(f'----> Select subnet (subnet_x_y_max = {subnet_x_y_max})')
-            gids_to_filter = [
-                gid for gid in gids_to_subnet
-                if all([x_y <= subnet_x_y_max for x_y in self._locations[gid]])
-            ]
-        if filter_dict:
-            print(f'----> Apply filter on gids (filter = {filter_dict})')
-        gids_to_change = self.filter_gids(
-            gids_to_filter,
-            filter_dict
         )
         print(f'----> Apply "{change_type}" parameter changes on '
               f'{len(gids_to_change)}/{len(all_gids)} units '
@@ -160,7 +131,8 @@ class AbstractLayer(NestObject):
         self._prob_changed = True
 
     @staticmethod
-    def apply_unit_changes(gids_to_change, changes_dict, change_type='constant'):
+    def apply_unit_changes(gids_to_change, changes_dict,
+                           change_type='constant'):
         """Change the state of a list of units."""
         assert change_type in ['constant', 'multiplicative']
         import nest
@@ -174,10 +146,8 @@ class AbstractLayer(NestObject):
                 current_value = nest.GetStatus((gid,), change_key)[0]
                 nest.SetStatus(
                     (gid,),
-                    { change_key: current_value * change_ratio }
+                    {change_key: current_value * change_ratio}
                 )
-        else:
-            raise NotImplementedError
 
     @staticmethod
     def get_gids_subset(gids_list, proportion):
@@ -189,125 +159,98 @@ class AbstractLayer(NestObject):
                         int(len(gids_list) * proportion))
                         )]
 
-    def filter_gids(self, gids_list, filter_dict):
-        """Filter a list of gids according to their parameter values.
-
-        Args:
-            gids_list: list of gids
-            filter_dict: dictionary defining the filter. The filter defines an
-                interval for any unit parameter. A unit is selected if all its
-                parameters are within their respectively defined interval.
-                The ``filter_dict`` dictionary is of the form:
-                    {
-                        <unit_param_name_1>:
-                            'min': <float_min>
-                            'max': <float_max>
-                        <unit_param_name_2>:
-                            ...
-                    }
-                Where <float_min> and <float_max> define the (inclusive)
-                min and max of the filtering interval for the considered
-                parameter (default resp. -inf and +inf)
-        """
-        import nest
-        filtered_gids = gids_list
-        # Iterate over parameters that we use for filtering
-        for parameter_name, interval in filter_dict.items():
-            min_value = interval.get('min', -float('inf'))
-            max_value = interval.get('max', float('inf'))
-            print(f'-----> Filtering population gids: select if '
-                  f'{parameter_name} is in interval [{min_value}, {max_value}]')
-            filtered_gids = [
-                gid for gid in filtered_gids
-                if (nest.GetStatus([gid], parameter_name)[0] >= min_value
-                    and nest.GetStatus([gid], parameter_name)[0] <= max_value)
-                ]
-        return filtered_gids
-
 
 class Layer(AbstractLayer):
+    """Represents a NEST layer composed of populations of units
 
-    def __init__(self, name, params):
-        super().__init__(name, params)
-        # TODO: use same names
-        self.nest_params = {
-            'rows': self.params['nrows'],
-            'columns': self.params['ncols'],
-            'extent': [self.params['visSize']] * 2,
-            'edge_wrap': self.params.get('edge_wrap', False),
-            'elements': self.build_elements(),
-        }
-        # TODO: implement
-        self._connected = list()
-        self._gid = None
+    Args:
+        name (str): Name of the layer
+        params (dict-like): Dictionary of parameters. The following parameters
+            are expected:
+                populations (dict): Dictionary of the form ``{<model>: <number>}
+                    specifying the elements within the layer. Analogous to the
+                    ``elements`` nest.Topology parameter
+        nest_params (dict-like): Dictionary of parameters that will be passed
+            to NEST during the ``nest.CreateLayer`` call. The following
+            parameters are mandatory: ``['rows', 'columns']``. The
+            ``elements`` parameter is reserved. Please use the ``populations``
+            parameter instead to specify layer elements.
+    """
 
-    def extent_units(self, value):
-        return self.to_extent_units(value, self.extent[0],
-                                    self.shape[0], self.shape[1])
+    # Validation of `params`
+    RESERVED_PARAMS = None
+    MANDATORY_PARAMS = ['populations']
+    OPTIONAL_PARAMS = {
+        'type': None
+    }
+    # Validation of `nest_params`
+    RESERVED_NEST_PARAMS = ['elements']
+    MANDATORY_NEST_PARAMS = ['rows', 'columns']
+    OPTIONAL_NEST_PARAMS = None
+
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
+        self.nest_params['elements'] = self.build_elements()
 
     def build_elements(self):
-        """Return the NEST description of layer elements.
+        """Convert ``populations`` parameters to format expected by NEST
 
-        A NEST element specification is a list of the form::
-
-            [<model_name>, <model_number>, <model_name>, <model_number>, ...]
-
-        This converts the parameters to such a list.
+        From the ``populations`` layer parameter, which is a dict of the
+        form::
+            {
+                <population_name>: <number_of_units>
+            }
+        return a NEST element specification, which is a list of the form::
+            [<model_name>, <number of units>]
         """
         populations = self.params['populations']
-        assert populations
+        if (
+            not populations
+            or any([not isinstance(n, int) for n in populations.values()])
+        ):
+            raise ParameterError(
+                "Invalid format for `populations` parameter {populations} of "
+                f"layer {str(self)}: expects non-empty dictionary of the form"
+                "`{<population_name>: <number_of_units>}` with integer values"
+            )
         # Map types to numbers
         return flatten([population, number]
                        for population, number in populations.items())
 
     @if_not_created
     def create(self):
-        import nest
+        """Create the layer in NEST and update attributes."""
         from nest import topology as tp
         self._gid = tp.CreateLayer(self.nest_params)
-        # Maps grid location to elements ((GID, population) pair)
-        self._elements = dict()
-        # Maps GID to location
-        self._locations = dict()
-        # Maps GID to population
-        self._populations = dict()
+        # Update _locations: ``{gid: (row, col)}``
         for i, j in itertools.product(range(self.shape[0]),
                                       range(self.shape[1])):
             # IMPORTANT: rows and columns are switched in the GetElement query
             gids = tp.GetElement(self.gid, locations=(j, i))
-            populations = [
-                str(model) for model in nest.GetStatus(gids, 'model')
-            ]
-            elements = tuple(zip(gids, populations))
-            self._elements[(i, j)] = elements
-            for gid, population in elements:
+            for gid in gids:
                 self._locations[gid] = (i, j)
-                self._populations[gid] = population
         # Get all GIDs
         self._gids = tuple(sorted(self._locations.keys()))
 
     @if_created
     def gids(self, population=None, location=None):
-        # pylint:disable=function-redefined
-        pop_filt = None
-        if population is not None:
-            assert population in self.population_names()
-            def pop_filt(gid):
-                return population in self._populations[gid]
-        loc_filt = None
-        if location is not None:
-            def loc_filt(gid):
-                return (self._locations[gid] == location or
-                        self._locations[gid] in location)
-        return sorted(tuple(filter(loc_filt, filter(pop_filt, self._gids))))
+        """Return layer GIDs filtered by population or location."""
+        import nest
+        return [
+            gid for gid in self._gids
+            if (
+                (population is None
+                 or nest.GetStatus((gid,), 'model')[0] == population)
+                and (location is None
+                     or self.locations[gid] == location)
+            )
+        ]
 
+    @property
     @if_created
-    def element(self, *args):
-        return tuple(self._elements[location] for location in args)
-
-    @if_created
-    def location(self, *args):
-        return tuple(self._locations[gid] for gid in args)
+    def locations(self):
+        """Return ``{<gid>: (<row>, <col>)}`` dict of locations."""
+        return self._locations
 
     @if_created
     @staticmethod
@@ -315,21 +258,13 @@ class Layer(AbstractLayer):
         import nest.topology as tp
         return tp.GetPosition(args)
 
-    @if_created
-    def population(self, *args):
-        return tuple(self._populations[gid] for gid in args)
-
     def population_names(self):
         """Return a list of population names within this layer."""
         return list(self.params['populations'].keys())
 
-    @if_created
-    def find_center_element(self, population=None):
-        center_loc = (int(self.shape[0]/2),
-                      int(self.shape[1]/2))
-        center_gid = self.gids(location=center_loc, population=population)[0:1]
-        assert len(center_gid) == 1
-        return center_gid
+    def recordable_population_names(self):
+        """Return list of names of recordable population names in this layer."""
+        return self.population_names()
 
     @if_created
     def set_state(self, variable, values, population=None):
@@ -339,8 +274,11 @@ class Layer(AbstractLayer):
         variable per location.
         """
         import nest
-        value_per_location = (isinstance(values, np.ndarray)
-                              and np.shape(values) == self.shape)
+        if isinstance(values, np.ndarray):
+            value_per_location = True
+            assert np.shape(values) == self.shape, (
+                "Array has the wrong shape for setting layer values"
+            )
         for location in self:
             value = values[location] if value_per_location else values
             nest.SetStatus(self.gids(population=population,
@@ -348,125 +286,109 @@ class Layer(AbstractLayer):
                            {variable: value})
 
 
-class InputLayer(AbstractLayer):
+class InputLayer(Layer):
     """A layer that provides input to the network.
 
-    This layer consists of several sublayers, each distinct NEST topological
-    layers with their own GID, represented by a ``Layer``:
+    ``InputLayer`` extends the ``Layer`` class to handle layers of stimulation
+    devices.
 
-      - For each filter combination, a stimulator/parrot pair of layers is
-        created.
-      - In such a pair, the stimulator layer contains stimulator devices, while
-        the parrot layer passes the stimuli from the stimulator layer to
-        multiple outputs.
+    `InputLayer` parameters should specify a single population of stimulation
+    devices. A second population of parrot neurons will be created and connected
+    one-to-one to the population of stimulators, to allow recording of activity
+    in the layer.
+
+    The state of stimulators within the `InputLayer` can be set from an input
+    array via the ``InputLayer.set_input`` method.
     """
+    # Append ``Layer`` docstring
+    __doc__ += '\n'.join(Layer.__doc__.split('\n')[1:])
 
     PARROT_MODEL = 'parrot_neuron'
+    STIMULATORS = ['spike_generator', 'poisson_generator']
 
-    def __init__(self, name, params):
-        super().__init__(name, params)
-        # Add parrot populations
-        # ~~~~~~~~~~~~~~~~~~~~~~
-        populations = self.params['populations']
-        # Check that there's only one stimulator type
-        if len(populations) != 1:
-            raise ValueError('InputLayer must have only one population')
-        # Save the the stimulator type and get its number
-        self.stimulator_model, number = list(populations.items())[0]
-        self.stimulator_type = None
+    def __init__(self, name, params, nest_params):
+
+        # TODO make deepcopies everywhere
+        import copy
+        params = copy.deepcopy(params)
+
+        # Check populations and add a population of parrot neurons
+        populations = params['populations']
+        if (len(populations) != 1 or list(populations.values())[0] != 1):
+            raise ParameterError(
+                f"Invalid `population` parameter for `InputLayer` layer {name}."
+                f" InputLayers should be composed of a single population of"
+                f"stimulation devices, with a single element per location."
+                f" Please check the `population` parameter: {populations}"
+            )
+        # Save the stimulator type
+        stimulator_model, nunits = list(populations.items())[0]
+        assert nunits == 1
+        self.stimulator_model = stimulator_model
+        self.stimulator_type = None  # TODO: Check stimulator type
         # Add a parrot population entry
-        populations[self.PARROT_MODEL] = number
-        # Make a duplicate sublayer for each filter
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        names = filter_suffixes.get_expanded_names(self.name,
-                                                   self.params.get('filters',
-                                                                   {}))
-        self.layers = [Layer(name, self.params) for name in names]
-        # TODO: Possibly scale the weights of all input connections by the
-        # number of input layers
+        populations[self.PARROT_MODEL] = 1
+        params['populations'] = populations
 
-    def extent_units(self, value):
-        # IMPORTANT: Assumes all sublayers are the same size!
-        return self.layers[0].extent_units(value)
+        # Initialize the layer
+        super().__init__(name, params, nest_params)
 
-    def _layer_get(self, attr_name):
-        """Get an attribute from each sublayer."""
-        return tuple(getattr(layer, attr_name) for layer in self.layers)
-
-    def _layer_call(self, method_name, *args, **kwargs):
-        """Call a method on each sublayer."""
-        return tuple(method(*args, **kwargs)
-                     for method in self._layer_get(method_name))
-
-    def _connect(self, target, nest_params):
-        self._layer_call('_connect', target, nest_params)
-
-    @if_not_created
     def create(self):
-        from nest import topology as tp
+        """Create the layer and connect the stimulator and parrot populations"""
+        super().create()
         import nest
-        # Create sublayers
-        self._layer_call('create')
-        # Set the GID
-        self._gid = flatten(self._layer_get('gid'))
         # Connect stimulators to parrots, one-to-one
-        # IMPORTANT: This assumes that all layers are the same size!
-        radius = self.extent_units(0.1)
-        one_to_one_connection = {
-            'sources': {'model': self.stimulator_model},
-            'targets': {'model': self.PARROT_MODEL},
-            'connection_type': 'convergent',
-            'synapse_model': 'static_synapse',
-            'mask': {'circular': {'radius': radius}}
-        }
-        tp.ConnectLayers(self._gid, self._gid, one_to_one_connection)
+        assert all([n == 1 for n in self.populations.values()])
+        stim_gids = []
+        parrot_gids = []
+        for loc in self:
+            stim_gids += self.gids(
+                location=loc, population=self.stimulator_model
+            )
+            parrot_gids += self.gids(
+                location=loc, population=self.PARROT_MODEL
+            )
+        nest.Connect(
+            stim_gids, parrot_gids, 'one_to_one', {'model': 'static_synapse'}
+        )
         # Get stimulator type
         self.stimulator_type = nest.GetDefaults(self.stimulator_model,
                                                 'type_id')
 
-    @if_created
-    def gids(self, population=None, location=None):
-        return flatten(self._layer_call('gids',
-                                        population=population,
-                                        location=location))
+    # TODO: DOc
+    def set_input(self, input_array, start_time=0.):
+        """Set stimulator state from input_array."""
 
-    @if_created
-    def element(self, *args):
-        return flatten(self._layer_call('element', *args))
+        if self.stimulator_type not in self.STIMULATORS:
+            raise ValueError(
+                f"Input can be set for `InputLayer` only for stimulators of the"
+                f"following type: {self.STIMULATORS}."
+            )
 
-    @if_created
-    def population(self, *args):
-        return flatten(self._layer_call('population', *args))
-
-    @if_created
-    def location(self, *args):
-        return flatten(self._layer_call('location', *args))
-
-    def set_input(self, stimulus, start_time=0.):
-        input_rate_scale_factor = float(self.params['input_rate_scale_factor'])
-        effective_max = input_rate_scale_factor * np.max(stimulus['movie'])
+        max_rate = np.max(input_array)
+        assert input_array.ndim == 3
         print(f'-> Setting input for `{self.name}`.')
-        print(f'--> Rate scaling factor: {str(input_rate_scale_factor)}')
-        print(f'--> Max instantaneous rate: {str(effective_max)}Hz')
-        for layer in tqdm(self.layers):
-            # TODO: Input layers should be able to see different filters
-            layer_index = 0
-            layer_rates = (input_rate_scale_factor
-                           * stimulus['movie'][:, layer_index, :, :])
-            if self.stimulator_type == 'poisson_generator':
-                # Use only first frame
-                layer.set_state('rate', layer_rates[0],
-                                population=self.stimulator_model)
-            elif self.stimulator_type == 'spike_generator':
-                all_spike_times = spike_times.draw_spike_times(
-                    layer_rates,
-                    start_time=start_time
-                )
-                layer.set_state('spike_times', all_spike_times,
-                                population=self.stimulator_model)
-            else:
-                raise NotImplementedError
+        print(f'--> Max instantaneous rate: {str(max_rate)}Hz')
+        if self.stimulator_type == 'poisson_generator':
+            print(
+                f"Stimulator is a 'poisson_generator' -> Using only first frame"
+                f"of the {input_array.shape}-ndarray stimulus array"
+            )
+            # Use only first frame
+            self.set_state('rate',
+                           input_array[0],
+                           population=self.stimulator_model)
+        elif self.stimulator_type == 'spike_generator':
+            all_spike_times = spike_times.draw_spike_times(
+                input_array,
+                start_time=start_time
+            )
+            self.set_state('spike_times', all_spike_times,
+                           population=self.stimulator_model)
+        else:
+            assert False
     # pylint: disable=arguments-differ
 
-    def find_center_element(self, population=None):
-        return self.layers[0].find_center_element(population=population)
+    def recordable_population_names(self):
+        """Return list of names of recordable population names in this layer."""
+        return ['parrot_neuron']

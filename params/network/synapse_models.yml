@@ -3,6 +3,8 @@ network:
     # NOTE:
     # - If you define a 'receptor_type' field you need a 'target_neuron'
     #   field as well.
+    params: {}
+    nest_params: {}
     ht_synapse:
       params:
         nest_model: ht_synapse
@@ -10,7 +12,6 @@ network:
       AMPA_syn:
         params:
           receptor_type: AMPA
-          weight: 0.5 # All connections weight scale this default value
       NMDA_syn:
         params:
           receptor_type: NMDA

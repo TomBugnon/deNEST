@@ -4,195 +4,298 @@
 
 """Provides the ``Simulation`` class."""
 
-import os
-from shutil import rmtree
-
-from .constants import (DEFAULT_INPUT_PATH, DEFAULT_OUTPUT_DIR, NEST_SEED,
-                        PYTHON_SEED)
 from .network import Network
-from .save import make_output_dir, output_path, output_subdir, save_as_yaml
+from .io.save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
-from .utils import misc
+from .utils import misc, validation
 
 # pylint:disable=missing-docstring
 
 
-class Simulation:
+class Simulation(object):
     """Represents a simulation.
 
     Handles building the network, running it with a series of sessions, and
     saving output.
 
     Args:
-        params (dict-like): full parameter tree
+        tree (ParamsTree): Full simulation parameter tree. The following
+            ``ParamsTree`` subtrees are expected:
+
+                - ``simulation`` (``ParamsTree``). Defines input and output
+                    paths, and the simulation steps performed. The following
+                    parameters (`params` field) are recognized:
+                        - ``output_dir`` (str): Path to the output directory
+                            (default 'output').
+                        - ``input_dir`` (str): Path to the directory in which
+                            input files are searched for for each session.
+                            (default 'input')
+                        - ``sessions`` (list(str)): Order in which sessions are
+                            run. Elements of the list should be the name of
+                            session models defined in the ``session_models``
+                            parameter subtree (default [])
+                - ``kernel`` (``ParamsTree``): Used for NEST kernel
+                    initialization. Refer to ``Simulation.init_kernel`` for a
+                    description of kernel parameters.
+                - ``session_models`` (``ParamsTree``): Parameter tree, the
+                  leaves of which define session models. Refer to ``Sessions``
+                  for a description of session parameters.
+                - ``network`` (``ParamsTree``): Parameter tree defining the
+                  network in NEST. Refer to `Network` for a full description of
+                  network parameters.
+
+    Kwargs:
+        input_dir (str | None): None or the path to the input. If defined,
+            overrides the `input_dir` simulation parameter
+        output_dir (str | None): None or the path to the output directory. If
+            defined, overrides `output_dir` simulation parameter.
     """
-    def __init__(self, params, input_path=None, output_dir=None):
-        """Initialize simulation."""
-        self.params = params
-        # Get output dir and nest raw output_dir
-        self.output_dir = self.get_output_dirs(output_dir)
+
+    # Validate children subtrees
+    MANDATORY_CHILDREN = []
+    OPTIONAL_CHILDREN = ['kernel', 'simulation', 'session_models', 'network']
+
+    # Validate "simulation" params
+    # TODO: Check there is no "nest_params"
+    MANDATORY_SIM_PARAMS = []
+    OPTIONAL_SIM_PARAMS = {
+        'sessions': [],
+        'input_dir': 'input',
+        'output_dir': 'output',
+    }
+
+    def __init__(self, tree, input_dir=None, output_dir=None):
+        """Initialize simulation.
+
+            - Set input and output paths
+            - Initialize NEST kernel and set python seed
+            - Initialize and build Network in NEST,
+            - Create sessions
+            - Save simulation metadata
+        """
+        # Full parameter tree
+        self.tree = tree.copy()
+
+        # Validate params tree
+        # ~~~~~~~~~~~~~~~~~~~~~~~~
+        # Check that the full tree's data keys are empty
+        validation.validate(
+            "Full parameter tree", dict(tree.params), param_type='params',
+            mandatory=[], optional={})
+        validation.validate(
+            "Full parameter tree", dict(tree.nest_params),
+            param_type='nest_params', mandatory=[], optional={})
+        # Check that the full parameter tree has the correct children
+        validation.validate_children(
+            self.tree, mandatory_children=self.MANDATORY_CHILDREN,
+            optional_children=self.OPTIONAL_CHILDREN
+        )
+        # Validate "simulation" subtree
+        # ~~~~~~~~~~~~~~~~~~~~~~~~
+        simulation_tree = self.tree.children['simulation']
+        # No nest_params in `simulation` subtree
+        validation.validate(
+            "simulation", dict(simulation_tree.nest_params),
+            mandatory=[], optional={}, param_type='nest_params'
+        )
+        # No children in `simulation` subtree
+        validation.validate_children(
+            simulation_tree, mandatory_children=[], optional_children=[]
+        )
+        # Validate `params` and save in `simulation` subtree
+        self.sim_params = validation.validate(
+            "simulation", dict(simulation_tree.params),
+            mandatory=self.MANDATORY_SIM_PARAMS,
+            optional=self.OPTIONAL_SIM_PARAMS
+        )
+
+        # Incorporate `input_dir` and `output_dir` kwargs
+        if output_dir is not None:
+            self.sim_params['output_dir'] = output_dir
+        self.output_dir = self.sim_params['output_dir']
         # Get input dir
-        self.input_path = self.get_input_path(input_path)
-        # set python seeds
-        print('Set python seed...', flush=True)
-        self.set_python_seeds()
-        print('...done\n', flush=True)
+        if input_dir is not None:
+            self.sim_params['input_dir'] = input_dir
+        self.input_dir = self.sim_params['input_dir']
+
         # Initialize kernel (should be after getting output dirs)
-        print('Initialize NEST kernel...', flush=True)
-        self.init_kernel()
+        print('Initialize NEST kernel and seeds...', flush=True)
+        kernel_tree = self.tree.children['kernel']
+        # Validate "kernel" subtree
+        # No children in `kernel` subtree
+        validation.validate_children(
+            kernel_tree, mandatory_children=[], optional_children=[]
+        )
+        self.init_kernel(
+            dict(kernel_tree.params),
+            dict(kernel_tree.nest_params)
+        )
         print('...done\n', flush=True)
+
         # Create sessions
         print('Create sessions...', flush=True)
-        self.order = self.params.c['sessions'].get('order', [])
-        session_params = {
-            session_name: session_params
-            for session_name, session_params
-            in self.params.c['sessions'].named_leaves()
+        self.sessions_order = self.sim_params['sessions']
+        # Get session model params
+        session_model_nodes = {
+            session_name: session_node
+            for session_name, session_node
+            in self.tree.children['session_models'].named_leaves()
         }
+        # Validate session_model nodes: no nest_params
+        for name, node in session_model_nodes.items():
+            validation.validate(
+                name, dict(node.nest_params),
+                mandatory=[], optional={}, param_type='nest_params'
+            )
+        # Create session objects
         self.sessions = []
         session_start_time = 0
-        for i, session_name in enumerate(self.order):
+        for i, session_model in enumerate(self.sessions_order):
             self.sessions.append(
-                Session(self.make_session_name(session_name, i),
-                        session_params[session_name],
-                        start_time=session_start_time)
+                Session(self.make_session_name(session_model, i),
+                        dict(session_model_nodes[session_model].params),
+                        start_time=session_start_time,
+                        input_dir=self.input_dir)
             )
+            # start of next session = end of current session
             session_start_time = self.sessions[-1].end
         self.session_times = {
-            session.name: session.duration for session in self.sessions
+            session.name: (session.start, session.end)
+            for session in self.sessions
         }
-        print(f'-> Sessions: {self.order}')
+        print(f'-> Sessions: {self.sessions_order}')
         print('Done...\n', flush=True)
+
         # Create network
         print('Create network...', flush=True)
-        self.network = Network(self.params.c['network'])
+        self.network = Network(self.tree.children['network'])
         self.network.create()
         print('...done\n', flush=True)
 
+        # Save simulation metadata
+        print('Saving simulation metadata...', flush=True)
+        self.save_metadata()
+        print('...done\n', flush=True)
+
+    def save_metadata(self):
+        """Save simulation metadata.
+
+            - Save parameters
+            - Save NETS git hash
+            - Save sessions metadata (`Session.save_metadata`)
+            - Save session times (start and end kernel time for each session)
+            - Save network metadata (`Network.save_metadata`)
+        """
+        # Initialize output dir (create and clear)
+        print(f'Creating output_dir: {self.output_dir}')
+        make_output_dir(self.output_dir,
+                        clear_output_dir=True)
+        # Save params tree
+        self.tree.write(output_path(self.output_dir, 'tree'))
+        # Drop git hash
+        misc.drop_git_hash(self.output_dir)
+        # Save sessions
+        for session in self.sessions:
+            session.save_metadata(self.output_dir)
+        # Save session times
+        save_as_yaml(output_path(self.output_dir, 'session_times'),
+                     self.session_times)
+        # Save network metadata
+        self.network.save_metadata(self.output_dir)
+
     def run(self):
-        """Run each of the sessions in order."""
-        # Get list of recorders and formatting parameters
+        """Run simulation.
+
+            - Run sessions in the order specified by the `sessions` simulation
+                parameter
+        """
+        # Get list of recorders
+        print(f'Running N={len(self.sessions)}')
         for session in self.sessions:
             print(f'Running session: `{session.name}`...\n')
             session.run(self.network)
             print(f'Done running session `{session.name}`\n\n')
+        print(f'Done')
 
-    def dump_connections(self):
-        """Dump network connections."""
-        self.network.dump_connections(self.output_dir)
+    def init_kernel(self, params, nest_params):
+        """Initialize NEST kernel and set Python seed
 
-    def plot_connections(self):
-        """Plot network connections."""
-        self.network.plot_connections(self.output_dir)
+            - Call ``nest.SetKernelStatus`` with ``nest_params``
+            - Set NEST kernel ``data_path`` and seed
+            - Set Python rng seed for ``numpy`` and ``random`` packages
+            - Install extension modules
 
-    def dump_connection_numbers(self):
-        """Dump connection numbers."""
-        self.network.dump_connection_numbers(self.output_dir)
+        Args:
+            params (dict-like): Kernel parameters. The following parameters are
+                recognized:
+                    extension_modules (list(str)): List of modules to install.
+                        (default [])
+                    nest_seed (int): Used to set NEST kernel's rng seed (default
+                        1)
+                    python_seed (int): Seed in Python ``numpy`` and ``random``
+                        packages. (default 1)
+            nest_params (dict-like): Kernel "NEST" parameters, passed to
+                ``nest.SetKernelStatus``. The following parameters are reserved:
+                ``[data_path, 'grng_seed', 'rng_seed']``. The NEST seeds should
+                be set via the ``nest_seed`` kernel parameter parameter.
+        """
 
-    def save_metadata(self):
-        """Save simulation metadata before running the simulation."""
-        # Initialize output dir (create and clear)
-        print(f'Creating output_dir: {self.output_dir}')
-        clear_output_dir = self.params.c['simulation'].get('clear_output_dir',
-                                        False)
-        # Delete the `session` subdirs
-        delete_subdirs_list = [session.name for session in self.sessions]
-        make_output_dir(self.output_dir, clear_output_dir,
-                        delete_subdirs_list=delete_subdirs_list)
-        # Save params
-        save_as_yaml(output_path(self.output_dir, 'params'),
-                     self.params)
-        # Drop git hash
-        misc.drop_git_hash(self.output_dir)
-        # Save network metadata
-        self.network.save_metadata(self.output_dir)
+        MANDATORY_PARAMS = []
+        OPTIONAL_PARAMS = {
+            'extension_modules': [],
+            'nest_seed': 1,
+            'python_seed': 1
+        }
+        RESERVED_NEST_PARAMS = ['data_path', 'msd', 'grng_seed', 'rng_seed']
 
-    def save_data(self):
-        """Save data after the simulation has been run."""
-        if not self.params.c['simulation']['dry_run']:
-            # Save sessions
-            for session in self.sessions:
-                session.save_metadata(self.output_dir)
-            # Save session times
-            save_as_yaml(output_path(self.output_dir, 'session_times'),
-                         self.session_times)
-            # Save network
-            self.network.save_data(self.output_dir,
-                                   self.params.c['simulation'])
+        # Validate params and nest_params
+        params = validation.validate(
+            "kernel", params, param_type='params', mandatory=MANDATORY_PARAMS,
+            optional=OPTIONAL_PARAMS
+        )
+        nest_params = validation.validate(
+            "kernel", nest_params, param_type='nest_params',
+            reserved=RESERVED_NEST_PARAMS
+        )
 
-    def init_kernel(self):
-        """Initialize NEST kernel."""
         import nest
-        kernel_params = self.params.c['kernel']
         nest.ResetKernel()
-        # Install extension modules
-        print('->Installing external modules...', end=' ')
-        for module in kernel_params.get('extension_modules', []):
-            self.install_module(module)
-        print('done')
-        # Create raw directory in advance
-        print('->Creating raw data directory...', end=' ')
-        raw_dir = kernel_params['data_path']
-        os.makedirs(raw_dir, exist_ok=True)
-        print('done')
-        # Set kernel status
-        print('->Setting kernel status...', end=' ')
-        num_threads = kernel_params.get('local_num_threads', 1)
-        resolution = kernel_params.get('resolution', 1.)
-        msd = kernel_params.get('nest_seed', NEST_SEED)
-        print('-> NEST master seed: ', str(msd))
-        print('-> data_path: ', str(raw_dir))
-        print('-> local_num_threads: ', str(num_threads))
-        nest.SetKernelStatus(
-            {'local_num_threads': num_threads,
-             'resolution': resolution,
-             'overwrite_files': kernel_params.get('overwrite_files', True),
-             'data_path': raw_dir})
+
+        print(f'-> Setting NEST kernel status')
+        print(f'-->Call `nest.SetKernelStatus({nest_params})`', end=' ')
+        nest.SetKernelStatus(nest_params)
+        # Set data path:
+        data_path = output_subdir(self.output_dir, 'raw_data', create_dir=True)
+        # Set seed. Do that after after first SetKernelStatus call in case
+        # total_num_virtual_procs has changed
         n_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
-        nest.SetKernelStatus({
+        msd = params['nest_seed']
+        kernel_params = {
+            'data_path': str(data_path),
             'grng_seed': msd + n_vp,
             'rng_seeds': range(msd + n_vp + 1, msd + 2 * n_vp + 1),
-            'print_time': kernel_params['print_time'],
-        })
+        }
+        print(f'-->Call `nest.SetKernelStatus({kernel_params})`', end=' ')
+        nest.SetKernelStatus(kernel_params)
         print('done')
 
-    def set_python_seeds(self):
+        # Install extension modules
+        print('->Installing external modules...', end=' ')
+        for module in params['extension_modules']:
+            self.install_module(module)
+        print('done')
+
+        # Set python seed
         import numpy as np
         import random
-        python_seed = self.params.c['kernel'].get('python_seed', PYTHON_SEED)
-        print(f'-> Setting python seed: {str(python_seed)}')
+        python_seed = params['python_seed']
+        print(f'-> Setting Python seed: {python_seed}')
         np.random.seed(python_seed)
         random.seed(python_seed)
 
-    def get_output_dirs(self, output_dir=None):
-        """Get output_dir from params and update kernel params accordingly."""
-        if output_dir is None:
-            output_dir = self.params.c['simulation'].get('output_dir', False)
-        # If not specified by USER, get default from config
-        if not output_dir:
-            output_dir = DEFAULT_OUTPUT_DIR
-            # Save output dir in params
-            self.params.c['simulation']['output_dir'] = output_dir
-        # Tell NEST kernel where to save the raw recorder files
-        nest_output_dir = output_subdir(output_dir, 'raw_data')
-        self.params.c['kernel']['data_path'] = nest_output_dir
-        self.params.c['simulation']['nest_output_dir'] = nest_output_dir
-        return output_dir
-
-    def get_input_path(self, input_path=None):
-        """Get input dir from params or defaults and cast to session params."""
-        if input_path is None:
-            input_path = self.params.c['simulation'].get('input_path', False)
-        # If not specified by USER, get default from config
-        if not input_path:
-            input_path = DEFAULT_INPUT_PATH
-            self.params.c['simulation']['input_path'] = input_path
-        # Cast to session params as well as simulation params
-        self.params.c['sessions']['input_path'] = input_path
-        return input_path
-
     @staticmethod
     def total_time():
+        """Return the NEST kernel time."""
         import nest
         return nest.GetKernelStatus('time')
 
@@ -201,9 +304,13 @@ class Simulation:
         """Install module in NEST using nest.Install() and catch errors.
 
         Even after resetting the kernel, NEST throws a NESTError (rather than a)
-        warning when the module is already loaded. I couldn't find a way to test
-        whether the module is already installed so this function catches the
-        error if the module is already installed by matching the error message.
+        warning when the module is already loaded. I (Tom) couldn't find a way
+        to test whether the module is already installed so this function catches
+        the error if the module is already installed by matching the error
+        message.
+
+        Args:
+            module_name (str): Name of the module.
         """
         import nest
         try:
@@ -212,8 +319,10 @@ class Simulation:
             if 'loaded already' in str(exception):
                 print(f'\nModule {module_name} is already loaded.')
                 return
-            if ('could not be opened' in str(exception)
-                and 'file not found' in str(exception)):
+            if (
+                'could not be opened' in str(exception)
+                and 'file not found' in str(exception)
+            ):
                 print(f'\nModule {module_name} could not be loaded. Did you'
                       f' compile and install the extension module?')
                 raise exception

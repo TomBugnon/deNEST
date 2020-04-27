@@ -7,44 +7,101 @@ import time
 from pprint import pformat
 
 import numpy as np
-from tqdm import tqdm
 
-from . import save
+from .base_object import ParamObject
 from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
+from .utils.validation import ParameterError
 
 # pylint:disable=missing-docstring
 
-# Simulation time if self.params['max_session_sim_time'] == float('inf')
-MAX_SIM_TIME_NO_INPUT = 10000.
 
-class Session:
-    """Represents a sequence of stimuli."""
+class Session(ParamObject):
+    """Represents a sequence of stimuli.
 
-    def __init__(self, name, params, start_time=0):
+    Args:
+        name (str): Name of the session
+        params (dict-like): Dictionary specifying session parameters. The
+            following keys are recognized:
+                - ``simulation_time`` (float): Duration of the session in msec.
+                    (mandatory)
+                - ``reset_network`` (bool): If true, ``nest.ResetNetwork()`` is
+                    called during session initialization (default ``False``)
+                - ``record`` (bool): If false, the ``start_time`` field of
+                    recorder nodes in NEST is set to the end time of the
+                    session, so that no data is recorded during the session
+                    (default ``True``)
+                - ``unit_changes`` (list): List describing the changes applied
+                    to certain units before the start of the session.
+                    Passed to ``Network.change_unit_states``. Refer to that
+                    method for a description of how ``unit_changes`` is
+                    formatted and interpreted. No changes happen if empty.
+                    (default [])
+                - ``synapse_changes`` (list): List describing the changes
+                    applied to certain synapses before the start of the session.
+                    Passed to ``Network.change_synapse_changes``. Refer to that
+                    method for a description of how ``synapse_changes`` is
+                    formatted and interpreted. No changes happen if empty.
+                    (default [])
+                - ``inputs`` (list): List describing the input applied to each
+                    of the network's ``InputLayer`` objects during the session.
+                    Refer to ``Session.load_input_array`` and
+                    ``InputLayer.set_input`` for a description of how the inputs
+                    are loaded and converted to stimulator activity. (default
+                    [])
+
+    Kwargs:
+        start_time (float): Time of kernel in msec when the session starts
+            running.
+        input_dir (str): Path to the directory in which input files are searched
+            for for each session.
+    """
+
+    # Validation of `params`
+    RESERVED_PARAMS = None
+    MANDATORY_PARAMS = ['simulation_time']
+    OPTIONAL_PARAMS = {
+        'reset_network': False,
+        'record': True,
+        'unit_changes': [],
+        'synapse_changes': [],
+        'inputs': {}
+    }
+
+    def __init__(self, name, params, start_time=None, input_dir=None):
         print(f'-> Creating session `{name}`')
-        self.name = name
-        self.params = params
+        # Sets self.name / self.params  and validates params
+        super().__init__(name, params)
+        self.input_dir = input_dir
         # Initialize the session start and end times
+        if start_time is None:
+            import nest
+            start_time = nest.GetKernelStatus('time')
         self._start = start_time
-        assert 'simulation_time' in self.params
         self._simulation_time = int(self.params['simulation_time'])
-        assert self._simulation_time > 0, ("Session's simulation time should be"
-                                           " strictly positive (NEST kernel bug"
-                                           " otherwise)")
+        if not self._simulation_time >= 0:
+            raise ParameterError(
+                f"Parameter `simulation_time` of session {name} should be"
+                f" positive."
+            )
         self._end = self._start + self._simulation_time
-        # Initialize _stim dictionary
-        self._stimulus = None
-        # Whether we inactivate all recorders
-        self._record = self.params.get('record', True)
+        # Initialize input arrays
+        self._input_arrays = None
 
     @property
     def end(self):
+        """Return kernel time at session's end."""
         return self._end
 
     @property
     def start(self):
+        """Return kernel time at session's start."""
         return self._start
+
+    @property
+    def input_arrays(self):
+        """Return ``{<input_layer>: <input_array>}`` dict."""
+        return self._input_arrays
 
     def __repr__(self):
         return '{classname}({name}, {params})'.format(
@@ -55,33 +112,61 @@ class Session:
     def initialize(self, network):
         """Initialize session.
 
-        1- Reset Network
-        2- Change network's dynamic variables.
-        If there are InputLayers:
-            3- Load stimuli
-            5- Set input spike times or input rates.
+            1. Reset Network
+            2. Change network's dynamic variables.
+            3. (possibly) inactivate recorders
+            4. For each InputLayer
+                1. Load input array
+                2. Set layer's spike times or input rates from input array
+
+        Args:
+            self (Session): ``Session`` object
+            network (Network): ``Network`` object.
         """
         # Reset network
-        if self.params.get('reset_network', False):
+        if self.params['reset_network']:
             network.reset()
 
         # Change dynamic variables
-        network.change_synapse_states(self.params.get('synapse_changes', []))
-        network.change_unit_states(self.params.get('unit_changes', []))
-
-        if network.any_inputlayer:
-            # Load stimuli
-            self._stimulus = self.load_stim(crop_shape=network.max_input_shape)
-            # Set input spike times in the future.
-            network.set_input(self.stimulus, start_time=self._start)
+        network.change_synapse_states(self.params['synapse_changes'])
+        network.change_unit_states(self.params['unit_changes'])
 
         # Inactivate all the recorders and connection_recorders for
         # `self._simulation_time`
-        if not self._record:
+        if not self.params['record']:
             self.inactivate_recorders(network)
 
+        # Set input for each inputlayer
+        inputlayers = network._get_layers(layer_type='InputLayer')
+        self._input_arrays = {}
+        for inputlayer in inputlayers:
+            if inputlayer.name not in self.params['inputs'].keys():
+                # raise ParameterError(
+                #     f"No input defined in session {self.name} for InputLayer"
+                #     f"{str(inputlayer)}. Please check the `inputs` session"
+                #     f"parameter"
+                # )
+                continue
+
+            print(f"Setting input for InputLayer `{inputlayer.name}`")
+
+            # Load input array
+            input_array = self.load_input_array(
+                inputlayer,
+                self.params['inputs'][inputlayer.name]
+            )
+            self._input_arrays[inputlayer.name] = input_array
+
+            # Set input spike times in the future.
+            inputlayer.set_input(input_array, start_time=self._start)
+
     def inactivate_recorders(self, network):
-        """Set 'start' of all (connection_)recorders at the end of session."""
+        """Set 'start' of all (connection_)recorders at the end of session.
+
+        Args:
+            self (Session): ``Session`` object
+            network (Network): ``Network`` object.
+        """
         # TODO: We need to do this differently if we start playing with the
         # `origin` flag of recorders, eg to repeat experiments. Hence the
         # safeguard:
@@ -114,75 +199,79 @@ class Session:
         assert self.end == int(nest.GetKernelStatus('time'))
 
     def save_metadata(self, output_dir):
-        """Save session metadata (stimuli, ...)."""
-        if self.params.get('save_stim', False) and self._stimulus is not None:
-            save.save_array(save.output_path(output_dir,
-                                             'session_movie',
-                                             session_name=self.name),
-                            self.stimulus['movie'])
-            save.save_array(save.output_path(output_dir,
-                                             'session_labels',
-                                             session_name=self.name),
-                            self.stimulus['labels'])
-            save.save_as_yaml(save.output_path(output_dir,
-                                               'session_metadata',
-                                               session_name=self.name),
-                              self.stimulus['metadata'])
-
-    @property
-    def stimulus(self):
-        return self._stimulus
+        """Save session metadata (stimulus array, ...)."""
+        pass
 
     @property
     def duration(self):
-        return range(self._start, self._end)
+        return (self._start, self._end)
 
     @property
     def simulation_time(self):
         return self._simulation_time
 
-    def load_stim(self, crop_shape=None):
-        """Load and return the session's input movie.
+    def load_input_array(self, input_layer, input_params):
+        """Load and return the session's input array for an ``InputLayer``
 
-        See README.md and `load_raw_stimulus` function about how the input is
-        loaded from the `input_path` simulation parameter and the
-        `session_input` session parameter.
-
-        The stimulus movie loaded from file is scaled by the session parameter
-        `input_rate_scale_factor` (default 1.0). The session stimulus movie
-        will be further scaled by the Network-wide Layer parameter
-        `input_rate_scale_factor`
+        Args:
+            input_layer (InputLayer): Layer of type 'InputLayer'
+            input_params (dict): Dictionary specifying the input for this layer.
+                One of the keys of the ``inputs`` session parameter. Should have
+                the following form::
+                    {
+                        'filename': <input_file>
+                        'time_per_frame': <time_per_frame>
+                        'rate_scaling_factor': <rate_scaling_factor>
+                    }
+                Where:
+                    - <filename> points to the input array used to set the
+                        stimulator's firing rates. Refer to
+                        `utils.load_stimulus` for a description of how the array
+                        is loaded from this parameter and the `input_dir`
+                        simulation parameter
+                    - <rate_scaling_factor> scales the input array's values
+                    - <time_per_frame> is the time in msec during which each of
+                        the input array's "frames" is shown to the network.
         """
-        # Input path can be either to a file or to the structured input dir
-        input_path = self.params['input_path']
-        session_input = self.params['session_input']
-        (raw_movie,
-         raw_labels,
-         metadata) = load_raw_stimulus(input_path, session_input)
+
+        # TODO: Validate params
+
+        # Input path can be either to an input array or to the directory in
+        # which input # arrays are searched
+        filename = input_params['filename']
+        raw_input_array = load_raw_stimulus(self.input_dir, filename)
 
         # Crop to adjust to network's input layer shape
-        if crop_shape is not None:
-            raw_movie = raw_movie[:, :, :crop_shape[0], :crop_shape[1]]
+        layer_shape = input_layer.shape  # (row, col)
+        raw_input_array_rowcol = (raw_input_array.shape[1],
+                                  raw_input_array.shape[2])  # (row, col)
+
+        if not np.all(layer_shape <= raw_input_array_rowcol):
+            raise ValueError(
+                f"Invalid shape for input array at `filename` for layer"
+                f"{input_layer} "
+            )
+        cropped_input_array = raw_input_array[
+            :,  # time,
+            :layer_shape[0], :layer_shape[1]  # row, col
+        ]
 
         # Scale the raw input by the session's scaling factor.
-        scale_factor = self.params.get('input_rate_scale_factor', 1.0)
-        raw_movie = raw_movie * scale_factor
-        print(f'--> Apply session input_rate_scale_factor: {scale_factor}')
+        scale_factor = input_params.get('rate_scaling_factor', 1.0)
+        scaled_input_array = cropped_input_array * scale_factor
+        print(f'--> Apply scaling factor to array: {scale_factor}')
 
         # Expand from frame to timesteps
-        labels = expand_raw_stimulus(raw_labels,
-                                self.params.get('time_per_frame', 1.),
-                                self.simulation_time)
-        movie = expand_raw_stimulus(raw_movie,
-                               self.params.get('time_per_frame', 1.),
-                               self.simulation_time)
+        input_array = expand_stimulus_array(
+            scaled_input_array,
+            input_params.get('time_per_frame', 1.),
+            self.simulation_time
+        )
 
-        return {'movie': movie,
-                'labels': labels,
-                'metadata': metadata}
+        return input_array
 
 
-def expand_raw_stimulus(list_or_array, nrepeats, target_length):
+def expand_stimulus_array(list_or_array, nrepeats, target_length):
     """Repeat elems along the first dimension and adjust length to target.
 
     We first expand the array by repeating each element `nrepeats` times, and
@@ -192,7 +281,6 @@ def expand_raw_stimulus(list_or_array, nrepeats, target_length):
     extended_arr = np.repeat(list_or_array, nrepeats, axis=0)
     n_rep, remainder = divmod(target_length, len(extended_arr))
     return np.concatenate(
-        [extended_arr for i in range(n_rep)] \
-        + [extended_arr[:remainder]],
+        [extended_arr for i in range(n_rep)] + [extended_arr[:remainder]],
         axis=0
     )

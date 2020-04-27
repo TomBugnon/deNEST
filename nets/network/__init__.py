@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/__init__.py
-"""Provide a class to construct a network from independent parameters."""
+"""Provide a class to construct a network."""
 
-import os
 import itertools
+from copy import deepcopy
 
-from joblib import Parallel, delayed
 from tqdm import tqdm
 
-from .connections import (ConnectionModel, FromFileConnection,
-                          MultiSynapseConnection, RescaledConnection,
-                          TopoConnection)
+from ..utils import validation
+from ..utils.validation import ParameterError
+from .connections import ConnectionModel, TopoConnection
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
-from .populations import Population
+from .recorders import ConnectionRecorder, PopulationRecorder
 from .utils import if_not_created, log
 
 # pylint: disable=too-few-public-methods
@@ -26,91 +25,444 @@ LAYER_TYPES = {
 
 CONNECTION_TYPES = {
     'topological': TopoConnection,
-    'rescaled': RescaledConnection,
-    'from_file': FromFileConnection,
-    'multisynapse': MultiSynapseConnection,
 }
 
 
-class Network:
-    """Represent a full network."""
+class Network(object):
+    """Represent a full network.
 
-    # pylint: disable=too-many-instance-attributes
+    Args:
+        tree (``ParamsTree``): "network" parameter tree. The following
+            ``ParamsTree`` children are expected:
+                - ``neuron_models`` (``ParamsTree``). Parameter tree, the leaves
+                    of which define neuron models. Each leave is used to
+                    initialize a ``Model`` object
+                - ``synapse_models`` (``ParamsTree``). Parameter tree, the
+                    leaves of which define synapse models. Each leave is used to
+                    initialize a ``SynapseModel`` object
+                - ``layers`` (``ParamsTree``). Parameter tree, the leaves of
+                    which define layers. Each leave is used to initialize  a
+                    ``Layer`` or ``InputLayer`` object depending on the value of
+                    their ``type`` ``params`` parameter.
+                - ``connection_models`` (``ParamsTree``). Parameter tree, the
+                    leaves of which define connection models. Each leave is used
+                    to initialize a ``ConnectionModel`` object.
+                - ``recorder_models`` (``ParamsTree``). Parameter tree, the
+                    leaves of which define recorder models. Each leave is used
+                    to initialize a ``Model`` object.
+                - ``topology`` (``ParamsTree``). ``ParamsTree`` object without
+                    children, the ``params`` of which may contain a
+                    ``connections`` key specifying all the individual
+                    population-to-population connections within the network as a
+                    list. ``Connection`` objects  are created from the
+                    ``topology`` ``ParamsTree`` object by the
+                    ``Network.build_connections`` method. Refer to this method
+                    for a description of the ``topology`` parameter.
+                - ``recorders`` (``ParamsTree``). ``ParamsTree`` object without
+                    children, the ``params`` of which may contain a
+                    ``population_recorders`` and a ``connection_recorders`` key
+                    specifying all the network recorders. ``PopulationRecorder``
+                    and ``ConnectionRecorder`` objects  are created from the
+                    ``recorders`` ``ParamsTree`` object by the
+                    ``Network.build_recorders`` method. Refer to this
+                    method for a description of the ``recorders`` parameter.
+    """
 
-    def __init__(self, params):
+    MANDATORY_CHILDREN = []
+    OPTIONAL_CHILDREN = [
+        'neuron_models', 'synapse_models', 'layers', 'connection_models',
+        'topology', 'recorder_models', 'recorders'
+    ]
+
+    def __init__(self, tree):
         """Initialize the network object without creating it in NEST."""
         self._created = False
         self._changed = False
-        self.params = params
+        self.tree = tree.copy()
+
+        # Validate tree
+        # ~~~~~~~~~~~~~~~~~~~~~~~~
+        # Check that the "network" tree's params and nest_params keys are empty
+        validation.validate(
+            "network", dict(tree.params), param_type='params', mandatory=[],
+            optional={})
+        validation.validate(
+            "network", dict(tree.nest_params), param_type='nest_params',
+            mandatory=[], optional={})
+        # Check that the "network" tree has the correct children and add default
+        # children
+        validation.validate_children(
+            self.tree, mandatory_children=self.MANDATORY_CHILDREN,
+            optional_children=self.OPTIONAL_CHILDREN,
+        )
+
         # Build network components
         # ~~~~~~~~~~~~~~~~~~~~~~~~
         self.neuron_models = self.build_named_leaves_dict(
-            Model, self.params.c['neuron_models'])
+            Model, self.tree.children['neuron_models'])
         self.synapse_models = self.build_named_leaves_dict(
-            SynapseModel, self.params.c['synapse_models'])
+            SynapseModel, self.tree.children['synapse_models'])
         self.recorder_models = self.build_named_leaves_dict(
-            Model, self.params.c['recorders'])
-        # Layers can have different types
+            Model, self.tree.children['recorder_models'])
         self.layers = {
-            name: LAYER_TYPES[leaf['type']](name, leaf)
-            for name, leaf in self.params.c['layers'].named_leaves()
+            name: LAYER_TYPES[leaf.params.get('type', None)](
+                name,
+                dict(leaf.params),
+                dict(leaf.nest_params)
+            )
+            for name, leaf in self.tree.children['layers'].named_leaves(
+                root=False
+            )
         }
         self.connection_models = self.build_named_leaves_dict(
-            ConnectionModel, self.params.c['connection_models'])
-        # Connections must be built last
-        conn_nested_list = [
-            self.build_connection(connection_item)
-            for connection_item in self.params.c['topology']['connections']
-        ]
-        self.connections = self.sort_connections([
-            conn for sublist in conn_nested_list for conn in sublist
-        ]) # .flatten() and sort to put "MultiSynapseConnection" connections at
-            # the end
-        # Populations are represented as a list
-        self.populations = sorted(
-            self.build_named_leaves_list(self.build_population,
-                                         self.params.c['populations']))
+            ConnectionModel, self.tree.children['connection_models'])
+        # Connections must be built after layers and connection models
+        self.connections = self.build_connections(
+            self.tree.children['topology']
+        )
+        # Initialize population recorders and connection recorders
+        self.population_recorders, self.connection_recorders = \
+            self.build_recorders(
+                self.tree.children['recorders']
+            )
 
     @staticmethod
     def build_named_leaves_dict(constructor, node):
+        """Construct and return as dict all leaves of a tree."""
         return {
-            name: constructor(name, leaf)
-            for name, leaf in node.named_leaves()
+            name: constructor(name, dict(leaf.params), dict(leaf.nest_params))
+            for name, leaf in node.named_leaves(root=False)
         }
 
-    @staticmethod
-    def sort_connections(connection_list):
-        """Sort connections making sure that the `multisynapse` are last."""
-        return (sorted([conn for conn in connection_list
-                        if not conn.params['type'] == 'multisynapse'])
-                + sorted([conn for conn in connection_list
-                        if conn.params['type'] == 'multisynapse']))
+    def build_connections(self, topology_tree):
+        """Return list of ``Connection`` objects from ``topology`` ParamsTree tree.
 
-    @staticmethod
-    def build_named_leaves_list(constructor, node):
-        return [constructor(name, leaf) for name, leaf in node.named_leaves()]
+        Args:
+            self (``Network``): Network object
+            topology_tree (``ParamsTree``): ``ParamsTree`` object without
+                children. The parameters of which may contain a ``connections``
+                parameter entry (default []). THe value of the ``connections``
+                parameter is a list of items describing the connections to be
+                created. Each item must be a ``dict`` of the following form::
+                    dict: {
+                        'connection_model' : <connection_model>,
+                        'source_layers': <source_layers_list>,
+                        'source_population': <source_population>,
+                        'target_layers': <target_layers_list>,
+                        'target_population': <target_population>,
+                    }
+                Where:
+                    - <connection_model> is the name of the connection model.
+                      Connection model are specified in the
+                      ``connection_models`` network parameter.
+                    - <source_layers_list>, <target_layers_list> are lists of
+                      source and target layer names. Connections are created for
+                      all source_layer x target layer combinations.
+                    - <source_population>, <target_population> are ``None`` or
+                      the name of source and target populations for the created
+                      connection. If ``None``, all populations in the source or
+                      target layer are connected.
+                The ``(<connection_model_name>, <source_layer_name>,
+                <source_population_name>, <target_layer_name>,
+                <target_population_name>)`` tuples fully specify each individual
+                connection and should be unique.
 
-    def build_connection(self, connection_dict):
-        """Return list of connections for source x target layer combinations."""
-        source_layers = [self.layers[layer]
-                         for layer in connection_dict['source_layers']]
-        target_layers = [self.layers[layer]
-                         for layer in connection_dict['target_layers']]
-        model = self.connection_models[connection_dict['connection']]
+        Returns:
+            list: List of ``Connection`` objects specifying all the connections
+                in the network.
+        """
+        OPTIONAL_TOPOLOGY_PARAMS = {
+            'connections': []
+        }
+
+        # Validate ``topology`` parameter
+        # No children
+        validation.validate_children(
+            topology_tree, [], []
+        )
+        # No nest_params
+        validation.validate(
+            'topology', dict(topology_tree.nest_params),
+            param_type='nest_params', mandatory=[], optional={}
+        )
+        # Only a 'connections' `params` entry
+        connection_items = validation.validate(
+            'topology', dict(topology_tree.params), param_type='params',
+            mandatory=[], optional=OPTIONAL_TOPOLOGY_PARAMS
+        )['connections']
+
+        # Get all unique ``(connection_model, source_layer, source_population,
+        # target_layer, target_population)`` tuples
+        connection_args = self.parse_connection_params(connection_items)
+        # Build Connection objects
+        connections = []
+        for (conn_model, src_lyr, src_pop, tgt_lyr, tgt_pop) in connection_args:
+            model = self.connection_models[conn_model]
+            source = self.layers[src_lyr]
+            target = self.layers[tgt_lyr]
+            connections.append(
+                CONNECTION_TYPES[model.type](
+                    model,
+                    source, src_pop,
+                    target, tgt_pop
+                )
+            )
+        return connections
+
+    def parse_connection_params(self, connection_items):
+        """Return list of tuples specifying all unique connections
+
+        Args:
+            connection_items: Content of the ``connections``
+                network/topology parameter. See ``self.build_connections`` for
+                detailed description.
+
+        Return:
+            list: List of unique (<connection_model_name>, <source_layer_name>,
+                <source_population_name>, <target_layer_name>,
+                <target_population_name>) tuples specifying all connections in
+                the network.
+        """
+        connection_args = []
+        for connection_item in connection_items:
+            for source_layer_name, target_layer_name in itertools.product(
+                connection_item['source_layers'],
+                connection_item['target_layers']
+            ):
+                connection_args.append(
+                    (
+                        connection_item['connection_model'],
+                        source_layer_name,
+                        connection_item['source_population'],
+                        target_layer_name,
+                        connection_item['target_population'],
+                    )
+                )
+
+        # Check that there are no duplicates.
+        if not len(set(connection_args)) == len(connection_args):
+            raise ParameterError(
+                """Duplicate connections specified by `connections` topology
+                parameter. (<connection_model_name>, <source_layer_name>,
+                <source_population_name>, <target_layer_name>,
+                <target_population_name>) tuples should uniquely specify
+                connections."""
+            )
+
+        return sorted(set(connection_args))
+
+    def build_recorders(self, recorders_tree):
+        """Build PopulationRecorder and ConnectionRecorder objects.
+
+        Validates the ``recorders`` parameter tree and calls
+        ``Network.build_population_recorders`` and
+        ``Network.build_connection_recorders``
+
+        Args:
+            self (``Network``): Network object
+            recorders_tree (``ParamsTree``): ``ParamsTree`` object without
+                children nor ``nest_params``.
+                The parameters of which may contain a ``population_recorders``
+                (default []) and a ``connection_recorders`` (default []) entry
+                specifying the network's recorders.
+                The ``population_recorders`` and ``connection_recorders``
+                entries are passed to (respectively)
+                ``Network.build_population_recorders`` and
+                ``Network.build_connection_recorders``
+
+        Returns:
+            (list(PopulationRecorder), list(ConnectionRecorder))
+        """
+
+        OPTIONAL_RECORDERS_PARAMS = {
+            'population_recorders': [],
+            'connection_recorders': [],
+        }
+
+        # Validate recorders tree
+        # No children
+        validation.validate_children(
+            recorders_tree, [], []
+        )
+        # No nest_params
+        validation.validate(
+            'recorders', dict(recorders_tree.nest_params),
+            param_type='nest_params',
+            mandatory=[], optional={}
+        )
+        # Only a 'population_params' or 'connection_params' `params` entry
+        recorders_params = validation.validate(
+            'recorders', dict(recorders_tree.params), param_type='params',
+            mandatory=[], optional=OPTIONAL_RECORDERS_PARAMS
+        )
+
+        return (
+            self.build_population_recorders(
+                recorders_params['population_recorders']
+            ),
+            self.build_connection_recorders(
+                recorders_params['connection_recorders']
+            )
+        )
+
+    def build_connection_recorders(self, connection_recorders_items):
+        """Return connection recorders specified by a list of recorder params.
+
+        ConnectionRecorders must be built after Connections.
+
+        Arguments:
+            connection_recorders_items (list | None): Content of the
+                ``connection_recorders`` network/recorders parameter. A list of
+                items describing the connection recorders to be created. Each
+                item must be a ``dict`` of the following form::
+                    dict: {
+                        'model': <recorder_model>
+                        'connection_model' : <connection_model>,
+                        'source_layers': <source_layers_list>,
+                        'source_population': <source_population>,
+                        'target_layers': <target_layers_list>,
+                        'target_population': <target_population>,
+                    }
+                Where <model> is the name of the connection recorder model (eg
+                'weight_recorder'). The other keys fully specify the list of
+                population-to-population connections of a certain model that
+                a connection recorder is created for. Refer to
+                `Network.build_connections` for a full description of how
+                the <connection_model>, <source_layers>, <source_population>,
+                <target_layers>, <target_population> keys are interpreted.
+
+        Returns:
+            list: List of ``ConnectionRecorder`` objects.
+        """
+        if connection_recorders_items is None:
+            connection_recorders_items = []
+        # Get all unique ``(model, connection_model, source_layer,
+        # source_population, target_layer, target_population)`` tuples
+        conn_recorder_args = []
+        for item in connection_recorders_items:
+            item = dict(item)  # TODO Fix this 
+            model = item.pop('model')
+            conn_recorder_args += [
+                (model,) + conn_args
+                for conn_args in self.parse_connection_params([item])
+            ]
+        conn_recorder_args = sorted(conn_recorder_args)
+
+        # Check that there are no duplicates.
+        if not len(set(conn_recorder_args)) == len(conn_recorder_args):
+            raise ParameterError(
+                """Duplicate connection recorders specified by
+                ``connection_recorders`` network/recorders parameter.
+                (<recorder_model>, <connection_model_name>, <source_layer_name>,
+                <source_population_name>, <target_layer_name>,
+                <target_population_name>) tuples should uniquely specify
+                connections and connection recorders."""
+            )
+
+        connection_recorders = []
+        for (
+            model, conn_model, src_layer, src_pop, tgt_layer, tgt_pop
+        ) in conn_recorder_args:
+
+            matching_connections = [
+                c for c in self.connections
+                if (c.model.name == conn_model
+                    and c.source.name == src_layer
+                    and c.source_population == src_pop
+                    and c.target.name == tgt_layer
+                    and c.target_population == tgt_pop)
+            ]
+
+            # Check that all the connections exist in the network
+            if not any(matching_connections):
+                raise ParameterError(
+                    f"Could not create connection recorder {model} for"
+                    f" connection `{conn_model}, {src_layer}, {src_pop},"
+                    f" {tgt_layer}, {tgt_pop}`: Connection does not exist in "
+                    f"the network."
+                )
+            # Check (again) that connections are unique
+            if len(matching_connections) > 1:
+                raise ParameterError("Multiple identical connections")
+
+            connection = matching_connections[0]
+            # Create connection recorder
+            connection_recorders.append(
+                ConnectionRecorder(model, connection)
+            )
+
+        return connection_recorders
+
+    def build_population_recorders(self, population_recorders_items):
+        """Return population recorders specified by a list of recorder params.
+
+        Arguments:
+            population_recorders_items (list | None): Content of the
+                ``population_recorders`` network/recorders parameter. A list of
+                items describing the population recorders to be created and
+                connected to the network. Each item must be a ``dict`` of the
+                following form::
+                    dict: {
+                        'model' : <model>,
+                        'layers': <layers_list>,
+                        'populations': <populations_list>,
+                    }
+                Where:
+                    - <model> is the model of a recorder.
+                    - <layers_list> is None or a list of layer names. If
+                      ``None``, all the layers in the network are considered.
+                    - <populations_list> is None or a list of populations. If
+                      ``None``, all the populations in each layer of interest
+                      are considered. For ``InputLayer`` layers, only the
+                      population of parrot neurons can be recorded.
+                For each item in the list, a recorder of ``model`` will be
+                created and connected to the population(s) of interest of each
+                layer(s) of interest.
+
+        Returns:
+            list: List of ``PopulationRecorder`` objects.
+        """
+        if population_recorders_items is None:
+            population_recorders_items = []
+        # Get all (model, layer_name, population_name) tuples
+        population_recorders_args = []
+        # Iterate on layers x population for each item in list
+        for item in population_recorders_items:
+            model = item['model']
+            layer_names = item['layers']
+            # Use all layers if <layers> is None
+            if layer_names is None:
+                layer_names = self.layers.keys()
+            for layer_name in layer_names:
+                layer = self.layers[layer_name]
+                population_names = item['populations']
+                # Use all recordable population in layer if <population> is None
+                if population_names is None:
+                    population_names = layer.recordable_population_names()
+                # Otherwise use only the populations specified if they exist in
+                # the layer
+                for population_name in [
+                    p for p in population_names
+                    if p in layer.recordable_population_names()
+                ]:
+                    population_recorders_args.append(
+                        (model, layer_name, population_name)
+                    )
+
+        # Build the unique population recorder objects
         return [
-            CONNECTION_TYPES[model.type](source, target, model, connection_dict)
-            for source, target
-            in itertools.product(source_layers, target_layers)
+            PopulationRecorder(
+                model,
+                layer=self.layers[layer_name],
+                population_name=population_name
+            )
+            for (model, layer_name, population_name)
+            in sorted(set(population_recorders_args))
         ]
 
-    def build_population(self, pop_name, pop_params):
-        # Get the gids and locations for the population from the layer object.
-        layer = self.layers[pop_params['layer']]
-        return Population(pop_name, layer, pop_params)
-
     def __repr__(self):
-        return '{classname}({params})'.format(
-            classname=type(self).__name__, params=(self.params))
+        return '{classname}({tree})'.format(
+            classname=type(self).__name__, tree=(self.tree))
 
     def __str__(self):
         return repr(self)
@@ -121,7 +473,7 @@ class Network:
             obj.create()
 
     def _layer_call(self, method_name, *args, layer_type=None, **kwargs):
-        """Call a method on each input layer."""
+        """Call a method on each layer."""
         for layer in self._get_layers(layer_type=layer_type):
             method = getattr(layer, method_name)
             method(*args, **kwargs)
@@ -133,6 +485,7 @@ class Network:
             for layer in self._get_layers(layer_type=layer_type))
 
     def _get_layers(self, layer_type=None):
+        """Return all layers of a certain type ('Layer' or 'InputLayer')"""
         if layer_type is None:
             return sorted(self.layers.values())
         return [
@@ -141,53 +494,76 @@ class Network:
         ]
 
     def recorder_call(self, method_name, *args, recorder_class=None,
-                       recorder_type=None, **kwargs):
-        """Call a method on population and/or connection recorders.
+                      recorder_type=None, **kwargs):
+        """Call a method on all recorder objects
 
         Args:
-            method_name (str): Name of method of Recorder objects.
-            recorder_class (str or None): Class of recorders: "population",
-                "connection" or None. Passed to self.get_recorders()
-            recorder_type (str or None): Passed to self.get_recorders()
+            method_name (str): Name of method of recorder objects.
+            recorder_class, recorder_type (str or None): Passed to
+                self.get_recorders()
+            *args: Passed to method ``method_name``
+
+        Kwargs:
+            **kwargs: Passed to method ``method_name``
         """
         for recorder in self.get_recorders(
             recorder_class=recorder_class,
-            recorder_type=recorder_type):
+            recorder_type=recorder_type
+        ):
             method = getattr(recorder, method_name)
             method(*args, **kwargs)
 
     def get_recorders(self, recorder_class=None, recorder_type=None):
-        """Generator to get each pop and/or conn recorder of a certain type."""
-        assert recorder_class in ["population", "connection", None], \
-            "Unrecognized recorder class"
-        if recorder_class == 'population' or recorder_class is None:
-            for population in self.populations:
-                yield from population.get_recorders(recorder_type=recorder_type)
-        if recorder_class == 'connection' or recorder_class is None:
-            for connection in self.connections:
-                yield from connection.get_recorders(recorder_type=recorder_type)
+        """Yield all ``PopulationRecorder`` and ``ConnectionRecorder`` objects.
+
+        Args:
+            recorder_class (str or None): Class of queried recorders.
+                "PopulationRecorder", "ConnectionRecorder" or None.
+            recorder_type (str or None): Type of queried recorders.
+                'multimeter', 'spike_detector' or 'connection_recorder'
+        """
+        if recorder_type in ['multimeter', 'spike_detector']:
+            recorder_class = 'PopulationRecorder'
+        elif recorder_type in ['weight_recorder']:
+            recorder_class = 'ConnectionRecorder'
+        elif recorder_type is not None:
+            raise ValueError('Recorder type not recognized')
+        if recorder_class == 'PopulationRecorder' or recorder_class is None:
+            yield from self.get_population_recorders(
+                recorder_type=recorder_type
+            )
+        if recorder_class == 'ConnectionRecorder' or recorder_class is None:
+            yield from self.get_connection_recorders(
+                recorder_type=recorder_type
+            )
+
+    def get_population_recorders(self, recorder_type=None):
+        """Yield ``PopulationRecorder`` objects of type ``recorder_type``."""
+        if recorder_type not in [
+            "multimeter", "spike_detector", None
+        ]:
+            raise ValueError('Recorder type not recognized')
+        return iter([
+            poprec for poprec in self.population_recorders
+            if recorder_type is None or poprec.type == recorder_type
+        ])
+
+    def get_connection_recorders(self, recorder_type=None):
+        """Yield ``ConnectionRecorder`` objects of type ``recorder_type``."""
+        if recorder_type not in [
+            "weight_recorder", None
+        ]:
+            raise ValueError('Unrecognized recorder type')
+        yield from self.connection_recorders
 
     def _get_synapses(self, synapse_type=None):
+        """Return synapse models"""
         if synapse_type is None:
             return sorted(self.synapse_models.values())
         return [
             syn for syn in sorted(self.synapse_models.values())
             if syn.type == synapse_type
         ]
-
-    @property
-    def any_inputlayer(self):
-        return bool(self._get_layers(layer_type='InputLayer'))
-
-    @property
-    def input_shapes(self):
-        return set(self._layer_get('shape', layer_type='InputLayer'))
-
-    @property
-    def max_input_shape(self):
-        """Max of each dimension."""
-        return (max([s[0] for s in self.input_shapes]),
-                max([s[1] for s in self.input_shapes]))
 
     @if_not_created
     def create(self):
@@ -200,15 +576,14 @@ class Network:
         self._create_all(self.recorder_models.values())
         log.info('Creating layers...')
         self._create_all(self._get_layers())
+        log.info('Creating population recorders...')
+        self._create_all(self.population_recorders)
+        log.info('Creating connection recorders...')
+        # ConnectionRecorders must be created BEFORE Connections
+        self._create_all(self.connection_recorders)
         log.info('Connecting layers...')
         self._create_all(self.connections)
         self.print_network_size()
-        log.info('Creating recorders...')
-        self._create_all(self.populations)
-
-    def dump_connections(self, output_dir):
-        for connection in tqdm(self.connections, desc='Dumping connections'):
-            connection.dump(output_dir)
 
     @staticmethod
     def change_synapse_states(synapse_changes):
@@ -218,11 +593,11 @@ class Network:
             synapse_changes (list): List of dictionaries each of the form::
                     {
                         'synapse_model': <synapse_model>,
-                        'params': {<key>: <value>,
-                                    ...}
+                        'params': {<param1>: <value1>}
                     }
-                where the ``'params'`` key contains the parameters to set for
-                all synapses of a given model.
+                where the dictionary in ``params`` is passed to nest.SetStatus
+                to set the parameters for all connections with synapse model
+                ``<synapse_model>``
         """
         import nest
         for changes in tqdm(
@@ -247,7 +622,6 @@ class Network:
                         'population': <pop_name>,
                         'change_type': <change_type>,
                         'proportion': <prop>,
-                        'filter': <filter>,
                         'params': {<param_name>: <param_value>,
                                    ...}
                     }
@@ -270,26 +644,6 @@ class Network:
                     considered population on which the filter is applied. The
                     changes are applied on the units that are randomly selected
                     and passed the filter.
-                ``filter`` (default {}) is a dictionary defining the filter
-                    applied onto the proportion of randomly selected units of
-                    the population. The filter defines an interval for any unit
-                    parameter. A unit is selected if all its parameters are
-                    within their respectively defined interval. The parameter
-                    changes are applied only on the selected units.
-                    The ``filter`` dictionary is of the form:
-                        {
-                            <unit_param_name_1>:
-                                'min': <float_min>
-                                'max': <float_max>
-                            <unit_param_name_2>:
-                                ...
-                        }
-                    Where <float_min> and <float_max> define the (inclusive)
-                    min and max of the filtering interval for the considered
-                    parameter (default resp. -inf and +inf)
-                ``subnet_x_y_max`` (default None): Specifies a subnet to which
-                    the changes are applied. Only units whose x and y locations
-                    are <= to ``subnet_x_y_max`` are affected by the changes.
                 ``'params'`` (default {}) is the dictionary of parameter changes
                     applied to the selected units.
         """
@@ -316,73 +670,36 @@ class Network:
                     changes['params'],
                     population=changes.get('population', None),
                     proportion=changes.get('proportion', 1.),
-                    filter_dict=changes.get('filter', {}),
-                    change_type= changes.get('change_type', 'constant'),
-                    subnet_x_y_max=changes.get('subnet_x_y_max', None),
+                    change_type=changes.get('change_type', 'constant')
                 )
             print(f'\n')
 
     @staticmethod
     def reset():
+        """Call `nest.ResetNetwork()`"""
         import nest
         nest.ResetNetwork()
 
-    def set_input(self, stimulus, start_time=0.):
-        self._layer_call('set_input', stimulus, start_time,
-                         layer_type='InputLayer')
-
     def save_metadata(self, output_dir):
-        """Save network metadata."""
+        """Save network metadata.
+
+            - Save recorder metadata
+        """
         # Save recorder metadata
         self.recorder_call('save_metadata', output_dir)
-
-    def save_data(self, output_dir, sim_params):
-        """Save network's activity.
-
-        1- Possibly formats recorders (possibly in parallel)
-        2- Possibly creates raster plots (must be in series)
-        3- Save synapse states
-        """
-        # Possibly format the recorders
-        format_recorders =  sim_params.get('format_recorders', False)
-        if format_recorders:
-            # Make kwargs dict containing simulation parameters
-            sim_kwargs = {
-                'parallel': sim_params.get('parallel', True),
-                'n_jobs': sim_params.get('n_jobs', -1),
-            }
-            all_recorders = self.get_recorders(recorder_class=None)
-            format_all_recorders(
-                all_recorders, output_dir, sim_kwargs)
-
-        # Possibly save population rasters
-        with_rasters = sim_params.get('with_rasters', True)
-        if with_rasters:
-            for recorder in tqdm(self.get_recorders(recorder_class="population"),
-                                 desc='Saving recorder raster plots'):
-                recorder.save_raster(output_dir)
-
-        # Save synapse states
-        for conn in tqdm(self.connections,
-                         desc='Saving synapse data'):
-            conn.save_synapse_state(output_dir)
-
-    def plot_connections(self, output_dir):
-        for conn in tqdm(self.connections, desc='Creating connection plots'):
-            conn.save_plot(output_dir)
 
     @staticmethod
     def print_network_size():
         import nest
         print('------------------------')
-        print('Network size (without recorders)')
+        print('Network size (with recorders and parrot neurons)')
         print('Number of nodes: ', nest.GetKernelStatus('network_size'))
         print('Number of connections: ',
               nest.GetKernelStatus('num_connections'))
         print('------------------------')
 
     def populations_by_gids(self, layer_type='Layer'):
-        """Return a dictionary of the form {'gid': (layer_name, pop_name)}."""
+        """Return a dict of the form ``{'gid': (layer_name, pop_name)}``."""
         all_pops = {}
         for layer in self._get_layers(layer_type=layer_type):
             all_pops.update({
@@ -390,73 +707,6 @@ class Network:
                 for gid, population in layer.populations.items()
             })
         return all_pops
-
-    def dump_connection_numbers(self, ratio_dump_dir):
-        """Count the incoming connections by population and synapse type."""
-        from ..save import save_as_yaml
-        from os.path import join
-        from ..utils.autodict import AutoDict, dictify
-        import nest
-
-        def increase_autodict_count(autodict, keys):
-            """Increase the count or initialize it at 1."""
-            if isinstance(autodict[keys], int):
-                autodict[keys] += 1
-            else:
-                # type Autodict of not yet created
-                autodict[keys] = 1
-
-        print('Query all connections. This might take a while...', flush=True)
-        # We don't call nest.GetStatus() on all the connections at once since
-        # the resulting object is so monstruous.
-        all_connections = nest.GetConnections()
-        print(f'Yes! We got them all! They are {len(all_connections)}!',
-              flush=True)
-
-        all_populations_by_gid = self.populations_by_gids(
-            layer_type='Layer'
-        ) #{gid: (layer, pop)}
-
-        # Use an autodict for easy deep modification with tuples
-        connection_summary = AutoDict({})
-
-        for conn in tqdm(all_connections,
-                         desc='Dumping connection numbers'):
-
-            conn_dict = nest.GetStatus((conn,))[0]
-            layer, pop = all_populations_by_gid.get(conn_dict['target'],
-                                                    (None, None))
-            if layer is None:
-                # We're not interested in InputLayers
-                continue
-            synapse_name = str(conn_dict['synapse_model'])
-            keys = (layer, pop, synapse_name)
-            # Add to 'synapse' count.
-            increase_autodict_count(connection_summary, keys)
-
-            # Add to 'exc' or 'inh' count for the user-defined synapses that
-            # have a recognizable type.
-            syn_type = None
-            if synapse_name in self.synapse_models:
-                syn_type = self.synapse_models[synapse_name].type
-            if syn_type is None:
-                continue
-            elif syn_type > 0:
-                increase_autodict_count(connection_summary, (layer, pop, 'exc'))
-            elif syn_type < 0:
-                increase_autodict_count(connection_summary, (layer, pop, 'inh'))
-
-
-        # Dictify now that we're done with deep modifications
-        connection_summary = dictify(connection_summary)
-        # Update exc/inh ratio in place
-        for layer_numbers in connection_summary.values():
-            for pop_numbers in layer_numbers.values():
-                pop_numbers['exc_inh_ratio'] = (pop_numbers.get('exc', 0.)
-                                                / pop_numbers.get('inh', 1e-9))
-
-        save_as_yaml(join(ratio_dump_dir, 'synapse_numbers.yml'),
-                     connection_summary)
 
 
 def unit_sorting_map(unit_change):
@@ -472,37 +722,3 @@ def synapse_sorting_map(synapse_change):
     """Map by (synapse_model, params_items) for sorting."""
     return (synapse_change['synapse_model'],
             sorted(synapse_change['params'].items()))
-
-
-# For recorder formatting in parallel
-def worker(recorder, output_dir, **kwargs):
-    recorder.save_formatted(output_dir, **kwargs)
-
-
-# TODO: Format only if the session has been recorded and figure out a way to
-# load the data properly
-def format_all_recorders(all_recorders, output_dir, sim_kwargs):
-    # Get simulation pparameters for formatting
-    parallel = sim_kwargs['parallel']
-    n_jobs = sim_kwargs['n_jobs']
-
-    # Format all recorders (population and connection), possibly using joblib
-    args_list = [(recorder, output_dir)
-                 for recorder in all_recorders]
-
-    # Verbose
-    msg = (f"Formatting {len(args_list)} population/connection recorders "
-           f"{'using' if parallel else 'without'} joblib: \n"
-           f"...")
-    print(msg)
-
-    if parallel:
-        Parallel(n_jobs=n_jobs, verbose=100, batch_size=1)(
-            delayed(worker)(*args) for args in args_list
-        )
-    else:
-        for args in tqdm(args_list,
-                         desc=''):
-            worker(*args)
-
-    print('...Done formatting recorders\n')

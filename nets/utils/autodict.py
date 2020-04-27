@@ -8,10 +8,19 @@
 import functools
 import operator
 from collections import UserDict
-
-from .structures import dictify
+from collections.abc import Mapping
 
 # pylint:disable=missing-docstring
+
+
+def dictify(obj):
+    """Recursively convert generic mappings to dictionaries."""
+    if isinstance(obj, Mapping):
+        return {key: dictify(value) for key, value in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [dictify(elt) for elt in obj]
+    return obj
+
 
 class AutoDict(UserDict):
 

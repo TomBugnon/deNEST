@@ -18,8 +18,8 @@ watch: test
 
 .PHONY: test
 test:
-	py.test test -v
+	py.test --cov=nets test -v
 
-# python -m nets params/default.yml -i input.npy -o output
+# python -m nets params/tree_paths.yml -i input.npy -o output
 # echo "$(IGNORE)"
 # colordiff params_old.yml output/params.yaml && echo "$(SUCCESS)" || echo "$(FAILURE)"

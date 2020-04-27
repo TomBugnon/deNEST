@@ -3,6 +3,7 @@ network:
     ht_neuron:
       params:
         nest_model: ht_neuron
+      nest_params:
         g_peak_NaP: 0.5
         g_peak_h: 0.0
         g_peak_T: 0.0
@@ -17,7 +18,7 @@ network:
         S_act_NMDA: 0.4
         V_act_NMDA: -58.0
       cortical_excitatory:
-        params:
+        nest_params:
           theta_eq: -51.0
           tau_theta: 2.0
           tau_spike: 1.75
@@ -25,7 +26,7 @@ network:
         l1_exc:
         l2_exc:
       cortical_inhibitory:
-        params:
+        nest_params:
           theta_eq: -53.0
           tau_theta: 1.0
           tau_spike: 0.5

@@ -1,78 +1,74 @@
 network:
   connection_models:
     params:
-      scale_factor: 1.0
       type: topological
-      dump_connection: True
-      plot_connection: True
+    nest_params:
       allow_autapses: false
       allow_multapses: false
       allow_oversized_mask: true
-
     horizontal_exc:
-      params:
+      nest_params:
         connection_type: divergent
         synapse_model: AMPA_syn
         mask:
           circular:
-            radius: 12.0  # scaled during init
+            radius: 12.0
         kernel:
           gaussian:
             p_center: 0.05
-            sigma: 7.5  # scaled during init
-        weight_gain: 2.0 # Scales synapse default
+            sigma: 7.5
+        weights: 1.0
         delays:
           uniform:
             min: 1.75
             max: 2.25
 
     horizontal_inh:
-      params:
+      nest_params:
         connection_type: divergent
         synapse_model: GABA_A_syn
         mask:
           circular:
-            radius: 7.0 # scaled during init
+            radius: 7.0
         kernel:
           gaussian:
             p_center: 0.25
-            sigma: 7.5 # scaled during init
-        weight_gain: 1.0 # Scales synapse default
+            sigma: 7.5
+        weights: 1.0
         delays:
           uniform:
             min: 1.75
             max: 2.25
 
     FF_exc:
-      params:
+      nest_params:
         connection_type: convergent
         synapse_model: AMPA_syn
         mask:
           circular:
-            radius: 12.0 # scaled during init
+            radius: 12.0
         kernel: 0.8
-        weight_gain: 1.0 # Scales synapse default
+        weights: 1.0
         delays:
           uniform:
             min: 1.75
             max: 2.25
 
-    input_connection_AMPA:
-      params:
-        type: topological
+    input_connection:
+      nest_params:
         connection_type: convergent
-        synapse_model: input_synapse_AMPA
         mask:
           circular:
-            radius: 12.0 # scaled during init
+            radius: 12.0
         kernel: 0.8
-        weight_gain: 2.0 # Scales synapse default
+        weights: 1.0
         delays:
           uniform:
             min: 1.75
             max: 2.25
-    input_connection_NMDA:
-      params:
-        type: multisynapse
-        synapse_model: input_synapse_NMDA
-        weight_gain: 5.0 # Scales synapse default
+      input_connection_AMPA:
+        nest_params:
+          synapse_model: input_synapse_AMPA
+      input_connection_NMDA:
+        nest_params:
+          synapse_model: input_synapse_NMDA

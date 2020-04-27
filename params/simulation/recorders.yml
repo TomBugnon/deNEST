@@ -1,13 +1,15 @@
 network:
-  recorders:
-    params:
+  recorder_models:
+    params: {}
+    nest_params:
       record_to: ['file', 'memory']
       withgid: True
       withtime: True
     multimeter:
       params:
         nest_model: multimeter
-        interval: 1.0 # formatting_interval = interval by default
+      nest_params:
+        interval: 1.0
         record_from: ['V_m']
     spike_detector:
       params:
@@ -15,6 +17,46 @@ network:
     weight_recorder:
       params:
         nest_model: weight_recorder
+      nest_params:
         record_to: ['file', 'memory']
         withport: False
         withrport: True
+  recorders:
+    params:
+      population_recorders:
+        # No layer
+        - layers: []
+          populations: []
+          model: 'multimeter'
+        # `l2_inh` population of `l2` layer if it exists.
+        - layers: ['l2']
+          populations: ['l2_inh']
+          model: 'multimeter'
+        # All layers, "l2_exc" population if it exists.
+        - layers: null
+          populations: ['l2_exc']
+          model: 'multimeter'
+        # All populations of l1
+        - layers: ['l1']
+          populations: null
+          model: 'multimeter'
+        # All layers, all populations.
+        # Only "parrot_neuron" population of input layers can be recorded.
+        - layers: null
+          populations: null
+          model: 'spike_detector'
+      connection_recorders:
+        # Specify a connecton recorder model. Connections are specified as in
+        # `connections.yml`
+        - source_layers: [input_layer]
+          source_population: parrot_neuron
+          target_layers: [l1]
+          target_population: l1_exc
+          connection_model: input_connection_AMPA
+          model: weight_recorder
+        - source_layers: [l1]
+          source_population: l1_exc
+          target_layers: [l1]
+          target_population: l1_exc
+          connection_model: horizontal_exc
+          model: weight_recorder

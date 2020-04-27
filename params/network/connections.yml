@@ -10,42 +10,27 @@ network:
         #       All populations if no key of not __bool__
         # - 'source_population' (str or None):
         #       All populations if no key of not __bool__
-        # - 'nest_params' (Mapping or None):
-        #       Takes precedence on connection model if specified)
-        # - 'params' (Mapping or None):
-        #       Takes precedence on connection model if specified
 
 
         ### Source area: input area ###
 
-        # excitatory on l1 for each input population
+        # excitatory on l1 l for each input population
         - source_layers: [input_layer]
           source_population: parrot_neuron
           target_layers: [l1, ]
           target_population: l1_exc
-          connection: input_connection_AMPA
-          params:
-            recorders:
-              weight_recorder: {}
-        # connections to the same l1_inh neurons with both AMPA and NMDA
-        # receptors -> We use the "multisynapse model"
+          connection_model: input_connection_AMPA
+        # Inhibitory on l1 inh, AMPA and NMDA
         - source_layers: [input_layer]
           source_population: parrot_neuron
           target_layers: [l1]
           target_population: l1_inh
-          connection: input_connection_AMPA
-          params:
-            synapse_label: 10010
+          connection_model: input_connection_AMPA
         - source_layers: [input_layer]
           source_population: parrot_neuron
           target_layers: [l1]
           target_population: l1_inh
-          connection: input_connection_NMDA # "multisynapse" connection type
-          params:
-            query_synapse_label: 10010 # Replicate with modification the connections with this label
-            # synapse_label: 10011
-            # recorders:
-            #     weight_recorder: {}
+          connection_model: input_connection_NMDA
 
         ### Source area: l1 ###
 
@@ -54,12 +39,12 @@ network:
           source_population: l1_exc
           target_layers: [l1]
           target_population: l1_exc
-          connection: horizontal_exc
+          connection_model: horizontal_exc
         - source_layers: [l1]
           source_population: l1_exc
           target_layers: [l1]
           target_population: l1_inh
-          connection: horizontal_exc
+          connection_model: horizontal_exc
 
 
         # l1 excitatory FF
@@ -67,9 +52,9 @@ network:
           source_population: l1_exc
           target_layers: [l2]
           target_population: l2_exc
-          connection: FF_exc
+          connection_model: FF_exc
         - source_layers: [l1]
           source_population: l1_exc
           target_layers: [l2]
           target_population: l2_inh
-          connection: FF_exc
+          connection_model: FF_exc

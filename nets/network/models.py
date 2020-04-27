@@ -4,28 +4,40 @@
 
 """NEST model classes."""
 
-from .nest_object import NestObject
+from ..base_object import NestObject
+from ..utils.validation import MissingParameterError, ReservedParameterError
 from .utils import if_not_created
 
-# Substrings used to guess the type (exc/inh) of synapses
-EXC_SUBSTRINGS = ['AMPA', 'NMDA', 'exc']
-INH_SUBSTRINGS = ['GABA', 'inh']
 
 class Model(NestObject):
-    """Represent a model in NEST."""
+    """Represent a model in NEST.
+
+    During creation, we copy or change the default parameters of the
+    ``nest_model`` NEST model.
+
+    Args:
+        name (str): Name of the model
+        params (dict-like): `params` of the object. Should countain the
+            `nest_model` key.
+        nest_params (dict-like): Dictionary passed to NEST during the
+            ``nest.CopyModel`` of ``nest.SetDefaults`` call.
+    """
 
     # pylint:disable=too-few-public-methods
 
-    def __init__(self, name, params):
-        super().__init__(name, params)
+    # Validation of `params`
+    RESERVED_PARAMS = []
+    MANDATORY_PARAMS = ['nest_model']
+    OPTIONAL_PARAMS = {}
+    # Validation of `nest_params`
+    RESERVED_NEST_PARAMS = None
+    MANDATORY_NEST_PARAMS = None
+    OPTIONAL_NEST_PARAMS = None
+
+    def __init__(self, name, params, nest_params):
+        super().__init__(name, params, nest_params)
         # Save and remove the NEST model name from the nest parameters.
-        self.nest_model = self.params.pop('nest_model')
-        # Get the model's "type" (+1 for excitatory neuron/synapse,
-        # -1 for inhibitory)
-        self.type = self.params.pop('type', None)
-        # TODO: keep nest params in params['nest_params'] and leave base model
-        # as params['nest_model']?
-        self.nest_params = dict(self.params)
+        self.nest_model = self.params['nest_model']
 
     @if_not_created
     def create(self):
@@ -45,53 +57,51 @@ class Model(NestObject):
 class SynapseModel(Model):
     """Represents a NEST synapse.
 
+    Args:
+        name (str): Name of the model
+        params (dict-like): `params` of the object. Should countain the
+            `nest_model` key. The following keys are recognized:
+                - ``receptor_type``, ``target_neuron`` (str): Name of the
+                    receptor type (eg "AMPA") and of the target neuron for
+                    synapses of this type. If specified, the `receptor_type`
+                    NEST parameter (which is an integer) is automatically set
+                    from the defaults of the target neuron.
+        nest_params (dict-like): Dictionary passed to NEST during the
+            ``nest.CopyModel`` of ``nest.SetDefaults`` call. The ``weight``
+            parameter, which sets the synapse model's default weight is
+            reserved. To set the strength of connections, set the ``weights``
+            parameter of ``Connection`` objects instead.
+
     ..note::
         NEST expects 'receptor_type' to be an integer rather than a string. The
         integer index must be found in the defaults of the target neuron.
     """
-    def __init__(self, name, params):
-        super().__init__(name, params)
-        # Replace the target receptor type with its NEST index
+
+    # Validation of `nest_params`
+    RESERVED_NEST_PARAMS = ['weight']
+
+    def __init__(self, name, params, nest_params):
+        # Get receptor index in NEST from receptor name
+        if (
+            ('receptor_type' in params and 'target_neuron' not in params)
+            or ('target_neuron' in params and 'receptor_type' not in params)
+        ):
+            raise MissingParameterError(
+                f"Missing parameter in SynapseModel {name} `params`: "
+                f"Must specify both `target_neuron` and `receptor_type` params"
+                f" or neither of them"
+            )
         if 'receptor_type' in params:
-            if 'target_neuron' not in params:
-                raise ValueError("must specify 'target_neuron' "
-                                 "if providing 'receptor_type'")
             import nest
-            target = self.nest_params.pop('target_neuron')
-            receptors = nest.GetDefaults(target)['receptor_types']
-            self.nest_params['receptor_type'] = \
-                receptors[self.params['receptor_type']]
-        # Try to infer the synapse type (1 for excitatory/-1 for inhibitory)
-        # If not specified in the params.
-        if self.type is None:
-            self.type = self.guess_synapse_type()
-
-    def guess_synapse_type(self):
-        """Guess the synapse type from the model or receptor name.
-
-        Return +1(/-1) for excitatory (/inhibitory) synapse.
-        """
-
-        syn_type = None
-        # Try to match either the receptor type or the model name
-        if 'receptor_type' in self.params:
-            test_string = self.params['receptor_type']
-        else:
-            test_string = self.name
-        if any(substring.lower() in test_string.lower()
-               for substring in EXC_SUBSTRINGS):
-            syn_type = 1.0
-        elif any(substring.lower() in test_string.lower()
-               for substring in INH_SUBSTRINGS):
-            syn_type = -1.0
-
-        # Tell USER about it
-        if syn_type is None:
-            print(f'Could not guess synapse type for synapse {self.name}. '
-                  f'You can specify the synapse type (+-1 for exc/inh) in the'
-                  f' ``type`` field of the parameters.')
-        else:
-            print(f'Guessing the type: `{syn_type}`\t'
-                  f'...for synapse:\t {self.name}.')
-
-        return syn_type
+            target = params.pop('target_neuron')
+            receptor_name = params.pop('receptor_type')
+            receptor_ids = nest.GetDefaults(target)['receptor_types']
+            if 'receptor_type' in nest_params:
+                raise ReservedParameterError(
+                    f"Reserved parameter in SynapseModel {name} `nest_params`: "
+                    f"`receptor_type` should not be specified in nest_params if"
+                    f"specified in params."
+                )
+            nest_params['receptor_type'] = receptor_ids[receptor_name]
+        # Initialize Model
+        super().__init__(name, params, nest_params)

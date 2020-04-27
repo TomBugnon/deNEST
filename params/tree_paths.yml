@@ -5,8 +5,7 @@
 - ./network/neuron_models.yml
 - ./network/connections.yml
 - ./network/connection_models.yml
-- ./simulation/populations.yml
 - ./simulation/recorders.yml
-- ./simulation/sessions_df.yml
+- ./simulation/sessions.yml
 - ./simulation/kernel_params.yml
 - ./simulation/simulation_params.yml

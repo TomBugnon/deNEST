@@ -1,0 +1,36 @@
+session_models:
+  params:
+    reset_network: False
+    record: True # Inactivate all recorders for current session or not
+  warmup:
+    params:
+      reset_network: True
+      record: False
+      unit_changes:
+        - layers: [l1,]
+          population: null
+          proportion: 0.5
+          params:
+            V_m: -70.0
+      inputs:
+        input_layer:
+          filename: 'noise_constant_x0.5_40x40x40_frames_rows_cols.npy' 
+          time_per_frame: 1000.0
+          rate_scaling_factor: 50.0
+      simulation_time: 50.
+  noise:
+    params:
+      simulation_time: 50.
+      inputs:
+        input_layer:
+          filename: 'noise_constant_x0.5_40x40x40_frames_rows_cols.npy' 
+          time_per_frame: 1000.0
+          rate_scaling_factor: 50.0
+  grating:
+    params:
+      simulation_time: 50.
+      inputs:
+        input_layer:
+          filename: 'sinusoidal_grating_0_degrees_40x40x40_frames_rows_cols.npy'
+          time_per_frame: 30.0
+          rate_scaling_factor: 50.0

@@ -1,0 +1,4 @@
+pytest
+watchdog
+pytest-regressions
+pytest-cov
