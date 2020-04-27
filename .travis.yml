@@ -5,7 +5,7 @@ services:
 
 before_install:
 - docker build -t nets .
-- docker run --volume $(pwd):/opt/data -p 127.0.0.1:8080:8080 nets /bin/bash -c "pip install -r requirements.txt; make test;"
+- docker run --volume $(pwd):/opt/data -p 127.0.0.1:8080:8080 nets /bin/bash -c "pip install -r requirements.txt && make test"
 
 script:
 - make test
