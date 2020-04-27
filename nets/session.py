@@ -128,6 +128,8 @@ class Session(ParamObject):
             network.reset()
 
         # Change dynamic variables
+        # TODO: Implement new `set_input` flexible method
+        # NB: Soon obsolete
         network.change_synapse_states(self.params['synapse_changes'])
         network.change_unit_states(self.params['unit_changes'])
 
@@ -137,6 +139,8 @@ class Session(ParamObject):
             self.inactivate_recorders(network)
 
         # Set input for each inputlayer
+        # TODO: Implement new `set_input` flexible method
+        # NB: Soon obsolete
         inputlayers = network._get_layers(layer_type='InputLayer')
         self._input_arrays = {}
         for inputlayer in inputlayers:
@@ -210,6 +214,8 @@ class Session(ParamObject):
     def simulation_time(self):
         return self._simulation_time
 
+    # TODO: Implement new `set_input` flexible method
+    # NB: Soon obsolete
     def load_input_array(self, input_layer, input_params):
         """Load and return the session's input array for an ``InputLayer``
 
@@ -271,6 +277,8 @@ class Session(ParamObject):
         return input_array
 
 
+# TODO: Implement new `set_input` flexible method
+# NB: Soon obsolete
 def expand_stimulus_array(list_or_array, nrepeats, target_length):
     """Repeat elems along the first dimension and adjust length to target.
 

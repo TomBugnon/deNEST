@@ -6,12 +6,14 @@ session_models:
     params:
       reset_network: True
       record: False
+      # `inputs` and `unit_changes`: soon obsolete and replaced by `set_state`
       unit_changes:
         - layers: [l1,]
           population: null
           proportion: 0.5
           params:
             V_m: -70.0
+      # `inputs` and `unit_changes`: soon obsolete and replaced by `set_state`
       inputs:
         input_layer:
           filename: 'noise_constant_x0.5_40x40x40_frames_rows_cols.npy' 
@@ -21,6 +23,7 @@ session_models:
   noise:
     params:
       simulation_time: 50.
+      # `inputs` and `unit_changes`: soon obsolete and replaced by `set_state`
       inputs:
         input_layer:
           filename: 'noise_constant_x0.5_40x40x40_frames_rows_cols.npy' 
@@ -29,6 +32,7 @@ session_models:
   grating:
     params:
       simulation_time: 50.
+      # `inputs` and `unit_changes`: soon obsolete and replaced by `set_state`
       inputs:
         input_layer:
           filename: 'sinusoidal_grating_0_degrees_40x40x40_frames_rows_cols.npy'
