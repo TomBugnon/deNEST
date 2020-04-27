@@ -23,8 +23,6 @@ class Model(NestObject):
             ``nest.CopyModel`` of ``nest.SetDefaults`` call.
     """
 
-    # pylint:disable=too-few-public-methods
-
     # Validation of `params`
     RESERVED_PARAMS = []
     MANDATORY_PARAMS = ['nest_model']

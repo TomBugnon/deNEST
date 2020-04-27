@@ -7,7 +7,6 @@ import functools
 import logging
 import logging.config
 
-# pylint: disable=protected-access
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 

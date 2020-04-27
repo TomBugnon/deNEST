@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # setup.py
 
-# pylint: disable=exec-used,invalid-name,missing-docstring
+# pylint: disable=exec-used,invalid-name
 
 try:
     from setuptools import setup

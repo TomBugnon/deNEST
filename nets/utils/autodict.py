@@ -3,14 +3,10 @@
 # autodict.py
 """Provides the ``AutoDict`` class."""
 
-# pylint: disable=too-many-ancestors
-
 import functools
 import operator
 from collections import UserDict
 from collections.abc import Mapping
-
-# pylint:disable=missing-docstring
 
 
 def dictify(obj):

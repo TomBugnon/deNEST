@@ -14,16 +14,12 @@ from ..utils import spike_times
 from ..utils.validation import ParameterError
 from .utils import flatten, if_created, if_not_created
 
-# pylint:disable=missing-docstring
-
 
 class AbstractLayer(NestObject):
     """Abstract base class for a layer.
 
     Defines the layer interface.
     """
-
-    # pylint:disable=too-many-instance-attributes
 
     def __init__(self, name, params, nest_params):
         super().__init__(name, params, nest_params)
@@ -387,7 +383,6 @@ class InputLayer(Layer):
                            population=self.stimulator_model)
         else:
             assert False
-    # pylint: disable=arguments-differ
 
     def recordable_population_names(self):
         """Return list of names of recordable population names in this layer."""

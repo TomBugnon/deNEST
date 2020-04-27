@@ -4,7 +4,6 @@
 
 """PopulationRecorder and ConnectionRecorder objects."""
 
-# pylint:disable=missing-docstring
 
 from ..io import save
 from ..base_object import NestObject

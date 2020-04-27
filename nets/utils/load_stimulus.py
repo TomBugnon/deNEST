@@ -4,7 +4,6 @@
 
 """Load raw session's stimulus array from file."""
 
-# pylint:disable=missing-docstring
 
 from pathlib import Path
 

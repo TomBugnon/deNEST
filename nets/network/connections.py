@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/connections.py
-"""ConnectionModel and Connection objects."""
 
-# pylint:disable=missing-docstring
+"""ConnectionModel and Connection objects."""
 
 from ..base_object import NestObject
 from ..utils.validation import ParameterError

@@ -111,7 +111,10 @@ class ParamsTree(UserDict):
         Note that parents can differ. We compare node's own data rather than
         inherited data.
         """
-        return self.node_data == other.node_data and self.children == other.children
+        return (
+            self.node_data == other.node_data
+            and self.children == other.children
+        )
 
     @property
     def parent(self):
@@ -189,7 +192,11 @@ class ParamsTree(UserDict):
         children = set.union(*(set(tree.children) for tree in trees))
         merged._children = {
             name: cls.merge(
-                *(tree.children[name] for tree in trees if name in tree.children),
+                *(
+                    tree.children[name]
+                    for tree in trees
+                    if name in tree.children
+                ),
                 parent=merged,
                 name=name,
             )
@@ -224,9 +231,12 @@ class ParamsTree(UserDict):
             lines = (
                 lines[: (_MAX_LINES // 2)]
                 + [f"\n  ... [{n - _MAX_LINES} lines] ...\n"]
-                + lines[-(_MAX_LINES // 2) :]
+                + lines[-(_MAX_LINES // 2):]
             )
-        parent_str = f"'{self.parent.name}'" if self.parent is not None else None
+        parent_str = (
+            f"'{self.parent.name}'"
+            if self.parent is not None else None
+        )
         return (
             f"ParamsTree(name='{self.name}', parent={parent_str})\n"
             + "\n".join(["  " + line for line in lines])
@@ -241,7 +251,10 @@ class ParamsTree(UserDict):
     def write(self, path):
         """Write a YAML representation of a tree to disk."""
         with open(path, "wt") as f:
-            yaml.dump(self.asdict(), f, default_flow_style=False, sort_keys=False)
+            yaml.dump(
+                self.asdict(), f,
+                default_flow_style=False, sort_keys=False
+            )
         return path
 
     def validate(self, mapping, path=None):

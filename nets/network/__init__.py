@@ -4,7 +4,6 @@
 """Provide a class to construct a network."""
 
 import itertools
-from copy import deepcopy
 
 from tqdm import tqdm
 
@@ -16,7 +15,6 @@ from .models import Model, SynapseModel
 from .recorders import ConnectionRecorder, PopulationRecorder
 from .utils import if_not_created, log
 
-# pylint: disable=too-few-public-methods
 
 LAYER_TYPES = {
     None: Layer,
@@ -340,7 +338,7 @@ class Network(object):
         # source_population, target_layer, target_population)`` tuples
         conn_recorder_args = []
         for item in connection_recorders_items:
-            item = dict(item)  # TODO Fix this 
+            item = dict(item)  # TODO Fix this
             model = item.pop('model')
             conn_recorder_args += [
                 (model,) + conn_args

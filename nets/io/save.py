@@ -5,8 +5,6 @@
 
 """Utility functions for data saving."""
 
-# pylint: disable=missing-docstring,ungrouped-imports
-
 import shutil
 from pathlib import Path
 

@@ -1,3 +1,8 @@
+<!--lint disable list-item-indent-->
+<!--lint disable list-item-content-indent-->
+<!--lint disable list-item-bullet-indent-->
+
+
 # NETS: Network Simulator for NEST
 
 
@@ -20,7 +25,7 @@ facilitates running the same network in multiple conditions.
 
 
 - Install NEST > 2.14.0 following the instructions at
-http://www.nest-simulator.org/installation/
+<http://www.nest-simulator.org/installation/>
 
 - Set up a python3 environment and install NETS with:
 
@@ -117,7 +122,7 @@ http://www.nest-simulator.org/installation/
   objects.
   - The list of sessions run during a simulation is specified by the
     ``sessions`` parameter of the ``simulation`` parameter subtree (eg:
-    sessions: ['warmup', 'noise', 'grating', 'noise', 'grating']) (see
+    sessions: ``['warmup', 'noise', 'grating', 'noise', 'grating']``) (see
     "Simulation parameters" section below)  
 
 #### Overview of a full simulation
@@ -156,8 +161,8 @@ A full NETS simulation consists of the following steps:
             - (Possibly) reset the network
             - (Possibly) inactivate recorders for the duration of the session
             - (Possibly) Change some of the network's parameters:
-                1. Change neuron parameters (``Network.change_unit_states``)
-                1. Change synapse parameters (``Network.change_synapse_states``)
+              1. Change neuron parameters (``Network.change_unit_states``)
+              1. Change synapse parameters (``Network.change_synapse_states``)
             - Set InputLayer's state from input arrays
 
         2. Call `nest.Simulate()`.
@@ -295,18 +300,18 @@ The ``'params'`` key contains data interpreted by NETS, while the
 The ``ParamsTree`` class offers a tree structure with two useful
 characteristics:
 
-- __Hierarchical inheritance of ancestor's data__: This provides a concise way
+- **Hierarchical inheritance of ancestor's data**: This provides a concise way
   of defining data for nested scopes. Data common to all leaves may be specified
   once in the root node, while more specific data may be specified further down
   the tree. Data lower within the tree overrides data higher in the tree.
   Ancestor nodes' ``params`` and ``nest_params`` are inherited independently.
 
-- __(Horizontal) merging of trees__: ``ParamsTree`` objects can be merged
+- **(Horizontal) merging of trees**: ``ParamsTree`` objects can be merged
   horizontally. During the merging of multiple params trees, the  contents of
   the ``params`` and ``nest_params`` data keys of nodes at the same relative
-  position are combined. This allows __splitting the NETS parameter trees in
-  separate files for convenience__, and __overriding the data of a node anywhere
-  in the tree while preserving hierarchical inheritance__
+  position are combined. This allows **splitting the NETS parameter trees in
+  separate files for convenience**, and **overriding the data of a node anywhere
+  in the tree while preserving hierarchical inheritance**
 
 
 ##### An example parameter tree

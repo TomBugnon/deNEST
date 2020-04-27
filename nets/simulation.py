@@ -9,8 +9,6 @@ from .io.save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
 from .utils import misc, validation
 
-# pylint:disable=missing-docstring
-
 
 class Simulation(object):
     """Represents a simulation.

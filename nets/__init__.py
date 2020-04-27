@@ -39,7 +39,7 @@ logging.config.dictConfig({
         }
     }
 })
-log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+log = logging.getLogger(__name__)
 
 SEPARATOR = ('\n'
              '==============================================================\n'
