@@ -18,7 +18,7 @@ watch: test
 
 .PHONY: test
 test:
-	py.test --cov=nets test -v
+	python -m pytest --cov=nets test -v
 
 # python -m nets params/tree_paths.yml -i input.npy -o output
 # echo "$(IGNORE)"
