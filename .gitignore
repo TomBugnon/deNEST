@@ -1,6 +1,8 @@
 __pycache__
 .cache
 .venv
+.coverage
+*.egg-info
 **/*.pyc
 input
 output
