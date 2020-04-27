@@ -48,6 +48,7 @@ network:
       connection_recorders:
         # Specify a connecton recorder model. Connections are specified as in
         # `connections.yml`
+        # NB: The synapse model needs to support labelling (*_lbl model)
         - source_layers: [input_layer]
           source_population: parrot_neuron
           target_layers: [l1]

@@ -2,6 +2,20 @@
 <!--lint disable list-item-content-indent-->
 <!--lint disable list-item-bullet-indent-->
 
+**NB**: Although it is public, this repository is not published yet,
+and is under active development until the first release... soon :)
+
+**Please don't use it for your work until it is stable and citable**... But please feel free to open issues or contact us if you have any suggestions to make this package better !
+
+Upcoming changes before the v1.0 release:
+  - Flexible setting of network and layer states from arrays
+  - Improve the API for interactive use
+  - Support all recorder and generator models
+  - Proper logging
+  - Support definition of connections from arrays/tables (maybe)
+  - Dockerfile and continuous integration
+  - Tutorials and proper documentation
+  - Improve test suite
 
 # NETS: Network Simulator for NEST
 
