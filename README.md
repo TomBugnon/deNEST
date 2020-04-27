@@ -38,6 +38,8 @@ facilitates running the same network in multiple conditions.
 ## Installation
 
 
+A Dockerfile with NEST 2.20 is provided. Otherwise:
+
 - Install NEST > 2.14.0 following the instructions at
 <http://www.nest-simulator.org/installation/>
 
