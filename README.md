@@ -1,4 +1,5 @@
 [![Travis build badge](https://img.shields.io/travis/tombugnon/nets.svg?style=flat-square&maxAge=600)](https://travis-ci.org/tombugnon/nets)
+[![License badge](https://img.shields.io/github/license/tombugnon/nets.svg?style=flat-square&maxAge=86400)](https://github.com/tombugnon/nets/blob/develop/LICENSE)
 
 <!--lint disable list-item-indent-->
 <!--lint disable list-item-content-indent-->
