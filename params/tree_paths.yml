@@ -6,6 +6,6 @@
 - ./network/connections.yml
 - ./network/connection_models.yml
 - ./simulation/recorders.yml
-- ./simulation/sessions.yml
+- ./simulation/session_models.yml
 - ./simulation/kernel_params.yml
 - ./simulation/simulation_params.yml
