@@ -1,3 +1,5 @@
+[![Travis build badge](https://img.shields.io/travis/tombugnon/nets.svg?style=flat-square&maxAge=600)](https://travis-ci.org/tombugnon/nets)
+
 <!--lint disable list-item-indent-->
 <!--lint disable list-item-content-indent-->
 <!--lint disable list-item-bullet-indent-->
@@ -94,7 +96,7 @@ A Dockerfile with NEST 2.20 is provided. Otherwise:
 - A **connection** is an individual projection between layers or populations,
   created with a ``tp.ConnectLayers`` call. The parameters passed to
   ``tp.ConnectLayers`` are those of the "connection model" of the specific
-  connection. 
+  connection.
   - The list of all individual connections within the network is specified in
     the ``'connections'`` parameter of the `network/topology` parameter subtree
     (see "Network parameters" section below).
@@ -106,7 +108,7 @@ A Dockerfile with NEST 2.20 is provided. Otherwise:
   on the 'multimeter', 'spike_detector' and 'weight_recorder' NEST models are
   supported.
   - population and connection recorders are represented by the
-    ``PopulationRecorder``  and ``ConnectionRecorder`` classes in 
+    ``PopulationRecorder``  and ``ConnectionRecorder`` classes in
     NETS.
   - The list of all population recorders and connection recorders are specified
     in the ``'population_recorders'`` and ``'connection_recorders'`` parameters
@@ -119,7 +121,7 @@ A Dockerfile with NEST 2.20 is provided. Otherwise:
 - A **session model** is a template specifying parameters inherited by
   individual sessions.
   - session models are specified as leaves of the `session_models` parameter
-    subtree (see "Simulation parameters" section below)  
+    subtree (see "Simulation parameters" section below)
 
 - A **session** is a period of simulation of a network with specific inputs
   and parameters, and corresponds to a single ``nest.Simulate()`` call. The
@@ -131,7 +133,7 @@ A Dockerfile with NEST 2.20 is provided. Otherwise:
     - Setting the state of generators within ``InputLayer`` layers from arrays
     - Deactivate the recorders for that session.
   - Individual sessions are represented by the ``Session`` object in NETS.
-    (see "Simulation parameters" section below)  
+    (see "Simulation parameters" section below)
 
 - A **simulation** is a full experiment. It is represented by the `Simulation()`
   object in NETS, which contains a `Network` object and a list of `Session`
@@ -139,7 +141,7 @@ A Dockerfile with NEST 2.20 is provided. Otherwise:
   - The list of sessions run during a simulation is specified by the
     ``sessions`` parameter of the ``simulation`` parameter subtree (eg:
     sessions: ``['warmup', 'noise', 'grating', 'noise', 'grating']``) (see
-    "Simulation parameters" section below)  
+    "Simulation parameters" section below)
 
 #### Overview of a full simulation
 
@@ -191,10 +193,10 @@ A full NETS simulation consists of the following steps:
 
     ```python
     import nets
-    
+
     # Path to the parameter files to use
     params_path = 'params/tree_paths.yml'
-    
+
     # Override some parameters loaded from the file
     overrides = [
 
@@ -206,13 +208,13 @@ A full NETS simulation consists of the following steps:
           'allow_autapses': true
       }}}},
     ]
-    
+
     # Load the parameters
     params = nets.load_trees(params_path, *overrides)
-    
+
     # Initialize the simulation
     sim = nets.Simulation(params, output_dir='output')
-    
+
     # Run the simulation (runs all the sessions)
     sim.run()
     ```
@@ -221,13 +223,13 @@ A full NETS simulation consists of the following steps:
 
     ```python
     import nets
-    
+
     # Path to the parameter files to use
     params_path = 'params/tree_paths.yml'
-    
+
     # Override parameters
     overrides = []
-    
+
     nets.run(params_path, *overrides, output_dir=None)
     ```
 
@@ -243,7 +245,7 @@ All simulation outputs, including the raw data from NEST, are saved in the direc
 
 In particular,
 
-- the ``data`` subdirectory contains the raw NEST data, and metadata files for each of the recorders. Each recorder is connected to a single population. 
+- the ``data`` subdirectory contains the raw NEST data, and metadata files for each of the recorders. Each recorder is connected to a single population.
 
 - the start and end time of each of the run sessions is saved at
   ``OUTPUT_DIR/session_times.yml``
@@ -258,7 +260,7 @@ from pathlib import Path
 OUTPUT_DIR = Path('./output')  # Path to the simulation output directory
 
 # Load the start and end time for each session
-session_times = nets.io.load.load_session_times(OUTPUT_DIR) 
+session_times = nets.io.load.load_session_times(OUTPUT_DIR)
 print(session_times)  # {<session_name>: (<session_start>, <session_end>)}
 
 
@@ -288,12 +290,12 @@ for metadata_path in all_recorder_metadata_paths:
 ## Defining parameters
 
 All parameters used by NETS are specified in tree-like yaml files which are
-converted to ``ParamsTree`` objects. 
+converted to ``ParamsTree`` objects.
 
 In this section, we describe the ``ParamsTree`` objects, the expected structure
 of the full parameter tree interpreted by NETS, and the expected formats and
 parameters of each of the subtrees that define the various aspects of the
-network and simulation. 
+network and simulation.
 
 #### Main parameter file
 
@@ -340,7 +342,7 @@ network:
   neuron_models:
     ht_neuron:
       params:                     # params common to all leaves
-        nest_model: ht_neuron     
+        nest_model: ht_neuron
       nest_params:                # nest_params common to all leaves
         g_KL: 1.0
       cortical_excitatory:
@@ -420,7 +422,7 @@ data and the following ``ParamsTree`` children
     network in NEST. Refer to `Network` for a full description of
     network parameters.
 
-  
+
 #### Network parameters
 
 All network parameters are specified in the ``network`` subtree, used to
