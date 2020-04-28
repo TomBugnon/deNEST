@@ -15,9 +15,7 @@ Upcoming changes before the v1.0 release:
   - Flexible setting of network and layer states from arrays
   - Improve the API for interactive use
   - Support all recorder and generator models
-  - Proper logging
   - Support definition of connections from arrays/tables (maybe)
-  - Dockerfile and continuous integration
   - Tutorials and proper documentation
   - Improve test suite
 
