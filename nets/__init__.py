@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 # __init__.py
 
-"""Spiking VisNet."""
+"""NETS: Network Simulator for NEST"""
 
-import logging
+import logging.config
 import time
 from pathlib import Path
+from pprint import pformat
 
 from .io.load import load_yaml
 from .network import Network
@@ -41,11 +42,6 @@ logging.config.dictConfig({
 })
 log = logging.getLogger(__name__)
 
-SEPARATOR = ('\n'
-             '==============================================================\n'
-             '==============================================================\n'
-             '==============================================================\n')
-
 
 def load_trees(path, *overrides):
     """Load a list of parameter files, optionally overriding some values.
@@ -61,11 +57,12 @@ def load_trees(path, *overrides):
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"No parameter file at {path}")
-    print(f'Loading parameters from list at: `{path}`', flush=True)
+    log.info('Loading parameter file paths from %s', str(path))
     if overrides:
-        print(f' with {len(overrides)} override trees.', end='')
+        log.info('Using %s override tree(s)', len(overrides))
     rel_path_list = load_yaml(path)
-    print(f"List of loaded parameter files: {rel_path_list}", flush=True)
+    log.info('Finished loading parameter file paths')
+    log.info("Loading parameters files: \n%s", pformat(rel_path_list))
     return ParamsTree.merge(
         *[ParamsTree(overrides_tree)
           for overrides_tree in overrides],
@@ -73,6 +70,7 @@ def load_trees(path, *overrides):
           for relative_path in rel_path_list],
         name=path,
     )
+    log.info("Finished loading parameter files.")
 
 
 def run(path, *overrides, output_dir=None, input_dir=None):
@@ -91,27 +89,24 @@ def run(path, *overrides, output_dir=None, input_dir=None):
             Passed to ``Simulation.__init__`` If defined, overrides `output_dir`
             simulation parameter.
     """
-    start_time = time.time()  # Timing of simulation time
-    print(SEPARATOR)
+    # Timing of simulation time
+    start_time = time.time()
+    log.info("\n\n=== RUNNING SIMULATION ========================================================\n")
 
     # Load parameters
-    print('Load parameter tree...\n')
     tree = load_trees(path, *overrides)
-    print('\n...done loading parameter tree.', flush=True, end=SEPARATOR)
 
     # Initialize simulation
-    print('Initialize simulation...\n', flush=True)
+    log.info('Initializing simulation...')
     sim = Simulation(tree, input_dir=input_dir, output_dir=output_dir)
-    print('\n...done initializing simulation...', flush=True, end=SEPARATOR)
+    log.info('Finished initializing simulation')
 
     # Simulate
-    print('Run simulation...\n', flush=True)
+    log.info('Running simulation...')
     sim.run()
-    print('\n...done running simulation...', flush=True, end=SEPARATOR)
+    log.info('Finished running simulation')
 
-    # Conclusive remarks
-    print('\nThis simulation is a great success.\n')
-    print(f"Total simulation virtual time: {sim.total_time()}ms")
-    print(f"Total simulation real time: {misc.pretty_time(start_time)}")
-    print('\nSimulation output can be found at the following path:')
-    print(Path(sim.output_dir).resolve(), '\n')
+    # Final logging
+    log.info("Total simulation virtual time: %s ms", sim.total_time())
+    log.info("Total simulation real time: %s", misc.pretty_time(start_time))
+    log.info('Simulation output written to: %s', Path(sim.output_dir).resolve())

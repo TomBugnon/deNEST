@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/__init__.py
+
 """Provide a class to construct a network."""
 
+import logging
 import itertools
 
 from tqdm import tqdm
@@ -14,6 +16,9 @@ from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
 from .recorders import ConnectionRecorder, PopulationRecorder
 from .utils import if_not_created, log
+
+
+log = logging.getLogger(__name__)
 
 
 LAYER_TYPES = {
@@ -605,8 +610,7 @@ class Network(object):
                 synapse_model=changes['synapse_model']
             )
             change_params = changes['params']
-            print(f"Change status for N={len(target_conns)} conns of type "
-                  f"{changes['synapse_model']}. Apply dict: {change_params}")
+            log.info("Changing status for %s connections of type %s. Applying dict: %s", len(target_conns), changes['synapse_model'], change_params)
             nest.SetStatus(target_conns, change_params)
 
     def change_unit_states(self, unit_changes):
@@ -659,10 +663,7 @@ class Network(object):
                 layers = [self.layers[layer_name]
                           for layer_name in change_layers]
 
-            # Verbose
-            print(f'\n--> Applying unit changes dictionary: {changes} ... to'
-                  f' layers: {change_layers}')
-
+            log.debug('    Applying unit changes dictionary %s\n\nto layers\n%s', changes, change_layers)
             for layer in tqdm(layers, desc="---> Apply change dict on layers"):
                 layer.change_unit_states(
                     changes['params'],
@@ -670,7 +671,6 @@ class Network(object):
                     proportion=changes.get('proportion', 1.),
                     change_type=changes.get('change_type', 'constant')
                 )
-            print(f'\n')
 
     @staticmethod
     def reset():
@@ -689,12 +689,12 @@ class Network(object):
     @staticmethod
     def print_network_size():
         import nest
-        print('------------------------')
-        print('Network size (with recorders and parrot neurons)')
-        print('Number of nodes: ', nest.GetKernelStatus('network_size'))
-        print('Number of connections: ',
-              nest.GetKernelStatus('num_connections'))
-        print('------------------------')
+        log.info('Network size (including recorders and parrot neurons):\n'
+                 'Number of nodes: %s\n'
+                 'Number of connections: %s',
+                 nest.GetKernelStatus('network_size'),
+                 nest.GetKernelStatus('num_connections')
+                 )
 
     def populations_by_gids(self, layer_type='Layer'):
         """Return a dict of the form ``{'gid': (layer_name, pop_name)}``."""

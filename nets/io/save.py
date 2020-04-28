@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 # save.py
 
-
 """Utility functions for data saving."""
 
+import logging
 import shutil
 from pathlib import Path
 
 import yaml
+
+
+log = logging.getLogger(__name__)
 
 # Modify along with FILENAME_FUNCS dict (see end of file)
 OUTPUT_SUBDIRS = {
@@ -96,7 +99,7 @@ def make_output_dir(output_dir, clear_output_dir=True,
     if clear_output_dir:
         for path in [Path(output_dir, *subdir) for subdir in CLEAR_SUBDIRS]:
             if path.exists():
-                print(f'-> Clearing directory {path}')
+                log.info('Clearing directory: %s', path)
                 # Delete files in the CLEAR_SUBDIRS
                 delete_files(path)
                 # Delete the contents of all the delete_subdirs we encounter

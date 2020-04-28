@@ -4,10 +4,13 @@
 
 """Load raw session's stimulus array from file."""
 
-
+import logging
 from pathlib import Path
 
 import numpy as np
+
+
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 def load_raw_stimulus(input_dir, filename):
@@ -38,5 +41,5 @@ def load_raw_stimulus(input_dir, filename):
             f"simulation parameter: {input_dir} and \n`filename` "
             f"session parameter: {filename}.\nPlease check params."
         )
-    print(f"-> Loading input from array at {path}")
+    log.info("Loading input from array at %s", path)
     return np.load(path)

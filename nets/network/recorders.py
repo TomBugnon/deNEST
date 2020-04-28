@@ -4,10 +4,14 @@
 
 """PopulationRecorder and ConnectionRecorder objects."""
 
+import logging
 
 from ..io import save
 from ..base_object import NestObject
 from .utils import if_created, if_not_created
+
+
+log = logging.getLogger(__name__)
 
 
 # Parameters that are recognized and not passed as NEST parameters. These
@@ -64,7 +68,7 @@ class BaseRecorder(NestObject):
     def set_status(self, nest_params):
         """Call nest.SetStatus on node."""
         import nest
-        print(f'--> Setting status for recorder {str(self)}: {nest_params}')
+        log.info(f'  Setting status for recorder %s: %s', str(self), nest_params)
         nest.SetStatus(self.gid, nest_params)
 
     def set_label(self):

@@ -4,8 +4,14 @@
 
 """Validation and update of parameters dictionaries."""
 
+import logging
 import copy as cp
+from pprint import pformat
+
 from ..parameters import ParamsTree
+
+
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 class ParameterError(ValueError):
@@ -86,7 +92,7 @@ def validate_children(tree, mandatory_children=None, optional_children=None):
     for optional in optional_children:
         if optional is not None:
             if optional not in tree.children:
-                print(f"`{tree.name}` tree: adding empty child {optional}")
+                log.info("'%s' tree: adding empty child %s", tree.name, optional)
                 tree.children[optional] = ParamsTree(
                     {}, parent=tree, name=optional
                 )
@@ -166,8 +172,8 @@ def validate(name, params, param_type='params', reserved=None,
             if k not in params.keys()
         }
         if any(missing_optional):
-            print(f"Object {name}, {param_type}: Set default value for optional"
-                  f"parameters: {missing_optional}")
+            log.info("Object `%s`: %s: using default value for optional parameters:\n%s",
+                     name, param_type, pformat(missing_optional))
             params = cp.deepcopy(params)
             params.update(missing_optional)
 

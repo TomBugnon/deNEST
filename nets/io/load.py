@@ -4,12 +4,16 @@
 
 """Utility functions for data loading."""
 
+import logging
 from pathlib import Path
 
 import pandas as pd
 import yaml
 
 from .save import output_subdir, output_path
+
+
+log = logging.getLogger(__name__)
 
 
 def load_session_times(output_dir):
@@ -40,7 +44,7 @@ def load(metadata_path):
             subsampled. Columns may be dropped ( see `usecols` kwarg) and 'x',
             'y' 'z' location fields may be added (see `assign_locations` kwarg).
     """
-    print(f"Loading {metadata_path}")
+    log.info("Loading metadata from %s", metadata_path)
     metadata = load_yaml(metadata_path)
     filepaths = get_filepaths(metadata_path)
 

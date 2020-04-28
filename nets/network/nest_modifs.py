@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # nest_modifs.py
+
 """Gather and modify NEST and network parameters."""
 
 import nest

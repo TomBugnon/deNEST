@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # session.py
+
 """Represent a sequence of stimuli."""
 
 import time
+import logging
 from pprint import pformat
 
 import numpy as np
@@ -16,6 +18,9 @@ from .utils.validation import ParameterError
 # pylint:disable=missing-docstring
 
 
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+
+
 class Session(ParamObject):
     """Represents a sequence of stimuli.
 
@@ -23,7 +28,7 @@ class Session(ParamObject):
         name (str): Name of the session
         params (dict-like): Dictionary specifying session parameters. The
             following keys are recognized:
-                - ``simulation_time`` (float): Duration of the session in msec.
+                - ``simulation_time`` (float): Duration of the session in ms.
                     (mandatory)
                 - ``reset_network`` (bool): If true, ``nest.ResetNetwork()`` is
                     called during session initialization (default ``False``)
@@ -51,7 +56,7 @@ class Session(ParamObject):
                     [])
 
     Kwargs:
-        start_time (float): Time of kernel in msec when the session starts
+        start_time (float): Time of kernel in ms when the session starts
             running.
         input_dir (str): Path to the directory in which input files are searched
             for for each session.
@@ -69,7 +74,7 @@ class Session(ParamObject):
     }
 
     def __init__(self, name, params, start_time=None, input_dir=None):
-        print(f'-> Creating session `{name}`')
+        log.info('Creating session "%s"', name)
         # Sets self.name / self.params  and validates params
         super().__init__(name, params)
         self.input_dir = input_dir
@@ -152,7 +157,7 @@ class Session(ParamObject):
                 # )
                 continue
 
-            print(f"Setting input for InputLayer `{inputlayer.name}`")
+            log.info('Setting input for InputLayer "%s"', inputlayer.name)
 
             # Load input array
             input_array = self.load_input_array(
@@ -177,8 +182,7 @@ class Session(ParamObject):
         import nest
         for recorder in network.get_recorders():
             assert nest.GetStatus(recorder.gid, 'origin')[0] == 0.
-        # Verbose
-        print(f'Inactivating all recorders for session {self.name}:')
+        log.debug("Inactivating all recorders for session %s", self.name)
         # Set start time in the future
         network.recorder_call(
             'set_status',
@@ -189,17 +193,15 @@ class Session(ParamObject):
         """Initialize and run session."""
         import nest
         assert self.start == int(nest.GetKernelStatus('time'))
-        print("Initialize session...")
+        log.info("Initializing session...")
         self.initialize(network)
-        print("done...\n")
-        print(f"Running session `{self.name}` for `{self.simulation_time}`ms")
+        log.info("Finished initializing session\n")
+        log.info("Running session '%s' for %s ms", self.name, self.simulation_time)
         start_real_time = time.time()
         nest.Simulate(self.simulation_time)
-        print(f"done.")
-        print(f"Session `{self.name}` virtual running time: "
-              f"`{self.simulation_time}`ms")
-        print(f"Session `{self.name}` real running time: "
-              f"{pretty_time(start_real_time)}...\n")
+        log.info("Finished running session")
+        log.info("Session '%s' virtual running time: %s ms", self.name, self.simulation_time)
+        log.info("Session '%s' real running time: %s", self.name, pretty_time(start_real_time))
         assert self.end == int(nest.GetKernelStatus('time'))
 
     def save_metadata(self, output_dir):
@@ -236,7 +238,7 @@ class Session(ParamObject):
                         is loaded from this parameter and the `input_dir`
                         simulation parameter
                     - <rate_scaling_factor> scales the input array's values
-                    - <time_per_frame> is the time in msec during which each of
+                    - <time_per_frame> is the time in ms during which each of
                         the input array's "frames" is shown to the network.
         """
 
@@ -265,7 +267,7 @@ class Session(ParamObject):
         # Scale the raw input by the session's scaling factor.
         scale_factor = input_params.get('rate_scaling_factor', 1.0)
         scaled_input_array = cropped_input_array * scale_factor
-        print(f'--> Apply scaling factor to array: {scale_factor}')
+        log.info('  Applying scaling factor to array: %s', scale_factor)
 
         # Expand from frame to timesteps
         input_array = expand_stimulus_array(

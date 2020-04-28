@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # __main__.py
 """
-NETS
-~~~~
+NETS: Network Simulator for NEST
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Usage:
     python -m nets <tree_paths.yml> [options]

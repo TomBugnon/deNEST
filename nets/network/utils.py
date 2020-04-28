@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # network/utils.py
+
 """Utilities for building network objects."""
 
 import functools
 import logging
-import logging.config
 
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name

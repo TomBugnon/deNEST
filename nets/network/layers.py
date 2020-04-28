@@ -4,6 +4,7 @@
 
 """Layer objects."""
 
+import logging
 import itertools
 import random
 
@@ -13,6 +14,9 @@ from ..base_object import NestObject
 from ..utils import spike_times
 from ..utils.validation import ParameterError
 from .utils import flatten, if_created, if_not_created
+
+
+log = logging.getLogger(__name__)
 
 
 class AbstractLayer(NestObject):
@@ -114,14 +118,13 @@ class AbstractLayer(NestObject):
                             "units' state multiple times.")
         all_gids = self.gids(population=population)
         if proportion != 1.0:
-            print(f'----> Select subset of gids (proportion = {proportion})')
+            log.info(f'    Select subset of gids (proportion = {proportion})')
         gids_to_change = self.get_gids_subset(
             all_gids,
             proportion
         )
-        print(f'----> Apply "{change_type}" parameter changes on '
-              f'{len(gids_to_change)}/{len(all_gids)} units '
-              f'(layer={self.name}, population={population})')
+        log.info('    Apply "%s" parameter changes on %s/%s units (layer=%s, population=%s)',
+                 change_type, len(gids_to_change), len(all_gids), self.name, population)
         self.apply_unit_changes(gids_to_change, changes_dict,
                                 change_type=change_type)
         self._prob_changed = True
@@ -363,13 +366,11 @@ class InputLayer(Layer):
 
         max_rate = np.max(input_array)
         assert input_array.ndim == 3
-        print(f'-> Setting input for `{self.name}`.')
-        print(f'--> Max instantaneous rate: {str(max_rate)}Hz')
+        log.info('  Setting input for "%s"', self.name)
+        log.info('    Max instantaneous rate: %s Hz', str(max_rate))
         if self.stimulator_type == 'poisson_generator':
-            print(
-                f"Stimulator is a 'poisson_generator' -> Using only first frame"
-                f"of the {input_array.shape}-ndarray stimulus array"
-            )
+            log.info("Stimulator is a 'poisson_generator'; using only first frame of the %s stimulus array",
+                      input_array.shape)
             # Use only first frame
             self.set_state('rate',
                            input_array[0],

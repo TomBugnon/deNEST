@@ -4,10 +4,15 @@
 
 """Provides the ``Simulation`` class."""
 
+import logging
+
 from .network import Network
 from .io.save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .session import Session
 from .utils import misc, validation
+
+
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
 class Simulation(object):
@@ -117,7 +122,7 @@ class Simulation(object):
         self.input_dir = self.sim_params['input_dir']
 
         # Initialize kernel (should be after getting output dirs)
-        print('Initialize NEST kernel and seeds...', flush=True)
+        log.info('Initializing NEST kernel and seeds...')
         kernel_tree = self.tree.children['kernel']
         # Validate "kernel" subtree
         # No children in `kernel` subtree
@@ -128,10 +133,10 @@ class Simulation(object):
             dict(kernel_tree.params),
             dict(kernel_tree.nest_params)
         )
-        print('...done\n', flush=True)
+        log.info('Finished initializing kernel')
 
         # Create sessions
-        print('Create sessions...', flush=True)
+        log.info('Creating sessions...')
         self.sessions_order = self.sim_params['sessions']
         # Get session model params
         session_model_nodes = {
@@ -161,19 +166,19 @@ class Simulation(object):
             session.name: (session.start, session.end)
             for session in self.sessions
         }
-        print(f'-> Sessions: {self.sessions_order}')
-        print('Done...\n', flush=True)
+        log.info('Sessions: %s', self.sessions_order)
+        log.info('Finished creating sessions')
 
         # Create network
-        print('Create network...', flush=True)
+        log.info('Creating network...')
         self.network = Network(self.tree.children['network'])
         self.network.create()
-        print('...done\n', flush=True)
+        log.info('Finished creating network')
 
         # Save simulation metadata
-        print('Saving simulation metadata...', flush=True)
+        log.info('Saving simulation metadata...')
         self.save_metadata()
-        print('...done\n', flush=True)
+        log.info('Finished saving simulation metadata')
 
     def save_metadata(self):
         """Save simulation metadata.
@@ -185,7 +190,7 @@ class Simulation(object):
             - Save network metadata (`Network.save_metadata`)
         """
         # Initialize output dir (create and clear)
-        print(f'Creating output_dir: {self.output_dir}')
+        log.info('Creating output directory: %s', self.output_dir)
         make_output_dir(self.output_dir,
                         clear_output_dir=True)
         # Save params tree
@@ -208,12 +213,12 @@ class Simulation(object):
                 parameter
         """
         # Get list of recorders
-        print(f'Running N={len(self.sessions)}')
+        log.info('Running %s sessions...', len(self.sessions))
         for session in self.sessions:
-            print(f'Running session: `{session.name}`...\n')
+            log.info("Running session: '%s'...", session.name)
             session.run(self.network)
-            print(f'Done running session `{session.name}`\n\n')
-        print(f'Done')
+            log.info("Done running session '%s'", session.name)
+        log.info('Finished running simulation')
 
     def init_kernel(self, params, nest_params):
         """Initialize NEST kernel and set Python seed
@@ -259,8 +264,8 @@ class Simulation(object):
         import nest
         nest.ResetKernel()
 
-        print(f'-> Setting NEST kernel status')
-        print(f'-->Call `nest.SetKernelStatus({nest_params})`', end=' ')
+        log.info('  Setting NEST kernel status...')
+        log.info('    Calling `nest.SetKernelStatus(%s)`', nest_params)
         nest.SetKernelStatus(nest_params)
         # Set data path:
         data_path = output_subdir(self.output_dir, 'raw_data', create_dir=True)
@@ -273,21 +278,21 @@ class Simulation(object):
             'grng_seed': msd + n_vp,
             'rng_seeds': range(msd + n_vp + 1, msd + 2 * n_vp + 1),
         }
-        print(f'-->Call `nest.SetKernelStatus({kernel_params})`', end=' ')
+        log.info('    Calling `nest.SetKernelStatus(%s)', kernel_params)
         nest.SetKernelStatus(kernel_params)
-        print('done')
+        log.info('  Finished setting NEST kernel status')
 
         # Install extension modules
-        print('->Installing external modules...', end=' ')
+        log.info('  Installing external modules...')
         for module in params['extension_modules']:
             self.install_module(module)
-        print('done')
+        log.info('  Finished installing external modules')
 
         # Set python seed
         import numpy as np
         import random
         python_seed = params['python_seed']
-        print(f'-> Setting Python seed: {python_seed}')
+        log.info('  Setting Python seed: %s', python_seed)
         np.random.seed(python_seed)
         random.seed(python_seed)
 
@@ -315,14 +320,13 @@ class Simulation(object):
             nest.Install(module_name)
         except nest.NESTError as exception:
             if 'loaded already' in str(exception):
-                print(f'\nModule {module_name} is already loaded.')
+                log.info('Module %s is already loaded', module_name)
                 return
             if (
                 'could not be opened' in str(exception)
                 and 'file not found' in str(exception)
             ):
-                print(f'\nModule {module_name} could not be loaded. Did you'
-                      f' compile and install the extension module?')
+                log.error('Module %s could not be loaded. Did you compile and install the extension module?', module_name)
                 raise exception
             raise
 
