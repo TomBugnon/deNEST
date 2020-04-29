@@ -40,17 +40,40 @@ facilitates running the same network in multiple conditions.
 
 ## Installation
 
+### Docker
 
-A Dockerfile with NEST 2.20 is provided. Otherwise:
+A Docker image is provided with NEST 2.20 installed, based on
+[nest-docker](https://github.com/nest/nest-docker).
 
-- Install NEST > 2.14.0 following the instructions at
-<http://www.nest-simulator.org/installation/>
+1. From within the repo, build the image:
+   ```bash
+   docker build --tag nets .
+   ```
+2. Run an interactive container:
+   ```bash
+   docker run \
+     -it \
+     --name nets_simulation \
+     --volume $(pwd):/opt/data \
+     --publish 8080:8080 nets \
+     /bin/bash
+   ```
+3. Install NETS within the container:
+   ```bash
+   pip install -e .
+   ```
+4. Use NETS from within the container.
 
-- Set up a python3 environment and install NETS with:
+For more information on how to use the NEST Docker image, see
+[nest-docker](https://github.com/nest/nest-docker).
 
-  ```python
-  pip install "git+https://github.com/TomBugnon/NETS@develop"
-  ```
+### Local
+
+1. Install NEST > v2.14.0 by following the instructions at <http://www.nest-simulator.org/installation/>
+2. Set up a Python 3 environment and install NETS with:
+   ```python
+   pip install "git+https://github.com/TomBugnon/NETS@develop"
+   ```
 
 
 ## Overview
