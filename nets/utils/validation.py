@@ -4,12 +4,11 @@
 
 """Validation and update of parameters dictionaries."""
 
-import logging
 import copy as cp
+import logging
 from pprint import pformat
 
 from ..parameters import ParamsTree
-
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 

@@ -4,8 +4,8 @@
 
 """Represent a sequence of stimuli."""
 
-import time
 import logging
+import time
 from pprint import pformat
 
 import numpy as np

@@ -6,11 +6,10 @@
 
 import logging
 
-from .network import Network
 from .io.save import make_output_dir, output_path, output_subdir, save_as_yaml
+from .network import Network
 from .session import Session
 from .utils import misc, validation
-
 
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 

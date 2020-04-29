@@ -10,7 +10,6 @@ from pathlib import Path
 
 import yaml
 
-
 log = logging.getLogger(__name__)
 
 # Modify along with FILENAME_FUNCS dict (see end of file)

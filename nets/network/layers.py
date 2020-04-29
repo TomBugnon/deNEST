@@ -4,8 +4,8 @@
 
 """Layer objects."""
 
-import logging
 import itertools
+import logging
 import random
 
 import numpy as np
@@ -14,7 +14,6 @@ from ..base_object import NestObject
 from ..utils import spike_times
 from ..utils.validation import ParameterError
 from .utils import flatten, if_created, if_not_created
-
 
 log = logging.getLogger(__name__)
 

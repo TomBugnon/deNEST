@@ -4,8 +4,8 @@
 
 """Provide a class to construct a network."""
 
-import logging
 import itertools
+import logging
 
 from tqdm import tqdm
 
@@ -16,7 +16,6 @@ from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
 from .recorders import ConnectionRecorder, PopulationRecorder
 from .utils import if_not_created, log
-
 
 log = logging.getLogger(__name__)
 

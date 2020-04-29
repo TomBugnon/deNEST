@@ -10,8 +10,7 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
-from .save import output_subdir, output_path
-
+from .save import output_path, output_subdir
 
 log = logging.getLogger(__name__)
 

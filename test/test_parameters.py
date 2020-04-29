@@ -7,13 +7,12 @@
 # pylint: disable=missing-docstring,invalid-name,redefined-outer-name
 # pylint: disable=not-an-iterable
 
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 import pytest
 
 from nets.parameters import ParamsTree
-
 
 assert len(ParamsTree.DATA_KEYS) == 2
 DATA_KEYS = ParamsTree.DATA_KEYS
