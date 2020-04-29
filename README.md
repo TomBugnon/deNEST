@@ -55,7 +55,8 @@ A Docker image is provided with NEST 2.20 installed, based on
      -it \
      --name nets_simulation \
      --volume $(pwd):/opt/data \
-     --publish 8080:8080 nets \
+     --publish 8080:8080 \
+     nets \
      /bin/bash
    ```
 3. Install NETS within the container:
