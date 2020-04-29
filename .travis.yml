@@ -7,4 +7,4 @@ before_install:
 - docker build -t nets .
 
 script:
-- docker run --env LOCAL_USER_ID=$(id -u $USER) --volume $(pwd):/opt/data -p 127.0.0.1:8080:8080 nets /bin/bash -c "pip install -r requirements.txt && pip install codecov && make test && bash <(curl -s https://codecov.io/bash) -t afc2cefe-d9d1-477d-8c50-41c0dce0144d"
+- docker run --env LOCAL_USER_ID=$(id -u $USER) --volume $(pwd):/opt/data nets /bin/bash -c "pip install -r requirements.txt && pip install codecov && make test && ls -lah && bash <(curl -s https://codecov.io/bash) -t afc2cefe-d9d1-477d-8c50-41c0dce0144d"
