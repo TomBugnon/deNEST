@@ -1,7 +1,7 @@
 [![Travis build badge](https://img.shields.io/travis/tombugnon/nets.svg?style=flat-square&maxAge=600)](https://travis-ci.org/tombugnon/nets)
 [![License badge](https://img.shields.io/github/license/tombugnon/nets.svg?style=flat-square&maxAge=86400)](https://github.com/tombugnon/nets/blob/develop/LICENSE)
 ![Python versions badge](https://img.shields.io/pypi/pyversions/pyphi.svg?style=flat-square&maxAge=86400)
-[![codecov](https://codecov.io/gh/tombugnon/nets/branch/master/graph/badge.svg)](https://codecov.io/gh/tombugnon/nets)".
+[![Codecov badge](https://img.shields.io/codecov/c/github/tombugnon/nets?style=flat-square&maxAge=600)](https://codecov.io/gh/tombugnon/nets)
 
 <!--lint disable list-item-indent-->
 <!--lint disable list-item-content-indent-->
