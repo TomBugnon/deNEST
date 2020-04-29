@@ -14,13 +14,13 @@ log = logging.getLogger(__name__)
 
 # Modify along with FILENAME_FUNCS dict (see end of file)
 OUTPUT_SUBDIRS = {
-    'tree': (),
-    'git_hash': (),
-    'raw_data': ('data',),  # Raw recorder data (NEST output)
+    "tree": (),
+    "git_hash": (),
+    "raw_data": ("data",),  # Raw recorder data (NEST output)
     # Metadata for recorders (contains filenames and gid/location mappings)
-    'recorders_metadata': ('data',),
-    'connection_recorders_metadata': ('data',),
-    'session_times': (),
+    "recorders_metadata": ("data",),
+    "connection_recorders_metadata": ("data",),
+    "session_times": (),
 }
 
 # Subdirectories that are cleared during OUTPUT_DIR initialization
@@ -29,9 +29,10 @@ CLEAR_SUBDIRS = [subdir for subdir in OUTPUT_SUBDIRS.values()]
 
 def save_as_yaml(path, tree):
     """Save <tree> as yaml file at <path>."""
-    path = Path(path).with_suffix('.yml')
-    with open(path, 'w') as f:
+    path = Path(path).with_suffix(".yml")
+    with open(path, "w") as f:
         yaml.dump(tree, f, default_flow_style=False)
+
 
 #
 # Paths, filenames and output directory organisation
@@ -70,13 +71,13 @@ def output_filename(data_keyword, *args, **kwargs):
 
 def output_path(output_dir, data_keyword, *args, **kwargs):
     """Return the full path at which an object is saved."""
-    return Path(output_subdir(output_dir,
-                              data_keyword),
-                output_filename(data_keyword, *args, **kwargs))
+    return Path(
+        output_subdir(output_dir, data_keyword),
+        output_filename(data_keyword, *args, **kwargs),
+    )
 
 
-def make_output_dir(output_dir, clear_output_dir=True,
-                    delete_subdirs_list=None):
+def make_output_dir(output_dir, clear_output_dir=True, delete_subdirs_list=None):
     """Create and possibly clear output directory.
 
     Create the directory if it doesn't exist.
@@ -98,18 +99,18 @@ def make_output_dir(output_dir, clear_output_dir=True,
     if clear_output_dir:
         for path in [Path(output_dir, *subdir) for subdir in CLEAR_SUBDIRS]:
             if path.exists():
-                log.info('Clearing directory: %s', path)
+                log.info("Clearing directory: %s", path)
                 # Delete files in the CLEAR_SUBDIRS
                 delete_files(path)
                 # Delete the contents of all the delete_subdirs we encounter
                 delete_subdirs(path, delete_subdirs_list)
 
 
-def _delete_contents(path, to_delete='files', missing_ok=True):
+def _delete_contents(path, to_delete="files", missing_ok=True):
     if missing_ok and not path.is_dir():
         return path
     for child in path.iterdir():
-        if to_delete == 'files':
+        if to_delete == "files":
             if child.is_file():
                 child.unlink()
         elif child.is_dir() and child in to_delete:
@@ -122,7 +123,7 @@ def delete_files(path, missing_ok=True):
 
     Not recursive. Only deletes files, not subdirectories.
     """
-    return _delete_contents(path, to_delete='files', missing_ok=missing_ok)
+    return _delete_contents(path, to_delete="files", missing_ok=missing_ok)
 
 
 def delete_subdirs(path, to_delete, missing_ok=True):
@@ -139,29 +140,29 @@ def recorder_metadata_filename(label):
 
 
 def metadata_filename():
-    return 'session_metadata.yml'
+    return "session_metadata.yml"
 
 
 def session_times_filename():
-    return 'session_times.yml'
+    return "session_times.yml"
 
 
 def tree_filename():
-    return 'parameter_tree.yml'
+    return "parameter_tree.yml"
 
 
 def rasters_filename(layer, pop):
-    return 'spikes_raster_' + layer + '_' + pop + '.png'
+    return "spikes_raster_" + layer + "_" + pop + ".png"
 
 
 def git_hash_filename():
-    return 'git_hash'
+    return "git_hash"
 
 
 FILENAME_FUNCS = {
-    'tree': tree_filename,
-    'recorders_metadata': recorder_metadata_filename,
-    'session_times': session_times_filename,
-    'session_metadata': metadata_filename,
-    'git_hash': git_hash_filename,
+    "tree": tree_filename,
+    "recorders_metadata": recorder_metadata_filename,
+    "session_times": session_times_filename,
+    "session_metadata": metadata_filename,
+    "git_hash": git_hash_filename,
 }

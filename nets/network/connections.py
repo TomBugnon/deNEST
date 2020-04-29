@@ -33,19 +33,17 @@ class ConnectionModel(NestObject):
     # Validation of `params`
     RESERVED_PARAMS = []
     MANDATORY_PARAMS = []
-    OPTIONAL_PARAMS = {
-        'type': 'topological'
-    }
+    OPTIONAL_PARAMS = {"type": "topological"}
     # Validation of `nest_params`
-    RESERVED_NEST_PARAMS = ['sources', 'targets']
-    MANDATORY_NEST_PARAMS = ['synapse_model', 'connection_type']
+    RESERVED_NEST_PARAMS = ["sources", "targets"]
+    MANDATORY_NEST_PARAMS = ["synapse_model", "connection_type"]
     OPTIONAL_NEST_PARAMS = None
 
     def __init__(self, name, params, nest_params):
         super().__init__(name, params, nest_params)
-        self._type = self.params['type']
+        self._type = self.params["type"]
         # Check that the connection types are recognized and nothing is missing.
-        assert self.type in ['topological']
+        assert self.type in ["topological"]
 
     @property
     def type(self):
@@ -87,8 +85,9 @@ class BaseConnection(NestObject):
     # TODO: Make some methods private?
     # pylint: disable=too-many-instance-attributes,too-many-public-methods
 
-    def __init__(self, model, source_layer, source_population, target_layer,
-                 target_population):
+    def __init__(
+        self, model, source_layer, source_population, target_layer, target_population
+    ):
         """Initialize Connection object."""
         # Inherit params and nest_params from connection model
         super().__init__(model.name, model.params, model.nest_params)
@@ -99,15 +98,15 @@ class BaseConnection(NestObject):
         self.target = target_layer
         self.source_population = source_population
         if self.source_population:
-            self.nest_params['sources'] = {'model': self.source_population}
+            self.nest_params["sources"] = {"model": self.source_population}
         self.target_population = target_population
         if self.target_population:
-            self.nest_params['targets'] = {'model': self.target_population}
+            self.nest_params["targets"] = {"model": self.target_population}
         #
         # Base synapse model is retrieved from nest_params. If a weight_recorder
         # is created for this connection, a different synapse model will be used
-        self._base_synapse_model = self.nest_params['synapse_model']
-        self._nest_synapse_model = self.nest_params['synapse_model']
+        self._base_synapse_model = self.nest_params["synapse_model"]
+        self._nest_synapse_model = self.nest_params["synapse_model"]
         self.validate_connection()
 
     # Properties:
@@ -126,11 +125,15 @@ class BaseConnection(NestObject):
         return self._nest_synapse_model
 
     def __str__(self):
-        return '-'.join([
-            self.name,
-            self.source.name, str(self.source_population),
-            self.target.name, str(self.target_population),
-        ])
+        return "-".join(
+            [
+                self.name,
+                self.source.name,
+                str(self.source_population),
+                self.target.name,
+                str(self.target_population),
+            ]
+        )
 
     def __lt__(self, other):
         return self.__str__() < other.__str__()
@@ -142,27 +145,27 @@ class BaseConnection(NestObject):
         """Create the connections in NEST and the connection recorders."""
         pass
 
-    def connect_connection_recorder(self, recorder_type='weight_recorder',
-                                    recorder_gid=None):
+    def connect_connection_recorder(
+        self, recorder_type="weight_recorder", recorder_gid=None
+    ):
         """Create and use new synapse model connected to a ConnectionRecorder.
 
         The new `nest_synapse_model` will be used during creation rather than
         the `base_synapse_model` specified in the nest parameters.
         """
         import nest
-        if recorder_type == 'weight_recorder':
+
+        if recorder_type == "weight_recorder":
             # If we want to record the synapse, we create a new model and change
             # its default params so that it connects to the weight recorder
             self._nest_synapse_model = self.nest_synapse_model_name()
             nest.CopyModel(
                 self._base_synapse_model,
                 self._nest_synapse_model,
-                {
-                    recorder_type: recorder_gid
-                }
+                {recorder_type: recorder_gid},
             )
             # Use modified synapse model for connection
-            self.nest_params['synapse_model'] = self._nest_synapse_model
+            self.nest_params["synapse_model"] = self._nest_synapse_model
         else:
             raise ParameterError(
                 f"ConnectionRecorder type `{recorder_type}` not recognized"
@@ -184,13 +187,13 @@ class BaseConnection(NestObject):
                 ``parrot_neuron``
         """
 
-        if type(self.target).__name__ == 'InputLayer':
+        if type(self.target).__name__ == "InputLayer":
             raise ValueError(
                 f"Invalid target in connection {str(self)}: `InputLayer` layers"
                 f" cannot be connection targets."
             )
         if (
-            type(self.source).__name__ == 'InputLayer'
+            type(self.source).__name__ == "InputLayer"
             and self.source_population != self.source.PARROT_MODEL
         ):
             raise ValueError(

@@ -31,7 +31,7 @@ from .utils.autodict import AutoDict
 
 # Maps CLI options to their corresponding path in the parameter tree.
 _CLI_ARG_MAP = {
-    '--output': ('simulation', 'params', 'output_dir'),
+    "--output": ("simulation", "params", "output_dir"),
 }
 
 
@@ -39,18 +39,20 @@ def main():
     """Run Spiking VisNet from the command line."""
     # Construct a new argument list to allow docopt's parser to work with the
     # `python -m nets` calling pattern.
-    argv = ['-m', 'nets'] + sys.argv[1:]
+    argv = ["-m", "nets"] + sys.argv[1:]
     # Get command-line args from docopt.
     arguments = docopt(__doc__, argv=argv, version=__version__)
     # Get parameter overrides from the CLI options.
-    overrides = AutoDict({
-        _CLI_ARG_MAP[key]: value
-        for key, value in arguments.items()
-        if (value is not None and key in _CLI_ARG_MAP)
-    })
+    overrides = AutoDict(
+        {
+            _CLI_ARG_MAP[key]: value
+            for key, value in arguments.items()
+            if (value is not None and key in _CLI_ARG_MAP)
+        }
+    )
     # Run it!
-    run(arguments['<tree_paths.yml>'], overrides)
+    run(arguments["<tree_paths.yml>"], overrides)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

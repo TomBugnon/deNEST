@@ -8,8 +8,7 @@ import itertools
 import numpy as np
 
 
-def draw_spike_times(all_instantaneous_rates, start_time=0,
-                     distribution='poisson'):
+def draw_spike_times(all_instantaneous_rates, start_time=0, distribution="poisson"):
     """Draw spike times from a 3D array of instantaneous rates.
 
     Args:
@@ -34,14 +33,14 @@ def draw_spike_times(all_instantaneous_rates, start_time=0,
 
     for row, col in itertools.product(range(nrows), range(ncols)):
         unit_instantaneous_rates = all_instantaneous_rates[:, row, col]
-        all_spike_times[row, col] = unit_spike_times(unit_instantaneous_rates,
-                                                     start_time=start_time,
-                                                     distribution=distribution)
+        all_spike_times[row, col] = unit_spike_times(
+            unit_instantaneous_rates, start_time=start_time, distribution=distribution
+        )
 
     return all_spike_times
 
 
-def unit_spike_times(inst_rates, start_time=0., distribution='poisson'):
+def unit_spike_times(inst_rates, start_time=0.0, distribution="poisson"):
     """Draw spike times from a list of instantaneous rates.
 
     Args:
@@ -67,7 +66,7 @@ def unit_spike_times(inst_rates, start_time=0., distribution='poisson'):
     for t, rate in enumerate(inst_rates):
         if draw_func(rate):
             # Add 1 as NEST accepts only strictly positive spike times.
-            spike_times.append(t + start_time + 1.)
+            spike_times.append(t + start_time + 1.0)
     return spike_times
 
 
@@ -87,4 +86,4 @@ def draw_poisson(rate, dt=0.001):
     return np.random.poisson(float(rate * dt)) > 0
 
 
-SPIKE_GENERATION_MAP = {'poisson': draw_poisson}
+SPIKE_GENERATION_MAP = {"poisson": draw_poisson}

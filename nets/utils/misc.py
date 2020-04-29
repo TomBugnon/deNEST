@@ -21,8 +21,7 @@ def pretty_time(start_time):
 def drop_git_hash(output_dir):
     git_hash = git_head_hash()
     path = Path(
-        save.output_subdir(output_dir, "git_hash"),
-        save.output_filename("git_hash")
+        save.output_subdir(output_dir, "git_hash"), save.output_filename("git_hash")
     )
     with path.open("wb") as f:
         f.write(git_hash)

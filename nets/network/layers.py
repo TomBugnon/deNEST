@@ -29,15 +29,14 @@ class AbstractLayer(NestObject):
         self._gid = None
         self._gids = None  # list of layer GIDs
         self._locations = {}  # {<gid>: (row, col)}
-        self._populations = params['populations']  # {<population>: <number>}
-        self.shape = nest_params['rows'], nest_params['columns']
+        self._populations = params["populations"]  # {<population>: <number>}
+        self.shape = nest_params["rows"], nest_params["columns"]
         # Record if we change some of the layer units' state probabilistically
         self._prob_changed = False
 
     def __iter__(self):
         """Iterate on layer locations."""
-        yield from itertools.product(range(self.shape[0]),
-                                     range(self.shape[1]))
+        yield from itertools.product(range(self.shape[0]), range(self.shape[1]))
 
     @if_not_created
     def create(self):
@@ -60,6 +59,7 @@ class AbstractLayer(NestObject):
         """Connect to target layer. Called by `Connection.create()`"""
         # NOTE: Don't use this method directly; use a Connection instead
         from nest import topology as tp
+
         tp.ConnectLayers(self.gid, target.gid, nest_params)
 
     def gids(self, population=None, location=None):
@@ -77,8 +77,9 @@ class AbstractLayer(NestObject):
         """
         raise NotImplementedError
 
-    def change_unit_states(self, changes_dict, population=None, proportion=1.0,
-                           change_type='constant'):
+    def change_unit_states(
+        self, changes_dict, population=None, proportion=1.0, change_type="constant"
+    ):
         """Set parameters for some units.
 
         Args:
@@ -102,60 +103,58 @@ class AbstractLayer(NestObject):
                 to the current value of the corresponding parameter for each
                 unit.
         """
-        if change_type not in ['constant', 'multiplicative']:
+        if change_type not in ["constant", "multiplicative"]:
             raise ParameterError(
                 "``change_type`` argument should 'constant' or 'multiplicative'"
             )
         if proportion > 1 or proportion < 0:
-            raise ParameterError(
-                '``proportion`` parameter should be within [0, 1]'
-            )
+            raise ParameterError("``proportion`` parameter should be within [0, 1]")
         if not changes_dict:
             return
         if self._prob_changed and proportion != 1.0:
-            raise Exception("Attempting to change probabilistically some "
-                            "units' state multiple times.")
+            raise Exception(
+                "Attempting to change probabilistically some "
+                "units' state multiple times."
+            )
         all_gids = self.gids(population=population)
         if proportion != 1.0:
-            log.info(f'    Select subset of gids (proportion = {proportion})')
-        gids_to_change = self.get_gids_subset(
-            all_gids,
-            proportion
+            log.info(f"    Select subset of gids (proportion = {proportion})")
+        gids_to_change = self.get_gids_subset(all_gids, proportion)
+        log.info(
+            '    Apply "%s" parameter changes on %s/%s units (layer=%s, population=%s)',
+            change_type,
+            len(gids_to_change),
+            len(all_gids),
+            self.name,
+            population,
         )
-        log.info('    Apply "%s" parameter changes on %s/%s units (layer=%s, population=%s)',
-                 change_type, len(gids_to_change), len(all_gids), self.name, population)
-        self.apply_unit_changes(gids_to_change, changes_dict,
-                                change_type=change_type)
+        self.apply_unit_changes(gids_to_change, changes_dict, change_type=change_type)
         self._prob_changed = True
 
     @staticmethod
-    def apply_unit_changes(gids_to_change, changes_dict,
-                           change_type='constant'):
+    def apply_unit_changes(gids_to_change, changes_dict, change_type="constant"):
         """Change the state of a list of units."""
-        assert change_type in ['constant', 'multiplicative']
+        assert change_type in ["constant", "multiplicative"]
         import nest
-        if change_type == 'constant':
+
+        if change_type == "constant":
             nest.SetStatus(gids_to_change, changes_dict)
-        elif change_type == 'multiplicative':
+        elif change_type == "multiplicative":
             for gid, (change_key, change_ratio) in itertools.product(
-                gids_to_change,
-                changes_dict.items()
+                gids_to_change, changes_dict.items()
             ):
                 current_value = nest.GetStatus((gid,), change_key)[0]
-                nest.SetStatus(
-                    (gid,),
-                    {change_key: current_value * change_ratio}
-                )
+                nest.SetStatus((gid,), {change_key: current_value * change_ratio})
 
     @staticmethod
     def get_gids_subset(gids_list, proportion):
         """Return a proportion of gids picked randomly from a list."""
-        return [gids_list[i] for i
-                in sorted(
-                    random.sample(
-                        range(len(gids_list)),
-                        int(len(gids_list) * proportion))
-                        )]
+        return [
+            gids_list[i]
+            for i in sorted(
+                random.sample(range(len(gids_list)), int(len(gids_list) * proportion))
+            )
+        ]
 
 
 class Layer(AbstractLayer):
@@ -177,18 +176,16 @@ class Layer(AbstractLayer):
 
     # Validation of `params`
     RESERVED_PARAMS = None
-    MANDATORY_PARAMS = ['populations']
-    OPTIONAL_PARAMS = {
-        'type': None
-    }
+    MANDATORY_PARAMS = ["populations"]
+    OPTIONAL_PARAMS = {"type": None}
     # Validation of `nest_params`
-    RESERVED_NEST_PARAMS = ['elements']
-    MANDATORY_NEST_PARAMS = ['rows', 'columns']
+    RESERVED_NEST_PARAMS = ["elements"]
+    MANDATORY_NEST_PARAMS = ["rows", "columns"]
     OPTIONAL_NEST_PARAMS = None
 
     def __init__(self, name, params, nest_params):
         super().__init__(name, params, nest_params)
-        self.nest_params['elements'] = self.build_elements()
+        self.nest_params["elements"] = self.build_elements()
 
     def build_elements(self):
         """Convert ``populations`` parameters to format expected by NEST
@@ -201,10 +198,9 @@ class Layer(AbstractLayer):
         return a NEST element specification, which is a list of the form::
             [<model_name>, <number of units>]
         """
-        populations = self.params['populations']
-        if (
-            not populations
-            or any([not isinstance(n, int) for n in populations.values()])
+        populations = self.params["populations"]
+        if not populations or any(
+            [not isinstance(n, int) for n in populations.values()]
         ):
             raise ParameterError(
                 "Invalid format for `populations` parameter {populations} of "
@@ -212,17 +208,18 @@ class Layer(AbstractLayer):
                 "`{<population_name>: <number_of_units>}` with integer values"
             )
         # Map types to numbers
-        return flatten([population, number]
-                       for population, number in populations.items())
+        return flatten(
+            [population, number] for population, number in populations.items()
+        )
 
     @if_not_created
     def create(self):
         """Create the layer in NEST and update attributes."""
         from nest import topology as tp
+
         self._gid = tp.CreateLayer(self.nest_params)
         # Update _locations: ``{gid: (row, col)}``
-        for i, j in itertools.product(range(self.shape[0]),
-                                      range(self.shape[1])):
+        for i, j in itertools.product(range(self.shape[0]), range(self.shape[1])):
             # IMPORTANT: rows and columns are switched in the GetElement query
             gids = tp.GetElement(self.gid, locations=(j, i))
             for gid in gids:
@@ -234,13 +231,13 @@ class Layer(AbstractLayer):
     def gids(self, population=None, location=None):
         """Return layer GIDs filtered by population or location."""
         import nest
+
         return [
-            gid for gid in self._gids
+            gid
+            for gid in self._gids
             if (
-                (population is None
-                 or nest.GetStatus((gid,), 'model')[0] == population)
-                and (location is None
-                     or self.locations[gid] == location)
+                (population is None or nest.GetStatus((gid,), "model")[0] == population)
+                and (location is None or self.locations[gid] == location)
             )
         ]
 
@@ -254,11 +251,12 @@ class Layer(AbstractLayer):
     @staticmethod
     def position(*args):
         import nest.topology as tp
+
         return tp.GetPosition(args)
 
     def population_names(self):
         """Return a list of population names within this layer."""
-        return list(self.params['populations'].keys())
+        return list(self.params["populations"].keys())
 
     def recordable_population_names(self):
         """Return list of names of recordable population names in this layer."""
@@ -272,16 +270,17 @@ class Layer(AbstractLayer):
         variable per location.
         """
         import nest
+
         if isinstance(values, np.ndarray):
             value_per_location = True
-            assert np.shape(values) == self.shape, (
-                "Array has the wrong shape for setting layer values"
-            )
+            assert (
+                np.shape(values) == self.shape
+            ), "Array has the wrong shape for setting layer values"
         for location in self:
             value = values[location] if value_per_location else values
-            nest.SetStatus(self.gids(population=population,
-                                     location=location),
-                           {variable: value})
+            nest.SetStatus(
+                self.gids(population=population, location=location), {variable: value}
+            )
 
 
 class InputLayer(Layer):
@@ -298,21 +297,23 @@ class InputLayer(Layer):
     The state of stimulators within the `InputLayer` can be set from an input
     array via the ``InputLayer.set_input`` method.
     """
-    # Append ``Layer`` docstring
-    __doc__ += '\n'.join(Layer.__doc__.split('\n')[1:])
 
-    PARROT_MODEL = 'parrot_neuron'
-    STIMULATORS = ['spike_generator', 'poisson_generator']
+    # Append ``Layer`` docstring
+    __doc__ += "\n".join(Layer.__doc__.split("\n")[1:])
+
+    PARROT_MODEL = "parrot_neuron"
+    STIMULATORS = ["spike_generator", "poisson_generator"]
 
     def __init__(self, name, params, nest_params):
 
         # TODO make deepcopies everywhere
         import copy
+
         params = copy.deepcopy(params)
 
         # Check populations and add a population of parrot neurons
-        populations = params['populations']
-        if (len(populations) != 1 or list(populations.values())[0] != 1):
+        populations = params["populations"]
+        if len(populations) != 1 or list(populations.values())[0] != 1:
             raise ParameterError(
                 f"Invalid `population` parameter for `InputLayer` layer {name}."
                 f" InputLayers should be composed of a single population of"
@@ -326,7 +327,7 @@ class InputLayer(Layer):
         self.stimulator_type = None  # TODO: Check stimulator type
         # Add a parrot population entry
         populations[self.PARROT_MODEL] = 1
-        params['populations'] = populations
+        params["populations"] = populations
 
         # Initialize the layer
         super().__init__(name, params, nest_params)
@@ -335,26 +336,20 @@ class InputLayer(Layer):
         """Create the layer and connect the stimulator and parrot populations"""
         super().create()
         import nest
+
         # Connect stimulators to parrots, one-to-one
         assert all([n == 1 for n in self.populations.values()])
         stim_gids = []
         parrot_gids = []
         for loc in self:
-            stim_gids += self.gids(
-                location=loc, population=self.stimulator_model
-            )
-            parrot_gids += self.gids(
-                location=loc, population=self.PARROT_MODEL
-            )
-        nest.Connect(
-            stim_gids, parrot_gids, 'one_to_one', {'model': 'static_synapse'}
-        )
+            stim_gids += self.gids(location=loc, population=self.stimulator_model)
+            parrot_gids += self.gids(location=loc, population=self.PARROT_MODEL)
+        nest.Connect(stim_gids, parrot_gids, "one_to_one", {"model": "static_synapse"})
         # Get stimulator type
-        self.stimulator_type = nest.GetDefaults(self.stimulator_model,
-                                                'type_id')
+        self.stimulator_type = nest.GetDefaults(self.stimulator_model, "type_id")
 
     # TODO: DOc
-    def set_input(self, input_array, start_time=0.):
+    def set_input(self, input_array, start_time=0.0):
         """Set stimulator state from input_array."""
 
         if self.stimulator_type not in self.STIMULATORS:
@@ -366,24 +361,24 @@ class InputLayer(Layer):
         max_rate = np.max(input_array)
         assert input_array.ndim == 3
         log.info('  Setting input for "%s"', self.name)
-        log.info('    Max instantaneous rate: %s Hz', str(max_rate))
-        if self.stimulator_type == 'poisson_generator':
-            log.info("Stimulator is a 'poisson_generator'; using only first frame of the %s stimulus array",
-                      input_array.shape)
-            # Use only first frame
-            self.set_state('rate',
-                           input_array[0],
-                           population=self.stimulator_model)
-        elif self.stimulator_type == 'spike_generator':
-            all_spike_times = spike_times.draw_spike_times(
-                input_array,
-                start_time=start_time
+        log.info("    Max instantaneous rate: %s Hz", str(max_rate))
+        if self.stimulator_type == "poisson_generator":
+            log.info(
+                "Stimulator is a 'poisson_generator'; using only first frame of the %s stimulus array",
+                input_array.shape,
             )
-            self.set_state('spike_times', all_spike_times,
-                           population=self.stimulator_model)
+            # Use only first frame
+            self.set_state("rate", input_array[0], population=self.stimulator_model)
+        elif self.stimulator_type == "spike_generator":
+            all_spike_times = spike_times.draw_spike_times(
+                input_array, start_time=start_time
+            )
+            self.set_state(
+                "spike_times", all_spike_times, population=self.stimulator_model
+            )
         else:
             assert False
 
     def recordable_population_names(self):
         """Return list of names of recordable population names in this layer."""
-        return ['parrot_neuron']
+        return ["parrot_neuron"]

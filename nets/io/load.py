@@ -17,16 +17,14 @@ log = logging.getLogger(__name__)
 
 def load_session_times(output_dir):
     """Load session time from output dir."""
-    return load_yaml(output_path(output_dir, 'session_times'))
+    return load_yaml(output_path(output_dir, "session_times"))
 
 
 def metadata_paths(output_dir):
     """Return list of paths to all recorder metadata files."""
-    metadata_dir = output_subdir(output_dir,
-                                 'recorders_metadata',
-                                 create_dir=False)
+    metadata_dir = output_subdir(output_dir, "recorders_metadata", create_dir=False)
     # "metadata" files are the ones without .ext
-    return sorted(metadata_dir.glob('*.yml'))
+    return sorted(metadata_dir.glob("*.yml"))
 
 
 def load(metadata_path):
@@ -47,11 +45,10 @@ def load(metadata_path):
     metadata = load_yaml(metadata_path)
     filepaths = get_filepaths(metadata_path)
 
-    return load_as_df(metadata['colnames'], *filepaths)
+    return load_as_df(metadata["colnames"], *filepaths)
 
 
-def load_as_df(colnames, *paths, sep='\t', index_col=False, header=None,
-               **kwargs):
+def load_as_df(colnames, *paths, sep="\t", index_col=False, header=None, **kwargs):
     """Load tabular data from one or more files and return a pandas df.
 
     Keyword arguments are passed to ``pandas.read_csv()``.
@@ -72,8 +69,14 @@ def load_as_df(colnames, *paths, sep='\t', index_col=False, header=None,
     # Read data from disk
     return pd.concat(
         [
-            pd.read_csv(path, names=colnames, sep=sep, index_col=index_col,
-                        header=header, **kwargs)
+            pd.read_csv(
+                path,
+                names=colnames,
+                sep=sep,
+                index_col=index_col,
+                header=header,
+                **kwargs
+            )
             for path in paths
         ]
     )
@@ -83,14 +86,13 @@ def get_filepaths(metadata_path):
     metadata_path = Path(metadata_path)
     metadata = load_yaml(metadata_path)
     # Check loaded metadata
-    assert 'filenames' in metadata
+    assert "filenames" in metadata
     # We assume metadata and data are in the same directory
-    return [metadata_path.parent/filename
-            for filename in metadata['filenames']]
+    return [metadata_path.parent / filename for filename in metadata["filenames"]]
 
 
 def load_yaml(*args):
     """Load a YAML file from a path."""
     path = Path(*args)
-    with path.open('rt') as f:
+    with path.open("rt") as f:
         return yaml.load(f, Loader=yaml.FullLoader)

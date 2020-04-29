@@ -16,6 +16,6 @@ def base_layer(request):
     yield from init_layer(*request.param)
 
 
-@pytest.fixture(params=BASE_LAYERS+INPUT_LAYERS)
+@pytest.fixture(params=BASE_LAYERS + INPUT_LAYERS)
 def layer(request):
     yield from init_layer(*request.param)

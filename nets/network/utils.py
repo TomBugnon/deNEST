@@ -17,12 +17,12 @@ def flatten(seq):
 
 def indent(string, amount=2):
     """Indent a string by an amount."""
-    return '\n'.join((' ' * amount) + line for line in string.split('\n'))
+    return "\n".join((" " * amount) + line for line in string.split("\n"))
 
 
 class NotCreatedError(AttributeError):
-
     """Raised when a ``NestObject`` needs to have been created, but wasn't."""
+
     pass
 
 
@@ -35,8 +35,9 @@ def if_not_created(method):
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):  # pylint: disable=missing-docstring
         if self._created:
-            log.warning('Attempted to create object more than once:\n%s',
-                        indent(str(self)))
+            log.warning(
+                "Attempted to create object more than once:\n%s", indent(str(self))
+            )
             return
         try:
             self._created = True
@@ -55,8 +56,7 @@ def if_created(method):
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):  # pylint: disable=missing-docstring
         if not self._created:
-            raise NotCreatedError(
-                'Must call `create()` first:\n' + indent(str(self)))
+            raise NotCreatedError("Must call `create()` first:\n" + indent(str(self)))
         return method(self, *args, **kwargs)
 
     return wrapper

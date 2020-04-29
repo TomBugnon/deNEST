@@ -11,28 +11,24 @@ import pytest
 import nets
 import nets.io.load
 
-PARAMS_PATH = './params/tree_paths.yml'
-INPUT_DIR = './input'
-OUTPUT_DIR = './output'
+PARAMS_PATH = "./params/tree_paths.yml"
+INPUT_DIR = "./input"
+OUTPUT_DIR = "./output"
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def output_dir():
     nets.run(PARAMS_PATH, input_dir=INPUT_DIR, output_dir=OUTPUT_DIR)
     return OUTPUT_DIR
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def metadata_paths(output_dir):
-    return nets.io.load.metadata_paths(
-        output_dir,
-    )
+    return nets.io.load.metadata_paths(output_dir,)
 
 
 def test_parameter_tree(output_dir, data_regression):
-    params_tree = nets.io.load.load_yaml(
-        nets.io.load.output_path(output_dir, 'tree')
-    )
+    params_tree = nets.io.load.load_yaml(nets.io.load.output_path(output_dir, "tree"))
     data_regression.check(params_tree)
 
 
@@ -57,7 +53,10 @@ def test_data(metadata_paths, file_regression):
     for metadata_path in metadata_paths:
         recorder_data = nets.io.load.load(metadata_path)
         # Sort dataframe and round 4
-        all_datas[str(metadata_path)] = recorder_data.sort_values(
-            list(recorder_data.columns)
-        ).reset_index(drop=True).round(4).fillna('NaN')
-    file_regression.check(pickle.dumps(all_datas), binary=True, extension='')
+        all_datas[str(metadata_path)] = (
+            recorder_data.sort_values(list(recorder_data.columns))
+            .reset_index(drop=True)
+            .round(4)
+            .fillna("NaN")
+        )
+    file_regression.check(pickle.dumps(all_datas), binary=True, extension="")

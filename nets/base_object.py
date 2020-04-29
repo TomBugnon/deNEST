@@ -30,7 +30,9 @@ class ParamObject:
         """Validate and update params with default values."""
         # Validate params:
         self.params = validate(
-            self.name, dict(self.params), param_type='params',
+            self.name,
+            dict(self.params),
+            param_type="params",
             reserved=self.RESERVED_PARAMS,
             mandatory=self.MANDATORY_PARAMS,
             optional=self.OPTIONAL_PARAMS,
@@ -72,13 +74,17 @@ class NestObject:
         """Validate and update params and nest_params with default values."""
         # Validate params:
         self.params = validate(
-            self.name, self.params, param_type='params',
+            self.name,
+            self.params,
+            param_type="params",
             reserved=self.RESERVED_PARAMS,
             mandatory=self.MANDATORY_PARAMS,
             optional=self.OPTIONAL_PARAMS,
         )
         self.nest_params = validate(
-            self.name, self.nest_params, param_type='nest_params',
+            self.name,
+            self.nest_params,
+            param_type="nest_params",
             reserved=self.RESERVED_NEST_PARAMS,
             mandatory=self.MANDATORY_NEST_PARAMS,
             optional=self.OPTIONAL_NEST_PARAMS,
@@ -88,18 +94,21 @@ class NestObject:
         return self.name
 
     def _repr_pretty_(self, p, cycle):
-        opener = '{classname}({name}, '.format(
-            classname=type(self).__name__, name=self.__str__())
-        closer = ')'
+        opener = "{classname}({name}, ".format(
+            classname=type(self).__name__, name=self.__str__()
+        )
+        closer = ")"
         with p.group(p.indentation, opener, closer):
             p.breakable()
             p.pretty(self.params)
             p.pretty(self.nest_params)
 
     def __repr__(self):
-        return '{classname}({name}, {params}, {nest_params})'.format(
-            classname=type(self).__name__, name=self.__str__(),
-            params=pformat(self.params), nest_params=pformat(self.nest_params)
+        return "{classname}({name}, {params}, {nest_params})".format(
+            classname=type(self).__name__,
+            name=self.__str__(),
+            params=pformat(self.params),
+            nest_params=pformat(self.nest_params),
         )
 
     def __lt__(self, other):
