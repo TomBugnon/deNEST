@@ -9,6 +9,7 @@ import logging
 
 from tqdm import tqdm
 
+from ..parameters import ParamsTree
 from ..utils import validation
 from ..utils.validation import ParameterError
 from .connections import ConnectionModel, TopoConnection
@@ -100,33 +101,26 @@ class Network(object):
 
         # Build network components
         # ~~~~~~~~~~~~~~~~~~~~~~~~
-        self.neuron_models = self.build_named_leaves_dict(
-            Model, self.tree.children['neuron_models'])
-        self.synapse_models = self.build_named_leaves_dict(
-            SynapseModel, self.tree.children['synapse_models'])
-        self.recorder_models = self.build_named_leaves_dict(
-            Model, self.tree.children['recorder_models'])
-        self.layers = {
-            name: LAYER_TYPES[leaf.params.get('type', None)](
-                name,
-                dict(leaf.params),
-                dict(leaf.nest_params)
-            )
-            for name, leaf in self.tree.children['layers'].named_leaves(
-                root=False
-            )
-        }
-        self.connection_models = self.build_named_leaves_dict(
-            ConnectionModel, self.tree.children['connection_models'])
+        self.neuron_models = {}
+        self.synapse_models = {}
+        self.recorder_models = {}
+        self.layers = {}
+        self.connection_models = {}
+        self.connections = []
+        self.population_recorders = []
+        self.connection_recorders = []
+
+        self.build_neuron_models(self.tree.children['neuron_models'])
+        self.build_synapse_models(self.tree.children['synapse_models'])
+        self.build_recorder_models(self.tree.children['recorder_models'])
+        self.build_layers(self.tree.children['layers'])
+        self.build_connection_models(self.tree.children['connection_models'])
+        self.build_connections(self.tree.children['topology'])
+        self.build_recorders(self.tree.children['recorders'])
         # Connections must be built after layers and connection models
-        self.connections = self.build_connections(
-            self.tree.children['topology']
-        )
+        self.build_connections(self.tree.children['topology'])
         # Initialize population recorders and connection recorders
-        self.population_recorders, self.connection_recorders = \
-            self.build_recorders(
-                self.tree.children['recorders']
-            )
+        self.build_recorders(self.tree.children['recorders'])
 
     @staticmethod
     def build_named_leaves_dict(constructor, node):
@@ -136,16 +130,93 @@ class Network(object):
             for name, leaf in node.named_leaves(root=False)
         }
 
+    def build_neuron_models(self, tree):
+        """Initialize ``self.neuron_models`` from the leaves of a tree.
+
+        Args:
+            self (``Network``): Network object. The ``neuron_models`` attribute
+                is overriden.
+            tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
+                which define neuron models. Each leaf is used to initialize a
+                ``Model`` object.
+        """
+        tree = (ParamsTree(tree) if not isinstance(tree, ParamsTree) else tree)
+        self.neuron_models = self.build_named_leaves_dict(Model, tree)
+
+    def build_synapse_models(self, tree):
+        """Initialize ``self.synapse_models`` from the leaves of a tree.
+
+        Args:
+            self (``Network``): Network object. The ``synapse_models`` attribute
+                is overriden.
+            tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
+                which define neuron models. Each leaf is used to initialize a
+                ``SynapseModel`` object.
+        """
+        tree = (ParamsTree(tree) if not isinstance(tree, ParamsTree) else tree)
+        self.synapse_models = self.build_named_leaves_dict(SynapseModel, tree)
+
+    def build_recorder_models(self, tree):
+        """Initialize ``self.recorder_models`` from the leaves of a tree.
+
+        Args:
+            self (``Network``): Network object. The ``recorder_models``
+                attribute is overriden.
+            tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
+                which define neuron models. Each leaf is used to initialize a
+                ``Model`` object.
+        """
+        tree = (ParamsTree(tree) if not isinstance(tree, ParamsTree) else tree)
+        self.recorder_models = self.build_named_leaves_dict(Model, tree)
+
+    def build_layers(self, tree):
+        """Initialize ``self.layers`` from the leaves of a tree.
+
+        Args:
+            self (``Network``): Network object. The ``layers`` attribute is
+                overriden.
+            tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
+                which define layers. Each leaf is used to initialize a
+                ``Layer`` or ``InputLayer`` objecs depending on the value of
+                the ``type`` parameter.
+        """
+        tree = (ParamsTree(tree) if not isinstance(tree, ParamsTree) else tree)
+        self.layers = {
+            name: LAYER_TYPES[leaf.params.get('type', None)](
+                name, dict(leaf.params), dict(leaf.nest_params)
+            )
+            for name, leaf in tree.named_leaves(root=False)
+        }
+
+    def build_connection_models(self, tree):
+        """Initialize ``self.connection_models`` from the leaves of a tree.
+
+        Args:
+            self (``Network``): Network object. The ``connection_models``
+                attribute is overriden.
+            tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
+                which define connection models. Each leaf is used to initialize
+                a ``ConnectionModel`` object.
+        """
+        tree = (ParamsTree(tree) if not isinstance(tree, ParamsTree) else tree)
+        self.connection_models = self.build_named_leaves_dict(
+            ConnectionModel,
+            tree
+        )
+
     def build_connections(self, topology_tree):
-        """Return list of ``Connection`` objects from ``topology`` ParamsTree tree.
+        """Initialize ``self.connections`` from ``topology`` tree.
+
+        Initialize ``self.connections`` with a list of ``Connection`` objects.
 
         Args:
             self (``Network``): Network object
-            topology_tree (``ParamsTree``): ``ParamsTree`` object without
-                children. The parameters of which may contain a ``connections``
-                parameter entry (default []). THe value of the ``connections``
-                parameter is a list of items describing the connections to be
-                created. Each item must be a ``dict`` of the following form::
+            topology_tree (tree-like or ``ParamsTree``): Tree-like or ParamsTree
+                without children. The parameters of which may contain a
+                ``connections`` parameter entry (default []). THe value of the
+                ``connections`` parameter is a list of items describing the
+                connections to be created. Each item must be a ``dict`` of the
+                following form::
                     dict: {
                         'connection_model' : <connection_model>,
                         'source_layers': <source_layers_list>,
@@ -168,11 +239,11 @@ class Network(object):
                 <source_population_name>, <target_layer_name>,
                 <target_population_name>)`` tuples fully specify each individual
                 connection and should be unique.
-
-        Returns:
-            list: List of ``Connection`` objects specifying all the connections
-                in the network.
         """
+
+        if not isinstance(topology_tree, ParamsTree):
+            topology_tree = ParamsTree(topology_tree)
+
         OPTIONAL_TOPOLOGY_PARAMS = {
             'connections': []
         }
@@ -209,7 +280,9 @@ class Network(object):
                     target, tgt_pop
                 )
             )
-        return connections
+
+        # Initialize attribute
+        self.connections = connections
 
     def parse_connection_params(self, connection_items):
         """Return list of tuples specifying all unique connections
@@ -254,16 +327,18 @@ class Network(object):
         return sorted(set(connection_args))
 
     def build_recorders(self, recorders_tree):
-        """Build PopulationRecorder and ConnectionRecorder objects.
+        """Initialize recorders from tree.
 
         Validates the ``recorders`` parameter tree and calls
         ``Network.build_population_recorders`` and
-        ``Network.build_connection_recorders``
+        ``Network.build_connection_recorders`` to initialize the
+        ``Network.population_recorders`` and ``Network.connection_recorders``
+        attributes
 
         Args:
             self (``Network``): Network object
-            recorders_tree (``ParamsTree``): ``ParamsTree`` object without
-                children nor ``nest_params``.
+            recorders_tree (tree-like or ``ParamsTree``): Tree-like or
+                ``ParamsTree`` object without children nor ``nest_params``.
                 The parameters of which may contain a ``population_recorders``
                 (default []) and a ``connection_recorders`` (default []) entry
                 specifying the network's recorders.
@@ -275,6 +350,9 @@ class Network(object):
         Returns:
             (list(PopulationRecorder), list(ConnectionRecorder))
         """
+
+        if not isinstance(recorders_tree, ParamsTree):
+            recorders_tree = ParamsTree(recorders_tree)
 
         OPTIONAL_RECORDERS_PARAMS = {
             'population_recorders': [],
@@ -298,13 +376,11 @@ class Network(object):
             mandatory=[], optional=OPTIONAL_RECORDERS_PARAMS
         )
 
-        return (
-            self.build_population_recorders(
-                recorders_params['population_recorders']
-            ),
-            self.build_connection_recorders(
+        self.population_recorders = self.build_population_recorders(
+            recorders_params['population_recorders']
+        )
+        self.connection_recorders = self.build_connection_recorders(
                 recorders_params['connection_recorders']
-            )
         )
 
     def build_connection_recorders(self, connection_recorders_items):
