@@ -249,15 +249,13 @@ class Network(object):
         }
 
         # Validate ``topology`` parameter
-        # No children
         validation.validate_children(
             topology_tree, [], []
-        )
-        # No nest_params
+        )  # No children
         validation.validate(
             'topology', dict(topology_tree.nest_params),
             param_type='nest_params', mandatory=[], optional={}
-        )
+        )  # No nest_params
         # Only a 'connections' `params` entry
         connection_items = validation.validate(
             'topology', dict(topology_tree.params), param_type='params',
@@ -360,16 +358,14 @@ class Network(object):
         }
 
         # Validate recorders tree
-        # No children
         validation.validate_children(
             recorders_tree, [], []
-        )
-        # No nest_params
+        )  # No children
         validation.validate(
             'recorders', dict(recorders_tree.nest_params),
             param_type='nest_params',
             mandatory=[], optional={}
-        )
+        )  # No nest_params
         # Only a 'population_params' or 'connection_params' `params` entry
         recorders_params = validation.validate(
             'recorders', dict(recorders_tree.params), param_type='params',
