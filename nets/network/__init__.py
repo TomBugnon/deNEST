@@ -77,8 +77,12 @@ class Network(object):
         'topology', 'recorder_models', 'recorders'
     ]
 
-    def __init__(self, tree):
+    def __init__(self, tree=None):
         """Initialize the network object without creating it in NEST."""
+
+        if tree is None:
+            tree = ParamsTree({})
+
         self._created = False
         self._changed = False
         self.tree = tree.copy()
