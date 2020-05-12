@@ -16,7 +16,9 @@ from .session import Session
 from .simulation import Simulation
 from .utils import misc
 
-__all__ = ["load_trees", "run", "Simulation", "Network", "Session"]
+__all__ = [
+    "load_trees", "run", "Simulation", "Network", "Session", "ParamsTree"
+]
 
 logging.config.dictConfig(
     {
