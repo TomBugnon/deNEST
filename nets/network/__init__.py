@@ -137,6 +137,20 @@ class Network(object):
         log.info(msg)
         return named_leaves
 
+    def update_tree_child(self, child_name, tree):
+        """Add a child to ``self.tree``"""
+        # Convert to ParamsTree and specify parent tree to preserve inheritance
+        if not isinstance(tree, ParamsTree):
+            child_tree = ParamsTree(tree, parent=self.tree, name=child_name)
+        else:
+            child_tree = ParamsTree(
+                tree.asdict(),
+                parent=self.tree,
+                name=child_name
+            )
+        # Add as child
+        self.tree.children[child_name] = child_tree
+
     def build_neuron_models(self, tree):
         """Initialize ``self.neuron_models`` from the leaves of a tree.
 
@@ -147,8 +161,11 @@ class Network(object):
                 which define neuron models. Each leaf is used to initialize a
                 ``Model`` object.
         """
-        tree = (ParamsTree(tree) if not isinstance(tree, ParamsTree) else tree)
-        self.neuron_models = self.build_named_leaves_dict(Model, tree)
+        self.update_tree_child('neuron_models', tree)
+        self.neuron_models = self.build_named_leaves_dict(
+            Model,
+            self.tree.children['neuron_models']
+        )
 
     def build_synapse_models(self, tree):
         """Initialize ``self.synapse_models`` from the leaves of a tree.
@@ -160,8 +177,11 @@ class Network(object):
                 which define neuron models. Each leaf is used to initialize a
                 ``SynapseModel`` object.
         """
-        tree = (ParamsTree(tree) if not isinstance(tree, ParamsTree) else tree)
-        self.synapse_models = self.build_named_leaves_dict(SynapseModel, tree)
+        self.update_tree_child('synapse_models', tree)
+        self.synapse_models = self.build_named_leaves_dict(
+            SynapseModel,
+            self.tree.children['synapse_models']
+        )
 
     def build_recorder_models(self, tree):
         """Initialize ``self.recorder_models`` from the leaves of a tree.
@@ -173,8 +193,11 @@ class Network(object):
                 which define neuron models. Each leaf is used to initialize a
                 ``Model`` object.
         """
-        tree = (ParamsTree(tree) if not isinstance(tree, ParamsTree) else tree)
-        self.recorder_models = self.build_named_leaves_dict(Model, tree)
+        self.update_tree_child('recorder_models', tree)
+        self.recorder_models = self.build_named_leaves_dict(
+            Model,
+            self.tree.children['recorder_models']
+        )
 
     def build_layers(self, tree):
         """Initialize ``self.layers`` from the leaves of a tree.
@@ -187,12 +210,13 @@ class Network(object):
                 ``Layer`` or ``InputLayer`` objecs depending on the value of
                 the ``type`` parameter.
         """
-        tree = (ParamsTree(tree) if not isinstance(tree, ParamsTree) else tree)
+        self.update_tree_child('layers', tree)
         self.layers = {
             name: LAYER_TYPES[leaf.params.get('type', None)](
                 name, dict(leaf.params), dict(leaf.nest_params)
             )
-            for name, leaf in tree.named_leaves(root=False)
+            for name, leaf
+            in self.tree.children['layers'].named_leaves(root=False)
         }
         log.info(
             f"Build N={len(self.layers)} ``Layer`` or ``InputLayer`` objects."
@@ -208,10 +232,10 @@ class Network(object):
                 which define connection models. Each leaf is used to initialize
                 a ``ConnectionModel`` object.
         """
-        tree = (ParamsTree(tree) if not isinstance(tree, ParamsTree) else tree)
+        self.update_tree_child('connection_models', tree)
         self.connection_models = self.build_named_leaves_dict(
             ConnectionModel,
-            tree
+            self.tree.children['connection_models']
         )
 
     def build_connections(self, topology_tree):
@@ -251,8 +275,8 @@ class Network(object):
                 connection and should be unique.
         """
 
-        if not isinstance(topology_tree, ParamsTree):
-            topology_tree = ParamsTree(topology_tree)
+        self.update_tree_child('topology', topology_tree)
+        topology_tree = self.tree.children['topology']
 
         OPTIONAL_TOPOLOGY_PARAMS = {
             'connections': []
@@ -367,8 +391,8 @@ class Network(object):
             (list(PopulationRecorder), list(ConnectionRecorder))
         """
 
-        if not isinstance(recorders_tree, ParamsTree):
-            recorders_tree = ParamsTree(recorders_tree)
+        self.update_tree_child('recorders', recorders_tree)
+        recorders_tree = self.tree.children['recorders']
 
         OPTIONAL_RECORDERS_PARAMS = {
             'population_recorders': [],
