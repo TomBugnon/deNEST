@@ -134,15 +134,7 @@ class Simulation(object):
         self.input_dir = self.sim_params["input_dir"]
 
         # Initialize kernel (should be after getting output dirs)
-        log.info("Initializing NEST kernel and seeds...")
-        kernel_tree = self.tree.children["kernel"]
-        # Validate "kernel" subtree
-        # No children in `kernel` subtree
-        validation.validate_children(
-            kernel_tree, mandatory_children=[], optional_children=[]
-        )
-        self.init_kernel(dict(kernel_tree.params), dict(kernel_tree.nest_params))
-        log.info("Finished initializing kernel")
+        self.init_kernel(self.tree.children['kernel'])
 
         # Create sessions
         log.info("Creating sessions...")
@@ -232,7 +224,7 @@ class Simulation(object):
             log.info("Done running session '%s'", session.name)
         log.info("Finished running simulation")
 
-    def init_kernel(self, params, nest_params):
+    def init_kernel(self, kernel_tree):
         """Initialize NEST kernel and set Python seed
 
             - Call ``nest.SetKernelStatus`` with ``nest_params``
@@ -240,42 +232,55 @@ class Simulation(object):
             - Set Python rng seed for ``numpy`` and ``random`` packages
             - Install extension modules
 
+        ``kernel_tree`` is added as child to self.tree
+
         Args:
-            params (dict-like): Kernel parameters. The following parameters are
-                recognized:
-                    extension_modules (list(str)): List of modules to install.
+            kernel_tree (ParamsTree): Parameter tree without children. The
+                following parameters (``params`` field) are recognized:
+                    - extension_modules (list(str)): List of modules to install.
                         (default [])
-                    nest_seed (int): Used to set NEST kernel's rng seed (default
-                        1)
-                    python_seed (int): Seed in Python ``numpy`` and ``random``
+                    - nest_seed (int): Used to set NEST kernel's rng seed
+                        (default 1)
+                    - python_seed (int): Seed in Python ``numpy`` and ``random``
                         packages. (default 1)
-            nest_params (dict-like): Kernel "NEST" parameters, passed to
-                ``nest.SetKernelStatus``. The following parameters are reserved:
-                ``[data_path, 'grng_seed', 'rng_seed']``. The NEST seeds should
-                be set via the ``nest_seed`` kernel parameter parameter.
+                nest parameters (``nest_params`` field) are passed to
+                ``nest.SetKernelStatus``. The following nest parameters are
+                reserved: ``[data_path, 'grng_seed', 'rng_seed']``. The NEST
+                seeds should be set via the ``nest_seed`` kernel parameter
+                parameter.
         """
+        import nest
 
         MANDATORY_PARAMS = []
-        OPTIONAL_PARAMS = {"extension_modules": [], "nest_seed": 1, "python_seed": 1}
+        OPTIONAL_PARAMS = {
+            "extension_modules": [],
+            "nest_seed": 1,
+            "python_seed": 1
+        }
         RESERVED_NEST_PARAMS = ["data_path", "msd", "grng_seed", "rng_seed"]
 
+        kernel_tree = self.tree.children["kernel"]
+
+        # Validate "kernel" subtree
+        validation.validate_children(
+            kernel_tree, mandatory_children=[], optional_children=[]
+        )  # No children
         # Validate params and nest_params
         params = validation.validate(
             "kernel",
-            params,
+            dict(kernel_tree.params),
             param_type="params",
             mandatory=MANDATORY_PARAMS,
             optional=OPTIONAL_PARAMS,
         )
         nest_params = validation.validate(
             "kernel",
-            nest_params,
+            dict(kernel_tree.nest_params),
             param_type="nest_params",
             reserved=RESERVED_NEST_PARAMS,
         )
 
-        import nest
-
+        log.info("Initializing NEST kernel and seeds...")
         nest.ResetKernel()
 
         log.info("  Setting NEST kernel status...")
@@ -310,6 +315,8 @@ class Simulation(object):
         log.info("  Setting Python seed: %s", python_seed)
         np.random.seed(python_seed)
         random.seed(python_seed)
+
+        log.info("Finished initializing kernel")
 
     @staticmethod
     def total_time():
