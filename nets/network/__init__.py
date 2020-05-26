@@ -129,10 +129,13 @@ class Network(object):
     @staticmethod
     def build_named_leaves_dict(constructor, node):
         """Construct and return as dict all leaves of a tree."""
-        return {
+        named_leaves = {
             name: constructor(name, dict(leaf.params), dict(leaf.nest_params))
             for name, leaf in node.named_leaves(root=False)
         }
+        msg = f"Build N={len(named_leaves)} ``{constructor.__name__}`` objects"
+        log.info(msg)
+        return named_leaves
 
     def build_neuron_models(self, tree):
         """Initialize ``self.neuron_models`` from the leaves of a tree.
@@ -191,6 +194,9 @@ class Network(object):
             )
             for name, leaf in tree.named_leaves(root=False)
         }
+        log.info(
+            f"Build N={len(self.layers)} ``Layer`` or ``InputLayer`` objects."
+        )
 
     def build_connection_models(self, tree):
         """Initialize ``self.connection_models`` from the leaves of a tree.
@@ -269,6 +275,14 @@ class Network(object):
         # Get all unique ``(connection_model, source_layer, source_population,
         # target_layer, target_population)`` tuples
         connection_args = self.parse_connection_params(connection_items)
+
+        # Verbose
+        c_types_str = ' or '.join([
+            c.__name__ for c in CONNECTION_TYPES.values()
+        ])
+        msg = f"Build N={len(connection_args)} ``{c_types_str}`` objects"
+        log.info(msg)
+
         # Build Connection objects
         connections = []
         for (conn_model, src_lyr, src_pop, tgt_lyr, tgt_pop) in connection_args:
@@ -469,6 +483,10 @@ class Network(object):
                 ConnectionRecorder(model, connection)
             )
 
+        # Verbose
+        msg = f"Build N={len(connection_recorders)} connection recorders."
+        log.info(msg)
+
         return connection_recorders
 
     def build_population_recorders(self, population_recorders_items):
@@ -526,6 +544,10 @@ class Network(object):
                     population_recorders_args.append(
                         (model, layer_name, population_name)
                     )
+
+        # Verbose
+        msg = f"Build N={len(population_recorders_args)} population recorders."
+        log.info(msg)
 
         # Build the unique population recorder objects
         return [
