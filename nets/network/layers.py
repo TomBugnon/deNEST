@@ -146,6 +146,8 @@ class AbstractLayer(NestObject):
                 gid for gid in gids_to_subnet
                 if all([x_y <= subnet_x_y_max for x_y in self._locations[gid]])
             ]
+        else:
+            gids_to_filter = gids_to_subnet
         if filter_dict:
             print(f'----> Apply filter on gids (filter = {filter_dict})')
         gids_to_change = self.filter_gids(
