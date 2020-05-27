@@ -139,55 +139,29 @@ class Simulation(object):
         # Initialize kernel (should be after getting output dirs)
         self.init_kernel(self.tree.children['kernel'])
 
+        # Create session models
+        self.session_models = None
+        self.build_session_models(self.tree.children['session_models'])
+
         # Create sessions
-        log.info("Creating sessions...")
-        self.sessions_order = self.sim_params["sessions"]
-        # Get session model params
-        session_model_nodes = {
-            session_name: session_node
-            for session_name, session_node in self.tree.children[
-                "session_models"
-            ].named_leaves()
-        }
-        # Validate session_model nodes: no nest_params
-        for name, node in session_model_nodes.items():
-            validation.validate(
-                name,
-                dict(node.nest_params),
-                mandatory=[],
-                optional={},
-                param_type="nest_params",
-            )
-        # Create session objects
-        self.sessions = []
-        session_start_time = 0
-        for i, session_model in enumerate(self.sessions_order):
-            self.sessions.append(
-                Session(
-                    self.make_session_name(session_model, i),
-                    dict(session_model_nodes[session_model].params),
-                    start_time=session_start_time,
-                    input_dir=self.input_dir,
-                )
-            )
-            # start of next session = end of current session
-            session_start_time = self.sessions[-1].end
-        self.session_times = {
-            session.name: (session.start, session.end) for session in self.sessions
-        }
-        log.info("Sessions: %s", self.sessions_order)
-        log.info("Finished creating sessions")
+        self.sessions = None
+        self.session_times = None
+        self.build_sessions(self.sim_params['sessions'])
 
         # Create network
-        log.info("Creating network...")
-        self.network = Network(self.tree.children["network"])
-        self.network.create()
-        log.info("Finished creating network")
+        self.network = None
+        self.create_network(self.tree.children["network"])
 
         # Save simulation metadata
-        log.info("Saving simulation metadata...")
         self.save_metadata()
-        log.info("Finished saving simulation metadata")
+
+    def create_network(self, network_tree):
+        """Build and create network."""
+        log.info("Building network.")
+        self.network = Network(network_tree)
+        log.info("Creating network.")
+        self.network.create()
+        log.info("Finished creating network")
 
     def save_metadata(self):
         """Save simulation metadata.
@@ -198,6 +172,7 @@ class Simulation(object):
             - Save session times (start and end kernel time for each session)
             - Save network metadata (`Network.save_metadata`)
         """
+        log.info("Saving simulation metadata...")
         # Initialize output dir (create and clear)
         log.info("Creating output directory: %s", self.output_dir)
         make_output_dir(self.output_dir, clear_output_dir=True)
@@ -212,6 +187,7 @@ class Simulation(object):
         save_as_yaml(output_path(self.output_dir, "session_times"), self.session_times)
         # Save network metadata
         self.network.save_metadata(self.output_dir)
+        log.info("Finished saving simulation metadata")
 
     def run(self):
         """Run simulation.
@@ -226,6 +202,58 @@ class Simulation(object):
             session.run(self.network)
             log.info("Done running session '%s'", session.name)
         log.info("Finished running simulation")
+
+    # TODO: Add current_time kwarg in case run interactively
+    def build_sessions(self, sessions_order):
+        """Build a list of sessions.
+
+        Session params are inherited from session models."""
+
+        log.info(f"Build N={len(sessions_order)} sessions")
+        # Create session objects
+        self.sessions = []
+        session_start_time = 0
+        for i, session_model in enumerate(sessions_order):
+            self.sessions.append(
+                Session(
+                    self.make_session_name(session_model, i),
+                    dict(self.session_models[session_model].params),
+                    start_time=session_start_time,
+                    input_dir=self.input_dir,
+                )
+            )
+            # start of next session = end of current session
+            session_start_time = self.sessions[-1].end
+        self.session_times = {
+            session.name: (session.start, session.end)
+            for session in self.sessions
+        }
+        log.info(f"Sessions: %s", sessions_order)
+
+    def build_session_models(self, tree):
+        """Create session models from the leaves of a tree."""
+        # session_model_nodes = {
+        #     session_name: session_node
+        #     for session_name, session_node in self.tree.children[
+        #         "session_models"
+        #     ].named_leaves()
+        # }
+        session_model_nodes = {
+            session_name: session_node
+            for session_name, session_node in tree.named_leaves()
+        }
+        # Validate session_model nodes: no nest_params
+        for name, node in session_model_nodes.items():
+            validation.validate(
+                name,
+                dict(node.nest_params),
+                mandatory=[],
+                optional={},
+                param_type="nest_params",
+            )
+
+        self.session_models = session_model_nodes
+        log.info(f"Build N={len(self.session_models.keys())} session models")
 
     def init_kernel(self, kernel_tree):
         """Initialize NEST kernel and set Python seed
