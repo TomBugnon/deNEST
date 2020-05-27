@@ -8,6 +8,7 @@ import logging
 
 from .io.save import make_output_dir, output_path, output_subdir, save_as_yaml
 from .network import Network
+from .parameters import ParamsTree
 from .session import Session
 from .utils import misc, validation
 
@@ -66,7 +67,7 @@ class Simulation(object):
         "output_dir": "output",
     }
 
-    def __init__(self, tree, input_dir=None, output_dir=None):
+    def __init__(self, tree=None, input_dir=None, output_dir=None):
         """Initialize simulation.
 
             - Set input and output paths
@@ -76,6 +77,8 @@ class Simulation(object):
             - Save simulation metadata
         """
         # Full parameter tree
+        if tree is None:
+            tree = ParamsTree()
         self.tree = tree.copy()
 
         # Validate params tree
