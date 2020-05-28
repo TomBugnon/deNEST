@@ -249,7 +249,7 @@ class Simulation(object):
             session.name: (session.start, session.end)
             for session in self.sessions
         }
-        log.info(f"Sessions: %s", sessions_order)
+        log.info(f"Sessions: %s", [session.name for session in self.sessions])
 
     def build_session_models(self, tree):
         """Create session models from the leaves of a tree.
