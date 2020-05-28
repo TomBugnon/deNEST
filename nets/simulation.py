@@ -155,8 +155,28 @@ class Simulation(object):
         # Save simulation metadata
         self.save_metadata()
 
+    def update_tree_child(self, child_name, tree):
+        """Add a child to ``self.tree``"""
+        # Convert to ParamsTree and specify parent tree to preserve inheritance
+        if not isinstance(tree, ParamsTree):
+            child_tree = ParamsTree(tree, parent=self.tree, name=child_name)
+        else:
+            child_tree = ParamsTree(
+                tree.asdict(),
+                parent=self.tree,
+                name=child_name
+            )
+        # Add as child
+        self.tree.children[child_name] = child_tree
+
     def create_network(self, network_tree):
-        """Build and create network."""
+        """Build and create network.
+
+        Adds ``network_tree`` as ``network`` child of ``self.tree``
+        """
+        # Add to self.tree
+        self.update_tree_child('network', network_tree)
+
         log.info("Building network.")
         self.network = Network(network_tree)
         log.info("Creating network.")
@@ -206,7 +226,8 @@ class Simulation(object):
     def build_sessions(self, sessions_order):
         """Build a list of sessions.
 
-        Session params are inherited from session models."""
+        Session params are inherited from session models.
+        """
         import nest
 
         log.info(f"Build N={len(sessions_order)} sessions")
@@ -231,16 +252,16 @@ class Simulation(object):
         log.info(f"Sessions: %s", sessions_order)
 
     def build_session_models(self, tree):
-        """Create session models from the leaves of a tree."""
-        # session_model_nodes = {
-        #     session_name: session_node
-        #     for session_name, session_node in self.tree.children[
-        #         "session_models"
-        #     ].named_leaves()
-        # }
+        """Create session models from the leaves of a tree.
+        
+        Adds ``tree`` as ``session_models`` child of ``self.tree``
+        """
+        # Add to Simulation.tree
+        self.update_tree_child('session_models', tree)
         session_model_nodes = {
             session_name: session_node
-            for session_name, session_node in tree.named_leaves()
+            for session_name, session_node
+            in self.tree.children['session_models'].named_leaves()
         }
         # Validate session_model nodes: no nest_params
         for name, node in session_model_nodes.items():
@@ -263,7 +284,7 @@ class Simulation(object):
             - Set Python rng seed for ``numpy`` and ``random`` packages
             - Install extension modules
 
-        ``kernel_tree`` is added as child to self.tree
+        Adds ``kernel_tree`` as ``kernel`` child of ``self.tree``
 
         Args:
             kernel_tree (ParamsTree): Parameter tree without children. The
@@ -290,6 +311,8 @@ class Simulation(object):
         }
         RESERVED_NEST_PARAMS = ["data_path", "msd", "grng_seed", "rng_seed"]
 
+        # Add to Simulation.tree
+        self.update_tree_child('kernel', kernel_tree)
         kernel_tree = self.tree.children["kernel"]
 
         # Validate "kernel" subtree
