@@ -203,16 +203,16 @@ class Simulation(object):
             log.info("Done running session '%s'", session.name)
         log.info("Finished running simulation")
 
-    # TODO: Add current_time kwarg in case run interactively
     def build_sessions(self, sessions_order):
         """Build a list of sessions.
 
         Session params are inherited from session models."""
+        import nest
 
         log.info(f"Build N={len(sessions_order)} sessions")
         # Create session objects
         self.sessions = []
-        session_start_time = 0
+        session_start_time = nest.GetKernelStatus('time')
         for i, session_model in enumerate(sessions_order):
             self.sessions.append(
                 Session(
