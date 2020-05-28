@@ -312,6 +312,7 @@ class Simulation(object):
         )
 
         log.info("Initializing NEST kernel and seeds...")
+        log.info("  Resetting NEST kernel...")
         nest.ResetKernel()
 
         log.info("  Setting NEST kernel status...")
