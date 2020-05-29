@@ -1,0 +1,12 @@
+simulation:
+  params:
+    output_dir: output
+    sessions: ['warmup', 'high_input', 'low_input', 'high_input']
+
+
+
+
+simulation:
+  params:
+    output_dir: output
+    sessions: ['warmup', 'stim', 'warmup', 'stim']

@@ -1,0 +1,35 @@
+neuron_models:
+  my_neuron:
+    params:
+      nest_model: ht_neuron
+    nest_params:
+      g_KL: 1.0
+      g_NaL: 1.0
+    l1_exc:
+      nest_params:
+        V_m: -44.0
+    l1_inh:
+      nest_params:
+        V_m: -55.0
+synapse_models:
+  my_AMPA_synapse:
+    params:
+      nest_model: ht_synapse
+      receptor_type: AMPA
+      target_neuron: ht_neuron
+  my_GABAA_synapse:
+    params:
+      nest_model: ht_synapse
+      receptor_type: GABA_A
+      target_neuron: ht_neuron
+recorder_models:
+  nest_params:
+    record_to: ['memory', 'file']
+  weight_recorder:
+    params:
+      nest_model: 'weight_recorder'
+  my_multimeter:
+    params:
+      nest_model: 'multimeter'
+    nest_params:
+      record_from: ['V_m']

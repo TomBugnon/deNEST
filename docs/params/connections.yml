@@ -1,0 +1,33 @@
+connection_models:
+  nest_params:
+    connection_type: divergent
+    mask:
+      circular:
+        radius: 2.0
+    kernel: 1.0
+  conn_1_AMPA:
+    nest_params:
+      synapse_model: my_AMPA_synapse
+      weights: 1.0
+  conn_2_GABAA:
+    nest_params:
+      synapse_model: my_GABAA_synapse
+      weights: 2.0
+topology:
+  params:
+    connections:
+      - source_layers: [input_layer, ]
+        source_population: parrot_neuron
+        target_layers: [l1, ]
+        target_population: l1_exc
+        connection_model: conn_1_AMPA
+      - source_layers: [l1, ]
+        source_population: l1_exc
+        target_layers: [l1, ]
+        target_population: l1_inh
+        connection_model: conn_1_AMPA
+      - source_layers: [l1, ]
+        source_population: l1_inh
+        target_layers: [l1, ]
+        target_population: l1_exc
+        connection_model: conn_2_GABAA

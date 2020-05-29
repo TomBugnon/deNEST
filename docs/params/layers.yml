@@ -1,0 +1,18 @@
+layers:
+  params:
+    type: null
+  nest_params:
+    rows: 5
+    columns: 5
+    extent: [5.0, 5.0]
+    edge_wrap: true
+  input_layer:
+    params:
+      type: 'InputLayer'
+      populations:
+        poisson_generator: 1
+  l1:
+    params:
+      populations:
+        l1_exc: 4
+        l1_inh: 2

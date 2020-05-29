@@ -1,0 +1,21 @@
+session_models:
+  params:
+    record: True # Inactivate all recorders for current session or not
+    simulation_time: 100.0
+  warmup:
+    params:
+      record: False
+  high_input:
+    params:
+      unit_changes:
+        - layers: [input_layer,]
+          population: poisson_generator
+          params:
+            rate: 100.0
+  low_input:
+    params:
+      unit_changes:
+        - layers: [input_layer,]
+          population: poisson_generator
+          params:
+            rate: 50.0

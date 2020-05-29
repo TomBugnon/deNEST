@@ -1,0 +1,13 @@
+recorders:
+  params:
+    population_recorders:
+      - layers: [l1]
+        populations: [l1_exc]
+        model: 'my_multimeter'
+    connection_recorders:
+      - source_layers: [l1, ]
+        source_population: l1_exc
+        target_layers: [l1, ]
+        target_population: l1_inh
+        connection_model: conn_1_AMPA
+        model: 'weight_recorder'
