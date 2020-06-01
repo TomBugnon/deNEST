@@ -22,7 +22,6 @@ Upcoming changes before the v1.0 release:
 
 # deNEST: A declarative frontend for NEST
 
-
 deNEST is a python library for specifying networks and running simulations using
 the NEST simulator (nest-simulator.org ).
 
