@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 # __main__.py
 """
-NETS: Network Simulator for NEST
+deNEST: Network Simulator for NEST
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Usage:
-    python -m nets <tree_paths.yml> [options]
-    python -m nets -h | --help
-    python -m nets -v | --version
+    python -m denest <tree_paths.yml> [options]
+    python -m denest -h | --help
+    python -m denest -v | --version
 
 Arguments:
     <tree_paths.yml>  YAML file containing list of relative paths of files to
@@ -38,8 +38,8 @@ _CLI_ARG_MAP = {
 def main():
     """Run Spiking VisNet from the command line."""
     # Construct a new argument list to allow docopt's parser to work with the
-    # `python -m nets` calling pattern.
-    argv = ["-m", "nets"] + sys.argv[1:]
+    # `python -m denest` calling pattern.
+    argv = ["-m", "denest"] + sys.argv[1:]
     # Get command-line args from docopt.
     arguments = docopt(__doc__, argv=argv, version=__version__)
     # Get parameter overrides from the CLI options.

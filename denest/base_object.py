@@ -45,7 +45,7 @@ class NestObject:
 
     Args:
         name (str): The name of the object.
-        params (Params): The object parameters. Interpreted by NETS.
+        params (Params): The object parameters. Interpreted by deNEST.
         nest_params (Params): The object parameters passed to NEST.
 
     Objects are ordered and hashed by name.

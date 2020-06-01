@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from nets.parameters import ParamsTree
+from denest.parameters import ParamsTree
 
 assert len(ParamsTree.DATA_KEYS) == 2
 DATA_KEYS = ParamsTree.DATA_KEYS

@@ -14,7 +14,7 @@ with open('README.md') as f:
     readme = f.read()
 
 about = {}
-with open('./nets/__about__.py') as f:
+with open('./denest/__about__.py') as f:
     exec(f.read(), about)
 
 install_requires = [
@@ -29,7 +29,7 @@ setup(
     name=about['__title__'],
     version=about['__version__'],
     long_description=readme,
-    packages=['nets'],
+    packages=['denest'],
     zip_safe=False,
     install_requires=install_requires,
     classifiers=[

@@ -187,7 +187,7 @@ class Simulation(object):
         """Save simulation metadata.
 
             - Save parameters
-            - Save NETS git hash
+            - Save deNEST git hash
             - Save sessions metadata (`Session.save_metadata`)
             - Save session times (start and end kernel time for each session)
             - Save network metadata (`Network.save_metadata`)

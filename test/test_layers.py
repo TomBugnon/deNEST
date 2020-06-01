@@ -8,8 +8,8 @@
 import nest
 import pytest
 
-from nets.network.layers import InputLayer, Layer
-from nets.utils.validation import ParameterError
+from denest.network.layers import InputLayer, Layer
+from denest.utils.validation import ParameterError
 
 BASE_LAYERS = [
     (Layer, {"populations": {"iaf_psc_alpha": 1}}, {"rows": 1, "columns": 1}),

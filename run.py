@@ -1,3 +1,3 @@
-import nets
+import denest
 
-nets.run('params/tree_paths.yml')
+denest.run('params/tree_paths.yml')

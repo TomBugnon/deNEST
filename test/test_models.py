@@ -7,8 +7,8 @@
 import nest
 import pytest
 
-from nets.network.models import Model, SynapseModel
-from nets.utils.validation import ParameterError
+from denest.network.models import Model, SynapseModel
+from denest.utils.validation import ParameterError
 
 MODEL_PARAMS = [
     (

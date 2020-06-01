@@ -3,8 +3,8 @@
 # __about__.py
 
 """
-NETS metadata.
+deNEST metadata.
 """
 
-__title__ = "nets"
+__title__ = "denest"
 __version__ = "0.0.0"

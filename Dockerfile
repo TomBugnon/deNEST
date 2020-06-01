@@ -5,5 +5,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   build-essential \
   # For `codecov`
   curl \
-  # Required by NETS
+  # Required by deNEST
   git

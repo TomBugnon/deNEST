@@ -1,4 +1,4 @@
-src = nets
+src = denest
 test = test
 
 .PHONY: watch
@@ -10,4 +10,4 @@ watch: test
 
 .PHONY: test
 test:
-	python -m pytest --cov=nets test -v
+	python -m pytest --cov=denest test -v

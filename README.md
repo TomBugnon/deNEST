@@ -1,6 +1,6 @@
-[![Travis build badge](https://img.shields.io/travis/tombugnon/nets.svg?style=flat-square&maxAge=600)](https://travis-ci.org/tombugnon/nets)
-[![Codecov badge](https://img.shields.io/codecov/c/github/tombugnon/nets?style=flat-square&maxAge=600)](https://codecov.io/gh/tombugnon/nets)
-[![License badge](https://img.shields.io/github/license/tombugnon/nets.svg?style=flat-square&maxAge=86400)](https://github.com/tombugnon/nets/blob/develop/LICENSE)
+[![Travis build badge](https://img.shields.io/travis/tombugnon/denest.svg?style=flat-square&maxAge=600)](https://travis-ci.org/tombugnon/denest)
+[![Codecov badge](https://img.shields.io/codecov/c/github/tombugnon/denest?style=flat-square&maxAge=600)](https://codecov.io/gh/tombugnon/denest)
+[![License badge](https://img.shields.io/github/license/tombugnon/denest.svg?style=flat-square&maxAge=86400)](https://github.com/tombugnon/denest/blob/develop/LICENSE)
 ![Python versions badge](https://img.shields.io/pypi/pyversions/pyphi.svg?style=flat-square&maxAge=86400)
 
 <!--lint disable list-item-indent-->
@@ -20,13 +20,13 @@ Upcoming changes before the v1.0 release:
   - Tutorials and proper documentation
   - Improve test suite
 
-# NETS: Network Simulator for NEST
+# deNEST: Network Simulator for NEST
 
 
-NETS is a python library for specifying networks and running simulations using
+deNEST is a python library for specifying networks and running simulations using
 the NEST simulator (nest-simulator.org ).
 
-NETS allows the user to fully specify large scale
+deNEST allows the user to fully specify large scale
 networks and simulation characteristics in separate, trackable and
 hierarchically organized parameter files.
 
@@ -47,23 +47,23 @@ A Docker image is provided with NEST 2.20 installed, based on
 
 1. From within the repo, build the image:
    ```bash
-   docker build --tag nets .
+   docker build --tag denest .
    ```
 2. Run an interactive container:
    ```bash
    docker run \
      -it \
-     --name nets_simulation \
+     --name denest_simulation \
      --volume $(pwd):/opt/data \
      --publish 8080:8080 \
-     nets \
+     denest \
      /bin/bash
    ```
-3. Install NETS within the container:
+3. Install deNEST within the container:
    ```bash
    pip install -e .
    ```
-4. Use NETS from within the container.
+4. Use deNEST from within the container.
 
 For more information on how to use the NEST Docker image, see
 [nest-docker](https://github.com/nest/nest-docker).
@@ -71,9 +71,9 @@ For more information on how to use the NEST Docker image, see
 ### Local
 
 1. Install NEST > v2.14.0 by following the instructions at <http://www.nest-simulator.org/installation/>
-2. Set up a Python 3 environment and install NETS with:
+2. Set up a Python 3 environment and install deNEST with:
    ```python
-   pip install "git+https://github.com/TomBugnon/NETS@develop"
+   pip install "git+https://github.com/TomBugnon/deNEST@develop"
    ```
 
 
@@ -85,13 +85,13 @@ For more information on how to use the NEST Docker image, see
   specific models, connections of specific types with specific synapse models
   amongst these layers, population recorders (multimeters, spike detectors) and
   connection recorders (weight recorder).
-  - The full network is represented in NETS by the `Network()` class
+  - The full network is represented in deNEST by the `Network()` class
 
 - New NEST **models** (**neuron and generator model**, **synapse model** or
   **recorder model**) can be specified with arbitrary parameters. During network
   creation, models with specific parameters are created in NEST using a
   ``nest.CopyModel()`` or a ``nest.SetDefaults`` call.
-  - Synapse models are represented by the ``SynapseModel`` class in NETS. All
+  - Synapse models are represented by the ``SynapseModel`` class in deNEST. All
     other models are represented by the ``Model`` class.
   - Neuron and generator models are specified as leaves of the
     `network/neuron_models` parameter subtree (see section below)
@@ -107,14 +107,14 @@ For more information on how to use the NEST Docker image, see
     Input layers are automatically duplicated to contain parrot neurons, so that
     recording of generators' activity is possible.  Additionally, `InputLayer`s
     support setting the state of stimulators (see "session" description).
-  - Layers are represented by the ``Layer`` or ``InputLayer`` class in NETS
+  - Layers are represented by the ``Layer`` or ``InputLayer`` class in deNEST
   - Layers are specified as leaves of the `network/layers` parameter
     subtree (see "Network parameters" section below)
 
 - A **connection model** is a template specifying parameters passed to
   ``tp.ConnectLayers``, and that individual connections amongst populations can
   inherit from.
-  - Connection models are represented by the ``ConnectionModel`` class in NETS.
+  - Connection models are represented by the ``ConnectionModel`` class in deNEST.
   - Connection models are specified as leaves of the `network/connection_models`
     parameter subtree (see "Network parameters" section below)
 
@@ -134,7 +134,7 @@ For more information on how to use the NEST Docker image, see
   supported.
   - population and connection recorders are represented by the
     ``PopulationRecorder``  and ``ConnectionRecorder`` classes in
-    NETS.
+    deNEST.
   - The list of all population recorders and connection recorders are specified
     in the ``'population_recorders'`` and ``'connection_recorders'`` parameters
     of the `network/recorders` parameter subtree (See "Network parameters"
@@ -157,11 +157,11 @@ For more information on how to use the NEST Docker image, see
     - Modifying the state of some synapses of a certain connection (TODO)
     - Setting the state of generators within ``InputLayer`` layers from arrays
     - Deactivate the recorders for that session.
-  - Individual sessions are represented by the ``Session`` object in NETS.
+  - Individual sessions are represented by the ``Session`` object in deNEST.
     (see "Simulation parameters" section below)
 
 - A **simulation** is a full experiment. It is represented by the `Simulation()`
-  object in NETS, which contains a `Network` object and a list of `Session`
+  object in deNEST, which contains a `Network` object and a list of `Session`
   objects.
   - The list of sessions run during a simulation is specified by the
     ``sessions`` parameter of the ``simulation`` parameter subtree (eg:
@@ -170,7 +170,7 @@ For more information on how to use the NEST Docker image, see
 
 #### Overview of a full simulation
 
-A full NETS simulation consists of the following steps:
+A full deNEST simulation consists of the following steps:
 
 1. **Initialize simulation** (``Simulation.__init__``)
 
@@ -210,14 +210,14 @@ A full NETS simulation consists of the following steps:
 
         2. Call `nest.Simulate()`.
 
-## Running NETS
+## Running deNEST
 
 - From Python (_e.g._ in a Jupyter notebook):
 
   - Using the ``Simulation`` object to run the simulation step by step:
 
     ```python
-    import nets
+    import denest
 
     # Path to the parameter files to use
     params_path = 'params/tree_paths.yml'
@@ -235,19 +235,19 @@ A full NETS simulation consists of the following steps:
     ]
 
     # Load the parameters
-    params = nets.load_trees(params_path, *overrides)
+    params = denest.load_trees(params_path, *overrides)
 
     # Initialize the simulation
-    sim = nets.Simulation(params, output_dir='output')
+    sim = denest.Simulation(params, output_dir='output')
 
     # Run the simulation (runs all the sessions)
     sim.run()
     ```
 
-  - Using the ``nets.run()`` function to run the full simulation at once:
+  - Using the ``denest.run()`` function to run the full simulation at once:
 
     ```python
-    import nets
+    import denest
 
     # Path to the parameter files to use
     params_path = 'params/tree_paths.yml'
@@ -255,13 +255,13 @@ A full NETS simulation consists of the following steps:
     # Override parameters
     overrides = []
 
-    nets.run(params_path, *overrides, output_dir=None)
+    denest.run(params_path, *overrides, output_dir=None)
     ```
 
 - From the command line:
 
     ```bash
-    python -m nets <tree_paths.yml> [-o <output_dir>]
+    python -m denest <tree_paths.yml> [-o <output_dir>]
     ```
 
 ## Loading simulation outputs
@@ -275,17 +275,17 @@ In particular,
 - the start and end time of each of the run sessions is saved at
   ``OUTPUT_DIR/session_times.yml``
 
-The `nets.io.load` module contains utility functions to load the simulation outputs:
+The `denest.io.load` module contains utility functions to load the simulation outputs:
 
 ```python
-import nets.io.load
+import denest.io.load
 
 from pathlib import Path
 
 OUTPUT_DIR = Path('./output')  # Path to the simulation output directory
 
 # Load the start and end time for each session
-session_times = nets.io.load.load_session_times(OUTPUT_DIR)
+session_times = denest.io.load.load_session_times(OUTPUT_DIR)
 print(session_times)  # {<session_name>: (<session_start>, <session_end>)}
 
 
@@ -296,36 +296,36 @@ recorder_metadata_path = OUTPUT_DIR/'data/multimeter_l1_l1_exc.yml'
 
 # All relevant information about this recorder and the population it's
 # connected to are contained in its metadata file
-recorder_metadata = nets.io.load.load_yaml(recorder_metadata_path)
+recorder_metadata = denest.io.load.load_yaml(recorder_metadata_path)
 print(f'Metadata keys: {recorder_metadata.keys()}')
 
 # We can load the raw data as pandas dataframe
-df = nets.io.load.load(recorder_metadata_path)
+df = denest.io.load.load(recorder_metadata_path)
 print(df[0:5])
 
 
 ## Load data for all recorders:
 
-all_recorder_metadata_paths = nets.io.load.metadata_paths(OUTPUT_DIR)
+all_recorder_metadata_paths = denest.io.load.metadata_paths(OUTPUT_DIR)
 for metadata_path in all_recorder_metadata_paths:
   print(f'Recorder: {metadata_path.name}')
-  print(f'{nets.io.load.load(metadata_path)[0:5]}\n')
+  print(f'{denest.io.load.load(metadata_path)[0:5]}\n')
 ```
 
 ## Defining parameters
 
-All parameters used by NETS are specified in tree-like yaml files which are
+All parameters used by deNEST are specified in tree-like yaml files which are
 converted to ``ParamsTree`` objects.
 
 In this section, we describe the ``ParamsTree`` objects, the expected structure
-of the full parameter tree interpreted by NETS, and the expected formats and
+of the full parameter tree interpreted by deNEST, and the expected formats and
 parameters of each of the subtrees that define the various aspects of the
 network and simulation.
 
 #### Main parameter file
 
-To facilitate defining parameters in separate files, ``nets.run`` and
-``nets.load_trees`` take as input a path to a yaml file
+To facilitate defining parameters in separate files, ``denest.run`` and
+``denest.load_trees`` take as input a path to a yaml file
  containing the relative paths of the tree-like yaml files to merge
 so as to define the full parameter tree (see the ``params/tree_paths.yml`` file)
 
@@ -337,7 +337,7 @@ The ``ParamsTree`` class is instantiated from tree-like nested dictionaries. At
 each node, two reserved keys contain the node's data (called ``'params'`` and
 ``'nest_params'``). All the other keys are interpreted as named children nodes.
 
-The ``'params'`` key contains data interpreted by NETS, while the
+The ``'params'`` key contains data interpreted by deNEST, while the
 ``'nest_params'`` key contains data passed to NEST without modification.
 
 The ``ParamsTree`` class offers a tree structure with two useful
@@ -352,7 +352,7 @@ characteristics:
 - **(Horizontal) merging of trees**: ``ParamsTree`` objects can be merged
   horizontally. During the merging of multiple params trees, the  contents of
   the ``params`` and ``nest_params`` data keys of nodes at the same relative
-  position are combined. This allows **splitting the NETS parameter trees in
+  position are combined. This allows **splitting the deNEST parameter trees in
   separate files for convenience**, and **overriding the data of a node anywhere
   in the tree while preserving hierarchical inheritance**
 
@@ -419,7 +419,7 @@ l1_inh:
 All the aspects of the overall simulation are specified in specific named
 subtrees.
 
-The overall `ParamsTree` passed to ``nets.Simulation()`` is expected to have no
+The overall `ParamsTree` passed to ``denest.Simulation()`` is expected to have no
 data and the following ``ParamsTree`` children
 
   - ``simulation`` (``ParamsTree``). Defines input and output

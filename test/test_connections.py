@@ -8,7 +8,7 @@
 import nest
 import nest.topology as tp
 
-from nets.network.connections import ConnectionModel, TopoConnection
+from denest.network.connections import ConnectionModel, TopoConnection
 
 
 def test_full_base_layer_auto_connection(base_layer):

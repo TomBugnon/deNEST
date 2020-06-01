@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __init__.py
 
-"""NETS: Network Simulator for NEST"""
+"""deNEST: Network Simulator for NEST"""
 
 import logging.config
 import time
@@ -34,7 +34,7 @@ logging.config.dictConfig(
                 "formatter": "default",
             }
         },
-        "loggers": {"nets": {"level": "INFO", "handlers": ["stdout"],}},
+        "loggers": {"denest": {"level": "INFO", "handlers": ["stdout"],}},
     }
 )
 log = logging.getLogger(__name__)
