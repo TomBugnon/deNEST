@@ -20,7 +20,7 @@ Upcoming changes before the v1.0 release:
   - Tutorials and proper documentation
   - Improve test suite
 
-# deNEST: Network Simulator for NEST
+# deNEST: A declarative frontend for NEST
 
 
 deNEST is a python library for specifying networks and running simulations using
@@ -28,7 +28,7 @@ the NEST simulator (nest-simulator.org ).
 
 deNEST allows the user to fully specify large scale
 networks and simulation characteristics in separate, trackable and
-hierarchically organized parameter files.
+hierarchically organized declarative parameter files.
 
 From those parameter files, a network is instantiated in NEST (neuron layers,
 simulator layers, connections amongst layers), and a simulation is run in
