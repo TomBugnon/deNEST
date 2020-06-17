@@ -336,7 +336,7 @@ class ConnectionRecorder(BaseRecorder):
         self._gid = nest.Create(self._model)
         # Update the Connection object so that it connects to the
         # ConnectionRecorder
-        self._connection.connect_connection_recorder(
+        self._connection._connect_connection_recorder(
             recorder_type=self._type, recorder_gid=self._gid[0],
         )
         # Update attributes with nest.GetStatus calls
@@ -366,4 +366,3 @@ class ConnectionRecorder(BaseRecorder):
         """Save recorder metadata."""
         metadata_path = save.output_path(output_dir, "recorders_metadata", self._label)
         save.save_as_yaml(metadata_path, self.get_connection_recorder_metadata_dict())
-

@@ -137,7 +137,7 @@ class Network(object):
         log.info(msg)
         return named_leaves
 
-    def update_tree_child(self, child_name, tree):
+    def _update_tree_child(self, child_name, tree):
         """Add a child to ``self.tree``"""
         # Convert to ParamsTree and specify parent tree to preserve inheritance
         if not isinstance(tree, ParamsTree):
@@ -161,7 +161,7 @@ class Network(object):
                 which define neuron models. Each leaf is used to initialize a
                 ``Model`` object.
         """
-        self.update_tree_child('neuron_models', tree)
+        self._update_tree_child('neuron_models', tree)
         self.neuron_models = self.build_named_leaves_dict(
             Model,
             self.tree.children['neuron_models']
@@ -177,7 +177,7 @@ class Network(object):
                 which define neuron models. Each leaf is used to initialize a
                 ``SynapseModel`` object.
         """
-        self.update_tree_child('synapse_models', tree)
+        self._update_tree_child('synapse_models', tree)
         self.synapse_models = self.build_named_leaves_dict(
             SynapseModel,
             self.tree.children['synapse_models']
@@ -193,7 +193,7 @@ class Network(object):
                 which define neuron models. Each leaf is used to initialize a
                 ``Model`` object.
         """
-        self.update_tree_child('recorder_models', tree)
+        self._update_tree_child('recorder_models', tree)
         self.recorder_models = self.build_named_leaves_dict(
             Model,
             self.tree.children['recorder_models']
@@ -210,7 +210,7 @@ class Network(object):
                 ``Layer`` or ``InputLayer`` objecs depending on the value of
                 the ``type`` parameter.
         """
-        self.update_tree_child('layers', tree)
+        self._update_tree_child('layers', tree)
         self.layers = {
             name: LAYER_TYPES[leaf.params.get('type', None)](
                 name, dict(leaf.params), dict(leaf.nest_params)
@@ -232,7 +232,7 @@ class Network(object):
                 which define connection models. Each leaf is used to initialize
                 a ``ConnectionModel`` object.
         """
-        self.update_tree_child('connection_models', tree)
+        self._update_tree_child('connection_models', tree)
         self.connection_models = self.build_named_leaves_dict(
             ConnectionModel,
             self.tree.children['connection_models']
@@ -275,7 +275,7 @@ class Network(object):
                 connection and should be unique.
         """
 
-        self.update_tree_child('topology', topology_tree)
+        self._update_tree_child('topology', topology_tree)
         topology_tree = self.tree.children['topology']
 
         OPTIONAL_TOPOLOGY_PARAMS = {
@@ -298,7 +298,7 @@ class Network(object):
 
         # Get all unique ``(connection_model, source_layer, source_population,
         # target_layer, target_population)`` tuples
-        connection_args = self.parse_connection_params(connection_items)
+        connection_args = self._parse_connection_params(connection_items)
 
         # Verbose
         c_types_str = ' or '.join([
@@ -324,7 +324,7 @@ class Network(object):
         # Initialize attribute
         self.connections = connections
 
-    def parse_connection_params(self, connection_items):
+    def _parse_connection_params(self, connection_items):
         """Return list of tuples specifying all unique connections
 
         Args:
@@ -391,7 +391,7 @@ class Network(object):
             (list(PopulationRecorder), list(ConnectionRecorder))
         """
 
-        self.update_tree_child('recorders', recorders_tree)
+        self._update_tree_child('recorders', recorders_tree)
         recorders_tree = self.tree.children['recorders']
 
         OPTIONAL_RECORDERS_PARAMS = {
@@ -414,14 +414,14 @@ class Network(object):
             mandatory=[], optional=OPTIONAL_RECORDERS_PARAMS
         )
 
-        self.population_recorders = self.build_population_recorders(
+        self.population_recorders = self._build_population_recorders(
             recorders_params['population_recorders']
         )
-        self.connection_recorders = self.build_connection_recorders(
+        self.connection_recorders = self._build_connection_recorders(
                 recorders_params['connection_recorders']
         )
 
-    def build_connection_recorders(self, connection_recorders_items):
+    def _build_connection_recorders(self, connection_recorders_items):
         """Return connection recorders specified by a list of recorder params.
 
         ConnectionRecorders must be built after Connections.
@@ -460,7 +460,7 @@ class Network(object):
             model = item.pop('model')
             conn_recorder_args += [
                 (model,) + conn_args
-                for conn_args in self.parse_connection_params([item])
+                for conn_args in self._parse_connection_params([item])
             ]
         conn_recorder_args = sorted(conn_recorder_args)
 
@@ -513,7 +513,7 @@ class Network(object):
 
         return connection_recorders
 
-    def build_population_recorders(self, population_recorders_items):
+    def _build_population_recorders(self, population_recorders_items):
         """Return population recorders specified by a list of recorder params.
 
         Arguments:
@@ -617,7 +617,7 @@ class Network(object):
             if type(l).__name__ == layer_type
         ]
 
-    def recorder_call(self, method_name, *args, recorder_class=None,
+    def _recorder_call(self, method_name, *args, recorder_class=None,
                       recorder_type=None, **kwargs):
         """Call a method on all recorder objects
 
@@ -725,7 +725,7 @@ class Network(object):
         """
         import nest
         for changes in tqdm(
-                sorted(synapse_changes, key=synapse_sorting_map),
+                sorted(synapse_changes, key=_synapse_sorting_map),
                 desc="-> Changing synapses's state."):
             target_conns = nest.GetConnections(
                 synapse_model=changes['synapse_model']
@@ -770,7 +770,7 @@ class Network(object):
                 ``'params'`` (default {}) is the dictionary of parameter changes
                     applied to the selected units.
         """
-        for changes in sorted(unit_changes, key=unit_sorting_map):
+        for changes in sorted(unit_changes, key=_unit_sorting_map):
             # Pass if no parameter dictionary.
             if not changes['params']:
                 continue
@@ -805,7 +805,7 @@ class Network(object):
             - Save recorder metadata
         """
         # Save recorder metadata
-        self.recorder_call('save_metadata', output_dir)
+        self._recorder_call('save_metadata', output_dir)
 
     @staticmethod
     def print_network_size():
@@ -828,7 +828,7 @@ class Network(object):
         return all_pops
 
 
-def unit_sorting_map(unit_change):
+def _unit_sorting_map(unit_change):
     """Map by (layer, population, proportion, params_items for sorting."""
     return (unit_change.get('layers', 'None'),
             unit_change.get('layer_type', 'None'),
@@ -837,7 +837,7 @@ def unit_sorting_map(unit_change):
             sorted(unit_change['params'].items()))
 
 
-def synapse_sorting_map(synapse_change):
+def _synapse_sorting_map(synapse_change):
     """Map by (synapse_model, params_items) for sorting."""
     return (synapse_change['synapse_model'],
             sorted(synapse_change['params'].items()))

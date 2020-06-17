@@ -55,7 +55,7 @@ class AbstractLayer(NestObject):
         return self._gid
 
     @if_created
-    def connect(self, target, nest_params):
+    def _connect(self, target, nest_params):
         """Connect to target layer. Called by `Connection.create()`"""
         # NOTE: Don't use this method directly; use a Connection instead
         from nest import topology as tp
@@ -185,9 +185,9 @@ class Layer(AbstractLayer):
 
     def __init__(self, name, params, nest_params):
         super().__init__(name, params, nest_params)
-        self.nest_params["elements"] = self.build_elements()
+        self.nest_params["elements"] = self._build_elements()
 
-    def build_elements(self):
+    def _build_elements(self):
         """Convert ``populations`` parameters to format expected by NEST
 
         From the ``populations`` layer parameter, which is a dict of the

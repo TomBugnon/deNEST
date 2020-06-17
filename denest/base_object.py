@@ -24,9 +24,9 @@ class ParamObject:
     def __init__(self, name, params):
         self.name = name
         self.params = cp.deepcopy(params)
-        self.validate_params()
+        self._validate_params()
 
-    def validate_params(self):
+    def _validate_params(self):
         """Validate and update params with default values."""
         # Validate params:
         self.params = validate(
@@ -66,11 +66,11 @@ class NestObject:
         self.params = cp.deepcopy(params)
         self.nest_params = cp.deepcopy(nest_params)
         # Validate self.params and self.nest_params
-        self.validate_params()
+        self._validate_params()
         # Whether the object has been created in NEST
         self._created = False
 
-    def validate_params(self):
+    def _validate_params(self):
         """Validate and update params and nest_params with default values."""
         # Validate params:
         self.params = validate(

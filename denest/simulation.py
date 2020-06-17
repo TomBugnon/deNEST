@@ -155,7 +155,7 @@ class Simulation(object):
         # Save simulation metadata
         self.save_metadata()
 
-    def update_tree_child(self, child_name, tree):
+    def _update_tree_child(self, child_name, tree):
         """Add a child to ``self.tree``"""
         # Convert to ParamsTree and specify parent tree to preserve inheritance
         if not isinstance(tree, ParamsTree):
@@ -175,7 +175,7 @@ class Simulation(object):
         Adds ``network_tree`` as ``network`` child of ``self.tree``
         """
         # Add to self.tree
-        self.update_tree_child('network', network_tree)
+        self._update_tree_child('network', network_tree)
 
         log.info("Building network.")
         self.network = Network(network_tree)
@@ -237,7 +237,7 @@ class Simulation(object):
         for i, session_model in enumerate(sessions_order):
             self.sessions.append(
                 Session(
-                    self.make_session_name(session_model, i),
+                    self._make_session_name(session_model, i),
                     dict(self.session_models[session_model].params),
                     start_time=session_start_time,
                     input_dir=self.input_dir,
@@ -257,7 +257,7 @@ class Simulation(object):
         Adds ``tree`` as ``session_models`` child of ``self.tree``
         """
         # Add to Simulation.tree
-        self.update_tree_child('session_models', tree)
+        self._update_tree_child('session_models', tree)
         session_model_nodes = {
             session_name: session_node
             for session_name, session_node
@@ -312,7 +312,7 @@ class Simulation(object):
         RESERVED_NEST_PARAMS = ["data_path", "msd", "grng_seed", "rng_seed"]
 
         # Add to Simulation.tree
-        self.update_tree_child('kernel', kernel_tree)
+        self._update_tree_child('kernel', kernel_tree)
         kernel_tree = self.tree.children["kernel"]
 
         # Validate "kernel" subtree
@@ -412,6 +412,6 @@ class Simulation(object):
             raise
 
     @staticmethod
-    def make_session_name(name, index):
+    def _make_session_name(name, index):
         """Return a formatted session name comprising the session index."""
         return str(index).zfill(2) + "_" + name

@@ -107,7 +107,7 @@ class BaseConnection(NestObject):
         # is created for this connection, a different synapse model will be used
         self._base_synapse_model = self.nest_params["synapse_model"]
         self._nest_synapse_model = self.nest_params["synapse_model"]
-        self.validate_connection()
+        self._validate_connection()
 
     # Properties:
     @property
@@ -145,7 +145,7 @@ class BaseConnection(NestObject):
         """Create the connections in NEST and the connection recorders."""
         pass
 
-    def connect_connection_recorder(
+    def _connect_connection_recorder(
         self, recorder_type="weight_recorder", recorder_gid=None
     ):
         """Create and use new synapse model connected to a ConnectionRecorder.
@@ -158,7 +158,7 @@ class BaseConnection(NestObject):
         if recorder_type == "weight_recorder":
             # If we want to record the synapse, we create a new model and change
             # its default params so that it connects to the weight recorder
-            self._nest_synapse_model = self.nest_synapse_model_name()
+            self._nest_synapse_model = self._nest_synapse_model_name()
             nest.CopyModel(
                 self._base_synapse_model,
                 self._nest_synapse_model,
@@ -171,14 +171,14 @@ class BaseConnection(NestObject):
                 f"ConnectionRecorder type `{recorder_type}` not recognized"
             )
 
-    def nest_synapse_model_name(self):
+    def _nest_synapse_model_name(self):
         return f"{self._base_synapse_model}-{self.__str__()}"
 
     # Save and plot stuff
     def save(self, output_dir):
         pass
 
-    def validate_connection(self):
+    def _validate_connection(self):
         """Check the connection to avoid bad errors.
 
         Raise ValueError if:
@@ -214,4 +214,4 @@ class TopoConnection(BaseConnection):
     @if_not_created
     def create(self):
         """Create the connections in NEST using ``tp.ConnectLayers``."""
-        self.source.connect(self.target, self.nest_params)
+        self.source._connect(self.target, self.nest_params)

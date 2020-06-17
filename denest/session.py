@@ -183,7 +183,7 @@ class Session(ParamObject):
             assert nest.GetStatus(recorder.gid, "origin")[0] == 0.0
         log.debug("Inactivating all recorders for session %s", self.name)
         # Set start time in the future
-        network.recorder_call(
+        network._recorder_call(
             "set_status",
             {"start": nest.GetKernelStatus("time") + self._simulation_time},
         )
