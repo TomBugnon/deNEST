@@ -210,13 +210,10 @@ class Session(ParamObject):
         )
         assert self.end == int(nest.GetKernelStatus("time"))
 
+    # TODO
     def save_metadata(self, output_dir):
-        """Save session metadata (stimulus array, ...)."""
+        """Save session metadata."""
         pass
-
-    @property
-    def duration(self):
-        return (self._start, self._end)
 
     @property
     def simulation_time(self):
