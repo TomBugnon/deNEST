@@ -77,7 +77,7 @@ class AbstractLayer(NestObject):
 
         tp.ConnectLayers(self.gid, target.gid, nest_params)
 
-    def gids(self, population=None, location=None):
+    def gids(self, population=None, location=None, population_location=None):
         """Return element GIDs, optionally filtered by population/location.
 
         Args:
@@ -85,6 +85,8 @@ class AbstractLayer(NestObject):
                 a substring.
             location (tuple[int]): The location within the layer to filter
                 by.
+            population_location (tuple[int]): The location within the population
+                to filter by.
 
         Returns:
             list: The GID(s).
@@ -245,7 +247,7 @@ class Layer(AbstractLayer):
         assert set(self._gids) == set(self._layer_locations.keys())
 
     @if_created
-    def gids(self, population=None, location=None):
+    def gids(self, population=None, location=None, population_location=None):
         import nest
 
         return [
@@ -254,6 +256,8 @@ class Layer(AbstractLayer):
             if (
                 (population is None or nest.GetStatus((gid,), "model")[0] == population)
                 and (location is None or self.locations[gid] == location)
+                and (population_location is None
+                     or self.population_locations[gid] == population_location)
             )
         ]
 
