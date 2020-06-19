@@ -28,12 +28,14 @@ class AbstractLayer(NestObject):
         super().__init__(name, params, nest_params)
         self._gid = None
         self._gids = None  # list of layer GIDs
-        self._locations = {}  # {<gid>: (row, col)}
+        self._layer_locations = {}  # {<gid>: (row, col)}
+        self._population_locations = {}  # {<gid>: (row, col, unit_index)}
         self._populations = params["populations"]  # {<population>: <number>}
-        self.shape = nest_params["rows"], nest_params["columns"]
+        self._shape = nest_params["rows"], nest_params["columns"]
         # Record if we change some of the layer units' state probabilistically
         self._prob_changed = False
 
+    #TODO
     def __iter__(self):
         """Iterate on layer locations."""
         yield from itertools.product(range(self.shape[0]), range(self.shape[1]))
@@ -66,11 +68,10 @@ class AbstractLayer(NestObject):
         """Return element GIDs, optionally filtered by population/location.
 
         Args:
-            population (str or Sequence(str)): Matches any population name that
-                has ``population`` as a substring.
-            location (tuple[int] or Sequence[tuple[int]]): The location(s) to
-                filter by; can be a single coordinate pair or a sequence of
-                coordinate pairs.
+            population (str): Matches population name that has ``population`` as
+                a substring.
+            location (tuple[int]): The location within the layer to filter
+                by.
 
         Returns:
             list: The GID(s).
@@ -216,20 +217,22 @@ class Layer(AbstractLayer):
     def create(self):
         """Create the layer in NEST and update attributes."""
         from nest import topology as tp
+        import nest
 
         self._gid = tp.CreateLayer(self.nest_params)
-        # Update _locations: ``{gid: (row, col)}``
-        for i, j in itertools.product(range(self.shape[0]), range(self.shape[1])):
+        self._gids = nest.GetNodes(self.gid)[0]
+        # Update _layer_locations: eg ``{gid: (row, col)}``
+        # and _population_locations: ``{gid: (row, col, unit_index)}``
+        for index, _ in np.ndenumerate(np.empty(self.shape)): # Hacky
+            loc_gids = tp.GetElement(self._gid, index[::-1])
             # IMPORTANT: rows and columns are switched in the GetElement query
-            gids = tp.GetElement(self.gid, locations=(j, i))
-            for gid in gids:
-                self._locations[gid] = (i, j)
-        # Get all GIDs
-        self._gids = tuple(sorted(self._locations.keys()))
+            for k, gid in enumerate(loc_gids):
+                self._layer_locations[gid] = index
+                self._population_locations[gid] = index + (k,)
+        assert set(self._gids) == set(self._layer_locations.keys())
 
     @if_created
     def gids(self, population=None, location=None):
-        """Return layer GIDs filtered by population or location."""
         import nest
 
         return [
@@ -242,10 +245,39 @@ class Layer(AbstractLayer):
         ]
 
     @property
+    def shape(self):
+        """Return layer shape (eg ``(nrows, ncols)``)"""
+        return self._shape
+
+    @property
+    def layer_shape(self):
+        """Return layer shape (eg ``(nrows, ncols)``)"""
+        return self.shape
+
+    @property
+    def population_shapes(self):
+        """Return population shapes: ``{<pop_name>: (nrows, ncols, nunits)``"""
+        return {
+            pop_name: self.shape + (self.populations[pop_name],)
+            for pop_name in self.populations
+        }
+
+    @property
     @if_created
     def locations(self):
-        """Return ``{<gid>: (<row>, <col>)}`` dict of locations."""
-        return self._locations
+        """Return ``{<gid>: index}`` dict of locations within the layer."""
+        return self._layer_locations
+
+    @property
+    @if_created
+    def population_locations(self):
+        """Return ``{<gid>: index}`` dict of locations within the population.
+
+        There's an extra (last) dimension for the population locations compared
+        to the [layer] locations, corresponding to the index of the unit within
+        the population.
+        """
+        return self._population_locations
 
     @if_created
     @staticmethod

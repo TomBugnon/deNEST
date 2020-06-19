@@ -163,6 +163,9 @@ class PopulationRecorder(BaseRecorder):
         self._population_name = population_name  # Name of recorded population
         self._layer_name = self.layer.name  # Name of recorded pop's layer
         self._layer_shape = self.layer.shape  # (nrows, cols) for recorded pop
+        self._population_shape = self.layer.population_shapes[
+            self._population_name
+        ]
         # Number of nodes per grid position for pop
         self._units_number = self.layer.populations[population_name]
         # Attributes below are necessary for creating the output metadata file
@@ -257,7 +260,7 @@ class PopulationRecorder(BaseRecorder):
                 "population_name": self._population_name,
                 "layer_name": self._layer_name,
                 "layer_shape": self._layer_shape,
-                "population_shape": self._layer_shape + (self._units_number,),
+                "population_shape": self._population_shape,
                 "units_number": self._units_number,
                 "interval": self._interval,
                 "record_from": self._record_from,
