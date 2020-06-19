@@ -60,7 +60,7 @@ class AbstractLayer(NestObject):
         """Return shape of a population = layer_shape + (pop_n_units,)"""
         return {
             population_name: self.shape + (self.populations[population_name],)
-            for population_name in self.population_names()
+            for population_name in self.population_names
         }
 
     @property
@@ -303,13 +303,15 @@ class Layer(AbstractLayer):
 
         return tp.GetPosition(args)
 
+    @property
     def population_names(self):
         """Return a list of population names within this layer."""
         return list(self.params["populations"].keys())
 
+    @property
     def recordable_population_names(self):
         """Return list of names of recordable population names in this layer."""
-        return self.population_names()
+        return self.population_names
 
     @if_created
     def set_state(self, variable, values, population=None):
@@ -428,6 +430,7 @@ class InputLayer(Layer):
         else:
             assert False
 
+    @property
     def recordable_population_names(self):
         """Return list of names of recordable population names in this layer."""
         return ["parrot_neuron"]
