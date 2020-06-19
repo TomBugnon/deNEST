@@ -51,6 +51,19 @@ class AbstractLayer(NestObject):
         return self._populations
 
     @property
+    def layer_shape(self):
+        """Return shape of the layer."""
+        return self.shape
+
+    @property
+    def population_shape(self):
+        """Return shape of a population = layer_shape + (pop_n_units,)"""
+        return {
+            population_name: self.shape + (self.populations[population_name],)
+            for population_name in self.population_names()
+        }
+
+    @property
     @if_created
     def gid(self):
         """Return the NEST global ID (GID) of the layer object."""
