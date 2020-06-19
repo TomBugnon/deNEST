@@ -8,10 +8,7 @@ import logging
 import time
 from pprint import pformat
 
-import numpy as np
-
 from .base_object import ParamObject
-from .utils.load_stimulus import load_raw_stimulus
 from .utils.misc import pretty_time
 from .utils.validation import ParameterError
 
@@ -64,7 +61,6 @@ class Session(ParamObject):
         "record": True,
         "unit_changes": [],
         "synapse_changes": [],
-        "inputs": {},
     }
 
     def __init__(self, name, params, start_time=None, input_dir=None):
@@ -84,8 +80,6 @@ class Session(ParamObject):
                 f"Parameter `simulation_time` of session {name} should be" f" positive."
             )
         self._end = self._start + self._simulation_time
-        # Initialize input arrays
-        self._input_arrays = None
 
     @property
     def end(self):
@@ -96,11 +90,6 @@ class Session(ParamObject):
     def start(self):
         """Return kernel time at session's start."""
         return self._start
-
-    @property
-    def input_arrays(self):
-        """Return ``{<input_layer>: <input_array>}`` dict."""
-        return self._input_arrays
 
     def __repr__(self):
         return "{classname}({name}, {params})".format(
@@ -113,9 +102,6 @@ class Session(ParamObject):
             1. Reset Network
             2. Change network's dynamic variables.
             3. (possibly) inactivate recorders
-            4. For each InputLayer
-                1. Load input array
-                2. Set layer's spike times or input rates from input array
 
         Args:
             self (Session): ``Session`` object
@@ -126,40 +112,14 @@ class Session(ParamObject):
             network.reset()
 
         # Change dynamic variables
-        # TODO: Implement new `set_input` flexible method
-        # NB: Soon obsolete
-        network.change_synapse_states(self.params["synapse_changes"])
-        network.change_unit_states(self.params["unit_changes"])
+        # TODO
+        # network.change_synapse_states(self.params["synapse_changes"])
+        # network.change_unit_states(self.params["unit_changes"])
 
         # Inactivate all the recorders and connection_recorders for
         # `self._simulation_time`
         if not self.params["record"]:
             self.inactivate_recorders(network)
-
-        # Set input for each inputlayer
-        # TODO: Implement new `set_input` flexible method
-        # NB: Soon obsolete
-        inputlayers = network._get_layers(layer_type="InputLayer")
-        self._input_arrays = {}
-        for inputlayer in inputlayers:
-            if inputlayer.name not in self.params["inputs"].keys():
-                # raise ParameterError(
-                #     f"No input defined in session {self.name} for InputLayer"
-                #     f"{str(inputlayer)}. Please check the `inputs` session"
-                #     f"parameter"
-                # )
-                continue
-
-            log.info('Setting input for InputLayer "%s"', inputlayer.name)
-
-            # Load input array
-            input_array = self.load_input_array(
-                inputlayer, self.params["inputs"][inputlayer.name]
-            )
-            self._input_arrays[inputlayer.name] = input_array
-
-            # Set input spike times in the future.
-            inputlayer.set_input(input_array, start_time=self._start)
 
     def inactivate_recorders(self, network):
         """Set 'start' of all (connection_)recorders at the end of session.
@@ -212,82 +172,3 @@ class Session(ParamObject):
     @property
     def simulation_time(self):
         return self._simulation_time
-
-    # TODO: Implement new `set_input` flexible method
-    # NB: Soon obsolete
-    def load_input_array(self, input_layer, input_params):
-        """Load and return the session's input array for an ``InputLayer``
-
-        Args:
-            input_layer (InputLayer): Layer of type 'InputLayer'
-            input_params (dict): Dictionary specifying the input for this layer.
-                One of the keys of the ``inputs`` session parameter. Should have
-                the following form::
-                    {
-                        'filename': <input_file>
-                        'time_per_frame': <time_per_frame>
-                        'rate_scaling_factor': <rate_scaling_factor>
-                    }
-                Where:
-                    - <filename> points to the input array used to set the
-                        stimulator's firing rates. Refer to
-                        `utils.load_stimulus` for a description of how the array
-                        is loaded from this parameter and the `input_dir`
-                        simulation parameter
-                    - <rate_scaling_factor> scales the input array's values
-                    - <time_per_frame> is the time in ms during which each of
-                        the input array's "frames" is shown to the network.
-        """
-
-        # TODO: Validate params
-
-        # Input path can be either to an input array or to the directory in
-        # which input # arrays are searched
-        filename = input_params["filename"]
-        raw_input_array = load_raw_stimulus(self.input_dir, filename)
-
-        # Crop to adjust to network's input layer shape
-        layer_shape = input_layer.shape  # (row, col)
-        raw_input_array_rowcol = (
-            raw_input_array.shape[1],
-            raw_input_array.shape[2],
-        )  # (row, col)
-
-        if not np.all(layer_shape <= raw_input_array_rowcol):
-            raise ValueError(
-                f"Invalid shape for input array at `filename` for layer"
-                f"{input_layer} "
-            )
-        cropped_input_array = raw_input_array[
-            :, : layer_shape[0], : layer_shape[1]  # time,  # row, col
-        ]
-
-        # Scale the raw input by the session's scaling factor.
-        scale_factor = input_params.get("rate_scaling_factor", 1.0)
-        scaled_input_array = cropped_input_array * scale_factor
-        log.info("  Applying scaling factor to array: %s", scale_factor)
-
-        # Expand from frame to timesteps
-        input_array = expand_stimulus_array(
-            scaled_input_array,
-            input_params.get("time_per_frame", 1.0),
-            self.simulation_time,
-        )
-
-        return input_array
-
-
-# TODO: Implement new `set_input` flexible method
-# NB: Soon obsolete
-def expand_stimulus_array(list_or_array, nrepeats, target_length):
-    """Repeat elems along the first dimension and adjust length to target.
-
-    We first expand the array by repeating each element `nrepeats` times, and
-    then adjust to the target length by either trimming or repeating the whole
-    array.
-    """
-    extended_arr = np.repeat(list_or_array, nrepeats, axis=0)
-    n_rep, remainder = divmod(target_length, len(extended_arr))
-    return np.concatenate(
-        [extended_arr for i in range(n_rep)] + [extended_arr[:remainder]], axis=0
-    )

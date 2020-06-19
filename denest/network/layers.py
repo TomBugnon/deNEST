@@ -6,13 +6,11 @@
 
 import itertools
 import logging
-import random
 from pathlib import Path
 
 import numpy as np
 
 from ..base_object import NestObject
-from ..utils import spike_times
 from ..utils.validation import ParameterError
 from .utils import flatten, if_created, if_not_created
 
@@ -262,16 +260,6 @@ class AbstractLayer(NestObject):
                 [{param_name: v} for v in set_values]
             )
 
-    @staticmethod
-    def get_gids_subset(gids_list, proportion):
-        """Return a proportion of gids picked randomly from a list."""
-        return [
-            gids_list[i]
-            for i in sorted(
-                random.sample(range(len(gids_list)), int(len(gids_list) * proportion))
-            )
-        ]
-
 
 class Layer(AbstractLayer):
     """Represents a NEST layer composed of populations of units
@@ -419,7 +407,7 @@ class Layer(AbstractLayer):
         return self.population_names
 
 class InputLayer(Layer):
-    """A layer that provides input to the network.
+    """A layer of stimulators
 
     ``InputLayer`` extends the ``Layer`` class to handle layers of stimulation
     devices.
@@ -428,9 +416,6 @@ class InputLayer(Layer):
     devices. A second population of parrot neurons will be created and connected
     one-to-one to the population of stimulators, to allow recording of activity
     in the layer.
-
-    The state of stimulators within the `InputLayer` can be set from an input
-    array via the ``InputLayer.set_input`` method.
     """
 
     # Append ``Layer`` docstring
