@@ -48,12 +48,6 @@ class Session(ParamObject):
                     method for a description of how ``synapse_changes`` is
                     formatted and interpreted. No changes happen if empty.
                     (default [])
-                - ``inputs`` (list): List describing the input applied to each
-                    of the network's ``InputLayer`` objects during the session.
-                    Refer to ``Session.load_input_array`` and
-                    ``InputLayer.set_input`` for a description of how the inputs
-                    are loaded and converted to stimulator activity. (default
-                    [])
 
     Kwargs:
         start_time (float): Time of kernel in ms when the session starts

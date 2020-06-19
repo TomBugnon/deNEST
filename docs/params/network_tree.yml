@@ -49,7 +49,7 @@ layers:
       params:
         type: InputLayer
         populations:
-          poisson_generator: 1
+          spike_generator: 1
       nest_params: {}
     l1:
       params:

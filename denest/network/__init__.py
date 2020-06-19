@@ -734,63 +734,146 @@ class Network(object):
             log.info("Changing status for %s connections of type %s. Applying dict: %s", len(target_conns), changes['synapse_model'], change_params)
             nest.SetStatus(target_conns, change_params)
 
-    def change_unit_states(self, unit_changes):
-        """Change parameters for some units of a population.
+    def set_state(self, unit_changes=None, synapse_changes=None,
+                  input_dir=None):
+        """Set the state of some units and synapses.
 
         Args:
-            unit_changes (list): List of dictionaries each of the form::
+            unit_changes (list): List of dictionaries specifying the changes
+                applied to the networks units::
                     {
                         'layers': <layer_name_list>,
-                        'layer_type': <layer_type>,
                         'population': <pop_name>,
                         'change_type': <change_type>,
-                        'proportion': <prop>,
-                        'params': {<param_name>: <param_value>,
-                                   ...}
+                        'from_array': <from_array>,
+                        'nest_params': {
+                            <param_name>: <param_change>,
+                        },
                     }
-                where:
-                ``<layer_name_list>`` (default None) is the list of name of the
-                    considered layers. If not specified or empty, changes are
-                    applied to all the layers of type <layer_type>.
-                ``<layer_type>`` (default None) is the name of the type of
-                    layers to which the changes are applied. Should be 'Layer'
-                    or 'InputLayer'. Used only if <layer_name> is None.
-                ``<population_name>`` (default None) is the name of the
-                    considered population in each layer. If not specified,
-                    changes are applied to all the populations.
-                ``<change_type>`` ('constant' or 'multiplicative'). If
-                    'multiplicative', the set value for each parameter is the
-                    product between the preexisting value and the given value.
-                    If 'constant', the given value is set without regard for the
-                    preexisting value. (default: 'constant')
-                ``<prop>`` (default 1) is the proportion of units of the
-                    considered population on which the filter is applied. The
-                    changes are applied on the units that are randomly selected
-                    and passed the filter.
-                ``'params'`` (default {}) is the dictionary of parameter changes
-                    applied to the selected units.
+                where ``<layer_name_list>`` and ``<population_name>`` specify
+                all the individual populations to which the changes are applied:
+                    ``<layer_name_list>`` (list(str) | None) is the list of
+                        names of the considered layers. If None, the changes may
+                        be applied to populations from all the layers. (default
+                        [])
+                    ``<population_name>`` (str | None) is the name of the
+                        considered population in each layer. If ``None``,
+                        changes are applied to all the populations of each
+                        considered layer. (default None)
+                and ``<change_type>``, ``<from_array>`` and ``'nest_params'``
+                specify the changes applied to units from each of those
+                populations:
+                    ``<change_type>`` ('constant', 'multiplicative' or
+                        'additive'). If 'multiplicative' (resp. 'additive'), the
+                        set value for each unit and parameter is the product
+                        (resp. sum) between the preexisting value and the given
+                        value. If 'constant', the given value for each unit is
+                        set without regard for the preexisting value.  (default:
+                        'constant')
+                    ``<from_array>`` (bool) specifies how the <param_change>
+                        value given for each parameter is interpreted:
+                            - if ``True``, ``param_change`` should be a numpy
+                              array or the relative path from ``input_dir`` to a
+                              numpy array.
+                              The given or loaded array should have the same
+                              dimension as the considered population, and its
+                              values are mapped to the population's units to set
+                              the ``<param_name>`` parameter.
+                            - if ``False``, the value in ``param_change`` is
+                              used to set the ``<param_name>`` parameter for all
+                              the population's units.
+                    ``'nest_params'`` (default {}) is the dictionary specifying
+                        the parameter changes applied to the population units.
+                        Items are the name of the modified NEST parameters
+                        (``<param_name>``) and the values set
+                        (``<param_change>``). The ``<change_type>`` and
+                        ``<from_array>`` parameters specify the interpretation
+                        of the ``<param_change>`` value.
+
+        Examples:
+
+            $ # Set the same spike times for all the units of a population of spike
+            $ # generators
+            $ Network.set_state({
+            $     'layers': ['input_layer'],
+            $     'population_name': 'spike_generator',
+            $     'change_type': 'constant',
+            $     'from_array': False,
+            $     'nest_params': {'spike_times': [1.0, 2.0, 3.0]}
+            $ })
+            $
+            $ # Set the voltage from values for multiple 2x2 population of neurons: specify
+            $ # the array directly
+            $ voltages = np.array([[-70.0, -65.0], [-70.0, -65.0]])
+            $ Network.set_state({
+            $     'layers': ['l1', 'l2'],
+            $     'population_name': None,
+            $     'change_type': 'constant',
+            $     'from_array': True,
+            $     'nest_params': {'V_m': voltages}
+            $ })
+            $
+            $ # Set the voltage from values for a 2x2 population of neurons: pass
+            $ # the path to the array
+            $ np.save(voltages, './voltage_change.npy')
+            $ Network.set_state({
+            $     'layers': ['l1'],
+            $     'population_name': 'l1_exc',
+            $     'change_type': 'constant',
+            $     'from_array': True,
+            $     'nest_params': {'V_m': './voltage_change.npy'}
+            $ })
+            $
+            $ # Multiply the leak potential by 2 for all the units
+            $ Network.set_state({
+            $     'layers': ['l1'],
+            $     'population_name': 'l1_exc',
+            $     'change_type': 'multiplicative',
+            $     'from_array': False,
+            $     'nest_params': {'g_peak_AMPA': 2.0}
+            $ })
+
         """
+        UNIT_CHANGES_OPTIONAL = {
+            'nest_params': {},
+            'population_name': None,
+            'change_type': 'constant',
+            'from_array': False,
+            'input_dir': './',
+            'layers': [],
+        }
+
+        if unit_changes is None:
+            unit_changes = []
+
         for changes in sorted(unit_changes, key=_unit_sorting_map):
-            # Pass if no parameter dictionary.
-            if not changes['params']:
-                continue
 
-            # Iterate on all layers of a given subtype or on a specific layer
-            change_layers = changes.get('layers', [])
-            if not change_layers:
-                layers = self._get_layers(
-                    layer_type=changes.get('layer_type', None))
+            optional_params = dict(UNIT_CHANGES_OPTIONAL)
+            if not changes['from_array']:
+                optional_params.pop('input_dir')
+
+            changes = validation.validate(
+                'Unit changes dictionary',
+                changes,
+                mandatory=[],
+                optional=optional_params,
+            )
+
+            # Iterate on layers
+            layer_names = changes.get('layers', [])
+            if layer_names is None:
+                layers = self._get_layers()
             else:
-                layers = [self.layers[layer_name]
-                          for layer_name in change_layers]
+                layers = [self.layers[layer_name] for layer_name in layer_names]
 
-            log.debug('    Applying unit changes dictionary %s\n\nto layers\n%s', changes, change_layers)
-            for layer in tqdm(layers, desc="---> Apply change dict on layers"):
-                layer.change_unit_states(
-                    changes['params'],
-                    population=changes.get('population', None),
-                    proportion=changes.get('proportion', 1.),
-                    change_type=changes.get('change_type', 'constant')
+            for layer in layers:
+
+                layer.set_state(
+                    nest_params=changes['nest_params'],
+                    population_name=changes['population_name'],
+                    change_type=changes['change_type'],
+                    from_array=changes['from_array'],
+                    input_dir=changes.get('input_dir', None),
                 )
 
     @staticmethod
@@ -831,10 +914,9 @@ class Network(object):
 def _unit_sorting_map(unit_change):
     """Map by (layer, population, proportion, params_items for sorting."""
     return (unit_change.get('layers', 'None'),
-            unit_change.get('layer_type', 'None'),
             unit_change.get('population', 'None'),
-            unit_change.get('proportion', '1'),
-            sorted(unit_change['params'].items()))
+            unit_change.get('population', 'None'),
+            sorted(unit_change.get('params', {}).keys()))
 
 
 def _synapse_sorting_map(synapse_change):

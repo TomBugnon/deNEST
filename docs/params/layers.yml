@@ -10,7 +10,7 @@ layers:
     params:
       type: 'InputLayer'
       populations:
-        poisson_generator: 1
+        spike_generator: 1
   l1:
     params:
       populations:

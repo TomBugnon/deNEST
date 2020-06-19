@@ -7,6 +7,7 @@
 import itertools
 import logging
 import random
+from pathlib import Path
 
 import numpy as np
 
@@ -147,20 +148,119 @@ class AbstractLayer(NestObject):
         self.apply_unit_changes(gids_to_change, changes_dict, change_type=change_type)
         self._prob_changed = True
 
+    @if_created
+    def set_state(self, nest_params=None, population_name=None,
+                  change_type='constant', from_array=False, input_dir=None):
+        """Set the state of some of the layer's populations."""
+
+        # Iterate on populations
+        if population_name is None:
+            population_names = self.population_names
+        else:
+            population_names = [population_name]
+
+        for population_name in population_names:
+            population_shape = self.population_shape[population_name]
+
+            for param_name, param_change in nest_params.items():
+
+                # Get array of values the same shape as the population
+                # Option 1: map from numpy array directly provided
+                if from_array and isinstance(param_change, (np.ndarray)):
+                    values_array = param_change
+                    from_file = False
+                # Option 2: map from numpy array loaded from file
+                elif from_array:
+                    path = Path(input_dir)/Path(param_change)
+                    if not path.exists():
+                        raise FileNotFoundError(
+                            f"Could not load array from file at {path}"
+                        )
+                    values_array = np.load(path)
+                    from_file = True
+                # Option 3: Same value applied to all the units in the pop
+                else:
+                    # This does not work to make an array of lists
+                    # values_array = np.full(population_shape, param_change)
+                    # This can make array of lists
+                    values_array = np.frompyfunc(
+                        lambda: param_change, 0, 1)(
+                            np.empty(population_shape, dtype=object)
+                    )
+                    
+
+                # Provided array has correct dimension
+                if not sorted(values_array.shape) == sorted(population_shape):
+                    raise ValueError(
+                        f'Layer `{self.name}`, population `{population_name}`, '
+                        f'parameter `{param_name}``, '
+                        f'(array from file)={from_file}: '
+                        f'Array has '
+                        f' incorrect shape. Expected shape `{population_shape}`'
+                        f', got shape `{values_array.shape}`'
+                    )
+
+                log.info(
+                    f"Layer='{self.name}', pop='{population_name}': Applying "
+                    f"'{change_type}' change, param='{param_name}', "
+                    f"{'from array' if from_array else 'from single value'}')"
+                )
+
+                # Set parameter for each unit in the population
+                for idx, x in np.ndenumerate(values_array):
+                    tgt_gid = self.gids(
+                        population=population_name,
+                        population_location=idx,
+                    )
+                    self.set_unit_state(tgt_gid, param_name, values_array[idx],
+                                        change_type=change_type)
+
     @staticmethod
-    def apply_unit_changes(gids_to_change, changes_dict, change_type="constant"):
-        """Change the state of a list of units."""
-        assert change_type in ["constant", "multiplicative"]
+    def set_unit_state(gids, param_name, param_change, change_type="constant"):
+        """Change some units'  parameter in NEST.
+
+        Args:
+            gids (list(int)): Gids of units to change the state of
+            param_name (str): Name of the modified parameter
+            param_change: Value used for modification. Set directly or
+                added/multiplied to the current value of the parameter depending
+                on the value of the ``'change_type'`` kwarg
+
+        Kwargs:
+            change_type ('constant', 'multiplicative' or 'additive'). If
+                'multiplicative' (resp. 'additive'), the set value for each unit
+                is the product (resp. sum) between the preexisting value and the
+                given value. If 'constant', the given value for each unit is set
+                without regard for the preexisting value.
+                (default: 'constant')
+        """
         import nest
 
+        CHANGE_TYPES = ["constant", "multiplicative", "additive"]
+        if change_type not in CHANGE_TYPES:
+            raise ValueError(
+                '``change_type`` param should be one of {CHANGE_TYPES}'
+            )
+
         if change_type == "constant":
-            nest.SetStatus(gids_to_change, changes_dict)
-        elif change_type == "multiplicative":
-            for gid, (change_key, change_ratio) in itertools.product(
-                gids_to_change, changes_dict.items()
-            ):
-                current_value = nest.GetStatus((gid,), change_key)[0]
-                nest.SetStatus((gid,), {change_key: current_value * change_ratio})
+            nest.SetStatus(gids, {param_name: param_change})
+        else:
+            current_values = nest.GetStatus(gids, param_name)
+            if not all([isinstance(v, float) for v in current_values]):
+                raise ValueError(
+                    "Can't set state multiplicatively for non-float parameter "
+                    "``{param_name}``. Expecting ``change_type='constant'``."
+                )
+            if change_type == 'multiplicative':
+                set_values = [v * param_change for v in current_values]
+            elif change_type == 'additive':
+                set_values = [v + param_change for v in current_values]
+            else:
+                assert False
+            nest.SetStatus(
+                gids,
+                [{param_name: v} for v in set_values]
+            )
 
     @staticmethod
     def get_gids_subset(gids_list, proportion):
@@ -238,12 +338,18 @@ class Layer(AbstractLayer):
         self._gids = nest.GetNodes(self.gid)[0]
         # Update _layer_locations: eg ``{gid: (row, col)}``
         # and _population_locations: ``{gid: (row, col, unit_index)}``
-        for index, _ in np.ndenumerate(np.empty(self.shape)): # Hacky
-            loc_gids = tp.GetElement(self._gid, index[::-1])
-            # IMPORTANT: rows and columns are switched in the GetElement query
-            for k, gid in enumerate(loc_gids):
-                self._layer_locations[gid] = index
-                self._population_locations[gid] = index + (k,)
+        for index, _ in np.ndenumerate(np.empty(self.shape)):  # Hacky
+            for population in self.population_names:
+                # Match population and location
+                loc_pop_gids = [
+                    gid for gid in tp.GetElement(self._gid, index[::-1])
+                    if nest.GetStatus((gid,), "model")[0] == population
+                ]
+                # IMPORTANT: rows and columns are switched in the GetElement
+                # query
+                for k, gid in enumerate(loc_pop_gids):
+                    self._layer_locations[gid] = index
+                    self._population_locations[gid] = index + (k,)
         assert set(self._gids) == set(self._layer_locations.keys())
 
     @if_created
@@ -251,14 +357,13 @@ class Layer(AbstractLayer):
         import nest
 
         return [
-            gid
-            for gid in self._gids
-            if (
-                (population is None or nest.GetStatus((gid,), "model")[0] == population)
-                and (location is None or self.locations[gid] == location)
-                and (population_location is None
-                     or self.population_locations[gid] == population_location)
-            )
+            gid for gid in self._gids
+            if (population is None
+                or nest.GetStatus((gid,), "model")[0] == population) \
+            and (location is None
+                 or list(self.locations[gid]) == list(location)) \
+            and (population_location is None
+                 or list(self.population_locations[gid]) == list(population_location))
         ]
 
     @property
@@ -312,27 +417,6 @@ class Layer(AbstractLayer):
     def recordable_population_names(self):
         """Return list of names of recordable population names in this layer."""
         return self.population_names
-
-    @if_created
-    def set_state(self, variable, values, population=None):
-        """Set the state of a variable for all units in a layer.
-
-        If value is a 2D array the same size as the layer, set the values of
-        variable per location.
-        """
-        import nest
-
-        if isinstance(values, np.ndarray):
-            value_per_location = True
-            assert (
-                np.shape(values) == self.shape
-            ), "Array has the wrong shape for setting layer values"
-        for location in self:
-            value = values[location] if value_per_location else values
-            nest.SetStatus(
-                self.gids(population=population, location=location), {variable: value}
-            )
-
 
 class InputLayer(Layer):
     """A layer that provides input to the network.
@@ -398,37 +482,6 @@ class InputLayer(Layer):
         nest.Connect(stim_gids, parrot_gids, "one_to_one", {"model": "static_synapse"})
         # Get stimulator type
         self.stimulator_type = nest.GetDefaults(self.stimulator_model, "type_id")
-
-    # TODO: DOc
-    def set_input(self, input_array, start_time=0.0):
-        """Set stimulator state from input_array."""
-
-        if self.stimulator_type not in self.STIMULATORS:
-            raise ValueError(
-                f"Input can be set for `InputLayer` only for stimulators of the"
-                f"following type: {self.STIMULATORS}."
-            )
-
-        max_rate = np.max(input_array)
-        assert input_array.ndim == 3
-        log.info('  Setting input for "%s"', self.name)
-        log.info("    Max instantaneous rate: %s Hz", str(max_rate))
-        if self.stimulator_type == "poisson_generator":
-            log.info(
-                "Stimulator is a 'poisson_generator'; using only first frame of the %s stimulus array",
-                input_array.shape,
-            )
-            # Use only first frame
-            self.set_state("rate", input_array[0], population=self.stimulator_model)
-        elif self.stimulator_type == "spike_generator":
-            all_spike_times = spike_times.draw_spike_times(
-                input_array, start_time=start_time
-            )
-            self.set_state(
-                "spike_times", all_spike_times, population=self.stimulator_model
-            )
-        else:
-            assert False
 
     @property
     def recordable_population_names(self):
