@@ -35,4 +35,4 @@ network:
         l2_inh:
     input_exc:
       params:
-        nest_model: spike_generator
+        nest_model: poisson_generator

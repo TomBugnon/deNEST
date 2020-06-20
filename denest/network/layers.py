@@ -151,6 +151,9 @@ class AbstractLayer(NestObject):
                   change_type='constant', from_array=False, input_dir=None):
         """Set the state of some of the layer's populations."""
 
+        if input_dir is None:
+            input_dir = Path('./')
+
         # Iterate on populations
         if population_name is None:
             population_names = self.population_names
@@ -185,7 +188,6 @@ class AbstractLayer(NestObject):
                         lambda: param_change, 0, 1)(
                             np.empty(population_shape, dtype=object)
                     )
-                    
 
                 # Provided array has correct dimension
                 if not sorted(values_array.shape) == sorted(population_shape):

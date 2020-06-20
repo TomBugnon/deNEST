@@ -839,7 +839,6 @@ class Network(object):
             'population_name': None,
             'change_type': 'constant',
             'from_array': False,
-            'input_dir': './',
             'layers': [],
         }
 
@@ -848,15 +847,11 @@ class Network(object):
 
         for changes in sorted(unit_changes, key=_unit_sorting_map):
 
-            optional_params = dict(UNIT_CHANGES_OPTIONAL)
-            if not changes['from_array']:
-                optional_params.pop('input_dir')
-
             changes = validation.validate(
                 'Unit changes dictionary',
                 changes,
                 mandatory=[],
-                optional=optional_params,
+                optional=UNIT_CHANGES_OPTIONAL,
             )
 
             # Iterate on layers
@@ -873,7 +868,7 @@ class Network(object):
                     population_name=changes['population_name'],
                     change_type=changes['change_type'],
                     from_array=changes['from_array'],
-                    input_dir=changes.get('input_dir', None),
+                    input_dir=input_dir,
                 )
 
     @staticmethod

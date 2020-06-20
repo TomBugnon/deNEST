@@ -1,5 +1,5 @@
 simulation:
   params:
-    sessions: ['warmup', 'noise', 'grating']
+    sessions: ['warmup', 'even_rate', 'arbitrary_rate']
     output_dir: output
     input_dir: input

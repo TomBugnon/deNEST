@@ -1,9 +1,9 @@
 00_warmup:
 - 0.0
 - 50.0
-01_noise:
+01_even_rate:
 - 50.0
 - 100.0
-02_grating:
+02_arbitrary_rate:
 - 100.0
 - 150.0

@@ -171,7 +171,7 @@ network:
     input_exc:
       nest_params: {}
       params:
-        nest_model: spike_generator
+        nest_model: poisson_generator
     nest_params: {}
     params: {}
   params: {}
@@ -336,46 +336,55 @@ network:
         target_population: l2_inh
 params: {}
 session_models:
-  grating:
+  arbitrary_rate:
     nest_params: {}
     params:
-      inputs:
-        input_layer:
-          filename: sinusoidal_grating_0_degrees_40x40x40_frames_rows_cols.npy
-          rate_scaling_factor: 50.0
-          time_per_frame: 30.0
       simulation_time: 50.0
+      unit_changes:
+      - change_type: constant
+        from_array: true
+        layers:
+        - input_layer
+        nest_params:
+          rate: ./input_layer_rates_5x5x1.npy
+        population_name: input_exc
+  even_rate:
+    nest_params: {}
+    params:
+      simulation_time: 50.0
+      unit_changes:
+      - change_type: constant
+        from_array: false
+        layers:
+        - input_layer
+        nest_params:
+          rate: 100.0
+        population_name: input_exc
   nest_params: {}
-  noise:
-    nest_params: {}
-    params:
-      inputs:
-        input_layer:
-          filename: noise_constant_x0.5_40x40x40_frames_rows_cols.npy
-          rate_scaling_factor: 50.0
-          time_per_frame: 1000.0
-      simulation_time: 50.0
   params:
     record: true
     reset_network: false
   warmup:
     nest_params: {}
     params:
-      inputs:
-        input_layer:
-          filename: noise_constant_x0.5_40x40x40_frames_rows_cols.npy
-          rate_scaling_factor: 50.0
-          time_per_frame: 1000.0
       record: false
       reset_network: true
       simulation_time: 50.0
       unit_changes:
-      - layers:
+      - change_type: constant
+        from_array: false
+        layers:
         - l1
-        params:
+        nest_params:
           V_m: -70.0
-        population: null
-        proportion: 0.5
+        population_name: null
+      - change_type: constant
+        from_array: false
+        layers:
+        - input_layer
+        nest_params:
+          rate: 100.0
+        population_name: input_exc
 simulation:
   nest_params: {}
   params:
@@ -383,5 +392,5 @@ simulation:
     output_dir: output
     sessions:
     - warmup
-    - noise
-    - grating
+    - even_rate
+    - arbitrary_rate

@@ -35,13 +35,10 @@ class Session(ParamObject):
                     (default ``True``)
                 - ``unit_changes`` (list): List describing the changes applied
                     to certain units before the start of the session.
-                    Passed to ``Network.change_unit_states``. Refer to that
-                    method for a description of how ``unit_changes`` is
-                    formatted and interpreted. No changes happen if empty.
-                    (default [])
+                    Passed to ``Network.set_state``.
                 - ``synapse_changes`` (list): List describing the changes
                     applied to certain synapses before the start of the session.
-                    Passed to ``Network.change_synapse_changes``. Refer to that
+                    Passed to ``Network.set_state``. Refer to that
                     method for a description of how ``synapse_changes`` is
                     formatted and interpreted. No changes happen if empty.
                     (default [])
@@ -112,9 +109,11 @@ class Session(ParamObject):
             network.reset()
 
         # Change dynamic variables
-        # TODO
-        # network.change_synapse_states(self.params["synapse_changes"])
-        # network.change_unit_states(self.params["unit_changes"])
+        network.set_state(
+            unit_changes=self.params["unit_changes"],
+            synapse_changes=self.params['synapse_changes'],
+            input_dir=self.input_dir,
+        )
 
         # Inactivate all the recorders and connection_recorders for
         # `self._simulation_time`

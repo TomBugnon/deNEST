@@ -7,9 +7,36 @@ session_models:
       reset_network: True
       record: False
       simulation_time: 50.
-  noise:
+      unit_changes:
+        - layers: ['l1']
+          population_name: null
+          change_type: 'constant'
+          from_array: False
+          nest_params:
+            V_m: -70.0
+        - layers: ['input_layer']
+          population_name: 'input_exc'
+          change_type: 'constant'
+          from_array: False
+          nest_params:
+            rate: 100.0
+  even_rate:
     params:
       simulation_time: 50.
-  grating:
+      unit_changes:
+        - layers: ['input_layer']
+          population_name: 'input_exc'
+          change_type: 'constant'
+          from_array: False
+          nest_params:
+            rate: 100.0
+  arbitrary_rate:
     params:
       simulation_time: 50.
+      unit_changes:
+        - layers: ['input_layer']
+          population_name: 'input_exc'
+          change_type: 'constant'
+          from_array: True
+          nest_params:
+            rate: './input_layer_rates_5x5x1.npy'
