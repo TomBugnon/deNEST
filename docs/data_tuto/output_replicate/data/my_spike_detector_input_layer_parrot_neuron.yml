@@ -1,0 +1,47 @@
+colnames:
+- gid
+- time
+filenames:
+- my_spike_detector_input_layer_parrot_neuron-204-0.gdf
+gids:
+- 27
+- 28
+- 29
+- 30
+- 31
+- 32
+- 33
+- 34
+- 35
+- 36
+- 37
+- 38
+- 39
+- 40
+- 41
+- 42
+- 43
+- 44
+- 45
+- 46
+- 47
+- 48
+- 49
+- 50
+- 51
+interval: null
+label: my_spike_detector_input_layer_parrot_neuron
+layer_name: input_layer
+layer_shape: !!python/tuple
+- 5
+- 5
+locations: null
+population_name: parrot_neuron
+population_shape: !!python/tuple
+- 5
+- 5
+- 1
+record_from:
+- spikes
+type: spike_detector
+units_number: 1

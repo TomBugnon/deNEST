@@ -116,6 +116,10 @@ recorder_models:
     nest_params:
       record_from:
       - V_m
+  my_spike_detector:
+    params:
+      nest_model: spike_detector
+    nest_params: {}
 recorders:
   params:
     population_recorders:
@@ -124,6 +128,10 @@ recorders:
       populations:
       - l1_exc
       model: my_multimeter
+    - layers:
+      - input_layer
+      populations: null
+      model: my_spike_detector
     connection_recorders:
     - source_layers:
       - l1

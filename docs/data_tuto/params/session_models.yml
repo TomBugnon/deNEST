@@ -1,21 +1,22 @@
 session_models:
   params:
     record: True # Inactivate all recorders for current session or not
+    shift_origin: True
     simulation_time: 100.0
   warmup:
     params:
       record: False
-  high_input:
+  2_spikes:
     params:
       unit_changes:
         - layers: [input_layer,]
-          population: poisson_generator
-          params:
-            rate: 100.0
-  low_input:
+          population_name: spike_generator
+          nest_params:
+            spike_times: [1.0, 10.0]
+  3_spikes:
     params:
       unit_changes:
         - layers: [input_layer,]
-          population: poisson_generator
-          params:
-            rate: 50.0
+          population_name: spike_generator
+          nest_params:
+            spike_times: [1.0, 10.0, 20.0]

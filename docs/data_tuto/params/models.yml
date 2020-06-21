@@ -33,3 +33,6 @@ recorder_models:
       nest_model: 'multimeter'
     nest_params:
       record_from: ['V_m']
+  my_spike_detector:
+    params:
+      nest_model: 'spike_detector'

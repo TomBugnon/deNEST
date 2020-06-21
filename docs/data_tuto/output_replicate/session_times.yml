@@ -1,0 +1,12 @@
+00_warmup: !!python/tuple
+- 0.0
+- 100.0
+01_3_spikes: !!python/tuple
+- 100.0
+- 200.0
+02_2_spikes: !!python/tuple
+- 200.0
+- 300.0
+03_3_spikes: !!python/tuple
+- 300.0
+- 400.0

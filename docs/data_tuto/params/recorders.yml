@@ -4,6 +4,9 @@ recorders:
       - layers: [l1]
         populations: [l1_exc]
         model: 'my_multimeter'
+      - layers: [input_layer]
+        populations: null
+        model: 'my_spike_detector'
     connection_recorders:
       - source_layers: [l1, ]
         source_population: l1_exc
