@@ -33,6 +33,11 @@ class Session(ParamObject):
                     recorder nodes in NEST is set to the end time of the
                     session, so that no data is recorded during the session
                     (default ``True``)
+                - ``shift_origin`` (bool): If True, the ``origin`` flag of the
+                    stimulation devices of all the network's ``InputLayer``
+                    layers is set to the start of the session during
+                    initialization. Useful to repeat sessions when the
+                    stimulators are eg spike generators.
                 - ``unit_changes`` (list): List describing the changes applied
                     to certain units before the start of the session.
                     Passed to ``Network.set_state``.
@@ -56,6 +61,7 @@ class Session(ParamObject):
     OPTIONAL_PARAMS = {
         "reset_network": False,
         "record": True,
+        "shift_origin": False,
         "unit_changes": [],
         "synapse_changes": [],
     }
@@ -96,9 +102,13 @@ class Session(ParamObject):
     def initialize(self, network):
         """Initialize session.
 
-            1. Reset Network
-            2. Change network's dynamic variables.
-            3. (possibly) inactivate recorders
+            1. Reset Network (`reset_network` parameter)
+            2. Inactivate recorders (`record` parameter)
+            3. Shift stimulator devices 'origin' flag to start of session
+                (`shift_origin` parameter)
+            4. Change network's dynamic variables by calling the
+                `Network.set_state` function (`unit_changes` and
+                `synapse_changes` parameter)
 
         Args:
             self (Session): ``Session`` object
@@ -108,6 +118,16 @@ class Session(ParamObject):
         if self.params["reset_network"]:
             network.reset()
 
+        # Inactivate all the recorders and connection_recorders for
+        # `self._simulation_time`
+        if not self.params["record"]:
+            self.inactivate_recorders(network)
+
+        # Inactivate all the recorders and connection_recorders for
+        # `self._simulation_time`
+        if self.params["shift_origin"]:
+            self.shift_stimulator_origin(network)
+
         # Change dynamic variables
         network.set_state(
             unit_changes=self.params["unit_changes"],
@@ -115,10 +135,29 @@ class Session(ParamObject):
             input_dir=self.input_dir,
         )
 
-        # Inactivate all the recorders and connection_recorders for
-        # `self._simulation_time`
-        if not self.params["record"]:
-            self.inactivate_recorders(network)
+    def shift_stimulator_origin(self, network):
+        """Set 'origin' of all InputLayer devices to start of the session.
+
+        Args:
+            self (Session): ``Session`` object
+            network (Network): ``Network`` object.
+        """
+        import nest
+        log.info(
+            f"Setting `origin` flag to `{self.start}` for all stimulation "
+            f"devices in ``InputLayers`` for session `{self.name}`"
+        )
+        stim_gids = []
+        for inputlayer in network._get_layers(layer_type='InputLayer'):
+            stim_gids += inputlayer.gids(
+                population=inputlayer.stimulator_model
+            )
+        # Check all simulation devices have the same origin value
+        assert len(set(nest.GetStatus(stim_gids, 'origin'))) == 1
+        # Check all simulation devices have the same origin value
+        assert len(set(nest.GetStatus(stim_gids, 'origin'))) == 1
+        # Set origin
+        nest.SetStatus(stim_gids, {'origin': self.start})
 
     def inactivate_recorders(self, network):
         """Set 'start' of all (connection_)recorders at the end of session.
@@ -142,7 +181,24 @@ class Session(ParamObject):
         )
 
     def run(self, network):
-        """Initialize and run session."""
+        """Initialize and run session.
+        
+        Session initialization consists in the following steps:
+            1. Reset Network (`reset_network` parameter)
+            2. Inactivate recorders (`record` parameter)
+            3. Shift stimulator devices 'origin' flag to start of session
+                (`shift_origin` parameter)
+            4. Change network's dynamic variables by calling the
+                `Network.set_state` function (`unit_changes` and
+                `synapse_changes` parameter)
+
+        After initialization, the simulation is run for `self.simulation_time`
+        msec
+
+        Args:
+            self (Session): ``Session`` object
+            network (Network): ``Network`` object.
+        """
         import nest
 
         assert self.start == int(nest.GetKernelStatus("time"))

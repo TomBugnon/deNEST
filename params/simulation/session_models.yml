@@ -2,6 +2,7 @@ session_models:
   params:
     reset_network: False
     record: True # Inactivate all recorders for current session or not
+    shift_origin: False  # Set `origin` flag to start of session
   warmup:
     params:
       reset_network: True

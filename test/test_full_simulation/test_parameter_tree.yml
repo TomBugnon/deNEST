@@ -364,6 +364,7 @@ session_models:
   params:
     record: true
     reset_network: false
+    shift_origin: false
   warmup:
     nest_params: {}
     params:
