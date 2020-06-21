@@ -871,12 +871,6 @@ class Network(object):
                     input_dir=input_dir,
                 )
 
-    @staticmethod
-    def reset():
-        """Call `nest.ResetNetwork()`"""
-        import nest
-        nest.ResetNetwork()
-
     def save_metadata(self, output_dir):
         """Save network metadata.
 

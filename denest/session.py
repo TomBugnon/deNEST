@@ -116,7 +116,7 @@ class Session(ParamObject):
         """
         # Reset network
         if self.params["reset_network"]:
-            network.reset()
+            self.reset()
 
         # Inactivate all the recorders and connection_recorders for
         # `self._simulation_time`
@@ -134,6 +134,12 @@ class Session(ParamObject):
             synapse_changes=self.params['synapse_changes'],
             input_dir=self.input_dir,
         )
+
+    @staticmethod
+    def reset():
+        """Call `nest.ResetNetwork()`"""
+        import nest
+        nest.ResetNetwork()
 
     def shift_stimulator_origin(self, network):
         """Set 'origin' of all InputLayer devices to start of the session.
