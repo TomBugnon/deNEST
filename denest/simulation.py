@@ -157,7 +157,7 @@ class Simulation(object):
         self.create_network(self.tree.children["network"])
 
         # Save simulation metadata
-        self.save_metadata()
+        self.save_metadata(clear_output_dir=True)
 
     def _update_tree_child(self, child_name, tree):
         """Add a child to ``self.tree``"""
@@ -187,7 +187,7 @@ class Simulation(object):
         self.network.create()
         log.info("Finished creating network")
 
-    def save_metadata(self):
+    def save_metadata(self, clear_output_dir=False):
         """Save simulation metadata.
 
             - Save parameters
@@ -195,11 +195,15 @@ class Simulation(object):
             - Save sessions metadata (`Session.save_metadata`)
             - Save session times (start and end kernel time for each session)
             - Save network metadata (`Network.save_metadata`)
+
+        Kwargs:
+            clear_output_dir (bool): If true, we delete the files preexisting in
+                the directories where data might be saved.
         """
         log.info("Saving simulation metadata...")
         # Initialize output dir (create and clear)
         log.info("Creating output directory: %s", self.output_dir)
-        make_output_dir(self.output_dir, clear_output_dir=True)
+        make_output_dir(self.output_dir, clear_output_dir=False)
         # Save params tree
         self.tree.write(output_path(self.output_dir, "tree"))
         # Drop git hash
