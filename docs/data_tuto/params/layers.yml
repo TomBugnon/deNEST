@@ -9,6 +9,7 @@ layers:
   input_layer:
     params:
       type: 'InputLayer'
+      add_parrots: True
       populations:
         spike_generator: 1
   l1:

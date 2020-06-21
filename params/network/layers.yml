@@ -12,6 +12,8 @@ network:
       params:
         # Layers in this area will be of type `InputLayer`
         type: 'InputLayer'
+        # We add a population of parrot neurons connected one to one to the stimulators
+        add_parrots: True
       input_layer:
         params:
           populations:

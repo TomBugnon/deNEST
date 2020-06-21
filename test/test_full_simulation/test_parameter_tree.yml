@@ -95,6 +95,7 @@ network:
             input_exc: 1
       nest_params: {}
       params:
+        add_parrots: true
         type: InputLayer
     l1_area:
       l1:

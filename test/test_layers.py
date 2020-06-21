@@ -22,7 +22,8 @@ BASE_LAYERS = [
 ]
 
 INPUT_LAYERS = [
-    (InputLayer, {"populations": {"poisson_generator": 1}}, {"rows": 2, "columns": 2}),
+    (InputLayer, {"add_parrots": True, "populations": {"poisson_generator": 1}}, {"rows": 2, "columns": 2}),
+    (InputLayer, {"add_parrots": False, "populations": {"poisson_generator": 1}}, {"rows": 2, "columns": 2}),
 ]
 
 
@@ -35,7 +36,6 @@ BAD_LAYERS = [
         {"populations": {"iaf_psc_alpha": 1}},
         {"rows": 1, "columns": 1, "elements": "iaf_psc_alpha"},
     ),
-    (InputLayer, {"populations": {"poisson_generator": 2}}, {"rows": 1, "columns": 1}),
 ]
 
 

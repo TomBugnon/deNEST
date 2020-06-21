@@ -446,23 +446,26 @@ class Layer(AbstractLayer):
         """Return list of names of recordable population names in this layer."""
         return self.population_names
 
+
 class InputLayer(Layer):
     """A layer of stimulators
 
     ``InputLayer`` extends the ``Layer`` class to handle layers of stimulation
-    devices.
+    devices. `InputLayer` parameters should specify a single population of
+    stimulation devices.
 
-    `InputLayer` parameters should specify a single population of stimulation
-    devices. A second population of parrot neurons will be created and connected
-    one-to-one to the population of stimulators, to allow recording of activity
-    in the layer.
+    If the `add_parrot` layer parameter is True (default True), a second
+    population of parrot neurons, with the same number of units, will be created
+    and connected one-to-one to the population of stimulators, to allow
+    recording of activity in the layer.
     """
+
+    OPTIONAL_PARAMS = {"type": 'InputLayer', 'add_parrots': True}
 
     # Append ``Layer`` docstring
     __doc__ += "\n".join(Layer.__doc__.split("\n")[1:])
 
     PARROT_MODEL = "parrot_neuron"
-    STIMULATORS = ["spike_generator", "poisson_generator"]
 
     def __init__(self, name, params, nest_params):
 
@@ -473,20 +476,22 @@ class InputLayer(Layer):
 
         # Check populations and add a population of parrot neurons
         populations = params["populations"]
-        if len(populations) != 1 or list(populations.values())[0] != 1:
+        if len(populations) != 1:
             raise ParameterError(
                 f"Invalid `population` parameter for `InputLayer` layer {name}."
                 f" InputLayers should be composed of a single population of"
-                f"stimulation devices, with a single element per location."
+                f"stimulation devices."
                 f" Please check the `population` parameter: {populations}"
             )
         # Save the stimulator type
         stimulator_model, nunits = list(populations.items())[0]
-        assert nunits == 1
         self.stimulator_model = stimulator_model
         self.stimulator_type = None  # TODO: Check stimulator type
         # Add a parrot population entry
-        populations[self.PARROT_MODEL] = 1
+        if 'add_parrot' not in params:
+            params['add_parrots'] = True
+        if params['add_parrots']:
+            populations[self.PARROT_MODEL] = nunits
         params["populations"] = populations
 
         # Initialize the layer
@@ -498,7 +503,6 @@ class InputLayer(Layer):
         import nest
 
         # Connect stimulators to parrots, one-to-one
-        assert all([n == 1 for n in self.populations.values()])
         stim_gids = []
         parrot_gids = []
         for loc in self:
