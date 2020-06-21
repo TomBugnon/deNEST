@@ -261,7 +261,7 @@ class Simulation(object):
         session_model_nodes = {
             session_name: session_node
             for session_name, session_node
-            in self.tree.children['session_models'].named_leaves()
+            in self.tree.children['session_models'].named_leaves(root=False)
         }
         # Validate session_model nodes: no nest_params
         for name, node in session_model_nodes.items():
