@@ -389,8 +389,8 @@ session_models:
 simulation:
   nest_params: {}
   params:
-    input_dir: input
-    output_dir: output
+    input_dir: ./input
+    output_dir: ./output
     sessions:
     - warmup
     - even_rate

@@ -130,10 +130,14 @@ class Simulation(object):
         # Incorporate `input_dir` and `output_dir` kwargs
         if output_dir is not None:
             self.sim_params["output_dir"] = output_dir
+            self.tree.children['simulation'].params['output_dir'] \
+                = str(output_dir)
         self.output_dir = self.sim_params["output_dir"]
         # Get input dir
         if input_dir is not None:
             self.sim_params["input_dir"] = input_dir
+            self.tree.children['simulation'].params['input_dir'] \
+                = str(input_dir)
         self.input_dir = self.sim_params["input_dir"]
 
         # Initialize kernel (should be after getting output dirs)
@@ -229,6 +233,10 @@ class Simulation(object):
         Session params are inherited from session models.
         """
         import nest
+
+        # Add to Simulation.tree
+        self.tree.children['simulation'].params['sessions'] \
+            = sessions_order
 
         log.info(f"Build N={len(sessions_order)} sessions")
         # Create session objects
