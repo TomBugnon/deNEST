@@ -163,6 +163,9 @@ class AbstractLayer(NestObject):
         for population_name in population_names:
             population_shape = self.population_shape[population_name]
 
+            # For all the considered parameters, unfold the `param_change` value
+            # into an array to map to the population
+            param_arrays = {}
             for param_name, param_change in nest_params.items():
 
                 # Get array of values the same shape as the population
@@ -206,33 +209,42 @@ class AbstractLayer(NestObject):
                     f"{'from array' if from_array else 'from single value'}')"
                 )
 
-                # Set parameter for each unit in the population
-                for idx, x in np.ndenumerate(values_array):
-                    tgt_gid = self.gids(
-                        population=population_name,
-                        population_location=idx,
-                    )
-                    self.set_unit_state(tgt_gid, param_name, values_array[idx],
-                                        change_type=change_type)
+                param_arrays[param_name] = values_array
+
+            # Set all the parameters at once for each unit in the population
+            for idx, x in np.ndenumerate(values_array):
+                tgt_gid = self.gids(
+                    population=population_name,
+                    population_location=idx,
+                )
+                self.set_unit_state(
+                    tgt_gid,
+                    {
+                        param_name: param_arrays[param_name][idx]
+                        for param_name in param_arrays.keys()
+                    },
+                    change_type=change_type
+                )
 
     @staticmethod
-    def set_unit_state(gids, param_name, param_change, change_type="constant"):
+    def set_unit_state(gids, params, change_type="constant"):
         """Change some units'  parameter in NEST.
 
         Args:
             gids (list(int)): Gids of units to change the state of
-            param_name (str): Name of the modified parameter
-            param_change: Value used for modification. Set directly or
-                added/multiplied to the current value of the parameter depending
-                on the value of the ``'change_type'`` kwarg
+            params (dict): ``{param_name: param_change}`` dictionary describing
+                the modified parameters. The `param_change` values used for
+                modification are set directly or added/multiplied to the current
+                value of the parameter for each unit, depending on the
+                ``'change_type'`` kwarg
 
         Kwargs:
             change_type ('constant', 'multiplicative' or 'additive'). If
                 'multiplicative' (resp. 'additive'), the set value for each unit
-                is the product (resp. sum) between the preexisting value and the
-                given value. If 'constant', the given value for each unit is set
-                without regard for the preexisting value.
-                (default: 'constant')
+                and each parameter is the product (resp. sum) between the
+                preexisting value and the given value. If 'constant', the given
+                value for each unit is set without regard for the preexisting
+                value. (default: 'constant')
         """
         import nest
 
@@ -243,23 +255,49 @@ class AbstractLayer(NestObject):
             )
 
         if change_type == "constant":
-            nest.SetStatus(gids, {param_name: param_change})
+            nest.SetStatus(gids, params)
         else:
-            current_values = nest.GetStatus(gids, param_name)
-            if not all([isinstance(v, float) for v in current_values]):
+            current_values = {
+                param_name: nest.GetStatus(gids, param_name)
+                for param_name in params.keys()
+            }
+            if not all([
+                isinstance(v, float)
+                for unit_values in current_values.values()
+                for v in unit_values
+            ]):
                 raise ValueError(
-                    "Can't set state multiplicatively for non-float parameter "
-                    "``{param_name}``. Expecting ``change_type='constant'``."
+                    "Can't set state multiplicatively for non-float"
+                    f" parameter(s) {params.keys()}."
+                    f" Expecting ``change_type='constant'``."
                 )
             if change_type == 'multiplicative':
-                set_values = [v * param_change for v in current_values]
+                set_values = {
+                    param_name: [
+                        v * params[param_name]
+                        for v in current_values[param_name]
+                    ]
+                    for param_name in params.keys()
+                }  # {param: [v_gid1, v_gid2, ...]}
             elif change_type == 'additive':
-                set_values = [v + param_change for v in current_values]
+                set_values = {
+                    param_name: [
+                        v + params[param_name]
+                        for v in current_values[param_name]
+                    ]
+                    for param_name in params.keys()
+                }  # {param: [v_gid1, v_gid2, ...]}
             else:
                 assert False
             nest.SetStatus(
                 gids,
-                [{param_name: v} for v in set_values]
+                [
+                    {
+                        param_name: set_values[param_name][gid_i]
+                        for param_name in params.keys()
+                    }  # {param: gid_param_value}
+                    for gid_i in range(len(gids))
+                ]  # One param dict per unit
             )
 
 
