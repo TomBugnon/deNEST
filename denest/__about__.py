@@ -8,3 +8,20 @@ deNEST metadata.
 
 __title__ = "denest"
 __version__ = "0.0.0"
+__description__ = "A declarative interface for specifying and running simulations in NEST."
+__author__ = "Tom Bugnon and William G. P. Mayner"
+__author_email__ = "bugnon@wisc.edu"
+__copyright__ = "Copyright 2020, Tom Bugnon and William G.P. Mayner"
+__license__ = "GNU General Public License v3.0"
+__url__ = "http://github.com/tombugnon/denest"
+
+__all__ = [
+    "__title__",
+    "__version__",
+    "__description__",
+    "__author__",
+    "__author_email__",
+    "__copyright__",
+    "__license__",
+    "__url__",
+]

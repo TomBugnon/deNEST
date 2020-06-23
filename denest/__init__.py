@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from pprint import pformat
 
+from .__about__ import *
 from .io.load import load_yaml
 from .network import Network
 from .parameters import ParamsTree
