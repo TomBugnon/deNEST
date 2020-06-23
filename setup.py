@@ -4,14 +4,12 @@
 
 # pylint: disable=exec-used,invalid-name
 
+from os.path import exists
+
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-
-
-with open('README.md') as f:
-    readme = f.read()
 
 about = {}
 with open('./denest/__about__.py') as f:
@@ -26,12 +24,18 @@ install_requires = [
 ]
 
 setup(
-    name=about['__title__'],
-    version=about['__version__'],
-    long_description=readme,
+    name=about["__title__"],
+    version=about["__version__"],
+    description=about["__description__"],
+    author=about["__author__"],
+    author_email=about["__author_email__"],
+    url=about["__url__"],
+    license=about["__license__"],
+    long_description=open('README.rst') if exists('README.rst') else "",
+    long_description_content_type="text/markdown",
+    install_requires=install_requires,
     packages=['denest'],
     zip_safe=False,
-    install_requires=install_requires,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -41,5 +45,9 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Topic :: Scientific/Engineering',
-    ]
+    ],
+    project_urls={
+        "Bug Reports": "https://github.com/tombugnon/denest/issues",
+        "Documentation": "https://denest.readthedocs.io",
+    },
 )
