@@ -2,3 +2,4 @@ pytest
 watchdog
 pytest-regressions
 pytest-cov
+sphinx_rtd_theme
