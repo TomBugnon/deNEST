@@ -104,12 +104,7 @@ class BaseRecorder(NestObject):
         """
         import nest
 
-        # TODO: Deal with case where multimeter is only recorded to memory?
         if "file" not in self._record_to:
-            # raise ValueError(
-            #     f"Recorder {str(self)} was not saved to file. Please modify"
-            #     f" `record_to` recorder parameter"
-            # )
             return []
         assert self._label is not None  # Check that the label has been set
         prefix = nest.GetKernelStatus("data_prefix") + self._label + f"-{self.gid[0]}-"
