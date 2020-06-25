@@ -12,10 +12,10 @@ from tqdm import tqdm
 from ..parameters import ParamsTree
 from ..utils import validation
 from ..utils.validation import ParameterError
-from .connections import ConnectionModel, TopoConnection
+from .projections import ProjectionModel, TopoProjection
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
-from .recorders import ConnectionRecorder, PopulationRecorder
+from .recorders import ProjectionRecorder, PopulationRecorder
 from .utils import if_not_created, log
 
 log = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ LAYER_TYPES = {
 }
 
 CONNECTION_TYPES = {
-    'topological': TopoConnection,
+    'topological': TopoProjection,
 }
 
 
@@ -47,25 +47,25 @@ class Network(object):
                     which define layers. Each leave is used to initialize  a
                     ``Layer`` or ``InputLayer`` object depending on the value of
                     their ``type`` ``params`` parameter.
-                - ``connection_models`` (``ParamsTree``). Parameter tree, the
-                    leaves of which define connection models. Each leave is used
-                    to initialize a ``ConnectionModel`` object.
+                - ``projection_models`` (``ParamsTree``). Parameter tree, the
+                    leaves of which define projection models. Each leave is used
+                    to initialize a ``ProjectionModel`` object.
                 - ``recorder_models`` (``ParamsTree``). Parameter tree, the
                     leaves of which define recorder models. Each leave is used
                     to initialize a ``Model`` object.
                 - ``topology`` (``ParamsTree``). ``ParamsTree`` object without
                     children, the ``params`` of which may contain a
-                    ``connections`` key specifying all the individual
-                    population-to-population connections within the network as a
-                    list. ``Connection`` objects  are created from the
+                    ``projections`` key specifying all the individual
+                    population-to-population projections within the network as a
+                    list. ``Projection`` objects  are created from the
                     ``topology`` ``ParamsTree`` object by the
-                    ``Network.build_connections`` method. Refer to this method
+                    ``Network.build_projections`` method. Refer to this method
                     for a description of the ``topology`` parameter.
                 - ``recorders`` (``ParamsTree``). ``ParamsTree`` object without
                     children, the ``params`` of which may contain a
-                    ``population_recorders`` and a ``connection_recorders`` key
+                    ``population_recorders`` and a ``projection_recorders`` key
                     specifying all the network recorders. ``PopulationRecorder``
-                    and ``ConnectionRecorder`` objects  are created from the
+                    and ``ProjectionRecorder`` objects  are created from the
                     ``recorders`` ``ParamsTree`` object by the
                     ``Network.build_recorders`` method. Refer to this
                     method for a description of the ``recorders`` parameter.
@@ -73,7 +73,7 @@ class Network(object):
 
     MANDATORY_CHILDREN = []
     OPTIONAL_CHILDREN = [
-        'neuron_models', 'synapse_models', 'layers', 'connection_models',
+        'neuron_models', 'synapse_models', 'layers', 'projection_models',
         'topology', 'recorder_models', 'recorders'
     ]
 
@@ -109,21 +109,21 @@ class Network(object):
         self.synapse_models = {}
         self.recorder_models = {}
         self.layers = {}
-        self.connection_models = {}
-        self.connections = []
+        self.projection_models = {}
+        self.projections = []
         self.population_recorders = []
-        self.connection_recorders = []
+        self.projection_recorders = []
 
         self.build_neuron_models(self.tree.children['neuron_models'])
         self.build_synapse_models(self.tree.children['synapse_models'])
         self.build_recorder_models(self.tree.children['recorder_models'])
         self.build_layers(self.tree.children['layers'])
-        self.build_connection_models(self.tree.children['connection_models'])
-        self.build_connections(self.tree.children['topology'])
+        self.build_projection_models(self.tree.children['projection_models'])
+        self.build_projections(self.tree.children['topology'])
         self.build_recorders(self.tree.children['recorders'])
-        # Connections must be built after layers and connection models
-        self.build_connections(self.tree.children['topology'])
-        # Initialize population recorders and connection recorders
+        # Projections must be built after layers and projection models
+        self.build_projections(self.tree.children['topology'])
+        # Initialize population recorders and projection recorders
         self.build_recorders(self.tree.children['recorders'])
 
     @staticmethod
@@ -222,64 +222,64 @@ class Network(object):
             f"Build N={len(self.layers)} ``Layer`` or ``InputLayer`` objects."
         )
 
-    def build_connection_models(self, tree):
-        """Initialize ``self.connection_models`` from the leaves of a tree.
+    def build_projection_models(self, tree):
+        """Initialize ``self.projection_models`` from the leaves of a tree.
 
         Args:
-            self (``Network``): Network object. The ``connection_models``
+            self (``Network``): Network object. The ``projection_models``
                 attribute is overriden.
             tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
-                which define connection models. Each leaf is used to initialize
-                a ``ConnectionModel`` object.
+                which define projection models. Each leaf is used to initialize
+                a ``ProjectionModel`` object.
         """
-        self._update_tree_child('connection_models', tree)
-        self.connection_models = self.build_named_leaves_dict(
-            ConnectionModel,
-            self.tree.children['connection_models']
+        self._update_tree_child('projection_models', tree)
+        self.projection_models = self.build_named_leaves_dict(
+            ProjectionModel,
+            self.tree.children['projection_models']
         )
 
-    def build_connections(self, topology_tree):
-        """Initialize ``self.connections`` from ``topology`` tree.
+    def build_projections(self, topology_tree):
+        """Initialize ``self.projections`` from ``topology`` tree.
 
-        Initialize ``self.connections`` with a list of ``Connection`` objects.
+        Initialize ``self.projections`` with a list of ``Projection`` objects.
 
         Args:
             self (``Network``): Network object
             topology_tree (tree-like or ``ParamsTree``): Tree-like or ParamsTree
                 without children. The parameters of which may contain a
-                ``connections`` parameter entry (default []). THe value of the
-                ``connections`` parameter is a list of items describing the
-                connections to be created. Each item must be a ``dict`` of the
+                ``projections`` parameter entry (default []). THe value of the
+                ``projections`` parameter is a list of items describing the
+                projections to be created. Each item must be a ``dict`` of the
                 following form::
                     dict: {
-                        'connection_model' : <connection_model>,
+                        'projection_model' : <projection_model>,
                         'source_layers': <source_layers_list>,
                         'source_population': <source_population>,
                         'target_layers': <target_layers_list>,
                         'target_population': <target_population>,
                     }
                 Where:
-                    - <connection_model> is the name of the connection model.
-                      Connection model are specified in the
-                      ``connection_models`` network parameter.
+                    - <projection_model> is the name of the projection model.
+                      Projection model are specified in the
+                      ``projection_models`` network parameter.
                     - <source_layers_list>, <target_layers_list> are lists of
-                      source and target layer names. Connections are created for
+                      source and target layer names. Projections are created for
                       all source_layer x target layer combinations.
                     - <source_population>, <target_population> are ``None`` or
                       the name of source and target populations for the created
-                      connection. If ``None``, all populations in the source or
+                      projection. If ``None``, all populations in the source or
                       target layer are connected.
-                The ``(<connection_model_name>, <source_layer_name>,
+                The ``(<projection_model_name>, <source_layer_name>,
                 <source_population_name>, <target_layer_name>,
                 <target_population_name>)`` tuples fully specify each individual
-                connection and should be unique.
+                projection and should be unique.
         """
 
         self._update_tree_child('topology', topology_tree)
         topology_tree = self.tree.children['topology']
 
         OPTIONAL_TOPOLOGY_PARAMS = {
-            'connections': []
+            'projections': []
         }
 
         # Validate ``topology`` parameter
@@ -290,30 +290,30 @@ class Network(object):
             'topology', dict(topology_tree.nest_params),
             param_type='nest_params', mandatory=[], optional={}
         )  # No nest_params
-        # Only a 'connections' `params` entry
-        connection_items = validation.validate(
+        # Only a 'projections' `params` entry
+        projection_items = validation.validate(
             'topology', dict(topology_tree.params), param_type='params',
             mandatory=[], optional=OPTIONAL_TOPOLOGY_PARAMS
-        )['connections']
+        )['projections']
 
-        # Get all unique ``(connection_model, source_layer, source_population,
+        # Get all unique ``(projection_model, source_layer, source_population,
         # target_layer, target_population)`` tuples
-        connection_args = self._parse_connection_params(connection_items)
+        projection_args = self._parse_projection_params(projection_items)
 
         # Verbose
         c_types_str = ' or '.join([
             c.__name__ for c in CONNECTION_TYPES.values()
         ])
-        msg = f"Build N={len(connection_args)} ``{c_types_str}`` objects"
+        msg = f"Build N={len(projection_args)} ``{c_types_str}`` objects"
         log.info(msg)
 
-        # Build Connection objects
-        connections = []
-        for (conn_model, src_lyr, src_pop, tgt_lyr, tgt_pop) in connection_args:
-            model = self.connection_models[conn_model]
+        # Build Projection objects
+        projections = []
+        for (conn_model, src_lyr, src_pop, tgt_lyr, tgt_pop) in projection_args:
+            model = self.projection_models[conn_model]
             source = self.layers[src_lyr]
             target = self.layers[tgt_lyr]
-            connections.append(
+            projections.append(
                 CONNECTION_TYPES[model.type](
                     model,
                     source, src_pop,
@@ -322,57 +322,57 @@ class Network(object):
             )
 
         # Initialize attribute
-        self.connections = connections
+        self.projections = projections
 
-    def _parse_connection_params(self, connection_items):
-        """Return list of tuples specifying all unique connections
+    def _parse_projection_params(self, projection_items):
+        """Return list of tuples specifying all unique projections
 
         Args:
-            connection_items: Content of the ``connections``
-                network/topology parameter. See ``self.build_connections`` for
+            projection_items: Content of the ``projections``
+                network/topology parameter. See ``self.build_projections`` for
                 detailed description.
 
         Return:
-            list: List of unique (<connection_model_name>, <source_layer_name>,
+            list: List of unique (<projection_model_name>, <source_layer_name>,
                 <source_population_name>, <target_layer_name>,
-                <target_population_name>) tuples specifying all connections in
+                <target_population_name>) tuples specifying all projections in
                 the network.
         """
-        connection_args = []
-        for connection_item in connection_items:
+        projection_args = []
+        for projection_item in projection_items:
             for source_layer_name, target_layer_name in itertools.product(
-                connection_item['source_layers'],
-                connection_item['target_layers']
+                projection_item['source_layers'],
+                projection_item['target_layers']
             ):
-                connection_args.append(
+                projection_args.append(
                     (
-                        connection_item['connection_model'],
+                        projection_item['projection_model'],
                         source_layer_name,
-                        connection_item['source_population'],
+                        projection_item['source_population'],
                         target_layer_name,
-                        connection_item['target_population'],
+                        projection_item['target_population'],
                     )
                 )
 
         # Check that there are no duplicates.
-        if not len(set(connection_args)) == len(connection_args):
+        if not len(set(projection_args)) == len(projection_args):
             raise ParameterError(
-                """Duplicate connections specified by `connections` topology
-                parameter. (<connection_model_name>, <source_layer_name>,
+                """Duplicate projections specified by `projections` topology
+                parameter. (<projection_model_name>, <source_layer_name>,
                 <source_population_name>, <target_layer_name>,
                 <target_population_name>) tuples should uniquely specify
-                connections."""
+                projections."""
             )
 
-        return sorted(set(connection_args))
+        return sorted(set(projection_args))
 
     def build_recorders(self, recorders_tree):
         """Initialize recorders from tree.
 
         Validates the ``recorders`` parameter tree and calls
         ``Network.build_population_recorders`` and
-        ``Network.build_connection_recorders`` to initialize the
-        ``Network.population_recorders`` and ``Network.connection_recorders``
+        ``Network.build_projection_recorders`` to initialize the
+        ``Network.population_recorders`` and ``Network.projection_recorders``
         attributes
 
         Args:
@@ -380,15 +380,15 @@ class Network(object):
             recorders_tree (tree-like or ``ParamsTree``): Tree-like or
                 ``ParamsTree`` object without children nor ``nest_params``.
                 The parameters of which may contain a ``population_recorders``
-                (default []) and a ``connection_recorders`` (default []) entry
+                (default []) and a ``projection_recorders`` (default []) entry
                 specifying the network's recorders.
-                The ``population_recorders`` and ``connection_recorders``
+                The ``population_recorders`` and ``projection_recorders``
                 entries are passed to (respectively)
                 ``Network.build_population_recorders`` and
-                ``Network.build_connection_recorders``
+                ``Network.build_projection_recorders``
 
         Returns:
-            (list(PopulationRecorder), list(ConnectionRecorder))
+            (list(PopulationRecorder), list(ProjectionRecorder))
         """
 
         self._update_tree_child('recorders', recorders_tree)
@@ -396,7 +396,7 @@ class Network(object):
 
         OPTIONAL_RECORDERS_PARAMS = {
             'population_recorders': [],
-            'connection_recorders': [],
+            'projection_recorders': [],
         }
 
         # Validate recorders tree
@@ -408,7 +408,7 @@ class Network(object):
             param_type='nest_params',
             mandatory=[], optional={}
         )  # No nest_params
-        # Only a 'population_params' or 'connection_params' `params` entry
+        # Only a 'population_params' or 'projection_params' `params` entry
         recorders_params = validation.validate(
             'recorders', dict(recorders_tree.params), param_type='params',
             mandatory=[], optional=OPTIONAL_RECORDERS_PARAMS
@@ -417,71 +417,71 @@ class Network(object):
         self.population_recorders = self._build_population_recorders(
             recorders_params['population_recorders']
         )
-        self.connection_recorders = self._build_connection_recorders(
-                recorders_params['connection_recorders']
+        self.projection_recorders = self._build_projection_recorders(
+                recorders_params['projection_recorders']
         )
 
-    def _build_connection_recorders(self, connection_recorders_items):
-        """Return connection recorders specified by a list of recorder params.
+    def _build_projection_recorders(self, projection_recorders_items):
+        """Return projection recorders specified by a list of recorder params.
 
-        ConnectionRecorders must be built after Connections.
+        ProjectionRecorders must be built after Projections.
 
         Arguments:
-            connection_recorders_items (list | None): Content of the
-                ``connection_recorders`` network/recorders parameter. A list of
-                items describing the connection recorders to be created. Each
+            projection_recorders_items (list | None): Content of the
+                ``projection_recorders`` network/recorders parameter. A list of
+                items describing the projection recorders to be created. Each
                 item must be a ``dict`` of the following form::
                     dict: {
                         'model': <recorder_model>
-                        'connection_model' : <connection_model>,
+                        'projection_model' : <projection_model>,
                         'source_layers': <source_layers_list>,
                         'source_population': <source_population>,
                         'target_layers': <target_layers_list>,
                         'target_population': <target_population>,
                     }
-                Where <model> is the name of the connection recorder model (eg
+                Where <model> is the name of the projection recorder model (eg
                 'weight_recorder'). The other keys fully specify the list of
-                population-to-population connections of a certain model that
-                a connection recorder is created for. Refer to
-                `Network.build_connections` for a full description of how
-                the <connection_model>, <source_layers>, <source_population>,
+                population-to-population projections of a certain model that
+                a projection recorder is created for. Refer to
+                `Network.build_projections` for a full description of how
+                the <projection_model>, <source_layers>, <source_population>,
                 <target_layers>, <target_population> keys are interpreted.
 
         Returns:
-            list: List of ``ConnectionRecorder`` objects.
+            list: List of ``ProjectionRecorder`` objects.
         """
-        if connection_recorders_items is None:
-            connection_recorders_items = []
-        # Get all unique ``(model, connection_model, source_layer,
+        if projection_recorders_items is None:
+            projection_recorders_items = []
+        # Get all unique ``(model, projection_model, source_layer,
         # source_population, target_layer, target_population)`` tuples
         conn_recorder_args = []
-        for item in connection_recorders_items:
+        for item in projection_recorders_items:
             item = dict(item)  # TODO Fix this
             model = item.pop('model')
             conn_recorder_args += [
                 (model,) + conn_args
-                for conn_args in self._parse_connection_params([item])
+                for conn_args in self._parse_projection_params([item])
             ]
         conn_recorder_args = sorted(conn_recorder_args)
 
         # Check that there are no duplicates.
         if not len(set(conn_recorder_args)) == len(conn_recorder_args):
             raise ParameterError(
-                """Duplicate connection recorders specified by
-                ``connection_recorders`` network/recorders parameter.
-                (<recorder_model>, <connection_model_name>, <source_layer_name>,
+                """Duplicate projection recorders specified by
+                ``projection_recorders`` network/recorders parameter.
+                (<recorder_model>, <projection_model_name>, <source_layer_name>,
                 <source_population_name>, <target_layer_name>,
                 <target_population_name>) tuples should uniquely specify
-                connections and connection recorders."""
+                projections and projection recorders."""
             )
 
-        connection_recorders = []
+        projection_recorders = []
         for (
             model, conn_model, src_layer, src_pop, tgt_layer, tgt_pop
         ) in conn_recorder_args:
 
-            matching_connections = [
-                c for c in self.connections
+            matching_projections = [
+                c for c in self.projections
                 if (c.model.name == conn_model
                     and c.source.name == src_layer
                     and c.source_population == src_pop
@@ -489,29 +489,29 @@ class Network(object):
                     and c.target_population == tgt_pop)
             ]
 
-            # Check that all the connections exist in the network
-            if not any(matching_connections):
+            # Check that all the projections exist in the network
+            if not any(matching_projections):
                 raise ParameterError(
-                    f"Could not create connection recorder {model} for"
-                    f" connection `{conn_model}, {src_layer}, {src_pop},"
-                    f" {tgt_layer}, {tgt_pop}`: Connection does not exist in "
+                    f"Could not create projection recorder {model} for"
+                    f" projection `{conn_model}, {src_layer}, {src_pop},"
+                    f" {tgt_layer}, {tgt_pop}`: Projection does not exist in "
                     f"the network."
                 )
-            # Check (again) that connections are unique
-            if len(matching_connections) > 1:
-                raise ParameterError("Multiple identical connections")
+            # Check (again) that projections are unique
+            if len(matching_projections) > 1:
+                raise ParameterError("Multiple identical projections")
 
-            connection = matching_connections[0]
-            # Create connection recorder
-            connection_recorders.append(
-                ConnectionRecorder(model, connection)
+            projection = matching_projections[0]
+            # Create projection recorder
+            projection_recorders.append(
+                ProjectionRecorder(model, projection)
             )
 
         # Verbose
-        msg = f"Build N={len(connection_recorders)} connection recorders."
+        msg = f"Build N={len(projection_recorders)} projection recorders."
         log.info(msg)
 
-        return connection_recorders
+        return projection_recorders
 
     def _build_population_recorders(self, population_recorders_items):
         """Return population recorders specified by a list of recorder params.
@@ -638,26 +638,26 @@ class Network(object):
             method(*args, **kwargs)
 
     def get_recorders(self, recorder_class=None, recorder_type=None):
-        """Yield all ``PopulationRecorder`` and ``ConnectionRecorder`` objects.
+        """Yield all ``PopulationRecorder`` and ``ProjectionRecorder`` objects.
 
         Args:
             recorder_class (str or None): Class of queried recorders.
-                "PopulationRecorder", "ConnectionRecorder" or None.
+                "PopulationRecorder", "ProjectionRecorder" or None.
             recorder_type (str or None): Type of queried recorders.
-                'multimeter', 'spike_detector' or 'connection_recorder'
+                'multimeter', 'spike_detector' or 'projection_recorder'
         """
         if recorder_type in ['multimeter', 'spike_detector']:
             recorder_class = 'PopulationRecorder'
         elif recorder_type in ['weight_recorder']:
-            recorder_class = 'ConnectionRecorder'
+            recorder_class = 'ProjectionRecorder'
         elif recorder_type is not None:
             raise ValueError('Recorder type not recognized')
         if recorder_class == 'PopulationRecorder' or recorder_class is None:
             yield from self.get_population_recorders(
                 recorder_type=recorder_type
             )
-        if recorder_class == 'ConnectionRecorder' or recorder_class is None:
-            yield from self.get_connection_recorders(
+        if recorder_class == 'ProjectionRecorder' or recorder_class is None:
+            yield from self.get_projection_recorders(
                 recorder_type=recorder_type
             )
 
@@ -672,13 +672,13 @@ class Network(object):
             if recorder_type is None or poprec.type == recorder_type
         ])
 
-    def get_connection_recorders(self, recorder_type=None):
-        """Yield ``ConnectionRecorder`` objects of type ``recorder_type``."""
+    def get_projection_recorders(self, recorder_type=None):
+        """Yield ``ProjectionRecorder`` objects of type ``recorder_type``."""
         if recorder_type not in [
             "weight_recorder", None
         ]:
             raise ValueError('Unrecognized recorder type')
-        yield from self.connection_recorders
+        yield from self.projection_recorders
 
     def _get_synapses(self, synapse_type=None):
         """Return synapse models"""
@@ -702,16 +702,16 @@ class Network(object):
         self._create_all(self._get_layers())
         log.info('Creating population recorders...')
         self._create_all(self.population_recorders)
-        log.info('Creating connection recorders...')
-        # ConnectionRecorders must be created BEFORE Connections
-        self._create_all(self.connection_recorders)
+        log.info('Creating projection recorders...')
+        # ProjectionRecorders must be created BEFORE Projections
+        self._create_all(self.projection_recorders)
         log.info('Connecting layers...')
-        self._create_all(self.connections)
+        self._create_all(self.projections)
         self.print_network_size()
 
     @staticmethod
     def change_synapse_states(synapse_changes):
-        """Change parameters for some connections of a population.
+        """Change parameters for some projections of a population.
 
         Args:
             synapse_changes (list): List of dictionaries each of the form::
@@ -720,7 +720,7 @@ class Network(object):
                         'params': {<param1>: <value1>}
                     }
                 where the dictionary in ``params`` is passed to nest.SetStatus
-                to set the parameters for all connections with synapse model
+                to set the parameters for all projections with synapse model
                 ``<synapse_model>``
         """
         import nest
@@ -731,7 +731,7 @@ class Network(object):
                 synapse_model=changes['synapse_model']
             )
             change_params = changes['params']
-            log.info("Changing status for %s connections of type %s. Applying dict: %s", len(target_conns), changes['synapse_model'], change_params)
+            log.info("Changing status for %s projections of type %s. Applying dict: %s", len(target_conns), changes['synapse_model'], change_params)
             nest.SetStatus(target_conns, change_params)
 
     def set_state(self, unit_changes=None, synapse_changes=None,
@@ -884,7 +884,7 @@ class Network(object):
         import nest
         log.info('Network size (including recorders and parrot neurons):\n'
                  'Number of nodes: %s\n'
-                 'Number of connections: %s',
+                 'Number of projections: %s',
                  nest.GetKernelStatus('network_size'),
                  nest.GetKernelStatus('num_connections')
                  )

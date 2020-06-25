@@ -100,6 +100,7 @@ network:
       input_layer:
         params:
           type: InputLayer
+          add_parrots: true
           populations:
             spike_generator: 1
         nest_params: {}
@@ -109,7 +110,7 @@ network:
             l1_exc: 4
             l1_inh: 2
         nest_params: {}
-  connection_models:
+  projection_models:
     params: {}
     nest_params:
       connection_type: divergent
@@ -129,28 +130,28 @@ network:
         weights: 2.0
   topology:
     params:
-      connections:
+      projections:
       - source_layers:
         - input_layer
         source_population: parrot_neuron
         target_layers:
         - l1
         target_population: l1_exc
-        connection_model: conn_1_AMPA
+        projection_model: conn_1_AMPA
       - source_layers:
         - l1
         source_population: l1_exc
         target_layers:
         - l1
         target_population: l1_inh
-        connection_model: conn_1_AMPA
+        projection_model: conn_1_AMPA
       - source_layers:
         - l1
         source_population: l1_inh
         target_layers:
         - l1
         target_population: l1_exc
-        connection_model: conn_2_GABAA
+        projection_model: conn_2_GABAA
     nest_params: {}
   recorder_models:
     params: {}
@@ -184,13 +185,13 @@ network:
         - input_layer
         populations: null
         model: my_spike_detector
-      connection_recorders:
+      projection_recorders:
       - source_layers:
         - l1
         source_population: l1_exc
         target_layers:
         - l1
         target_population: l1_inh
-        connection_model: conn_1_AMPA
+        projection_model: conn_1_AMPA
         model: weight_recorder
     nest_params: {}

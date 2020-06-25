@@ -45,19 +45,19 @@ network:
         - layers: null
           populations: null
           model: 'spike_detector'
-      connection_recorders:
-        # Specify a connecton recorder model. Connections are specified as in
-        # `connections.yml`
+      projection_recorders:
+        # Specify a connecton recorder model. Projections are specified as in
+        # `projections.yml`
         # NB: The synapse model needs to support labelling (*_lbl model)
         - source_layers: [input_layer]
           source_population: parrot_neuron
           target_layers: [l1]
           target_population: l1_exc
-          connection_model: input_connection_AMPA
+          projection_model: input_projection_AMPA
           model: weight_recorder
         - source_layers: [l1]
           source_population: l1_exc
           target_layers: [l1]
           target_population: l1_exc
-          connection_model: horizontal_exc
+          projection_model: horizontal_exc
           model: weight_recorder

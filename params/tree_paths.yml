@@ -3,8 +3,8 @@
 - ./network/layers.yml
 - ./network/synapse_models.yml
 - ./network/neuron_models.yml
-- ./network/connections.yml
-- ./network/connection_models.yml
+- ./network/projections.yml
+- ./network/projection_models.yml
 - ./simulation/recorders.yml
 - ./simulation/session_models.yml
 - ./simulation/kernel_params.yml

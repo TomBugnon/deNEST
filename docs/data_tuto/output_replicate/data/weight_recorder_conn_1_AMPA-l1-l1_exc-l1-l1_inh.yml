@@ -1,6 +1,6 @@
 colnames: null
-connection_name: conn_1_AMPA-l1-l1_exc-l1-l1_inh
 filenames:
 - weight_recorder_conn_1_AMPA-l1-l1_exc-l1-l1_inh-205-0.csv
 label: weight_recorder_conn_1_AMPA-l1-l1_exc-l1-l1_inh
+projection_name: conn_1_AMPA-l1-l1_exc-l1-l1_inh
 type: weight_recorder

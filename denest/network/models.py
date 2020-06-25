@@ -68,8 +68,8 @@ class SynapseModel(Model):
         nest_params (dict-like): Dictionary passed to NEST during the
             ``nest.CopyModel`` of ``nest.SetDefaults`` call. The ``weight``
             parameter, which sets the synapse model's default weight is
-            reserved. To set the strength of connections, set the ``weights``
-            parameter of ``Connection`` objects instead.
+            reserved. To set the strength of projections, set the ``weights``
+            parameter of ``Projection`` objects instead.
 
     ..note::
         NEST expects 'receptor_type' to be an integer rather than a string. The

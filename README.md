@@ -16,7 +16,7 @@ Upcoming changes before the v1.0 release:
   - Flexible setting of network and layer states from arrays
   - Improve the API for interactive use
   - Support all recorder and generator models
-  - Support definition of connections from arrays/tables (maybe)
+  - Support definition of projections from arrays/tables (maybe)
   - Tutorials and proper documentation
   - Improve test suite
 
@@ -30,7 +30,7 @@ networks and simulation characteristics in separate, trackable and
 hierarchically organized declarative parameter files.
 
 From those parameter files, a network is instantiated in NEST (neuron layers,
-simulator layers, connections amongst layers), and a simulation is run in
+simulator layers, projections amongst layers), and a simulation is run in
 multiple separate steps ("sessions") before which the network can be modified.
 
 The declarative approach facilitates version control and sharing of the
@@ -81,9 +81,9 @@ For more information on how to use the NEST Docker image, see
 #### Network
 
 - We call **network** a full network in NEST, consisting of layers of units with
-  specific models, connections of specific types with specific synapse models
+  specific models, projections of specific types with specific synapse models
   amongst these layers, population recorders (multimeters, spike detectors) and
-  connection recorders (weight recorder).
+  projection recorders (weight recorder).
   - The full network is represented in deNEST by the `Network()` class
 
 - New NEST **models** (**neuron and generator model**, **synapse model** or
@@ -110,32 +110,32 @@ For more information on how to use the NEST Docker image, see
   - Layers are specified as leaves of the `network/layers` parameter
     subtree (see "Network parameters" section below)
 
-- A **connection model** is a template specifying parameters passed to
-  ``tp.ConnectLayers``, and that individual connections amongst populations can
+- A **projection model** is a template specifying parameters passed to
+  ``tp.ConnectLayers``, and that individual projections amongst populations can
   inherit from.
-  - Connection models are represented by the ``ConnectionModel`` class in deNEST.
-  - Connection models are specified as leaves of the `network/connection_models`
+  - Projection models are represented by the ``ProjectionModel`` class in deNEST.
+  - Projection models are specified as leaves of the `network/projection_models`
     parameter subtree (see "Network parameters" section below)
 
-- A **connection** is an individual projection between layers or populations,
+- A **projection** is an individual projection between layers or populations,
   created with a ``tp.ConnectLayers`` call. The parameters passed to
-  ``tp.ConnectLayers`` are those of the "connection model" of the specific
-  connection.
-  - The list of all individual connections within the network is specified in
-    the ``'connections'`` parameter of the `network/topology` parameter subtree
+  ``tp.ConnectLayers`` are those of the "projection model" of the specific
+  projection.
+  - The list of all individual projections within the network is specified in
+    the ``'projections'`` parameter of the `network/topology` parameter subtree
     (see "Network parameters" section below).
 
 - A **population recorder** is a recorder connected to all the nodes of a given
-  population. A **connection recorder** is a recorder connected to all the
-  synapses of a given connection. Recorders with arbitrary parameters can be
+  population. A **projection recorder** is a recorder connected to all the
+  synapses of a given projection. Recorders with arbitrary parameters can be
   defined by creating "recorder models". However, currently only recorders based
   on the 'multimeter', 'spike_detector' and 'weight_recorder' NEST models are
   supported.
-  - population and connection recorders are represented by the
-    ``PopulationRecorder``  and ``ConnectionRecorder`` classes in
+  - population and projection recorders are represented by the
+    ``PopulationRecorder``  and ``ProjectionRecorder`` classes in
     deNEST.
-  - The list of all population recorders and connection recorders are specified
-    in the ``'population_recorders'`` and ``'connection_recorders'`` parameters
+  - The list of all population recorders and projection recorders are specified
+    in the ``'population_recorders'`` and ``'projection_recorders'`` parameters
     of the `network/recorders` parameter subtree (See "Network parameters"
     section below)
 
@@ -153,7 +153,7 @@ For more information on how to use the NEST Docker image, see
   - A session's parameters define the operations that may be performed before
     running it:
     - Modifying the state of some units within a popultion
-    - Modifying the state of some synapses of a certain connection (TODO)
+    - Modifying the state of some synapses of a certain projection (TODO)
     - Setting the state of generators within ``InputLayer`` layers from arrays
     - Deactivate the recorders for that session.
   - Individual sessions are represented by the ``Session`` object in deNEST.
@@ -227,8 +227,8 @@ A full deNEST simulation consists of the following steps:
       # Maybe change the nest kernel's settings ?
       {'kernel': {'nest_params': {'local_num_threads': 20}}},
 
-      # Maybe change a parameter for all the connections at once ?
-      {'network': {'connection_models': {'nest_params': {
+      # Maybe change a parameter for all the projections at once ?
+      {'network': {'projection_models': {'nest_params': {
           'allow_autapses': true
       }}}},
     ]
@@ -468,9 +468,9 @@ children are expected:
       ``Layer`` or ``InputLayer`` object depending on the value of
       their ``type`` ``params`` parameter.
 
-  - ``connection_models`` (``ParamsTree``). Parameter tree, the
-      leaves of which define connection models. Each leave is used
-      to initialize a ``ConnectionModel`` object.
+  - ``projection_models`` (``ParamsTree``). Parameter tree, the
+      leaves of which define projection models. Each leave is used
+      to initialize a ``ProjectionModel`` object.
 
   - ``recorder_models`` (``ParamsTree``). Parameter tree, the
       leaves of which define recorder models. Each leave is used
@@ -478,18 +478,18 @@ children are expected:
 
   - ``topology`` (``ParamsTree``). ``ParamsTree`` object without
       children, the ``params`` of which may contain a
-      ``connections`` key specifying all the individual
-      population-to-population connections within the network as a
-      list. ``Connection`` objects  are created from the
+      ``projections`` key specifying all the individual
+      population-to-population projections within the network as a
+      list. ``Projection`` objects  are created from the
       ``topology`` ``ParamsTree`` object by the
-      ``Network.build_connections`` method. Refer to this method
+      ``Network.build_projections`` method. Refer to this method
       for a description of the ``topology`` parameter.
 
   - ``recorders`` (``ParamsTree``). ``ParamsTree`` object without
       children, the ``params`` of which may contain a
-      ``population_recorders`` and a ``connection_recorders`` key
+      ``population_recorders`` and a ``projection_recorders`` key
       specifying all the network recorders. ``PopulationRecorder``
-      and ``ConnectionRecorder`` objects  are created from the
+      and ``ProjectionRecorder`` objects  are created from the
       ``recorders`` ``ParamsTree`` object by the
       ``Network.build_recorders`` method. Refer to this
       method for a description of the ``recorders`` parameter.

@@ -707,7 +707,6 @@ output/data/spike_detector_l2_l2_inh.yml:
   units_number: 1
 output/data/weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc.yml:
   colnames: null
-  connection_name: horizontal_exc-l1-l1_exc-l1-l1_exc
   filenames:
   - weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc-213-00.csv
   - weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc-213-01.csv
@@ -730,10 +729,10 @@ output/data/weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc.yml:
   - weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc-213-18.csv
   - weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc-213-19.csv
   label: weight_recorder_horizontal_exc-l1-l1_exc-l1-l1_exc
+  projection_name: horizontal_exc-l1-l1_exc-l1-l1_exc
   type: weight_recorder
 output/data/weight_recorder_input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc.yml:
   colnames: null
-  connection_name: input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc
   filenames:
   - weight_recorder_input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-00.csv
   - weight_recorder_input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-01.csv
@@ -756,4 +755,31 @@ output/data/weight_recorder_input_connection_AMPA-input_layer-parrot_neuron-l1-l
   - weight_recorder_input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-18.csv
   - weight_recorder_input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-19.csv
   label: weight_recorder_input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc
+  projection_name: input_connection_AMPA-input_layer-parrot_neuron-l1-l1_exc
+  type: weight_recorder
+output/data/weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc.yml:
+  colnames: null
+  filenames:
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-00.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-01.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-02.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-03.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-04.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-05.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-06.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-07.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-08.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-09.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-10.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-11.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-12.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-13.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-14.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-15.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-16.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-17.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-18.csv
+  - weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc-214-19.csv
+  label: weight_recorder_input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc
+  projection_name: input_projection_AMPA-input_layer-parrot_neuron-l1-l1_exc
   type: weight_recorder

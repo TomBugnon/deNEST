@@ -1,5 +1,5 @@
 network:
-  connection_models:
+  projection_models:
     params:
       type: topological
     nest_params:
@@ -54,7 +54,7 @@ network:
             min: 1.75
             max: 2.25
 
-    input_connection:
+    input_projection:
       nest_params:
         connection_type: convergent
         mask:
@@ -66,9 +66,9 @@ network:
           uniform:
             min: 1.75
             max: 2.25
-      input_connection_AMPA:
+      input_projection_AMPA:
         nest_params:
           synapse_model: input_synapse_AMPA
-      input_connection_NMDA:
+      input_projection_NMDA:
         nest_params:
           synapse_model: input_synapse_NMDA

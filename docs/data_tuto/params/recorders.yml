@@ -7,10 +7,10 @@ recorders:
       - layers: [input_layer]
         populations: null
         model: 'my_spike_detector'
-    connection_recorders:
+    projection_recorders:
       - source_layers: [l1, ]
         source_population: l1_exc
         target_layers: [l1, ]
         target_population: l1_inh
-        connection_model: conn_1_AMPA
+        projection_model: conn_1_AMPA
         model: 'weight_recorder'

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # recorders.py
 
-"""PopulationRecorder and ConnectionRecorder objects."""
+"""PopulationRecorder and ProjectionRecorder objects."""
 
 import logging
 
@@ -283,58 +283,58 @@ class PopulationRecorder(BaseRecorder):
             raise Exception
 
 
-class ConnectionRecorder(BaseRecorder):
-    """Represents a recorder connected to synapses of a ``Connection``.
+class ProjectionRecorder(BaseRecorder):
+    """Represents a recorder connected to synapses of a ``Projection``.
 
-    ConnectionRecorders are connected to synapses of a single
-    population-to-population ``Connection`` object.
+    ProjectionRecorders are connected to synapses of a single
+    population-to-population ``Projection`` object.
 
     Args:
-        model (str): Model of the connection recorder in NEST. This should be a
+        model (str): Model of the projection recorder in NEST. This should be a
             native model in NEST, or a recorder model defined via
             ``recorder_models`` network parameters. (eg: 'weight_recorder')
-        connection (``Connection``): ``Connection`` object the recorder is
+        projection (``Projection``): ``Projection`` object the recorder is
             connected to.
     """
 
     # pylint:disable=too-many-instance-attributes
     CONNECTION_RECORDER_TYPES = ["weight_recorder"]
 
-    def __init__(self, model, connection):
+    def __init__(self, model, projection):
         super().__init__(model)
         self._model = model
-        self._connection = connection
-        self._connection_name = str(connection)
-        # "type" or ConnectionRecorder ("weight_recorder")
+        self._projection = projection
+        self._projection_name = str(projection)
+        # "type" or ProjectionRecorder ("weight_recorder")
         self._type = None
         for type in self.CONNECTION_RECORDER_TYPES:
             if type in self._model:
                 self._type = type
         if self._type is None:
             raise ValueError(
-                f"The type of ConnectionRecorder {model} is not recognized."
+                f"The type of ProjectionRecorder {model} is not recognized."
                 f" Supported types: {self.CONNECTION_RECORDER_TYPES}."
             )
 
     def __str__(self):
-        return self._model + "_" + str(self._connection)
+        return self._model + "_" + str(self._projection)
 
     @if_not_created
     def create(self):
-        """Create the ConnectionRecorder and update Connection object.
+        """Create the ProjectionRecorder and update Projection object.
 
             1. Create the recorder node in NEST.
-            2. Modify the synapse model of the Connection object is modified so
-                that it sends spikes to the ConnectionRecorder object.
-            3. Update ConnectionRecorder's attributes.
+            2. Modify the synapse model of the Projection object is modified so
+                that it sends spikes to the ProjectionRecorder object.
+            3. Update ProjectionRecorder's attributes.
         """
         import nest
 
         # Create recorder node
         self._gid = nest.Create(self._model)
-        # Update the Connection object so that it connects to the
-        # ConnectionRecorder
-        self._connection._connect_connection_recorder(
+        # Update the Projection object so that it connects to the
+        # ProjectionRecorder
+        self._projection._connect_projection_recorder(
             recorder_type=self._type, recorder_gid=self._gid[0],
         )
         # Update attributes with nest.GetStatus calls
@@ -346,11 +346,11 @@ class ConnectionRecorder(BaseRecorder):
         self._colnames = self.raw_data_colnames()
 
     # TODO: Save more information
-    def get_connection_recorder_metadata_dict(self):
-        """Create metadata directory for ConnectionRecorder."""
+    def get_projection_recorder_metadata_dict(self):
+        """Create metadata directory for ProjectionRecorder."""
         metadata_dict = self.get_base_metadata_dict()
         metadata_dict.update(
-            {"connection_name": self._connection_name,}
+            {"projection_name": self._projection_name,}
         )
         return metadata_dict
 
@@ -363,4 +363,4 @@ class ConnectionRecorder(BaseRecorder):
     def save_metadata(self, output_dir):
         """Save recorder metadata."""
         metadata_path = save.output_path(output_dir, "recorders_metadata", self._label)
-        save.save_as_yaml(metadata_path, self.get_connection_recorder_metadata_dict())
+        save.save_as_yaml(metadata_path, self.get_projection_recorder_metadata_dict())

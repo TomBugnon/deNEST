@@ -70,8 +70,8 @@ class AbstractLayer(NestObject):
 
     @if_created
     def _connect(self, target, nest_params):
-        """Connect to target layer. Called by `Connection.create()`"""
-        # NOTE: Don't use this method directly; use a Connection instead
+        """Connect to target layer. Called by `Projection.create()`"""
+        # NOTE: Don't use this method directly; use a Projection instead
         from nest import topology as tp
 
         tp.ConnectLayers(self.gid, target.gid, nest_params)

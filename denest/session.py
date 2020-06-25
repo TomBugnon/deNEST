@@ -118,12 +118,12 @@ class Session(ParamObject):
         if self.params["reset_network"]:
             self.reset()
 
-        # Inactivate all the recorders and connection_recorders for
+        # Inactivate all the recorders and projection_recorders for
         # `self._simulation_time`
         if not self.params["record"]:
             self.inactivate_recorders(network)
 
-        # Inactivate all the recorders and connection_recorders for
+        # Inactivate all the recorders and projection_recorders for
         # `self._simulation_time`
         if self.params["shift_origin"]:
             self.shift_stimulator_origin(network)
@@ -166,7 +166,7 @@ class Session(ParamObject):
         nest.SetStatus(stim_gids, {'origin': self.start})
 
     def inactivate_recorders(self, network):
-        """Set 'start' of all (connection_)recorders at the end of session.
+        """Set 'start' of all (projection_)recorders at the end of session.
 
         Args:
             self (Session): ``Session`` object

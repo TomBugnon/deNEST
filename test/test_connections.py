@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# test_connections.py
+# test_projections.py
 
-"""Test ``ConnectionModel`` and ``Connection`` classes."""
+"""Test ``ProjectionModel`` and ``Projection`` classes."""
 
 
 import nest
 import nest.topology as tp
 
-from denest.network.connections import ConnectionModel, TopoConnection
+from denest.network.projections import ProjectionModel, TopoProjection
 
 
-def test_full_base_layer_auto_connection(base_layer):
+def test_full_base_layer_auto_projection(base_layer):
     nest.ResetKernel()
     base_layer.create()
-    model = ConnectionModel(
+    model = ProjectionModel(
         "connmodel",
         {},
         {
@@ -23,18 +23,18 @@ def test_full_base_layer_auto_connection(base_layer):
             "connection_type": "divergent",
         },
     )
-    connection = TopoConnection(model, base_layer, None, base_layer, None)
-    connection.create()
+    projection = TopoProjection(model, base_layer, None, base_layer, None)
+    projection.create()
     all_gids = base_layer.gids()
     for gid in all_gids:
         # All gids are targets
         assert set(tp.GetTargetNodes((gid,), base_layer.gid)[0]) == set(all_gids)
 
 
-def test_full_population_auto_connection(base_layer):
+def test_full_population_auto_projection(base_layer):
     nest.ResetKernel()
     base_layer.create()
-    model = ConnectionModel(
+    model = ProjectionModel(
         "connmodel",
         {},
         {
@@ -44,8 +44,8 @@ def test_full_population_auto_connection(base_layer):
         },
     )
     population = list(base_layer.populations.keys())[0]
-    connection = TopoConnection(model, base_layer, population, base_layer, population,)
-    connection.create()
+    projection = TopoProjection(model, base_layer, population, base_layer, population,)
+    projection.create()
     all_gids = base_layer.gids()
     pop_gids = base_layer.gids(population=population)
     for gid in all_gids:

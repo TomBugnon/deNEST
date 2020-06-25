@@ -19,7 +19,7 @@ OUTPUT_SUBDIRS = {
     "raw_data": ("data",),  # Raw recorder data (NEST output)
     # Metadata for recorders (contains filenames and gid/location mappings)
     "recorders_metadata": ("data",),
-    "connection_recorders_metadata": ("data",),
+    "projection_recorders_metadata": ("data",),
     "session_times": (),
 }
 
