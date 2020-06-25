@@ -176,8 +176,7 @@ A full deNEST simulation consists of the following steps:
     1. **Initialize kernel**: (``Simulation.init_kernel``)
 
         1. Set NEST kernel parameters
-        2. Set random seeds for python's `random` module and NEST's random
-        generator.
+        2. Set seed for NEST's random generator.
 
     1. **Create network**:
 

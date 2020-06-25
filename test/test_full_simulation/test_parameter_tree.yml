@@ -7,7 +7,6 @@ kernel:
   params:
     extension_modules: []
     nest_seed: 94
-    python_seed: 94
 nest_params: {}
 network:
   layers:

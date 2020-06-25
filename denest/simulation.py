@@ -71,7 +71,7 @@ class Simulation(object):
         """Initialize simulation.
 
             - Set input and output paths
-            - Initialize NEST kernel and set python seed
+            - Initialize NEST kernel
             - Initialize and build Network in NEST,
             - Create sessions
             - Save simulation metadata
@@ -289,11 +289,10 @@ class Simulation(object):
         log.info(f"Build N={len(self.session_models.keys())} session models")
 
     def init_kernel(self, kernel_tree):
-        """Initialize NEST kernel and set Python seed
+        """Initialize NEST kernel
 
             - Call ``nest.SetKernelStatus`` with ``nest_params``
             - Set NEST kernel ``data_path`` and seed
-            - Set Python rng seed for ``numpy`` and ``random`` packages
             - Install extension modules
 
         Adds ``kernel_tree`` as ``kernel`` child of ``self.tree``
@@ -305,8 +304,6 @@ class Simulation(object):
                         (default [])
                     - nest_seed (int): Used to set NEST kernel's rng seed
                         (default 1)
-                    - python_seed (int): Seed in Python ``numpy`` and ``random``
-                        packages. (default 1)
                 nest parameters (``nest_params`` field) are passed to
                 ``nest.SetKernelStatus``. The following nest parameters are
                 reserved: ``[data_path, 'grng_seed', 'rng_seed']``. The NEST
@@ -319,7 +316,6 @@ class Simulation(object):
         OPTIONAL_PARAMS = {
             "extension_modules": [],
             "nest_seed": 1,
-            "python_seed": 1
         }
         RESERVED_NEST_PARAMS = ["data_path", "msd", "grng_seed", "rng_seed"]
 
@@ -373,15 +369,6 @@ class Simulation(object):
         for module in params["extension_modules"]:
             self.install_module(module)
         log.info("  Finished installing external modules")
-
-        # Set python seed
-        import numpy as np
-        import random
-
-        python_seed = params["python_seed"]
-        log.info("  Setting Python seed: %s", python_seed)
-        np.random.seed(python_seed)
-        random.seed(python_seed)
 
         log.info("Finished initializing kernel")
 
