@@ -12,7 +12,7 @@ import denest
 import denest.io.load
 
 PARAMS_PATH = "./params/tree_paths.yml"
-INPUT_DIR = "./input"
+INPUT_DIR = "./params/input"
 OUTPUT_DIR = "./output"
 
 

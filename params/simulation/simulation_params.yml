@@ -2,4 +2,4 @@ simulation:
   params:
     sessions: ['warmup', 'even_rate', 'arbitrary_rate']
     output_dir: output
-    input_dir: input
+    input_dir: 'params/input'
