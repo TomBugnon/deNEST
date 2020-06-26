@@ -31,7 +31,7 @@ setup(
     author_email=about["__author_email__"],
     url=about["__url__"],
     license=about["__license__"],
-    long_description=open('README.rst') if exists('README.rst') else "",
+    long_description=open('README.md').read() if exists('README.md') else "",
     long_description_content_type="text/markdown",
     install_requires=install_requires,
     packages=['denest'],
