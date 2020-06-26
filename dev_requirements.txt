@@ -2,5 +2,10 @@ pytest
 watchdog
 pytest-regressions
 pytest-cov
+black
+isort
 sphinx
 sphinx_rtd_theme
+setuptools
+wheel
+twine
