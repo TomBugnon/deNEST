@@ -119,8 +119,6 @@ class Network(object):
         self.build_recorder_models(self.tree.children['recorder_models'])
         self.build_layers(self.tree.children['layers'])
         self.build_projection_models(self.tree.children['projection_models'])
-        self.build_projections(self.tree.children['topology'])
-        self.build_recorders(self.tree.children['recorders'])
         # Projections must be built after layers and projection models
         self.build_projections(self.tree.children['topology'])
         # Initialize population recorders and projection recorders
