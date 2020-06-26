@@ -12,5 +12,5 @@ recorders:
         source_population: l1_exc
         target_layers: [l1, ]
         target_population: l1_inh
-        projection_model: conn_1_AMPA
+        projection_model: proj_1_AMPA
         model: 'weight_recorder'

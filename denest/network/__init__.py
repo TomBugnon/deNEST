@@ -307,8 +307,8 @@ class Network(object):
 
         # Build Projection objects
         projections = []
-        for (conn_model, src_lyr, src_pop, tgt_lyr, tgt_pop) in projection_args:
-            model = self.projection_models[conn_model]
+        for (proj_model, src_lyr, src_pop, tgt_lyr, tgt_pop) in projection_args:
+            model = self.projection_models[proj_model]
             source = self.layers[src_lyr]
             target = self.layers[tgt_lyr]
             projections.append(
@@ -452,18 +452,18 @@ class Network(object):
             projection_recorders_items = []
         # Get all unique ``(model, projection_model, source_layer,
         # source_population, target_layer, target_population)`` tuples
-        conn_recorder_args = []
+        proj_recorder_args = []
         for item in projection_recorders_items:
             item = dict(item)  # TODO Fix this
             model = item.pop('model')
-            conn_recorder_args += [
-                (model,) + conn_args
-                for conn_args in self._parse_projection_params([item])
+            proj_recorder_args += [
+                (model,) + proj_args
+                for proj_args in self._parse_projection_params([item])
             ]
-        conn_recorder_args = sorted(conn_recorder_args)
+        proj_recorder_args = sorted(proj_recorder_args)
 
         # Check that there are no duplicates.
-        if not len(set(conn_recorder_args)) == len(conn_recorder_args):
+        if not len(set(proj_recorder_args)) == len(proj_recorder_args):
             raise ParameterError(
                 """Duplicate projection recorders specified by
                 ``projection_recorders`` network/recorders parameter.
@@ -475,12 +475,12 @@ class Network(object):
 
         projection_recorders = []
         for (
-            model, conn_model, src_layer, src_pop, tgt_layer, tgt_pop
-        ) in conn_recorder_args:
+            model, proj_model, src_layer, src_pop, tgt_layer, tgt_pop
+        ) in proj_recorder_args:
 
             matching_projections = [
                 c for c in self.projections
-                if (c.model.name == conn_model
+                if (c.model.name == proj_model
                     and c.source.name == src_layer
                     and c.source_population == src_pop
                     and c.target.name == tgt_layer
@@ -491,7 +491,7 @@ class Network(object):
             if not any(matching_projections):
                 raise ParameterError(
                     f"Could not create projection recorder {model} for"
-                    f" projection `{conn_model}, {src_layer}, {src_pop},"
+                    f" projection `{proj_model}, {src_layer}, {src_pop},"
                     f" {tgt_layer}, {tgt_pop}`: Projection does not exist in "
                     f"the network."
                 )
