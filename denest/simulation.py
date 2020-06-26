@@ -203,7 +203,7 @@ class Simulation(object):
         log.info("Saving simulation metadata...")
         # Initialize output dir (create and clear)
         log.info("Creating output directory: %s", self.output_dir)
-        make_output_dir(self.output_dir, clear_output_dir=False)
+        make_output_dir(self.output_dir, clear_output_dir=clear_output_dir)
         # Save params tree
         self.tree.write(output_path(self.output_dir, "tree"))
         # Drop git hash
