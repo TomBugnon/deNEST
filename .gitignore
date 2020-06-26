@@ -7,3 +7,4 @@ __pycache__
 input
 output
 docs/build
+.ipynb_checkpoints
