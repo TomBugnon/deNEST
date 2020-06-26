@@ -1,0 +1,7 @@
+kernel:
+  params:
+    nest_seed: 10
+    extension_modules: []
+  nest_params:
+    resolution: 0.5
+    overwrite_files: true

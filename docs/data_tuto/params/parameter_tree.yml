@@ -1,3 +1,54 @@
+params: {}
+nest_params: {}
+kernel:
+  params:
+    nest_seed: 10
+    extension_modules: []
+  nest_params:
+    resolution: 0.5
+    overwrite_files: true
+simulation:
+  params:
+    output_dir: data_tuto/output
+    sessions:
+    - warmup
+    - 3_spikes
+    - 2_spikes
+    - 3_spikes
+  nest_params: {}
+session_models:
+  params:
+    record: true
+    shift_origin: true
+    simulation_time: 100.0
+  nest_params: {}
+  warmup:
+    params:
+      record: false
+    nest_params: {}
+  2_spikes:
+    params:
+      unit_changes:
+      - layers:
+        - input_layer
+        population_name: spike_generator
+        nest_params:
+          spike_times:
+          - 1.0
+          - 10.0
+    nest_params: {}
+  3_spikes:
+    params:
+      unit_changes:
+      - layers:
+        - input_layer
+        population_name: spike_generator
+        nest_params:
+          spike_times:
+          - 1.0
+          - 10.0
+          - 20.0
+    nest_params: {}
 network:
   params: {}
   nest_params: {}
