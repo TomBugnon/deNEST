@@ -3,10 +3,11 @@
 src = denest
 test = test
 docs = docs
+docs_source = docs/source
 docs_build = docs/build
 docs_html = docs/build/html
-dist_dir = dist
 docs_port = 7331
+dist_dir = dist
 
 watch: test
 	watchmedo shell-command \
@@ -25,11 +26,8 @@ watch-docs: docs
 		--recursive --drop --ignore-directories \
 		--patterns="*.py;*.rst" $(src) $(docs)
 
-clean-docs:
-	rm -rf $(docs_build)
-
 build-docs:
-	cd $(docs) && make html
+	cd $(docs) && make html -j12
 	# cp $(docs)/_static/*.css $(docs_html)/_static
 	# cp $(docs)/_static/*.png $(docs_html)/_static
 
@@ -38,6 +36,10 @@ serve-docs: build-docs
 
 open-docs:
 	open http://0.0.0.0:$(docs_port)
+
+clean-docs:
+	rm -rf $(docs_build)
+	rm -rf $(docs_source)/generated/*
 
 check-dist:
 	python setup.py check --strict
@@ -54,5 +56,5 @@ build-dist: clean-dist
 clean-dist:
 	rm -rf $(dist_dir)
 
-clean:
+clean: clean-dist
 	rm -rf **/__pycache__

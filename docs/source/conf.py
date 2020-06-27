@@ -31,10 +31,12 @@ author = 'Tom Bugnon and William G. P. Mayner'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
+    'nbsphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -52,6 +54,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # a list of builtin themes.
 import sphinx_rtd_theme
 html_theme = 'sphinx_rtd_theme'
+# TODO
+# html_logo = "logo.png"
+# html_favicon = "logo.png"
 
 # Add any paths that contain custom themes here, relative to this
 # directory.
@@ -75,3 +80,8 @@ html_show_sphinx = False
 # -- Options for autodoc output ------------------------------------------
 autoclass_content = "both"
 autodoc_member_order = "bysource"
+
+# -- Options for autosummary ---------------------------------------------
+autosummary_generate = True
+autosummary_imported_members = True
+autosummary_mock_imports = []

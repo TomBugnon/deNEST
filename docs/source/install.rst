@@ -2,13 +2,12 @@ Installation
 ============
 
 Docker
-^^^^^^
+~~~~~~
 
 A Docker image is provided with NEST 2.20 installed, based on
 `nest-docker <https://github.com/nest/nest-docker>`_.
 
 1. From within the repo, build the image:
-
 
    .. code-block:: bash
 
@@ -37,16 +36,16 @@ A Docker image is provided with NEST 2.20 installed, based on
 
 4. Use deNEST from within the container.
 
-For more information on how to use the NEST Docker image, see
-`nest-docker <https://github.com/nest/nest-docker>`_.
+For more information on how to use the NEST Docker image, see `nest-docker
+<https://github.com/nest/nest-docker>`_.
 
 Local
-^^^^^
+~~~~~
 
-1. Install NEST > v2.14.0 by following the instructions at http://www.nest-simulator.org/installation/
+1. Install NEST >= v2.20.0 by following the instructions at http://www.nest-simulator.org/installation/.
 
 2. Set up a Python 3 environment and install deNEST with:
 
    .. code-block:: bash
 
-      pip install "git+https://github.com/TomBugnon/deNEST@develop"
+      pip install denest

@@ -2,16 +2,13 @@ Overview
 ========
 
 Definitions
-^^^^^^^^^^^
+~~~~~~~~~~~
 
 Network
 
-
 .. code-block::
 
-
-
-   * 
+   *
      We call **network** a full network in NEST, consisting of layers of units with
      specific models, projections of specific types with specific synapse models
      amongst these layers, population recorders (multimeters, spike detectors) and
@@ -20,7 +17,7 @@ Network
 
      * The full network is represented in deNEST by the ``Network()`` class
 
-   * 
+   *
      New NEST **models** (\ **neuron and generator model**\ , **synapse model** or
      **recorder model**\ ) can be specified with arbitrary parameters. During network
      creation, models with specific parameters are created in NEST using a
@@ -36,7 +33,7 @@ Network
      * Recorder models are specified as leaves of the ``network/recorder_models``
        parameter subtree (see "Network parameters" section below)
 
-   * 
+   *
      A **layer** is a NEST topological layer, created with a ``tp.CreateLayer``
      call in NEST. We call **population** all the nodes of the same model
      within a layer.
@@ -50,7 +47,7 @@ Network
      * Layers are specified as leaves of the ``network/layers`` parameter
        subtree (see "Network parameters" section below)
 
-   * 
+   *
      A **projection model** is a template specifying parameters passed to
      ``tp.ConnectLayers``\ , and that individual projections amongst populations can
      inherit from.
@@ -60,7 +57,7 @@ Network
      * Projection models are specified as leaves of the ``network/projection_models``
        parameter subtree (see "Network parameters" section below)
 
-   * 
+   *
      A **projection** is an individual projection between layers or populations,
      created with a ``tp.ConnectLayers`` call. The parameters passed to
      ``tp.ConnectLayers`` are those of the "projection model" of the specific
@@ -71,7 +68,7 @@ Network
        the ``'projections'`` parameter of the ``network/topology`` parameter subtree
        (see "Network parameters" section below).
 
-   * 
+   *
      A **population recorder** is a recorder connected to all the nodes of a given
      population. A **projection recorder** is a recorder connected to all the
      synapses of a given projection. Recorders with arbitrary parameters can be
@@ -105,7 +102,7 @@ Network
   parameters used by a given session are inherited from its session model.
 
 
-* 
+*
   A session's parameters define the operations that may be performed before
   running it:
 
@@ -115,7 +112,7 @@ Network
   * Setting the state of generators within ``InputLayer`` layers from arrays
   * Deactivate the recorders for that session.
 
-* 
+*
   Individual sessions are represented by the ``Session`` object in deNEST.
   (see "Simulation parameters" section below)
 
@@ -135,13 +132,7 @@ Overview of a full simulation
 
 A full deNEST simulation consists of the following steps:
 
-.
-=
-
    **Initialize simulation** (\ ``Simulation.__init__``\ )
-
-.
-=
 
 .. code-block::
 
@@ -151,10 +142,6 @@ A full deNEST simulation consists of the following steps:
      #. Set NEST kernel parameters
      #. Set seed for NEST's random generator.
 
-
-.
-=
-
 .. code-block::
 
      **Create network**\ :
@@ -163,17 +150,9 @@ A full deNEST simulation consists of the following steps:
      #. Initialize the network objects (\ ``Network.__init__``\ )
      #. Create the objects in NEST (\ ``Network.__create__``\ )
 
-
-.
-=
-
 .. code-block::
 
      **Initialize the sessions** (\ ``Session.__init__``\ )
-
-
-.
-=
 
 .. code-block::
 
@@ -188,20 +167,14 @@ A full deNEST simulation consists of the following steps:
      * Save session metadata (TODO)
 
 
-.
-=
-
-   **Run the simulation** (\ ``Simulation.__run__``\ )
-
-.
-=
+**Run the simulation** (\ ``Simulation.__run__``\ )
 
 .. code-block::
 
      Run each session in turn: (\ ``Session.__run__``\ )
 
 
-     #. 
+     #.
         Initialize session (\ ``Session.initialize``\ )
 
 
@@ -214,5 +187,5 @@ A full deNEST simulation consists of the following steps:
 
         * Set InputLayer's state from input arrays
 
-     #. 
+     #.
         Call ``nest.Simulate()``.
