@@ -438,12 +438,12 @@ A parameter tree specifying a full simulation may look like the following:
    :caption: Tutorials
 
    tutorials/quickstart
-   tutorials/create_network
-   tutorials/set_network_state
-   tutorials/create_simulation
+   tutorials/network_object
+   tutorials/modify_network
+   tutorials/simulation_object
    tutorials/load_simulation_output
-   tutorials/quickstart2
    tutorials/perform_parameter_exploration
+   tutorials/version_control_params
 
 .. toctree::
    :maxdepth: 1

@@ -10,9 +10,6 @@ User interface
    network.Layer
    ParamsTree
 
-.. autoclass:: Network
-   :members:
-
 .. autoclass:: Simulation
    :members:
 

@@ -117,6 +117,7 @@ recorder_models:
     nest_params:
       record_from:
       - V_m
+      interval: 20.0
   my_spike_detector:
     params:
       nest_model: spike_detector
