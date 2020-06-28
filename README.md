@@ -35,10 +35,9 @@ Documentation and tutorials can be found [here](http://denest.readthedocs.io)
 
 Instructions [here](https://denest.readthedocs.io/en/latest/install.html)
 
-## User group
-
-TODO
-
 ## Credit
 
-TODO
+We are in the process of submitting a JOSS paper describing this package.
+
+If you use it for your research, please be so kind as to check again later and
+cite our article :)
