@@ -1,6 +1,18 @@
 Installation
 ============
 
+Local
+~~~~~
+
+1. Install NEST >= v2.14.0, <3.0 by following the instructions at http://www.nest-simulator.org/installation/.
+
+2. Set up a Python 3 environment and install deNEST with:
+
+   .. code-block:: bash
+
+      pip install denest
+
+
 Docker
 ~~~~~~
 
@@ -38,14 +50,3 @@ A Docker image is provided with NEST 2.20 installed, based on
 
 For more information on how to use the NEST Docker image, see `nest-docker
 <https://github.com/nest/nest-docker>`_.
-
-Local
-~~~~~
-
-1. Install NEST >= v2.20.0 by following the instructions at http://www.nest-simulator.org/installation/.
-
-2. Set up a Python 3 environment and install deNEST with:
-
-   .. code-block:: bash
-
-      pip install denest
