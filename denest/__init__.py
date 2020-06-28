@@ -60,7 +60,7 @@ def load_trees(path, *overrides):
         log.info("Using %s override tree(s)", len(overrides))
     rel_path_list = load_yaml(path)
     log.info("Finished loading parameter file paths")
-    log.info("Loading parameters files: \n%s", _pformat(rel_path_list))
+    log.info("Loading parameters files: \n%s", pformat(rel_path_list))
     return ParamsTree.merge(
         *[ParamsTree(overrides_tree) for overrides_tree in overrides],
         *[
