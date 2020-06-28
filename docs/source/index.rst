@@ -443,6 +443,7 @@ A parameter tree specifying a full simulation may look like the following:
    tutorials/create_simulation
    tutorials/load_simulation_output
    tutorials/quickstart2
+   tutorials/perform_parameter_exploration
 
 .. toctree::
    :maxdepth: 1
