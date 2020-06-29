@@ -51,9 +51,9 @@ def test_data(metadata_paths, file_regression):
     # Test equality of sorted data, rounded to 4 decimals
     for metadata_path in metadata_paths:
         # Sort dataframe and round 4
+        recorder_data = denest.io.load.load(metadata_path)
         recorder_data = (
-            denest.io.load.load(metadata_path)
-                .sort_values(list(recorder_data.columns))
+            recorder_data.sort_values(list(recorder_data.columns))
                 .reset_index(drop=True)
                 .round(4)
                 .fillna("NaN")
