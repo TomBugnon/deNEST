@@ -1,6 +1,9 @@
 User interface
 ==============
 
+These are the main functions and classes that comprise deNEST's user
+interface.
+
 .. currentmodule:: denest
 
 .. autosummary::
