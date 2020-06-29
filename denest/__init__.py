@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # __init__.py
 
-"""deNEST: Network Simulator for NEST"""
+"""deNEST: a declarative frontend for NEST"""
 
 import logging.config
 import time

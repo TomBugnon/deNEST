@@ -17,15 +17,20 @@ interface.
 
 .. automodule:: denest
    :members:
+   :ignore-module-all:
 
 .. autoclass:: Simulation
    :members:
+   :exclude-members: total_time, install_module
 
 .. autoclass:: Network
    :members:
+   :exclude-members: build_named_leaves_dict, get_population_recorders, get_projection_recorders, 
 
-.. autoclass:: network.Layer
+.. autoclass:: denest.network.Layer
    :members:
+   :exclude-members: position
 
 .. autoclass:: ParamsTree
    :members:
+   :exclude-members: position
