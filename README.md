@@ -3,14 +3,10 @@
 [![License badge](https://img.shields.io/github/license/tombugnon/denest.svg?style=flat-square&maxAge=86400)](https://github.com/tombugnon/denest/blob/develop/LICENSE)
 ![Python versions badge](https://img.shields.io/pypi/pyversions/pyphi.svg?style=flat-square&maxAge=86400)
 
-<!--lint disable list-item-indent-->
-<!--lint disable list-item-content-indent-->
-<!--lint disable list-item-bullet-indent-->
-
 # deNEST: A declarative frontend for NEST
 
-deNEST is a python library for specifying networks and running simulations using
-[the NEST simulator](https://nest-simulator.org).
+deNEST is a Python library for specifying networks and running simulations
+using [the NEST simulator](https://nest-simulator.org).
 
 deNEST allows the user to concisely specify large-scale networks and
 simulations in hierarchically-organized declarative parameter files.
