@@ -377,12 +377,9 @@ class Simulation(object):
 
         log.info("Finished initializing kernel")
 
-    @staticmethod
-    def total_time():
-        """Return the NEST kernel time."""
-        import nest
-
-        return nest.GetKernelStatus("time")
+    def total_time(self):
+        """Return the total duration of all sessions."""
+        return self.sessions[-1].end - self.sessions[0].start
 
     @staticmethod
     def install_module(module_name):
