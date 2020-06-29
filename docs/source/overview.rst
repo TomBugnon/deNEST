@@ -140,7 +140,7 @@ A full deNEST simulation consists of the following steps:
 Specifying the simulation parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-All parameters used by deNEST are specified in tree-like yaml files which are
+All parameters used by deNEST are specified in tree-like YAML files which are
 converted to ``ParamsTree`` objects.
 
 In this section, we describe the ``ParamsTree`` objects, the expected structure
@@ -152,8 +152,8 @@ Main parameter file
 -------------------
 
 To facilitate defining parameters in separate files, ``denest.run`` and
-``denest.load_trees`` take as input a path to a yaml file containing the
-relative paths of the tree-like yaml files to merge so as to define the full
+``denest.load_trees`` take as input a path to a YAML file containing the
+relative paths of the tree-like YAML files to merge so as to define the full
 parameter tree (see the ``params/tree_paths.yml`` file)
 
 
