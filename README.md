@@ -11,10 +11,10 @@ using [the NEST simulator](https://nest-simulator.org).
 deNEST allows the user to concisely specify large-scale networks and
 simulations in hierarchically-organized declarative parameter files.
 
-From these parameter files, a network is instantiated in NEST (neurons &
-their projections), and a simulation is run in sequential steps ("sessions"),
-during which the network parameters can be modified and the network can be
-stimulated, recorded, etc.
+From these parameter files, a network is instantiated in NEST (layers of neurons
+and stimulation devices, their connections, and recorder devices), and a
+simulation is run in sequential steps ("sessions"), during which the network
+parameters can be modified and the network can be stimulated, recorded, etc.
 
 Some advantages of the declarative approach:
 - Parameters and code are separated
