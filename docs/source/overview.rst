@@ -21,7 +21,7 @@ Network
     ``nest.CopyModel()`` or a ``nest.SetDefaults()`` call.
 
     * Synapse models are represented by the :class:`SynapseModel` class in deNEST. All other models are represented by the :class:`Model` class.
-    * Neuron and generator models are specified as leaves of the `network/neuron_models` parameter subtree (see section below)
+    * Neuron and generator models are specified as leaves of the ``network/neuron_models`` parameter subtree (see section below)
     * Synapse models are specified as leaves of the ``network/synapse_models`` parameter subtree (see "Network parameters" section below)
     * Recorder models are specified as leaves of the ``network/recorder_models`` parameter subtree (see "Network parameters" section below)
 
@@ -86,7 +86,6 @@ Simulation
     2. (Possibly) shift the ``origin`` flag for the :class:`InputLayer` stimulators
     3. (Possibly) deactivate the recorders for that session by setting their
        ``start`` flag to the end of the session
-
   * Individual sessions are represented by the :class:`Session` object in deNEST.
     (see "Simulation parameters" section below)
 
@@ -105,17 +104,23 @@ Overview of a full simulation
 
 A full deNEST simulation consists of the following steps:
 
-1. **Initialize simulation** (:meth:`Simulation.__init__`)
+1. **Initialize simulation** (:meth:`Simulation.__init__(<params_tree>)`)
 
-   1. **Initialize kernel**: (:meth:`Simulation.init_kernel`)
+   1. **Initialize kernel**: (:meth:`Simulation.init_kernel(<kernel_subtree>)`)
+
       1. Set NEST kernel parameters
       2. Set seed for NEST's random generator.
-   2. **Create network**:
-      1. Initialize the network objects (:meth:`Network.__init__`)
-      2. Create the objects in NEST (:meth:`Network.create`)
-   3. **Initialize the sessions** (:meth:`Session.__init__`)
+
+   2. **Create network** (:meth:`Simulation.create_network(<network_subtree>)`):
+
+      1. Initialize the network objects (:meth:`Network.__init__(<network_subtree)`)
+      2. Create the objects in NEST (:meth:`Network.create()`)
+
+   3. **Initialize the sessions** (:meth:`Session.__init__()`)
+
    4. **Save the simulation's metadata**
-      * Create the output directory
+
+      * Create and clean the output directory
       * Save the full simulation parameter tree
       * Save deNEST and NEST version information
       * Save session times
