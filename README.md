@@ -23,6 +23,7 @@ Some advantages of the declarative approach:
 - Parameter files can be easily version controlled and diffs are smaller and more interpretable
 - Clean separation between the specification of the "network" (the simulated neuronal system) and the "simulation" (structured stimulation and recording of the network), which facilitates running different experiments using the same network
 - Parameter exploration is more easily automated
+- The complexity of interacting with NEST is hidden, which makes some tricky operations (such as connecting a `weight_recorder`) easy
 
 ## Documentation
 
