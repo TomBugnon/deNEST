@@ -1,12 +1,11 @@
 Overview
 ========
 
-
 Definitions
------------
+~~~~~~~~~~~
 
 Network
-^^^^^^^
+-------
 
   * We call **network** a full network in NEST, consisting of layers of units with
     specific models, projections of specific types with specific synapse models
@@ -67,11 +66,11 @@ Network
       section below)
 
 Simulation
-^^^^^^^^^^
+----------
 
 * A **session model** is a template specifying parameters inherited by
   individual sessions.
-  
+
   * session models are specified as leaves of the ``session_models`` parameter
     subtree (see "Simulation parameters" section below)
 
@@ -101,20 +100,20 @@ Simulation
 
 
 Overview of a full simulation
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A full deNEST simulation consists of the following steps:
 
 1. **Initialize simulation** (``Simulation.__init__``)
 
-   1. **Initialize kernel**: (``Simulation.init_kernel``) 
+   1. **Initialize kernel**: (``Simulation.init_kernel``)
       1. Set NEST kernel parameters
-      2. Set seed for NEST's random generator. 
-   2. **Create network**: 
+      2. Set seed for NEST's random generator.
+   2. **Create network**:
       1. Initialize the network objects (``Network.__init__``)
-      2. Create the objects in NEST (``Network.__create__``) 
-   3. **Initialize the sessions** (``Session.__init__``) 
-   4. **Save the simulation's metadata** 
+      2. Create the objects in NEST (``Network.__create__``)
+   3. **Initialize the sessions** (``Session.__init__``)
+   4. **Save the simulation's metadata**
       * Create the output directory
       * Save the full simulation parameter tree
       * Save git hash
@@ -139,8 +138,7 @@ A full deNEST simulation consists of the following steps:
 
 
 Specifying the simulation parameters
-------------------------------------
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 All parameters used by deNEST are specified in tree-like yaml files which are
 converted to ``ParamsTree`` objects.
@@ -151,7 +149,7 @@ parameters of each of the subtrees that define the various aspects of the
 network and simulation.
 
 Main parameter file
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 To facilitate defining parameters in separate files, ``denest.run`` and
 ``denest.load_trees`` take as input a path to a yaml file containing the
@@ -159,9 +157,8 @@ relative paths of the tree-like yaml files to merge so as to define the full
 parameter tree (see the ``params/tree_paths.yml`` file)
 
 
-
 The ``ParamsTree`` class
-^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 The ``ParamsTree`` class is instantiated from tree-like nested dictionaries. At
 each node, two reserved keys contain the node's data (called ``'params'`` and
@@ -218,7 +215,7 @@ and represented by the `ParamsTree` class:
 This file can be loaded into a ParamsTree structure. The leaves of the resulting
 ParamsTree and their respective data (``params`` and ``nest_params``) are as
 follows. Note the inheritance and override of ancestor data. The nested format
-above is more compact and less error prone when there is a lot of shared
+above is more compact and less error prone when there are a lot of shared
 parameters between leaves.
 
 .. code-block:: yaml
@@ -245,9 +242,8 @@ parameters between leaves.
        tau_m: 8.0
 
 
-
 Full parameter tree: expected structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------
 
 All the aspects of the overall simulation are specified in specific named
 subtrees.
@@ -268,9 +264,8 @@ no data and the following ``ParamsTree`` children:
   * ``network`` (``ParamsTree``): Parameter tree defining the network in NEST. Refer to `Network` for a full description of network parameters.
 
 
-
-"network" parameter tree: expected structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``"network"`` parameter tree: expected structure
+------------------------------------------------
 
 All network parameters are specified in the ``network`` subtree, used to
 initialize the ``Network()`` object.
@@ -293,9 +288,8 @@ children are expected:
   * ``recorders`` (``ParamsTree``). ``ParamsTree`` object without children, the ``params`` of which may contain a ``population_recorders`` and a ``projection_recorders`` key specifying all the network recorders. ``PopulationRecorder`` and ``ProjectionRecorder`` objects  are created from the ``recorders`` ``ParamsTree`` object by the ``Network.build_recorders`` method. Refer to this method for a description of the ``recorders`` parameter.
 
 
-
 Running a deNEST Simulation
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * From Python (_e.g._ in a Jupyter notebook):
 
@@ -304,43 +298,43 @@ Running a deNEST Simulation
     .. code-block:: python
 
        import denest
-   
+
        # Path to the parameter files to use
        params_path = 'params/tree_paths.yml'
-   
+
        # Override some parameters loaded from the file
        overrides = [
-   
+
          # Maybe change the nest kernel's settings ?
          {'kernel': {'nest_params': {'local_num_threads': 20}}},
-   
+
          # Maybe change a parameter for all the projections at once ?
          {'network': {'projection_models': {'nest_params': {
              'allow_autapses': true
          }}}},
        ]
-   
+
        # Load the parameters
        params = denest.load_trees(params_path, *overrides)
-   
+
        # Initialize the simulation
        sim = denest.Simulation(params, output_dir='output')
-   
+
        # Run the simulation (runs all the sessions)
        sim.run()
 
   * Using the ``denest.run()`` function to run the full simulation at once:
 
     .. code-block:: python
-    
+
        import denest
- 
+
        # Path to the parameter files to use
        params_path = 'params/tree_paths.yml'
- 
+
        # Override parameters
        overrides = []
- 
+
        denest.run(params_path, *overrides, output_dir=None)
 
 

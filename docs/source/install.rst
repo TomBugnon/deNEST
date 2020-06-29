@@ -25,7 +25,6 @@ A Docker image is provided with NEST 2.20 installed, based on
 
       docker build --tag denest .
 
-
 2. Run an interactive container:
 
    .. code-block:: bash
@@ -38,13 +37,11 @@ A Docker image is provided with NEST 2.20 installed, based on
         denest \
         /bin/bash
 
-
 3. Install deNEST within the container:
 
    .. code-block:: bash
 
       pip install -e .
-
 
 4. Use deNEST from within the container.
 
