@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# test_full_simulation.py
+# end_to_end.py
 
-"""Regression testing of the full simulation outputs."""
+"""End-to-end regression testing of the full simulation outputs."""
 
 import pickle
 
@@ -39,24 +39,23 @@ def test_session_times(output_dir, data_regression):
 
 def test_recorder_metadata(metadata_paths, data_regression):
     # Load metadata for all recorders
-    all_metadatas = {}
+    all_metadata = {}
     for metadata_path in metadata_paths:
         metadata = denest.io.load.load_yaml(metadata_path)
-        all_metadatas[str(metadata_path)] = metadata
+        all_metadata[str(metadata_path)] = metadata
     # Compare all
-    data_regression.check(all_metadatas)
+    data_regression.check(all_metadata)
 
 
 def test_data(metadata_paths, file_regression):
     # Test equality of sorted data, rounded to 4 decimals
-    all_datas = {}
     for metadata_path in metadata_paths:
-        recorder_data = denest.io.load.load(metadata_path)
         # Sort dataframe and round 4
-        all_datas[str(metadata_path)] = (
-            recorder_data.sort_values(list(recorder_data.columns))
-            .reset_index(drop=True)
-            .round(4)
-            .fillna("NaN")
+        recorder_data = (
+            denest.io.load.load(metadata_path)
+                .sort_values(list(recorder_data.columns))
+                .reset_index(drop=True)
+                .round(4)
+                .fillna("NaN")
         )
-    file_regression.check(pickle.dumps(all_datas), binary=True, extension="")
+        file_regression.check(recorder_data.to_string(), extension=".csv")
