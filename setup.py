@@ -6,10 +6,7 @@
 
 from os.path import exists
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 about = {}
 with open('./denest/__about__.py') as f:
@@ -34,7 +31,7 @@ setup(
     long_description=open('README.md').read() if exists('README.md') else "",
     long_description_content_type="text/markdown",
     install_requires=install_requires,
-    packages=['denest'],
+    packages=find_packages(exclude=["docs", "test"]),
     zip_safe=False,
     classifiers=[
         'Development Status :: 3 - Alpha',
