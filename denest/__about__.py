@@ -7,7 +7,7 @@ deNEST metadata.
 """
 
 __title__ = "denest"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __description__ = "A declarative interface for specifying and running simulations in NEST."
 __author__ = "Tom Bugnon and William G. P. Mayner"
 __author_email__ = "tombugnon@hotmail.com"
