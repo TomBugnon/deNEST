@@ -48,7 +48,7 @@ class Session(ParamObject):
                     formatted and interpreted. No changes happen if empty.
                     (default [])
 
-    Kwargs:
+    Keyword Args:
         start_time (float): Time of kernel in ms when the session starts
             running.
         input_dir (str): Path to the directory in which input files are searched
@@ -188,7 +188,7 @@ class Session(ParamObject):
 
     def run(self, network):
         """Initialize and run session.
-        
+
         Session initialization consists in the following steps:
             1. Reset Network (`reset_network` parameter)
             2. Inactivate recorders (`record` parameter)

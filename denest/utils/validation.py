@@ -51,7 +51,7 @@ def validate_children(tree, mandatory_children=None, optional_children=None):
         tree (ParamsTree): The tree we're validating. Missing children are added
             in place as empty ParamsTree nodes.
 
-    Kwargs:
+    Keyword Args:
         mandatory_children (list(str) | None): ``None`` or the list of names of
             children nodes that are expected in the tree. Ignored if
             ``None``
@@ -105,7 +105,7 @@ def validate(name, params, param_type='params', reserved=None,
         name (str): Name of the object we're validating
         params (dict-like): Parameter dictionary to validate.
 
-    Kwargs:
+    Keyword Args:
         param_type (str): Type of parameter dictionary we're validating.
             'params' or 'nest_params'
         reserved (list(str) | None): List of "reserved" parameters that

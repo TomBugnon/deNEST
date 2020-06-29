@@ -57,8 +57,8 @@ def load_as_df(colnames, *paths, sep="\t", index_col=False, header=None, **kwarg
         colnames (tuple[str]): The names of the columns.
         *paths (filepath or buffer): The file(s) to load data from.
 
-    Kwargs:
-        **kwargs: Passed to pd.read_csv
+    Keyword Args:
+        **Keyword Args: Passed to pd.read_csv
 
     Returns:
         pd.DataFrame: The loaded data.

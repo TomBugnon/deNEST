@@ -238,7 +238,7 @@ class AbstractLayer(NestObject):
                 value of the parameter for each unit, depending on the
                 ``'change_type'`` kwarg
 
-        Kwargs:
+        Keyword Args:
             change_type ('constant', 'multiplicative' or 'additive'). If
                 'multiplicative' (resp. 'additive'), the set value for each unit
                 and each parameter is the product (resp. sum) between the

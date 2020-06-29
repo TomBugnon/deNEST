@@ -25,33 +25,38 @@ class Simulation(object):
         tree (ParamsTree): Full simulation parameter tree. The following
             ``ParamsTree`` subtrees are expected:
 
-                - ``simulation`` (``ParamsTree``). Defines input and output
-                    paths, and the simulation steps performed. The following
-                    parameters (`params` field) are recognized:
-                        - ``output_dir`` (str): Path to the output directory
-                            (default 'output').
-                        - ``input_dir`` (str): Path to the directory in which
-                            input files are searched for for each session.
-                            (default 'input')
-                        - ``sessions`` (list(str)): Order in which sessions are
-                            run. Elements of the list should be the name of
-                            session models defined in the ``session_models``
-                            parameter subtree (default [])
-                - ``kernel`` (``ParamsTree``): Used for NEST kernel
-                    initialization. Refer to ``Simulation.init_kernel`` for a
-                    description of kernel parameters.
-                - ``session_models`` (``ParamsTree``): Parameter tree, the
-                  leaves of which define session models. Refer to ``Sessions``
-                  for a description of session parameters.
-                - ``network`` (``ParamsTree``): Parameter tree defining the
-                  network in NEST. Refer to `Network` for a full description of
-                  network parameters.
+            ``simulation`` (:class:`ParamsTree`)
+                Defines input and output paths, and the simulation steps
+                performed. The following parameters (``params`` field) are
+                recognized:
+                    ``output_dir`` (str)
+                      Path to the output directory. (Default: ``'output'``)
+                    ``input_dir`` (str)
+                      Path to the directory in which input files are searched
+                      for for each session. (Default: ``'input'``)
+                    ``sessions`` (list[str])
+                      Order in which sessions are run. Elements of the list
+                      should be the name of session models defined in the
+                      ``session_models`` parameter subtree. (Default:
+                      ``[]``)
+            ``kernel`` (:class:`ParamsTree`)
+                Used for NEST kernel initialization. Refer to
+                :meth:`Simulation.init_kernel` for a description of kernel
+                parameters.
+            ``session_models`` (:class:`ParamsTree`)
+                Parameter tree, the leaves of which define session models.
+                Refer to :class:`Session` for a description of session
+                parameters.
+            ``network`` (:class:`ParamsTree`)
+                Parameter tree defining the network in NEST. Refer to
+                :class:`Network` for a full description of network
+                parameters.
 
-    Kwargs:
+    Keyword Args:
         input_dir (str | None): None or the path to the input. If defined,
-            overrides the `input_dir` simulation parameter
+            overrides the ``input_dir`` simulation parameter.
         output_dir (str | None): None or the path to the output directory. If
-            defined, overrides `output_dir` simulation parameter.
+            defined, overrides the ``output_dir`` simulation parameter.
     """
 
     # Validate children subtrees
@@ -70,11 +75,11 @@ class Simulation(object):
     def __init__(self, tree=None, input_dir=None, output_dir=None):
         """Initialize simulation.
 
-            - Set input and output paths
-            - Initialize NEST kernel
-            - Initialize and build Network in NEST,
-            - Create sessions
-            - Save simulation metadata
+        - Set input and output paths
+        - Initialize NEST kernel
+        - Initialize and build Network in NEST
+        - Create sessions
+        - Save simulation metadata
         """
         # Full parameter tree
         if tree is None:
@@ -174,9 +179,9 @@ class Simulation(object):
         self.tree.children[child_name] = child_tree
 
     def create_network(self, network_tree):
-        """Build and create network.
+        """Build and create the network.
 
-        Adds ``network_tree`` as ``network`` child of ``self.tree``
+        Adds ``network_tree`` as ``'network'`` child of ``self.tree``
         """
         # Add to self.tree
         self._update_tree_child('network', network_tree)
@@ -190,15 +195,15 @@ class Simulation(object):
     def save_metadata(self, clear_output_dir=False):
         """Save simulation metadata.
 
-            - Save parameters
-            - Save deNEST git hash
-            - Save sessions metadata (`Session.save_metadata`)
-            - Save session times (start and end kernel time for each session)
-            - Save network metadata (`Network.save_metadata`)
+        - Save parameters
+        - Save deNEST git hash
+        - Save sessions metadata (:meth:`Session.save_metadata`)
+        - Save session times (start and end kernel time for each session)
+        - Save network metadata (:meth:`Network.save_metadata`)
 
-        Kwargs:
-            clear_output_dir (bool): If true, we delete the files preexisting in
-                the directories where data might be saved.
+        Keyword Args:
+            clear_output_dir (bool): If true, delete the contents of the
+                output directory.
         """
         log.info("Saving simulation metadata...")
         # Initialize output dir (create and clear)
@@ -220,8 +225,8 @@ class Simulation(object):
     def run(self):
         """Run simulation.
 
-            - Run sessions in the order specified by the `sessions` simulation
-                parameter
+        Run sessions in the order specified by the ``'sessions'`` simulation
+        parameter.
         """
         # Get list of recorders
         log.info("Running %s sessions...", len(self.sessions))
@@ -265,8 +270,8 @@ class Simulation(object):
 
     def build_session_models(self, tree):
         """Create session models from the leaves of a tree.
-        
-        Adds ``tree`` as ``session_models`` child of ``self.tree``
+
+        Adds ``tree`` as the ``'session_models'`` child of ``self.tree``
         """
         # Add to Simulation.tree
         self._update_tree_child('session_models', tree)
@@ -289,25 +294,25 @@ class Simulation(object):
         log.info(f"Build N={len(self.session_models.keys())} session models")
 
     def init_kernel(self, kernel_tree):
-        """Initialize NEST kernel
+        """Initialize the NEST kernel.
 
-            - Call ``nest.SetKernelStatus`` with ``nest_params``
-            - Set NEST kernel ``data_path`` and seed
-            - Install extension modules
+        - Call ``nest.SetKernelStatus`` with ``nest_params``
+        - Set NEST kernel ``data_path`` and seed
+        - Install extension modules
 
-        Adds ``kernel_tree`` as ``kernel`` child of ``self.tree``
+        Adds ``kernel_tree`` as the ``'kernel'`` child of ``self.tree``.
 
         Args:
             kernel_tree (ParamsTree): Parameter tree without children. The
                 following parameters (``params`` field) are recognized:
-                    - extension_modules (list(str)): List of modules to install.
-                        (default [])
-                    - nest_seed (int): Used to set NEST kernel's rng seed
-                        (default 1)
-                nest parameters (``nest_params`` field) are passed to
+                    ``extension_modules``: (list(str))
+                        List of modules to install. (Default: ``[]``)
+                    ``nest_seed``: (int)
+                        Used to set NEST kernel's RNG seed. (Default: ``1``)
+                NEST parameters (``nest_params`` field) are passed to
                 ``nest.SetKernelStatus``. The following nest parameters are
                 reserved: ``[data_path, 'grng_seed', 'rng_seed']``. The NEST
-                seeds should be set via the ``nest_seed`` kernel parameter
+                seeds should be set via the ``'nest_seed'`` kernel parameter
                 parameter.
         """
         import nest
@@ -381,13 +386,13 @@ class Simulation(object):
 
     @staticmethod
     def install_module(module_name):
-        """Install module in NEST using nest.Install() and catch errors.
+        """Install module in NEST using ``nest.Install()`` and catch errors.
 
-        Even after resetting the kernel, NEST throws a NESTError (rather than a)
-        warning when the module is already loaded. I (Tom) couldn't find a way
-        to test whether the module is already installed so this function catches
-        the error if the module is already installed by matching the error
-        message.
+        Even after resetting the kernel, NEST throws a ``NESTError`` rather
+        than a warning when the module is already loaded. I (Tom Bugnon)
+        couldn't find a way to test whether the module is already installed
+        so this function catches the error if the module is already installed
+        by matching the error message.
 
         Args:
             module_name (str): Name of the module.

@@ -73,20 +73,20 @@ def load_trees(path, *overrides):
 
 
 def run(path, *overrides, output_dir=None, input_dir=None):
-    """Run the simulation described by the parameter tree at ``path``.
+    """Run the simulation specified by the parameters at ``path``.
 
     Args:
         path (str): The filepath of a parameter file specifying the simulation.
         *overrides (tree-like): Variable number of tree-like parameters that
             should override those from the path. Last in list is applied first.
 
-    Kwargs:
-        input_dir (str | None): None or the path to the input. Passed to
-            ``Simulation.__init__``. If defined, overrides the `input_dir`
-            simulation parameter
-        output_dir (str | None): None or the path to the output directory.
-            Passed to ``Simulation.__init__`` If defined, overrides `output_dir`
+    Keyword Args:
+        input_dir (str | None): ``None`` or the path to the input. Passed to
+            :class:`Simulation`. If defined, overrides the ``input_dir``
             simulation parameter.
+        output_dir (str | None): None or the path to the output directory.
+            Passed to :class:`Simulation` If defined, overrides the
+            ``output_dir`` simulation parameter.
     """
     # Timing of simulation time
     start_time = time.time()

@@ -48,7 +48,7 @@ def output_subdir(output_dir, data_keyword, create_dir=True):
             return an output subdirectory. Should be a key of the OUTPUT_SUBDIRS
             dictionary.
 
-    Kwargs:
+    Keyword Args:
         create_dir (bool): If true, the returned directory is created.
     """
     path = Path(output_dir, *OUTPUT_SUBDIRS[data_keyword])

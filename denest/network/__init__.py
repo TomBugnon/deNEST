@@ -35,40 +35,45 @@ class Network(object):
     """Represent a full network.
 
     Args:
-        tree (``ParamsTree``): "network" parameter tree. The following
-            ``ParamsTree`` children are expected:
-                - ``neuron_models`` (``ParamsTree``). Parameter tree, the leaves
-                    of which define neuron models. Each leave is used to
-                    initialize a ``Model`` object
-                - ``synapse_models`` (``ParamsTree``). Parameter tree, the
-                    leaves of which define synapse models. Each leave is used to
-                    initialize a ``SynapseModel`` object
-                - ``layers`` (``ParamsTree``). Parameter tree, the leaves of
-                    which define layers. Each leave is used to initialize  a
-                    ``Layer`` or ``InputLayer`` object depending on the value of
-                    their ``type`` ``params`` parameter.
-                - ``projection_models`` (``ParamsTree``). Parameter tree, the
-                    leaves of which define projection models. Each leave is used
-                    to initialize a ``ProjectionModel`` object.
-                - ``recorder_models`` (``ParamsTree``). Parameter tree, the
-                    leaves of which define recorder models. Each leave is used
-                    to initialize a ``Model`` object.
-                - ``topology`` (``ParamsTree``). ``ParamsTree`` object without
-                    children, the ``params`` of which may contain a
-                    ``projections`` key specifying all the individual
-                    population-to-population projections within the network as a
-                    list. ``Projection`` objects  are created from the
-                    ``topology`` ``ParamsTree`` object by the
-                    ``Network.build_projections`` method. Refer to this method
-                    for a description of the ``topology`` parameter.
-                - ``recorders`` (``ParamsTree``). ``ParamsTree`` object without
-                    children, the ``params`` of which may contain a
-                    ``population_recorders`` and a ``projection_recorders`` key
-                    specifying all the network recorders. ``PopulationRecorder``
-                    and ``ProjectionRecorder`` objects  are created from the
-                    ``recorders`` ``ParamsTree`` object by the
-                    ``Network.build_recorders`` method. Refer to this
-                    method for a description of the ``recorders`` parameter.
+        tree (ParamsTree): "network" parameter tree. The following children
+            are expected:
+
+            ``neuron_models`` (:class:`ParamsTree`)
+              Parameter tree, the leaves of which define neuron models.
+              Each leaf is used to initialize a :class:`Model` object.
+            ``synapse_models`` (:class:`ParamsTree`)
+              Parameter tree, the leaves of which define synapse models.
+              Each leaf is used to initialize a :class:`SynapseModel`
+              object.
+            ``layers`` (:class:`ParamsTree`)
+              Parameter tree, the leaves of which define layers. Each leaf
+              is used to initialize a :class:``Layer`` or
+              :class:``InputLayer`` object depending on the value of their
+              ``type`` parameter.
+            ``projection_models`` (:class:`ParamsTree`)
+              Parameter tree, the leaves of which define projection models.
+              Each leaf is used to initialize a :class:``ProjectionModel``
+              object.
+            ``recorder_models`` (:class:`ParamsTree`)
+              Parameter tree, the leaves of which define recorder models.
+              Each leaf is used to initialize a :class:``Model`` object.
+            ``topology`` (:class:`ParamsTree`)
+              :class:`ParamsTree` object without children, the ``params``
+              of which may contain a ``projections`` key specifying all the
+              individual population-to-population projections within the
+              network as a list. :class:`Projection` objects are created
+              from the ``topology`` parameters by the
+              :func:`Network.build_projections` method. Refer to this
+              method for a description of the ``topology`` parameter.
+            ``recorders`` (:class:`ParamsTree`)
+              :class:``ParamsTree`` object without children, the ``params``
+              of which may contain a ``population_recorders`` and a
+              ``projection_recorders`` key specifying all the network
+              recorders. :class:`PopulationRecorder` and
+              :class:`ProjectionRecorder` objects are created from the
+              ``recorders`` parameters by the
+              :func:`Network.build_recorders` method. Refer to this method
+              for a description of the ``recorders`` parameter.
     """
 
     MANDATORY_CHILDREN = []
@@ -96,8 +101,8 @@ class Network(object):
         validation.validate(
             "network", dict(tree.nest_params), param_type='nest_params',
             mandatory=[], optional={})
-        # Check that the "network" tree has the correct children and add default
-        # children
+        # Check that the "network" tree has the correct children and add
+        # default children
         validation.validate_children(
             self.tree, mandatory_children=self.MANDATORY_CHILDREN,
             optional_children=self.OPTIONAL_CHILDREN,
@@ -126,7 +131,7 @@ class Network(object):
 
     @staticmethod
     def build_named_leaves_dict(constructor, node):
-        """Construct and return as dict all leaves of a tree."""
+        """Construct all leaves and return as a dictionary."""
         named_leaves = {
             name: constructor(name, dict(leaf.params), dict(leaf.nest_params))
             for name, leaf in node.named_leaves(root=False)
@@ -152,12 +157,13 @@ class Network(object):
     def build_neuron_models(self, tree):
         """Initialize ``self.neuron_models`` from the leaves of a tree.
 
+        .. note::
+            Overwrites the ``'neuron_models'`` in the network's parameters.
+
         Args:
-            self (``Network``): Network object. The ``neuron_models`` attribute
-                is overriden.
-            tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
+            tree (tree-like or ParamsTree). Parameter tree, the leaves of
                 which define neuron models. Each leaf is used to initialize a
-                ``Model`` object.
+                :class:`Model` object.
         """
         self._update_tree_child('neuron_models', tree)
         self.neuron_models = self.build_named_leaves_dict(
@@ -168,12 +174,13 @@ class Network(object):
     def build_synapse_models(self, tree):
         """Initialize ``self.synapse_models`` from the leaves of a tree.
 
+        .. note::
+            Overwrites the ``'synapse_models'`` in the network's parameters.
+
         Args:
-            self (``Network``): Network object. The ``synapse_models`` attribute
-                is overriden.
-            tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
+            tree (tree-like or ParamsTree). Parameter tree, the leaves of
                 which define neuron models. Each leaf is used to initialize a
-                ``SynapseModel`` object.
+                :class:`SynapseModel` object.
         """
         self._update_tree_child('synapse_models', tree)
         self.synapse_models = self.build_named_leaves_dict(
@@ -184,12 +191,13 @@ class Network(object):
     def build_recorder_models(self, tree):
         """Initialize ``self.recorder_models`` from the leaves of a tree.
 
+        .. note::
+            Overwrites the ``'recorder_models'`` in the network's parameters.
+
         Args:
-            self (``Network``): Network object. The ``recorder_models``
-                attribute is overriden.
             tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
                 which define neuron models. Each leaf is used to initialize a
-                ``Model`` object.
+                :class:`Model` object.
         """
         self._update_tree_child('recorder_models', tree)
         self.recorder_models = self.build_named_leaves_dict(
@@ -200,13 +208,14 @@ class Network(object):
     def build_layers(self, tree):
         """Initialize ``self.layers`` from the leaves of a tree.
 
+        .. note::
+            Overwrites the ``'layers'`` in the network's parameters.
+
         Args:
-            self (``Network``): Network object. The ``layers`` attribute is
-                overriden.
-            tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
+            tree (tree-like or ParamsTree). Parameter tree, the leaves of
                 which define layers. Each leaf is used to initialize a
-                ``Layer`` or ``InputLayer`` objecs depending on the value of
-                the ``type`` parameter.
+                :class:`Layer` or :class:`InputLayer` objecs depending on the
+                value of the ``type`` parameter.
         """
         self._update_tree_child('layers', tree)
         self.layers = {
@@ -223,12 +232,13 @@ class Network(object):
     def build_projection_models(self, tree):
         """Initialize ``self.projection_models`` from the leaves of a tree.
 
+        .. note::
+            Overwrites the ``'projection_models'`` in the network's parameters.
+
         Args:
-            self (``Network``): Network object. The ``projection_models``
-                attribute is overriden.
-            tree (tree-like or ``ParamsTree``). Parameter tree, the leaves of
-                which define projection models. Each leaf is used to initialize
-                a ``ProjectionModel`` object.
+            tree (tree-like or ParamsTree). Parameter tree, the leaves of
+                which define projection models. Each leaf is used to
+                initialize a :class:`ProjectionModel` object.
         """
         self._update_tree_child('projection_models', tree)
         self.projection_models = self.build_named_leaves_dict(
@@ -237,40 +247,44 @@ class Network(object):
         )
 
     def build_projections(self, topology_tree):
-        """Initialize ``self.projections`` from ``topology`` tree.
+        """Initialize ``self.projections`` from the ``topology`` tree.
 
-        Initialize ``self.projections`` with a list of ``Projection`` objects.
+        Initialize ``self.projections`` with a list of :class:`Projection` objects.
 
         Args:
-            self (``Network``): Network object
-            topology_tree (tree-like or ``ParamsTree``): Tree-like or ParamsTree
-                without children. The parameters of which may contain a
-                ``projections`` parameter entry (default []). THe value of the
-                ``projections`` parameter is a list of items describing the
-                projections to be created. Each item must be a ``dict`` of the
-                following form::
-                    dict: {
+            topology_tree (tree-like or ParamsTree):
+                Tree-like or :class:`ParamsTree` without children, the
+                parameters of which may contain a ``projections`` parameter
+                entry. (Default: ``[]``). The value of the ``projections``
+                parameter is a list of items describing the projections to be
+                created. Each item must be a dictionary of the following
+                form::
+
+                    {
                         'projection_model' : <projection_model>,
                         'source_layers': <source_layers_list>,
                         'source_population': <source_population>,
                         'target_layers': <target_layers_list>,
                         'target_population': <target_population>,
                     }
-                Where:
-                    - <projection_model> is the name of the projection model.
-                      Projection model are specified in the
-                      ``projection_models`` network parameter.
-                    - <source_layers_list>, <target_layers_list> are lists of
-                      source and target layer names. Projections are created for
-                      all source_layer x target layer combinations.
-                    - <source_population>, <target_population> are ``None`` or
-                      the name of source and target populations for the created
-                      projection. If ``None``, all populations in the source or
-                      target layer are connected.
-                The ``(<projection_model_name>, <source_layer_name>,
-                <source_population_name>, <target_layer_name>,
-                <target_population_name>)`` tuples fully specify each individual
-                projection and should be unique.
+
+                where:
+
+                - ``<projection_model>`` is the name of the projection model.
+                  Projection models are specified in the
+                  ``projection_models`` network parameter.
+                - ``<source_layers_list>`` and ``<target_layers_list>`` are
+                  lists of source and target layer names. Projections are
+                  created for all (source_layer, target layer) pairs.
+                - ``<source_population>`` and ``<target_population>`` are
+                  ``None`` or the name of source and target populations for
+                  the created projection. If ``None``, all populations in the
+                  source or target layer are connected.
+
+                Together, ``<projection_model_name>``,
+                ``<source_layer_name>``, ``<source_population_name>``,
+                ``<target_layer_name>``, and ``<target_population_name>``
+                fully specify each individual projection and must be unique.
         """
 
         self._update_tree_child('topology', topology_tree)
@@ -368,25 +382,24 @@ class Network(object):
         """Initialize recorders from tree.
 
         Validates the ``recorders`` parameter tree and calls
-        ``Network.build_population_recorders`` and
-        ``Network.build_projection_recorders`` to initialize the
-        ``Network.population_recorders`` and ``Network.projection_recorders``
-        attributes
+        :meth:`Network.build_population_recorders` and
+        :meth:`Network.build_projection_recorders` to initialize the
+        :meth:`Network.population_recorders` and
+        :meth:`Network.projection_recorders` attributes.
 
         Args:
-            self (``Network``): Network object
-            recorders_tree (tree-like or ``ParamsTree``): Tree-like or
-                ``ParamsTree`` object without children nor ``nest_params``.
-                The parameters of which may contain a ``population_recorders``
-                (default []) and a ``projection_recorders`` (default []) entry
-                specifying the network's recorders.
-                The ``population_recorders`` and ``projection_recorders``
-                entries are passed to (respectively)
-                ``Network.build_population_recorders`` and
-                ``Network.build_projection_recorders``
+            recorders_tree (tree-like or ParamsTree): Tree-like or
+                :class:`ParamsTree` object without children nor
+                ``nest_params``, the parameters of which may contain a
+                ``population_recorders`` (default: ``[]``) and a
+                ``projection_recorders`` (default: ``[]``) entry specifying
+                the network's recorders. The ``population_recorders`` and
+                ``projection_recorders`` entries are passed to
+                :meth:`Network.build_population_recorders` and
+                :meth:`Network.build_projection_recorders` respectively.
 
         Returns:
-            (list(PopulationRecorder), list(ProjectionRecorder))
+            (list(:class:`PopulationRecorder`), list(:class:`ProjectionRecorder`))
         """
 
         self._update_tree_child('recorders', recorders_tree)
@@ -422,14 +435,17 @@ class Network(object):
     def _build_projection_recorders(self, projection_recorders_items):
         """Return projection recorders specified by a list of recorder params.
 
-        ProjectionRecorders must be built after Projections.
+        :class:`ProjectionRecorder`s must be built after :class:`Projection`s.
 
         Arguments:
-            projection_recorders_items (list | None): Content of the
-                ``projection_recorders`` network/recorders parameter. A list of
-                items describing the projection recorders to be created. Each
-                item must be a ``dict`` of the following form::
-                    dict: {
+
+            projection_recorders_items (list | None):
+                Content of the ``projection_recorders`` network/recorders
+                parameter. A list of items describing the projection
+                recorders to be created. Each item must be a dictionary of
+                the following form::
+
+                    {
                         'model': <recorder_model>
                         'projection_model' : <projection_model>,
                         'source_layers': <source_layers_list>,
@@ -437,16 +453,18 @@ class Network(object):
                         'target_layers': <target_layers_list>,
                         'target_population': <target_population>,
                     }
-                Where <model> is the name of the projection recorder model (eg
-                'weight_recorder'). The other keys fully specify the list of
-                population-to-population projections of a certain model that
-                a projection recorder is created for. Refer to
-                `Network.build_projections` for a full description of how
-                the <projection_model>, <source_layers>, <source_population>,
-                <target_layers>, <target_population> keys are interpreted.
+
+                Where ``<model>`` is the name of the projection recorder model
+                (eg 'weight_recorder'). The other keys fully specify the list
+                of population-to-population projections of a certain model
+                that a projection recorder is created for. Refer to
+                :meth:`Network.build_projections` for a full description of
+                how the ``<projection_model>``, ``<source_layers>``,
+                ``<source_population>``, ``<target_layers>``,
+                ``<target_population>`` keys are interpreted.
 
         Returns:
-            list: List of ``ProjectionRecorder`` objects.
+            list: List of :class:`ProjectionRecorder` objects.
         """
         if projection_recorders_items is None:
             projection_recorders_items = []
@@ -512,33 +530,36 @@ class Network(object):
         return projection_recorders
 
     def _build_population_recorders(self, population_recorders_items):
-        """Return population recorders specified by a list of recorder params.
+        """Return population recorders specified by a list of recorder parameters.
 
         Arguments:
-            population_recorders_items (list | None): Content of the
-                ``population_recorders`` network/recorders parameter. A list of
-                items describing the population recorders to be created and
-                connected to the network. Each item must be a ``dict`` of the
-                following form::
-                    dict: {
+            population_recorders_items (list | None):
+                Content of the ``population_recorders`` network/recorders
+                parameter. A list of items describing the population
+                recorders to be created and connected to the network. Each
+                item must be a dictionary of the following form::
+
+                    {
                         'model' : <model>,
                         'layers': <layers_list>,
                         'populations': <populations_list>,
                     }
-                Where:
-                    - <model> is the model of a recorder.
-                    - <layers_list> is None or a list of layer names. If
-                      ``None``, all the layers in the network are considered.
-                    - <populations_list> is None or a list of populations. If
-                      ``None``, all the populations in each layer of interest
-                      are considered. For ``InputLayer`` layers, only the
-                      population of parrot neurons can be recorded.
+
+                where:
+
+                - ``<model>`` is the model of a recorder.
+                - ``<layers_list>`` is None or a list of layer names. If
+                  ``None``, all the layers in the network are considered.
+                - ``<populations_list>`` is None or a list of populations. If
+                  ``None``, all the populations in each layer of interest
+                  are considered. For :class:`InputLayer` layers, only the
+                  population of parrot neurons can be recorded.
                 For each item in the list, a recorder of ``model`` will be
                 created and connected to the population(s) of interest of each
                 layer(s) of interest.
 
         Returns:
-            list: List of ``PopulationRecorder`` objects.
+            list: List of :class:`PopulationRecorder` objects.
         """
         if population_recorders_items is None:
             population_recorders_items = []
@@ -622,11 +643,11 @@ class Network(object):
         Args:
             method_name (str): Name of method of recorder objects.
             recorder_class, recorder_type (str or None): Passed to
-                self.get_recorders()
-            *args: Passed to method ``method_name``
+                :func:`self.get_recorders()`.
+            *args: Passed to method ``method_name``.
 
-        Kwargs:
-            **kwargs: Passed to method ``method_name``
+        Keyword Args:
+            **Keyword Args: Passed to method ``method_name``.
         """
         for recorder in self.get_recorders(
             recorder_class=recorder_class,
@@ -636,13 +657,13 @@ class Network(object):
             method(*args, **kwargs)
 
     def get_recorders(self, recorder_class=None, recorder_type=None):
-        """Yield all ``PopulationRecorder`` and ``ProjectionRecorder`` objects.
+        """Yield all :class:`PopulationRecorder` and :class:`ProjectionRecorder` objects.
 
         Args:
             recorder_class (str or None): Class of queried recorders.
-                "PopulationRecorder", "ProjectionRecorder" or None.
+                ``"PopulationRecorder"``, ``"ProjectionRecorder"`` or ``None``.
             recorder_type (str or None): Type of queried recorders.
-                'multimeter', 'spike_detector' or 'projection_recorder'
+                ``'multimeter'``, ``'spike_detector'`` or ``'projection_recorder'``.
         """
         if recorder_type in ['multimeter', 'spike_detector']:
             recorder_class = 'PopulationRecorder'
@@ -660,7 +681,7 @@ class Network(object):
             )
 
     def get_population_recorders(self, recorder_type=None):
-        """Yield ``PopulationRecorder`` objects of type ``recorder_type``."""
+        """Yield :class:`PopulationRecorder` objects of type ``recorder_type``."""
         if recorder_type not in [
             "multimeter", "spike_detector", None
         ]:
@@ -671,7 +692,7 @@ class Network(object):
         ])
 
     def get_projection_recorders(self, recorder_type=None):
-        """Yield ``ProjectionRecorder`` objects of type ``recorder_type``."""
+        """Yield :class:`ProjectionRecorder` objects of type ``recorder_type``."""
         if recorder_type not in [
             "weight_recorder", None
         ]:
@@ -679,7 +700,7 @@ class Network(object):
         yield from self.projection_recorders
 
     def _get_synapses(self, synapse_type=None):
-        """Return synapse models"""
+        """Return synapse models."""
         if synapse_type is None:
             return sorted(self.synapse_models.values())
         return [
@@ -712,14 +733,17 @@ class Network(object):
         """Change parameters for some projections of a population.
 
         Args:
-            synapse_changes (list): List of dictionaries each of the form::
+            synapse_changes (list):
+                List of dictionaries each of the form::
+
                     {
                         'synapse_model': <synapse_model>,
                         'params': {<param1>: <value1>}
                     }
-                where the dictionary in ``params`` is passed to nest.SetStatus
-                to set the parameters for all projections with synapse model
-                ``<synapse_model>``
+
+                where the dictionary in ``params`` is passed to
+                ``nest.SetStatus()`` to set the parameters for all
+                projections with synapse model ``<synapse_model>``.
         """
         import nest
         for changes in tqdm(
@@ -737,8 +761,10 @@ class Network(object):
         """Set the state of some units and synapses.
 
         Args:
-            unit_changes (list): List of dictionaries specifying the changes
-                applied to the networks units::
+            unit_changes (list):
+                List of dictionaries specifying the changes applied to the
+                networks units::
+
                     {
                         'layers': <layer_name_list>,
                         'population': <pop_name>,
@@ -748,89 +774,96 @@ class Network(object):
                             <param_name>: <param_change>,
                         },
                     }
+
                 where ``<layer_name_list>`` and ``<population_name>`` specify
                 all the individual populations to which the changes are applied:
-                    ``<layer_name_list>`` (list(str) | None) is the list of
-                        names of the considered layers. If None, the changes may
-                        be applied to populations from all the layers. (default
-                        [])
-                    ``<population_name>`` (str | None) is the name of the
-                        considered population in each layer. If ``None``,
-                        changes are applied to all the populations of each
-                        considered layer. (default None)
+
+                - ``<layer_name_list>`` (list(str) | None) is the list of
+                  names of the considered layers. If ``None``, the changes
+                  may be applied to populations from all the layers.
+                  (Default: ``[]``)
+                - ``<population_name>`` (str | None) is the name of the
+                  considered population in each layer. If ``None``, changes
+                  are applied to all the populations of each considered
+                  layer. (Default: ``None``)
                 and ``<change_type>``, ``<from_array>`` and ``'nest_params'``
                 specify the changes applied to units from each of those
                 populations:
-                    ``<change_type>`` ('constant', 'multiplicative' or
-                        'additive'). If 'multiplicative' (resp. 'additive'), the
-                        set value for each unit and parameter is the product
-                        (resp. sum) between the preexisting value and the given
-                        value. If 'constant', the given value for each unit is
-                        set without regard for the preexisting value.  (default:
-                        'constant')
-                    ``<from_array>`` (bool) specifies how the <param_change>
-                        value given for each parameter is interpreted:
-                            - if ``True``, ``param_change`` should be a numpy
-                              array or the relative path from ``input_dir`` to a
-                              numpy array.
-                              The given or loaded array should have the same
-                              dimension as the considered population, and its
-                              values are mapped to the population's units to set
-                              the ``<param_name>`` parameter.
-                            - if ``False``, the value in ``param_change`` is
-                              used to set the ``<param_name>`` parameter for all
-                              the population's units.
-                    ``'nest_params'`` (default {}) is the dictionary specifying
-                        the parameter changes applied to the population units.
-                        Items are the name of the modified NEST parameters
-                        (``<param_name>``) and the values set
-                        (``<param_change>``). The ``<change_type>`` and
-                        ``<from_array>`` parameters specify the interpretation
-                        of the ``<param_change>`` value.
+
+                - ``<change_type>`` ('constant', 'multiplicative' or
+                  'additive'). If 'multiplicative' (resp. 'additive'), the
+                  set value for each unit and parameter is the product (resp.
+                  sum) between the preexisting value and the given value. If
+                  'constant', the given value for each unit is set without
+                  regard for the preexisting value. (Default: ``'constant'``)
+                - ``<from_array>`` (bool) specifies how the <param_change>
+                  value given for each parameter is interpreted:
+
+                  - If ``True``, ``param_change`` should be a numpy array or
+                    the relative path from ``input_dir`` to a numpy array.
+                    The given or loaded array should have the same dimension
+                    as the considered population, and its values are mapped
+                    to the population's units to set the ``<param_name>``
+                    parameter.
+                  - If ``False``, the value in ``param_change`` is
+                    used to set the ``<param_name>`` parameter for all the
+                    population's units.
+
+                - ``'nest_params'`` (Default: ``{}``) is the dictionary specifying
+                  the parameter changes applied to the population units.
+                  Items are the name of the modified NEST parameters
+                  (``<param_name>``) and the values set (``<param_change>``).
+                  The ``<change_type>`` and ``<from_array>`` parameters
+                  specify the interpretation of the ``<param_change>`` value.
 
         Examples:
+            >>> # Load parameter files and create the network object
+            >>> import denest
+            >>> network = denest.Network(denest.ParamsTree.read('<path_to_parameter_file>'))
 
-            $ # Set the same spike times for all the units of a population of spike
-            $ # generators
-            $ Network.set_state({
-            $     'layers': ['input_layer'],
-            $     'population_name': 'spike_generator',
-            $     'change_type': 'constant',
-            $     'from_array': False,
-            $     'nest_params': {'spike_times': [1.0, 2.0, 3.0]}
-            $ })
-            $
-            $ # Set the voltage from values for multiple 2x2 population of neurons: specify
-            $ # the array directly
-            $ voltages = np.array([[-70.0, -65.0], [-70.0, -65.0]])
-            $ Network.set_state({
-            $     'layers': ['l1', 'l2'],
-            $     'population_name': None,
-            $     'change_type': 'constant',
-            $     'from_array': True,
-            $     'nest_params': {'V_m': voltages}
-            $ })
-            $
-            $ # Set the voltage from values for a 2x2 population of neurons: pass
-            $ # the path to the array
-            $ np.save(voltages, './voltage_change.npy')
-            $ Network.set_state({
-            $     'layers': ['l1'],
-            $     'population_name': 'l1_exc',
-            $     'change_type': 'constant',
-            $     'from_array': True,
-            $     'nest_params': {'V_m': './voltage_change.npy'}
-            $ })
-            $
-            $ # Multiply the leak potential by 2 for all the units
-            $ Network.set_state({
-            $     'layers': ['l1'],
-            $     'population_name': 'l1_exc',
-            $     'change_type': 'multiplicative',
-            $     'from_array': False,
-            $     'nest_params': {'g_peak_AMPA': 2.0}
-            $ })
+            >>> # Instantiate the network in the NEST kernel
+            >>> network.create()
 
+            >>> # Set the same spike times for all the units of a population of spike
+            ... # generators
+            >>> network.set_state({
+            ...     'layers': ['input_layer'],
+            ...     'population_name': 'spike_generator',
+            ...     'change_type': 'constant',
+            ...     'from_array': False,
+            ...     'nest_params': {'spike_times': [1.0, 2.0, 3.0]}
+            ... })
+
+            >>> # Set the voltage from values for multiple 2x2 population of neurons: specify
+            ... # the array directly
+            >>> voltages = np.array([[-70.0, -65.0], [-70.0, -65.0]])
+            >>> network.set_state({
+            ...     'layers': ['l1', 'l2'],
+            ...     'population_name': None,
+            ...     'change_type': 'constant',
+            ...     'from_array': True,
+            ...     'nest_params': {'V_m': voltages}
+            ... })
+
+            >>> # Set the voltage from values for a 2x2 population of neurons: pass
+            ... # the path to the array
+            >>> np.save(voltages, './voltage_change.npy')
+            >>> network.set_state({
+            ...     'layers': ['l1'],
+            ...     'population_name': 'l1_exc',
+            ...     'change_type': 'constant',
+            ...     'from_array': True,
+            ...     'nest_params': {'V_m': './voltage_change.npy'}
+            ... })
+
+            >>> # Multiply the leak potential by 2 for all the units
+            >>> network.set_state({
+            ...     'layers': ['l1'],
+            ...     'population_name': 'l1_exc',
+            ...     'change_type': 'multiplicative',
+            ...     'from_array': False,
+            ...     'nest_params': {'g_peak_AMPA': 2.0}
+            ... })
         """
         UNIT_CHANGES_OPTIONAL = {
             'nest_params': {},
