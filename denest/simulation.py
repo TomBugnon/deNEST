@@ -211,8 +211,8 @@ class Simulation(object):
         make_output_dir(self.output_dir, clear_output_dir=clear_output_dir)
         # Save params tree
         self.tree.write(output_path(self.output_dir, "tree"))
-        # Drop git hash
-        misc.drop_git_hash(self.output_dir)
+        # Drop version information
+        misc.drop_versions(self.output_dir)
         # Save sessions
         for session in self.sessions:
             session.save_metadata(self.output_dir)

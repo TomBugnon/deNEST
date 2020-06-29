@@ -5,7 +5,6 @@
 
 # pylint:=missing-docstring
 
-import subprocess
 import time
 from pathlib import Path
 
@@ -18,17 +17,16 @@ def pretty_time(start_time):
     return "%dh:%02dm:%02ds" % (hours, minutes, seconds)
 
 
-def drop_git_hash(output_dir):
-    git_hash = git_head_hash()
+def drop_versions(output_dir):
+    from ..__about__ import __version__
+    import nest
+
     path = Path(
-        save.output_subdir(output_dir, "git_hash"), save.output_filename("git_hash")
+        save.output_subdir(output_dir, "versions"),
+        save.output_filename("versions")
     )
-    with path.open("wb") as f:
-        f.write(git_hash)
-
-
-def git_head_hash():
-    process = subprocess.Popen(
-        ["git", "rev-parse", "HEAD"], shell=False, stdout=subprocess.PIPE
-    )
-    return process.communicate()[0].strip()
+    with path.open("w") as f:
+        f.write(
+            f'denest={__version__}\n'
+            f'{nest.version()}\n'
+        )

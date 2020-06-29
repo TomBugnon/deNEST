@@ -117,7 +117,7 @@ A full deNEST simulation consists of the following steps:
    4. **Save the simulation's metadata**
       * Create the output directory
       * Save the full simulation parameter tree
-      * Save git hash
+      * Save deNEST and NEST version information
       * Save session times
       * Save network metadata
       * Save session metadata

@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 # Modify along with FILENAME_FUNCS dict (see end of file)
 OUTPUT_SUBDIRS = {
     "tree": (),
-    "git_hash": (),
+    "versions": (),
     "raw_data": ("data",),  # Raw recorder data (NEST output)
     # Metadata for recorders (contains filenames and gid/location mappings)
     "recorders_metadata": ("data",),
@@ -155,8 +155,8 @@ def rasters_filename(layer, pop):
     return "spikes_raster_" + layer + "_" + pop + ".png"
 
 
-def git_hash_filename():
-    return "git_hash"
+def version_info_filename():
+    return "versions.txt"
 
 
 FILENAME_FUNCS = {
@@ -164,5 +164,5 @@ FILENAME_FUNCS = {
     "recorders_metadata": recorder_metadata_filename,
     "session_times": session_times_filename,
     "session_metadata": metadata_filename,
-    "git_hash": git_hash_filename,
+    "versions": version_info_filename,
 }
