@@ -24,11 +24,13 @@ def output_dir():
 
 @pytest.fixture(scope="module")
 def metadata_paths(output_dir):
-    return denest.io.load.metadata_paths(output_dir,)
+    return denest.io.load.metadata_paths(output_dir)
 
 
 def test_parameter_tree(output_dir, data_regression):
-    params_tree = denest.io.load.load_yaml(denest.io.load.output_path(output_dir, "tree"))
+    params_tree = denest.io.load.load_yaml(
+        denest.io.load.output_path(output_dir, "tree")
+    )
     data_regression.check(params_tree)
 
 
@@ -47,15 +49,16 @@ def test_recorder_metadata(metadata_paths, data_regression):
     data_regression.check(all_metadata)
 
 
-def test_data(metadata_paths, file_regression):
+def test_data(metadata_paths, data_regression):
+    all_data = {}
     # Test equality of sorted data, rounded to 4 decimals
     for metadata_path in metadata_paths:
         # Sort dataframe and round 4
         recorder_data = denest.io.load.load(metadata_path)
-        recorder_data = (
+        all_data[str(metadata_path)] = (
             recorder_data.sort_values(list(recorder_data.columns))
-                .reset_index(drop=True)
-                .round(4)
-                .fillna("NaN")
-        )
-        file_regression.check(recorder_data.to_string(), extension=".csv")
+            .reset_index(drop=True)
+            .round(4)
+            .fillna("NaN")
+        ).to_string()
+    data_regression.check(all_data)
