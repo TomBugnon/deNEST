@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # __main__.py
 """
-deNEST: Network Simulator for NEST
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+deNEST: a declarative interface to NEST
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Usage:
     python -m denest <tree_paths.yml> [options]
