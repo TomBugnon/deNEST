@@ -9,7 +9,7 @@ kernel:
     overwrite_files: true
 simulation:
   params:
-    output_dir: data/output
+    output_dir: data/outputs/output
     sessions:
     - warmup
     - 3_spikes
@@ -169,6 +169,7 @@ network:
       nest_params:
         record_from:
         - V_m
+        interval: 20.0
     my_spike_detector:
       params:
         nest_model: spike_detector

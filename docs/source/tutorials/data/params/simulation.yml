@@ -1,4 +1,4 @@
 simulation:
   params:
-    output_dir: output
+    output_dir: ./data/outputs/output
     sessions: ['warmup', '3_spikes', '2_spikes', '3_spikes']
