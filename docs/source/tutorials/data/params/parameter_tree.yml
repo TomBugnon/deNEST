@@ -9,7 +9,7 @@ kernel:
     overwrite_files: true
 simulation:
   params:
-    output_dir: data_tuto/output
+    output_dir: data/output
     sessions:
     - warmup
     - 3_spikes
