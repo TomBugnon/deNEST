@@ -208,7 +208,7 @@ class Simulation:
         import nest
         try:
             nest.Install(module_name)
-        except nest.NESTError as exception:
+        except Exception as exception:
             if 'loaded already' in str(exception):
                 print(f'\nModule {module_name} is already loaded.')
                 return
