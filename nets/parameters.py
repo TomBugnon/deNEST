@@ -162,7 +162,7 @@ class Tree(UserDict):
     def load(cls, *path):
         """Load a YAML representation of a tree."""
         with open(os.path.join(*path), 'rt') as tree:
-            return cls(yaml.load(tree))
+            return cls(yaml.load(tree, Loader=yaml.Loader))
 
     def validate(self, mapping, path=None):
         """Check that a mapping is a valid ``Tree``."""
