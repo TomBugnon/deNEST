@@ -651,12 +651,24 @@ class MultiSynapseConnection(BaseConnection):
         self.set_connection_weight()
 
     def _connect(self):
-        # Get the connections that have the proper query label
+        # Get the connections that have the proper query label amongst
+        # source/tgt populations
         import nest
-        conns = nest.GetConnections(
-            synapse_label=self.query_synapse_label
+        all_labelled_conns = nest.GetConnections(
+                synapse_label=self.query_synapse_label
         )
+        source_gids = self.source.gids(population=self.source_population)
+        target_gids = self.target.gids(population=self.target_population)
+        conns = [
+            conn for conn in all_labelled_conns
+            if conn[0] in source_gids and conn[1] in target_gids
+
+        ]
         if not conns:
+            raise Exception(
+                "Could not find any synapses to replicate for "
+                f"MultiSynapseConnection {self}"
+            )
             return
         srcs, tgts, _, _, _ = zip(*conns)
         # Add additional connections only for those connections
