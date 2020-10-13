@@ -12,7 +12,10 @@ from tqdm import tqdm
 from ..parameters import ParamsTree
 from ..utils import validation
 from ..utils.validation import ParameterError
-from .projections import ProjectionModel, TopoProjection
+from .projections import (
+    TopoProjectionModel, TopoProjection, MultiSynapseProjectionModel,
+    MultiSynapseProjection
+)
 from .layers import InputLayer, Layer
 from .models import Model, SynapseModel
 from .recorders import ProjectionRecorder, PopulationRecorder
@@ -27,9 +30,16 @@ LAYER_TYPES = {
 }
 
 CONNECTION_TYPES = {
+    None: TopoProjectionModel,
     'topological': TopoProjection,
+    'multisynapse': MultiSynapseProjection,
 }
 
+CONNECTION_MODEL_TYPES = {
+    None: TopoProjectionModel,
+    'topological': TopoProjectionModel,
+    'multisynapse': MultiSynapseProjectionModel,
+}
 
 class Network(object):
     """Represent a full network.
@@ -238,12 +248,20 @@ class Network(object):
         Args:
             tree (tree-like or ParamsTree). Parameter tree, the leaves of
                 which define projection models. Each leaf is used to
-                initialize a :class:`ProjectionModel` object.
+                initialize a :class:`TopoProjectionModel` or
+                :class:`MultiSynapseProjectionModel` object.
         """
         self._update_tree_child('projection_models', tree)
-        self.projection_models = self.build_named_leaves_dict(
-            ProjectionModel,
-            self.tree.children['projection_models']
+        self.projection_models = {
+            name: CONNECTION_MODEL_TYPES[leaf.params.get('type', None)](
+                name, dict(leaf.params), dict(leaf.nest_params)
+            )
+            for name, leaf
+            in self.tree.children['projection_models'].named_leaves(root=False)
+        }
+        log.info(
+            f"Build N={len(self.projection_models)} ``TopoProjectionModel`` or"
+            f" ``MultiSynapseProjection`` objects."
         )
 
     def build_projections(self, topology_tree):
@@ -725,7 +743,13 @@ class Network(object):
         # ProjectionRecorders must be created BEFORE Projections
         self._create_all(self.projection_recorders)
         log.info('Connecting layers...')
-        self._create_all(self.projections)
+        # Multisynapse projections must be created last
+        self._create_all(
+            sorted(
+                self.projections,
+                key=lambda proj: proj.params['type'] == 'multisynapse'
+            )
+        )
         self.print_network_size()
 
     @staticmethod
