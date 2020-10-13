@@ -398,7 +398,7 @@ class Simulation(object):
 
         try:
             nest.Install(module_name)
-        except nest.NESTError as exception:
+        except Exception as exception:
             if "loaded already" in str(exception):
                 log.info("Module %s is already loaded", module_name)
                 return
