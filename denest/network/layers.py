@@ -363,7 +363,7 @@ class Layer(AbstractLayer):
         import nest
 
         self._gid = tp.CreateLayer(self.nest_params)
-        self._gids = nest.GetNodes(self.gid)[0]
+        self._gids = nest.GetNodes(self._gid)[0]
         # Update _layer_locations: eg ``{gid: (row, col)}``
         # and _population_locations: ``{gid: (row, col, unit_index)}``
         for index, _ in np.ndenumerate(np.empty(self.shape)):  # Hacky
@@ -490,7 +490,8 @@ class InputLayer(Layer):
         # Add a parrot population entry
         if 'add_parrot' not in params:
             params['add_parrots'] = True
-        if params['add_parrots']:
+        self.add_parrots = params['add_parrots']
+        if self.add_parrots:
             populations[self.PARROT_MODEL] = nunits
         params["populations"] = populations
 
@@ -502,17 +503,35 @@ class InputLayer(Layer):
         super().create()
         import nest
 
-        # Connect stimulators to parrots, one-to-one
-        stim_gids = []
-        parrot_gids = []
-        for loc in self:
-            stim_gids += self.gids(location=loc, population=self.stimulator_model)
-            parrot_gids += self.gids(location=loc, population=self.PARROT_MODEL)
-        nest.Connect(stim_gids, parrot_gids, "one_to_one", {"model": "static_synapse"})
-        # Get stimulator type
-        self.stimulator_type = nest.GetDefaults(self.stimulator_model, "type_id")
+        if self.add_parrots:
+            # Connect stimulators to parrots, one-to-one
+            stim_gids = []
+            parrot_gids = []
+            for loc in self:
+                # Match population and location
+                # Use tp.GetElement rather than self.gids() for speed
+                import nest.topology as tp
+                stim_gids += [
+                    gid for gid in tp.GetElement(self._gid, loc[::-1])
+                    if nest.GetStatus((gid,), "model")[0] == self.stimulator_model
+                ]
+                parrot_gids += [
+                    gid for gid in tp.GetElement(self._gid, loc[::-1])
+                    if nest.GetStatus((gid,), "model")[0] == self.PARROT_MODEL
+                ]
+            nest.Connect(
+                stim_gids,
+                parrot_gids,
+                "one_to_one",
+                {"model": "static_synapse"}
+            )
+            # Get stimulator type
+            self.stimulator_type = nest.GetDefaults(self.stimulator_model, "type_id")
 
     @property
     def recordable_population_names(self):
         """Return list of names of recordable population names in this layer."""
-        return ["parrot_neuron"]
+        if self.add_parrots:
+            return ["parrot_neuron"]
+        else:
+            return []
