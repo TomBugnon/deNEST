@@ -224,7 +224,10 @@ class PopulationRecorder(BaseRecorder):
         self._gid = nest.Create(self.model, params={})
         # Save population and layer-wide attributes
         self._gids = self.layer.gids(population=self.population_name)
-        self._locations = None  # TODO
+        self._locations = {
+            gid: self.layer.population_locations[gid]
+            for gid in self._gids
+        }
         # Update attributes after creation (may depend on nest defaults and
         # recorder models)
         self._record_to = nest.GetStatus(self.gid, "record_to")[0]
