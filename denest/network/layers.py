@@ -193,7 +193,7 @@ class AbstractLayer(NestObject):
                     )
 
                 # Provided array has correct dimension
-                if not sorted(values_array.shape) == sorted(population_shape):
+                if not values_array.shape == population_shape:
                     raise ValueError(
                         f'Layer `{self.name}`, population `{population_name}`, '
                         f'parameter `{param_name}``, '
