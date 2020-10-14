@@ -212,13 +212,10 @@ class AbstractLayer(NestObject):
                 param_arrays[param_name] = values_array
 
             # Set all the parameters at once for each unit in the population
-            for idx, x in np.ndenumerate(values_array):
-                tgt_gid = self.gids(
-                    population=population_name,
-                    population_location=idx,
-                )
+            for gid, idx in [(gid, self._population_locations[gid])
+                             for gid in self.gids(population=population_name)]:
                 self.set_unit_state(
-                    tgt_gid,
+                    (gid,),
                     {
                         param_name: param_arrays[param_name][idx]
                         for param_name in param_arrays.keys()
