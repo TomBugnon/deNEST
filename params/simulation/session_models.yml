@@ -13,6 +13,7 @@ session_models:
           population_name: null
           change_type: 'constant'
           from_array: False
+          subnet_x_y_max: [2, 2]
           nest_params:
             V_m: -70.0
         - layers: ['input_layer']

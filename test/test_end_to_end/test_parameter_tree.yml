@@ -379,6 +379,9 @@ session_models:
         nest_params:
           V_m: -70.0
         population_name: null
+        subnet_x_y_max:
+        - 2
+        - 2
       - change_type: constant
         from_array: false
         layers:

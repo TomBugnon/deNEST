@@ -148,7 +148,8 @@ class AbstractLayer(NestObject):
 
     @if_created
     def set_state(self, nest_params=None, population_name=None,
-                  change_type='constant', from_array=False, input_dir=None):
+                  change_type='constant', from_array=False, input_dir=None,
+                  subnet_x_y_max=None):
         """Set the state of some of the layer's populations."""
 
         if input_dir is None:
@@ -173,6 +174,7 @@ class AbstractLayer(NestObject):
                 if from_array and isinstance(param_change, (np.ndarray)):
                     values_array = param_change
                     from_file = False
+                    assert subnet_x_y_max is None
                 # Option 2: map from numpy array loaded from file
                 elif from_array:
                     path = Path(input_dir)/Path(param_change)
@@ -182,6 +184,7 @@ class AbstractLayer(NestObject):
                         )
                     values_array = np.load(path)
                     from_file = True
+                    assert subnet_x_y_max is None
                 # Option 3: Same value applied to all the units in the pop
                 else:
                     # This does not work to make an array of lists
@@ -206,7 +209,8 @@ class AbstractLayer(NestObject):
                 log.info(
                     f"Layer='{self.name}', pop='{population_name}': Applying "
                     f"'{change_type}' change, param='{param_name}', "
-                    f"{'from array' if from_array else 'from single value'}')"
+                    f"{'from array' if from_array else 'from single value'}, "
+                    f"subnet_x_y_max={subnet_x_y_max}"
                 )
 
                 param_arrays[param_name] = values_array
@@ -214,6 +218,10 @@ class AbstractLayer(NestObject):
             # Set all the parameters at once for each unit in the population
             for gid, idx in [(gid, self._population_locations[gid])
                              for gid in self.gids(population=population_name)]:
+                if subnet_x_y_max is not None:
+                    assert len(subnet_x_y_max) == 2
+                    if (idx[0] > subnet_x_y_max[0]) or (idx[1] > subnet_x_y_max[1]):
+                        continue
                 self.set_unit_state(
                     (gid,),
                     {

@@ -797,6 +797,7 @@ class Network(object):
                         'nest_params': {
                             <param_name>: <param_change>,
                         },
+                        'subnet_x_y_max': <subnet_x_y_max>,
                     }
 
                 where ``<layer_name_list>`` and ``<population_name>`` specify
@@ -839,6 +840,10 @@ class Network(object):
                   (``<param_name>``) and the values set (``<param_change>``).
                   The ``<change_type>`` and ``<from_array>`` parameters
                   specify the interpretation of the ``<param_change>`` value.
+
+                - subnet_x_y_max`` (default None): Specifies a subnet to which
+                  the changes are applied. Only units whose x and y locations
+                  are <= to ``subnet_x_y_max`` are affected by the changes.
 
         Examples:
             >>> # Load parameter files and create the network object
@@ -895,6 +900,7 @@ class Network(object):
             'change_type': 'constant',
             'from_array': False,
             'layers': [],
+            'subnet_x_y_max': None,
         }
 
         if unit_changes is None:
@@ -923,6 +929,7 @@ class Network(object):
                     population_name=changes['population_name'],
                     change_type=changes['change_type'],
                     from_array=changes['from_array'],
+                    subnet_x_y_max=changes['subnet_x_y_max'],
                     input_dir=input_dir,
                 )
 
