@@ -1,0 +1,203 @@
+network:
+  synapse_models:
+
+
+    tsodyks2_synapse:
+      params:
+        target_neuron: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike
+        nest_model: tsodyks2_synapse
+
+      # Other (ht_synapse-like)
+      # ht_synapse params:
+        # tau_P: 500.
+        # P: 1.0
+        # delta_P: 0.0625
+        # weight (<-> Wmax): 1.0
+      # equivalent tsodyks2_synapse params:
+          # x: 1.0
+          # U: 0.0625
+          # u: 0.0625
+          # tau_rec: 500.
+          # tau_fac: 0.
+          # weight (<-> Wmax): 16 (Wmax)
+      other:
+        nest_params:
+          x: 1.0
+          U: 0.0625
+          u: 0.0625
+          tau_rec: 500.
+          tau_fac: 0.
+          # weight (<-> Wmax): 16 (Wmax)
+        AMPA_syn:
+          params:
+            receptor_type: AMPA
+        NMDA_syn:
+          params:
+            receptor_type: NMDA
+        GABA_A_syn:
+          params:
+            receptor_type: GABA_A
+        GABA_B_syn:
+          params:
+            receptor_type: GABA_B
+
+      # Thalamocortical
+      AMPA_syn_thalamocortical:
+        params:
+          receptor_type: AMPA
+        nest_params:
+          x: 1.0
+          U: 0.5
+          u: 0.5
+          tau_rec: 200.
+          tau_fac: 0.
+        AMPA_syn_thalamocortical_to_PC:
+          # nest_params:
+          #   weight (<-> Wmax): 4.0 # 4 or 5 ok
+        AMPA_syn_thalamocortical_to_BC:
+          # nest_params:
+          #   weight (<-> Wmax): 4.0 # 5 or 6 ok
+
+      # Corticocortical
+      AMPA_syn_PC_to_PC: # Depressing
+        params:
+          receptor_type: AMPA
+        nest_params:
+          x: 1.0
+          U: 0.4
+          u: 0.4
+          tau_rec: 600.
+          tau_fac: 0.
+          # weight (<-> Wmax): 0.75
+      NMDA_syn_PC_to_PC: # Depressing
+        params:
+          receptor_type: NMDA
+        nest_params:
+          x: 1.0
+          U: 0.4
+          u: 0.4
+          tau_rec: 600.
+          tau_fac: 0.
+          # weight (<-> Wmax): 0.75
+      AMPA_syn_PC_to_BC: # Depressing
+        params:
+          receptor_type: AMPA
+        nest_params:
+          x: 1.0
+          U: 0.5
+          u: 0.5
+          tau_rec: 600.
+          tau_fac: 0.
+          # weight (<-> Wmax): 1.5
+      NMDA_syn_PC_to_BC: # Depressing
+        params:
+          receptor_type: NMDA
+        nest_params:
+          x: 1.0
+          U: 0.5
+          u: 0.5
+          tau_rec: 600.
+          tau_fac: 0.
+          # weight (<-> Wmax): 1.5
+      AMPA_syn_PC_to_MC: # Facilitating
+        params:
+          receptor_type: AMPA
+        nest_params:
+          x: 1.0
+          U: 0.10
+          u: 0.10
+          tau_rec: 20.
+          tau_fac: 600.
+          # weight (<-> Wmax): 4.5
+      GABA_A_syn_BC_to_PC: # Depressing
+        params:
+          receptor_type: GABA_A
+        nest_params:
+          x: 1.0
+          U: 0.25
+          u: 0.25
+          tau_rec: 600.
+          tau_fac: 0.
+          # weight (<-> Wmax): 4.
+      GABA_A_syn_BC_to_BC: # Depressing
+        params:
+          receptor_type: GABA_A
+        nest_params:
+          x: 1.0
+          U: 0.25
+          u: 0.25
+          tau_rec: 600.
+          tau_fac: 0.
+          # weight (<-> Wmax): 4.0
+      GABA_A_syn_BC_to_MC: # Depressing
+        params:
+          receptor_type: GABA_A
+        nest_params:
+          x: 1.0
+          U: 0.25
+          u: 0.25
+          tau_rec: 600.
+          tau_fac: 0.
+          # weight (<-> Wmax): 4.0
+
+
+    static_synapse:
+      params:
+        nest_model: static_synapse
+        target_neuron: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike
+      GABA_A_syn_MC_to_PC:
+        params:
+          receptor_type: GABA_A
+        # nest_params:
+        #   weight (<-> Wmax): 0.35
+      GABA_B_syn_MC_to_PC:
+        params:
+          receptor_type: GABA_B
+        # nest_params:
+        #   weight (<-> Wmax): 0.35
+      GABA_B1a_syn_MC_to_PC:
+        params:
+          receptor_type: GABA_B1a
+        # nest_params:
+        #   weight (<-> Wmax): 0.35
+      GABA_A_syn_MC_to_BC:
+        params:
+          receptor_type: GABA_A
+        # nest_params:
+        #   weight (<-> Wmax): 0.3
+      GABA_B_syn_MC_to_BC:
+        params:
+          receptor_type: GABA_B
+        # nest_params:
+        #   weight (<-> Wmax): 0.3
+      GABA_B1a_syn_MC_to_BC:
+        params:
+          receptor_type: GABA_B1a
+        # nest_params:
+        #   weight (<-> Wmax): 0.3
+      retinal_projection:
+        params:
+          receptor_type: AMPA
+        # nest_params:
+        #   weight (<-> Wmax): 1.0
+      cortical_background_projection_AMPA:
+        params:
+          receptor_type: AMPA
+        # nest_params:
+        #   weight (<-> Wmax): 1.0
+      cortical_background_projection_NMDA:
+        params:
+          receptor_type: NMDA
+        # nest_params:
+        #   weight (<-> Wmax): 1.0
+
+
+    gap_junction_dummy_syn: # Dummy. Used only to get topological gap junctions
+      params:
+        nest_model: static_synapse_lbl
+        receptor_type: AMPA
+        target_neuron: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike
+      nest_params:
+        synapse_label: 100
+      # nest_params:
+      #   weight (<-> Wmax): 0.0

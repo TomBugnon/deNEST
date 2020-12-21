@@ -1,0 +1,628 @@
+network:
+  projection_models:
+
+
+    ####################################
+    # Topological connections
+    ####################################
+
+    topological:
+
+      params:
+        type: topological
+      nest_params:
+        allow_autapses: True
+        allow_multapses: True
+        allow_oversized_mask: False
+        synapse_model: mandatory
+        kernel: mandatory
+        # mask: mandatory
+        weights: mandatory
+        connection_type: mandatory
+        # delays: mandatory
+
+
+      ####################################
+      ######### Input to network #########
+      ####################################
+
+
+      poisson_background:
+        nest_params:
+          connection_type: divergent
+          kernel: 1.0
+          # weight_gain: 1.0
+          weights: 1.0  # (1 (proj weight_gain) * 1 (synapse Wmax))
+          delays:
+            normal:
+              mean: 2.0
+              sigma: 1.0
+              min: 0.20
+        cortical_background_AMPA_to_PC:
+          nest_params:
+            synapse_model: cortical_background_projection_AMPA
+        cortical_background_AMPA_to_BC:
+          nest_params:
+            synapse_model: cortical_background_projection_AMPA
+        cortical_background_NMDA_to_PC:
+          nest_params:
+            synapse_model: cortical_background_projection_NMDA
+
+
+      retinothalamic:
+        nest_params:
+          connection_type: divergent
+          synapse_model: retinal_projection
+          mask:
+            rectangular:
+               lower_left: [-1.0,-1.0]
+               upper_right: [1.0,1.0]
+          kernel:
+             gaussian:
+                 p_center: 1.0
+                 sigma: 2.0
+          delays:
+            normal:
+              mean: 2.0
+              sigma: 1.0
+              min: 0.20
+          # weight_gain: 5.0
+          weights: 5.0  # (5 (proj weight_gain) * 1 (synapse Wmax))
+        retinothalamic_to_exc_Tp:
+        retinothalamic_to_inh_Tp:
+
+
+      ####################################
+      ######### Intra-thalamic #########
+      ####################################
+
+
+      reticulo_reticular:
+        nest_params:
+          connection_type: divergent
+          synapse_model: GABA_A_syn
+          mask:
+            circular:
+              radius: 12.0
+          kernel:
+             gaussian:
+                 p_center: 0.5
+                 sigma: 7.5
+          # weight_gain: 1.0
+          weights: 16.0  # (1 (proj weight_gain) * 16 (synapse Wmax))
+          delays:
+            normal:
+               mean: 1.0
+               sigma: 0.25
+               min: 0.20
+        Rp_to_Rp:
+
+
+      reticulo_thalamic:
+        nest_params:
+          connection_type: divergent
+          mask:
+            circular:
+              radius: 12.0
+          delays:
+            normal:
+              mean: 2.0
+              sigma: 0.25
+              min: 0.20
+          # weight_gain: 1.0
+          weights: 16.0  # (1 (proj weight_gain) * 16 (synapse Wmax))
+        Rp_to_Tp_GABA_A:
+          nest_params:
+            synapse_model: GABA_A_syn
+            kernel:
+              gaussian:
+                p_center: 0.15
+                sigma: 7.5
+          Rp_to_Tp_GABA_A:
+        Rp_to_Tp_GABA_B:
+          nest_params:
+            synapse_model: GABA_B_syn
+            kernel:
+              gaussian:
+                p_center: 0.05
+                sigma: 7.5
+          Rp_to_Tp_GABA_B:
+
+
+      thalamo_reticular:
+        nest_params:
+          synapse_model: AMPA_syn
+          connection_type: divergent
+          mask:
+            circular:
+              radius: 2.0
+          kernel:
+             gaussian:
+                 p_center: 1.0
+                 sigma: 2.0
+          delays:
+            normal:
+               mean: 2.0
+               sigma: 0.25
+               min: 0.20
+        Tp_to_Rp:
+          nest_params:
+            # weight_gain: 2.0
+            weights: 32.0  # (2 (projection weight_gain) * 16 (synapse Wmax))
+
+
+      thalamo_thalamic:
+        nest_params:
+          synapse_model: GABA_A_syn
+          connection_type: divergent
+          mask:
+            circular:
+              radius: 2.0
+          delays:
+            normal:
+              mean: 1.0
+              sigma: 0.25
+              min: 0.20
+        primary:
+          nest_params:
+            kernel:
+              gaussian:
+                  p_center: 0.25
+                  sigma: 2.0
+            # weight_gain: 1.0
+            weights: 16.0  # (1 (projectin weight_gain) * 16 (synapse Wmax))
+          Tp_inh_to_Tp:
+
+
+      ####################################
+      ######### Thalamo-cortical #########
+      ####################################
+
+
+      thalamo_cortical_primary:
+        nest_params:
+          connection_type: convergent
+          delays:
+            normal:
+               mean: 3.0
+               sigma: 0.25
+               min: 0.20
+        rectangular:
+          nest_params:
+            synapse_model: AMPA_syn_thalamocortical_to_PC
+            # weight_gain: 1.0
+            weights: 4.0  # (1 (projection weight_gain) * 4 (synapse Wmax))
+          Tp_to_P00:
+            nest_params:
+                mask:
+                  rectangular:
+                    lower_left: [-4.0, -1.0]
+                    upper_right: [3.0, 0.0]
+            Tp_to_Vp_P00_L4:
+              nest_params:
+                kernel: 0.6
+              Tp_to_Vp_P00_L4:
+            Tp_to_Vp_P00_L56:
+              nest_params:
+                kernel: 0.44
+              Tp_to_Vp_P00_L56:
+          Tp_to_Vp_P90:
+            nest_params:
+                mask:
+                  rectangular:
+                    lower_left: [-1.0, -4.0]
+                    upper_right: [0.0, 3.0]
+            Tp_to_Vp_P90_L4:
+              nest_params:
+                kernel: 0.6
+              Tp_to_Vp_P90_L4:
+            Tp_to_Vp_P90_L56:
+              nest_params:
+                kernel: 0.44
+              Tp_to_Vp_P90_L56:
+        diffuse:
+          nest_params:
+            # weight_gain: 1.0
+            weights: 4.0  # (1 (projection weight_gain) * 4 (synapse Wmax))
+            synapse_model: AMPA_syn_thalamocortical_to_BC
+            mask:
+              circular:
+                radius: 5.0
+            kernel:
+              gaussian:
+                p_center: 0.1
+                sigma: 4.0
+          Tp_Vp_diffuse:
+
+
+      ####################################
+      ######### Cortico-thalamic #########
+      ####################################
+
+
+      cortico_thalamic_primary:
+        nest_params:
+          connection_type: divergent
+          synapse_model: AMPA_syn
+          mask:
+            circular:
+              radius: 5.0
+          kernel:
+            gaussian:
+                p_center: 0.5
+                sigma: 4.0
+          delays:
+            normal:
+              mean: 8.0
+              sigma: 0.5
+              min: 0.20
+        Vp_to_Tp:
+          nest_params:
+            # weight_gain: 1.0
+            weights: 16.0  # (1 (projection weight_gain) * 16 (synapse Wmax))
+        Vp_to_Rp:
+          nest_params:
+            # weight_gain: 2.0
+            weights: 32.0  # (2 (projection weight_gain) * 16 (synapse Wmax))
+
+
+      ####################################
+      ######### Cortico-cortical primary #
+      ####################################
+
+
+      intralaminar_GABA_A_Vp:
+        nest_params:
+          mask:
+             circular:
+               radius: 7.0
+          connection_type: divergent
+          delays:
+            normal:
+               mean: 2.0
+               sigma: 0.25
+               min: 0.20
+        intralaminar_GABA_A_Vp_same:
+          nest_params:
+            # weight_gain: 1.0
+            weights: 4.0  # (1 (projection weight_gain) * 4 (synapse Wmax))
+          intralaminar_GABA_A_Vp_BC_to_PC_same:
+            nest_params:
+              synapse_model: GABA_A_syn_BC_to_PC
+              kernel:
+                gaussian:
+                   p_center: 0.70
+                   sigma: 5.0
+          intralaminar_GABA_A_Vp_BC_to_BC_same:
+            nest_params:
+              synapse_model: GABA_A_syn_BC_to_BC
+              kernel:
+                gaussian:
+                   p_center: 0.50
+                   sigma: 5.0
+        intralaminar_GABA_A_Vp_diff:
+          nest_params:
+            # weight_gain: 0.20
+            weights: 0.8  # (0.20 (projection weight_gain) * 4 (synapse Wmax))
+          intralaminar_GABA_A_Vp_BC_to_PC_diff:
+            nest_params:
+              synapse_model: GABA_A_syn_BC_to_PC
+              kernel:
+                gaussian:
+                   p_center: 0.70
+                   sigma: 5.0
+          intralaminar_GABA_A_Vp_BC_to_BC_diff:
+            nest_params:
+              synapse_model: GABA_A_syn_BC_to_BC
+              kernel:
+                gaussian:
+                   p_center: 0.50
+                   sigma: 5.0
+
+
+      intralaminar_exc_Vp:
+        nest_params:
+          connection_type: divergent
+          delays:
+            normal:
+               mean: 2.0
+               sigma: 0.25
+               min: 0.20
+
+        intralaminar_AMPA_Vp_L4:
+          nest_params:
+            mask:
+              circular:
+                radius: 7.0
+          intralaminar_AMPA_Vp_L4_same:
+            # nest_params:
+            #   weight_gain: 1.0
+            intralaminar_AMPA_Vp_L4_PC_to_PC_same:
+              nest_params:
+                synapse_model: AMPA_syn_PC_to_PC
+                kernel:
+                  gaussian:
+                    p_center: 0.20
+                    sigma: 5.0
+                weights: 0.75  # (1.0 (projection weight_gain) * 0.75 (synapse Wmax))
+            intralaminar_AMPA_Vp_L4_PC_to_BC_same:
+              nest_params:
+                synapse_model: AMPA_syn_PC_to_BC
+                kernel:
+                  gaussian:
+                    p_center: 0.60
+                    sigma: 5.0
+                weights: 1.5  # (1.0 (projection weight_gain) * 1.5 (synapse Wmax))
+          intralaminar_AMPA_Vp_L4_diff:
+            # nest_params:
+            #   weight_gain: 0.20
+            intralaminar_AMPA_Vp_L4_PC_to_PC_diff:
+              nest_params:
+                synapse_model: AMPA_syn_PC_to_PC
+                kernel:
+                  gaussian:
+                    p_center: 0.05
+                    sigma: 5.0
+                weights: 0.15  # (0.20 (projection weight_gain) * 0.75 (synapse Wmax))
+            intralaminar_AMPA_Vp_L4_PC_to_BC_diff:
+              nest_params:
+                synapse_model: AMPA_syn_PC_to_BC
+                kernel:
+                  gaussian:
+                    p_center: 0.60
+                    sigma: 5.0
+                weights: 0.3  # (0.20 (projection weight_gain) * 1.5 (synapse Wmax))
+
+        intralaminar_AMPA_Vp:
+          nest_params:
+            mask:
+               circular:
+                 radius: 12.0
+          intralaminar_AMPA_Vp_same:
+            # nest_params:
+            #   weight_gain: 1.0
+            intralaminar_AMPA_Vp_PC_to_PC_same:
+              nest_params:
+                synapse_model: AMPA_syn_PC_to_PC
+                kernel:
+                  gaussian:
+                     p_center: 0.20
+                     sigma: 7.5
+                weights: 0.75  # (1.0 (projection weight_gain) * 0.75 (synapse Wmax))
+            intralaminar_AMPA_Vp_PC_to_BC_same:
+              nest_params:
+                synapse_model: AMPA_syn_PC_to_BC
+                kernel:
+                  gaussian:
+                     p_center: 0.60
+                     sigma: 7.5
+                weights: 1.5  # (1.0 (projection weight_gain) * 1.5 (synapse Wmax))
+          intralaminar_AMPA_Vp_diff:
+            # nest_params:
+            #   weight_gain: 0.20
+            intralaminar_AMPA_Vp_PC_to_PC_diff:
+              nest_params:
+                synapse_model: AMPA_syn_PC_to_PC
+                kernel:
+                  gaussian:
+                     p_center: 0.05
+                     sigma: 7.5
+                weights: 0.15  # (0.20 (projection weight_gain) * 0.75 (synapse Wmax))
+            intralaminar_AMPA_Vp_PC_to_BC_diff:
+              nest_params:
+                synapse_model: AMPA_syn_PC_to_BC
+                kernel:
+                  gaussian:
+                     p_center: 0.60
+                     sigma: 7.5
+                weights: 0.3  # (0.20 (projection weight_gain) * 1.5 (synapse Wmax))
+
+        intralaminar_NMDA_Vp:
+          nest_params:
+            mask:
+               circular:
+                 radius: 12.0
+          intralaminar_NMDA_Vp_same:
+            nest_params:
+              # weight_gain: 1.0
+              weights: 0.75  # (1.0 (projection weight_gain) * 0.75 (synapse Wmax))
+              kernel:
+                gaussian:
+                   p_center: 0.20
+                   sigma: 7.5
+            intralaminar_NMDA_Vp_PC_to_PC_same:
+              nest_params:
+                synapse_model: NMDA_syn_PC_to_PC
+          intralaminar_NMDA_Vp_diff:
+            nest_params:
+              # weight_gain: 0.2
+              weights: 0.15  # (0.2 (projection weight_gain) * 0.75 (synapse Wmax))
+              kernel:
+                gaussian:
+                   p_center: 0.05
+                   sigma: 7.5
+            intralaminar_NMDA_Vp_PC_to_PC_diff:
+              nest_params:
+                synapse_model: NMDA_syn_PC_to_PC
+
+
+      interlaminar_exc_Vp:
+        nest_params:
+          connection_type: divergent
+          mask:
+            circular:
+              radius: 3.0
+          kernel:
+            gaussian:
+               p_center: 1.0
+               sigma: 2.0
+          delays:
+            normal:
+               mean: 2.0
+               sigma: 0.25
+               min: 0.20
+        interlaminar_AMPA_Vp:
+          # nest_params:
+          #   weight_gain: 3.0
+          interlaminar_AMPA_Vp_PC_to_PC:
+            nest_params:
+              synapse_model: AMPA_syn_PC_to_PC
+              weights: 2.25  # (3.0 (projection weight_gain) * 0.75 (synapse Wmax))
+          interlaminar_AMPA_Vp_PC_to_BC:
+            nest_params:
+              synapse_model: AMPA_syn_PC_to_BC
+              weights: 4.5  # (3.0 (projection weight_gain) * 1.5 (synapse Wmax))
+        interlaminar_AMPA_Vp_L23_to_L56:
+          # nest_params:
+          #   weight_gain: 2.0
+          interlaminar_AMPA_Vp_L23_to_L56_PC_to_PC:
+            nest_params:
+              synapse_model: AMPA_syn_PC_to_PC
+              weights: 1.5  # (2.0 (projection weight_gain) * 0.75 (synapse Wmax))
+          interlaminar_AMPA_Vp_L23_to_L56_PC_to_BC:
+            nest_params:
+              synapse_model: AMPA_syn_PC_to_BC
+              weights: 3.0  # (2.0 (projection weight_gain) * 1.5 (synapse Wmax))
+        interlaminar_NMDA_Vp:
+          # nest_params:
+          #   weight_gain: 1.0
+          interlaminar_NMDA_Vp_PC_to_PC:
+            nest_params:
+              synapse_model: NMDA_syn_PC_to_PC
+              weights: 0.75  # (1.0 (projection weight_gain) * 0.75 (synapse Wmax))
+
+      interlaminar_GABA_B:
+        nest_params:
+          connection_type: divergent
+          mask:
+            circular:
+              radius: 2.0
+          kernel:
+            gaussian:
+               p_center: 0.1
+               sigma: 2.0
+          delays:
+            normal:
+               mean: 2.0
+               sigma: 0.25
+               min: 0.20
+        interlaminar_GABA_B:
+          nest_params:
+            # weight_gain: 1.0
+            weights: 16.0  # (1.0 (projection weight_gain) * 16.0 (synapse Wmax))
+            synapse_model: GABA_B_syn
+
+      Vp_MC_connections:
+        nest_params:
+          connection_type: divergent
+          delays:
+            normal:
+               mean: 2.0
+               sigma: 0.25
+               min: 0.1
+        Vp_PC_to_MC:
+          nest_params:
+            synapse_model: AMPA_syn_PC_to_MC
+            mask:
+              circular:
+                radius: 7.0
+            kernel:
+              gaussian:
+                p_center: 0.30
+                sigma: 5.0
+          Vp_PC_to_MC_same:
+            nest_params:
+              # weight_gain: 1.0
+              weights: 4.5  # (1.0 (projection weight_gain) * 4.5 (synapse Wmax))
+          Vp_PC_to_MC_diff:
+            nest_params:
+              # weight_gain: 0.5
+              weights: 2.25  # (0.5 (projection weight_gain) * 4.5 (synapse Wmax))
+        Vp_BC_to_MC:
+          nest_params:
+            synapse_model: GABA_A_syn_BC_to_MC
+            mask:
+              circular:
+                radius: 7.0
+            kernel:
+              gaussian:
+                p_center: 0.15
+                sigma: 5.0
+            # weight_gain: 1.0
+            weights: 4.0  # (1.0 (projection weight_gain) * 4.0 (synapse Wmax))
+        Vp_MC_to_all:
+          nest_params:
+            mask:
+             circular:
+               radius: 12.0
+            kernel:
+              gaussian:
+                p_center: 0.35
+                sigma: 7.5
+            # weight_gain: 1.0
+          Vp_MC_to_PC:
+            nest_params:
+              weights: 0.35  # (1.0 (projection weight_gain) * 0.30 (synapse Wmax))
+            Vp_MC_to_PC_GABA_A:
+              nest_params:
+                synapse_model: GABA_A_syn_MC_to_PC
+            Vp_MC_to_PC_GABA_B:
+              nest_params:
+                synapse_model: GABA_B_syn_MC_to_PC
+            Vp_MC_to_PC_GABA_B1a:
+              nest_params:
+                synapse_model: GABA_B1a_syn_MC_to_PC
+          Vp_MC_to_BC:
+            nest_params:
+              weights: 0.30  # (1.0 (projection weight_gain) * 0.30 (synapse Wmax))
+            Vp_MC_to_BC_GABA_A:
+              nest_params:
+                synapse_model: GABA_A_syn_MC_to_BC
+            Vp_MC_to_BC_GABA_B:
+              nest_params:
+                synapse_model: GABA_B_syn_MC_to_BC
+            Vp_MC_to_BC_GABA_B1a:
+              nest_params:
+                synapse_model: GABA_B1a_syn_MC_to_BC
+
+
+    ####################################
+    # Gap junctions
+    ####################################
+
+    gap_junctions:
+
+      # "Model" connections
+      MC_gap_dummy:
+        params:
+          type: topological
+        nest_params:
+          allow_autapses: True
+          allow_multapses: True
+          allow_oversized_mask: False
+          connection_type: divergent
+          synapse_model: gap_junction_dummy_syn
+          mask:
+            circular:
+              radius: 3.1
+          kernel:
+            gaussian:
+              # p_center: 0.7
+              p_center: 0.35  # Effective p_center = 0.7 because of make_symmetric=True flag
+              sigma: 3.5
+          weights: 0.0 # Dummy
+          # No delays for gap junctions !
+          # delays:
+          #     uniform:
+          #         min: 1.75
+          #         max: 2.25
+
+      # "Multisynapse" connection that replicates MC_gap_dummy
+      MC_gap:
+        params:
+          type: multisynapse
+          make_symmetric: true  # Mandatory for gap junctions
+          query_synapse_label: 100
+        nest_params:
+          model: gap_junction
+          weight: 0.012

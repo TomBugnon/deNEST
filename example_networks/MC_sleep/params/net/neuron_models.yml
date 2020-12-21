@@ -1,0 +1,169 @@
+network:
+  neuron_models:
+
+
+    # Retinal input
+    retina_nrn:
+      params:
+        nest_model: sinusoidal_poisson_generator
+      nest_params:
+        rate: 60.0  # (Hz)
+        amplitude: 0.0  # (Initialize with even rate)
+        frequency: 3.0  # (Hz), temporal frequency
+        phase: 0.0  #  To initialize in sessions for drifting grating
+
+
+    # Background "cortico-cortical" stimulation
+    poisson_nrn:
+      params:
+        nest_model: poisson_generator
+      poisson_nrn_to_cortex_L23:
+        nest_params:
+          rate: 60.0
+      poisson_nrn_to_cortex_L4:
+        nest_params:
+          rate: 45.0
+      poisson_nrn_to_cortex_L56:
+        nest_params:
+          rate: 60.0
+
+
+    # thalamus and cortex
+    cortical_thalamic:
+      params:
+        nest_model: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike
+      nest_params:
+        alpha_GABA_B1a: [1.0, 1.0, 0.0, 0.0, 0.0]
+        E_K: -90.0
+        E_Na: 30.0
+        E_rev_AMPA: 0.0
+        E_rev_GABA_A: mandatory
+        E_rev_GABA_B: -90.0
+        E_rev_h: -40.0
+        E_rev_KNa: -90.0
+        E_rev_NaP: 30.0
+        E_rev_NMDA: 0.0
+        E_rev_T: 0.0
+        g_gap_scale_factor: 1.0
+        g_KL: mandatory
+        g_max_GABA_B1a: 0.8
+        g_NaL: mandatory
+        g_peak_AMPA: mandatory
+        g_peak_GABA_A: mandatory
+        g_peak_GABA_B: 0.02
+        g_peak_GABA_B1a: 0.05
+        g_peak_h: mandatory
+        g_peak_KNa: mandatory #  Modify in sleep
+        g_peak_NaP: mandatory
+        g_peak_NMDA: 0.05 # (0.075 in H&T (2005) but reduced to 0.02 to get the wake state)
+        g_peak_T: mandatory
+        S_act_NMDA: 0.081
+        t_ref: mandatory
+        tau_D_KNa: 1400.0 # (1250 in ht2005 but 1400 in synthesis)
+        tau_decay_AMPA: 2.4
+        tau_decay_GABA_A: 7.0
+        tau_decay_GABA_B: 200.0
+        tau_decay_NMDA: 40.0
+        tau_m: mandatory
+        tau_Mg_fast_NMDA: 0.68
+        tau_Mg_slow_NMDA: 22.7
+        tau_rise_AMPA: 0.5
+        tau_rise_GABA_A: 1.0
+        tau_rise_GABA_B: 60.0
+        tau_rise_NMDA: 4.0
+        tau_spike: mandatory
+        tau_theta: mandatory
+        V_act_NMDA: -25.57
+        xmax_GABA_B1a: 1.0
+
+      cortical_PC_BC:
+        nest_params:
+          E_rev_GABA_A: -70.0
+          g_KL: 0.7
+          g_NaL: 0.2
+          g_peak_AMPA: mandatory
+          g_peak_GABA_A: mandatory
+          g_peak_h: 0.0
+          g_peak_KNa: 0.5
+          g_peak_NaP: 0.5
+          g_peak_T: 0.0
+          t_ref: mandatory
+          tau_m: mandatory
+          tau_spike: mandatory
+          tau_theta: mandatory
+        Vp_PC:
+          nest_params:
+            g_peak_AMPA: 0.13
+            g_peak_GABA_A: 0.165
+            theta_eq: -50.0
+            t_ref: 2.0
+            tau_m: 16.0
+            tau_spike: 1.5
+            tau_theta: 2.0
+        Vp_BC:
+          nest_params:
+            g_peak_AMPA: 0.11
+            g_peak_GABA_A: 0.18
+            g_peak_KNa: 1.0
+            theta_eq: -50.0
+            t_ref: 1.0
+            tau_m: 8.0
+            tau_spike: 0.5
+            tau_theta: 1.0
+
+      Vp_MC:
+        nest_params:
+          E_rev_GABA_A: -70.0
+          g_KL: 0.28
+          g_NaL: 0.09
+          g_peak_AMPA: 0.105
+          g_peak_GABA_A: 0.09
+          g_peak_h: 0.0
+          g_peak_KNa: 0.5
+          g_peak_NaP: 0.1
+          g_peak_T: 0.0
+          t_ref: 2.0
+          tau_m: 20.0
+          tau_spike: 1.75
+          tau_theta: 2.0
+          theta_eq: -51.0
+
+      thalamic:
+        nest_params:
+          E_rev_GABA_A: mandatory
+          g_peak_AMPA: 0.0805
+          g_peak_GABA_A: 0.18
+          g_peak_GABA_B: 0.06
+          g_peak_h: mandatory
+          g_peak_KNa: mandatory
+          g_peak_NaP: mandatory
+          g_peak_T: 1.0
+          t_ref: 1.0
+          theta_eq: -51.0
+          tau_m: 8.0
+          tau_spike: 0.75
+          tau_theta: 1.0 # (0.75 ms in H&T (2005) but 1 ms in Synthesis)
+        Tp_exc:
+          nest_params:
+            E_rev_GABA_A: -80.0
+            g_KL: 1.0
+            g_NaL: 0.2
+            g_peak_h: 1.0
+            g_peak_KNa: 0.0
+            g_peak_NaP: 0.35
+        Tp_inh:
+          nest_params:
+            E_rev_GABA_A: -80.0 # (according to Hans's analysis E_rev_GABA_A = -80.0 mV for InThal as well as ExThal)
+            g_KL: 1.0
+            g_NaL: 0.2
+            g_peak_h: 0.0  # (g_peak_h = 0 according to Hans's analysis of Synthesis code; HT(2205) are ambiguous)
+            g_peak_KNa: 0.0
+            g_peak_NaP: 0.35
+        Rp_inh:
+          nest_params:
+            E_rev_GABA_A: -70.0
+            g_KL: 0.7
+            g_NaL: 0.2
+            g_peak_h: 0.0
+            g_peak_KNa: 0.0
+            g_peak_NaP: 0.35

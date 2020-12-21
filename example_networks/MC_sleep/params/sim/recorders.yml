@@ -1,0 +1,78 @@
+network:
+  recorder_models:
+    params: {}
+    nest_params:
+      record_to: ['file']
+      withgid: True
+      withtime: True
+    multimeter:
+      params:
+        nest_model: multimeter
+      nest_params:
+        interval: 10.0 # formatting_interval = interval by default
+        record_from: ['V_m', 'g_AMPA', 'g_GABA_A', 'g_NMDA', 'I_KNa', 'I_NaP', 'g_GABA_B', 'g_GABA_B1a']
+    spike_detector:
+      params:
+        nest_model: spike_detector
+  recorders:
+    params:
+      population_recorders:
+        ## Vp_PC P00
+        - layers: [Vp_L23_PC_P00, Vp_L4_PC_P00, Vp_L56_PC_P00, ]
+          populations: null
+          model: 'multimeter'
+        - layers: [Vp_L23_PC_P00, Vp_L4_PC_P00, Vp_L56_PC_P00, ]
+          populations: null
+          model: 'spike_detector'
+        ## Vp_BC P00
+        - layers: [Vp_L23_BC_P00, Vp_L4_BC_P00, Vp_L56_BC_P00, ]
+          populations: null
+          model: 'multimeter'
+        - layers: [Vp_L23_BC_P00, Vp_L4_BC_P00, Vp_L56_BC_P00, ]
+          populations: null
+          model: 'spike_detector'
+        ## Vp_MC P00
+        - layers: [Vp_L56_MC_P00, ]
+          populations: null
+          model: 'multimeter'
+        - layers: [Vp_L56_MC_P00, ]
+          populations: null
+          model: 'spike_detector'
+        ## Vp_PC P90
+        - layers: [Vp_L23_PC_P90, Vp_L4_PC_P90, Vp_L56_PC_P90, ]
+          populations: null
+          model: 'multimeter'
+        - layers: [Vp_L23_PC_P90, Vp_L4_PC_P90, Vp_L56_PC_P90, ]
+          populations: null
+          model: 'spike_detector'
+        ## Vp_BC P90
+        - layers: [Vp_L23_BC_P90, Vp_L4_BC_P90, Vp_L56_BC_P90, ]
+          populations: null
+          model: 'multimeter'
+        - layers: [Vp_L23_BC_P90, Vp_L4_BC_P90, Vp_L56_BC_P90, ]
+          populations: null
+          model: 'spike_detector'
+        ## Vp_MC P90
+        - layers: [Vp_L56_MC_P90, ]
+          populations: null
+          model: 'multimeter'
+        - layers: [Vp_L56_MC_P90, ]
+          populations: null
+          model: 'spike_detector'
+        ## Thalamus, all populations
+        - layers: [Tp_layer, Rp_layer]
+          populations: null
+          model: 'multimeter'
+        - layers: [Tp_layer, Rp_layer]
+          populations: null
+          model: 'spike_detector'
+      projection_recorders: []
+        # Specify a connecton recorder model. Projections are specified as in
+        # `projections.yml`
+        # NB: The synapse model needs to support labelling (*_lbl model)
+        # - source_layers: [input_layer]
+        #   source_population: parrot_neuron
+        #   target_layers: [l1]
+        #   target_population: l1_exc
+        #   projection_model: input_projection_AMPA
+        #   model: weight_recorder

@@ -1,0 +1,9 @@
+kernel:
+  params:
+    extension_modules: ['htneuronmodule']
+    nest_seed: 94
+  nest_params:
+    local_num_threads: 5
+    resolution: 0.2
+    print_time: True
+    overwrite_files: True
