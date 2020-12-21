@@ -1,0 +1,11 @@
+# Earlier param files take precedence over later ones if there are duplicate
+# parameters.
+- ./net/layers.yml
+- ./net/synapse_models.yml
+- ./net/neuron_models.yml
+- ./net/projections.yml
+- ./net/projection_models.yml
+- ./sim/recorders.yml
+- ./sim/sessions.yml
+- ./sim/kernel_params.yml
+- ./sim/simulation_params.yml

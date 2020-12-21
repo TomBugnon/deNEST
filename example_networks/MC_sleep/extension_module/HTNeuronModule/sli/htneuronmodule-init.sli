@@ -1,0 +1,10 @@
+/*
+ *  mymodule-init.sli
+ */
+
+/*
+ * Initialization file for MyModule.
+ * Run automatically when MyModule is loaded.
+ */
+
+M_DEBUG (htneuronmodule.sli) (Initializing SLI support for ht_neuron Module.) message

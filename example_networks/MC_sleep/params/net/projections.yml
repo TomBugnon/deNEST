@@ -1,0 +1,634 @@
+network:
+  topology:
+    params:
+      projections:
+
+        ### Recognized fields:
+        # - 'source_layers' (list[str]): mandatory
+        # - 'target_layers' (list[str]): mandatory
+        # - 'source_population' (str or None):
+        #       All populations of source layers if no key 
+        # - 'target_population' (str or None):
+        #       All populations of target layers if no key
+
+
+        ####################################
+        ######### Input to network #########
+        ####################################
+
+        ### Background cortical:
+        ## to Vp and Vs, L23 and L56, PC and BC, and L4 PC and BC
+        # To Vp L23 PC (AMPA + NMDA) and BC (AMPA)
+        - source_layers: [Cortical_background_layer_AMPA_to_cortex,]
+          source_population: poisson_nrn_to_cortex_L23
+          target_layers: [Vp_L23_PC_P00, Vp_L23_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: cortical_background_AMPA_to_PC
+        - source_layers: [Cortical_background_layer_NMDA_to_cortex,]
+          source_population: poisson_nrn_to_cortex_L23
+          target_layers: [Vp_L23_PC_P00, Vp_L23_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: cortical_background_NMDA_to_PC
+        - source_layers: [Cortical_background_layer_AMPA_to_cortex,]
+          source_population: poisson_nrn_to_cortex_L23
+          target_layers: [Vp_L23_BC_P00, Vp_L23_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: cortical_background_AMPA_to_BC
+        # To Vp L4 PC (AMPA + NMDA) and BC (AMPA)
+        - source_layers: [Cortical_background_layer_AMPA_to_cortex,]
+          source_population: poisson_nrn_to_cortex_L4
+          target_layers: [Vp_L4_PC_P00, Vp_L4_PC_P90,]
+          target_population: Vp_PC
+          projection_model: cortical_background_AMPA_to_PC
+        - source_layers: [Cortical_background_layer_NMDA_to_cortex,]
+          source_population: poisson_nrn_to_cortex_L4
+          target_layers: [Vp_L4_PC_P00, Vp_L4_PC_P90,]
+          target_population: Vp_PC
+          projection_model: cortical_background_NMDA_to_PC
+        - source_layers: [Cortical_background_layer_AMPA_to_cortex,]
+          source_population: poisson_nrn_to_cortex_L4
+          target_layers: [Vp_L4_BC_P00, Vp_L4_BC_P90,]
+          target_population: Vp_BC
+          projection_model: cortical_background_AMPA_to_BC
+        # To Vp L56 PC (AMPA + NMDA) and BC (AMPA)
+        - source_layers: [Cortical_background_layer_AMPA_to_cortex,]
+          source_population: poisson_nrn_to_cortex_L56
+          target_layers: [Vp_L56_PC_P00, Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: cortical_background_AMPA_to_PC
+        - source_layers: [Cortical_background_layer_NMDA_to_cortex,]
+          source_population: poisson_nrn_to_cortex_L56
+          target_layers: [Vp_L56_PC_P00, Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: cortical_background_NMDA_to_PC
+        - source_layers: [Cortical_background_layer_AMPA_to_cortex,]
+          source_population: poisson_nrn_to_cortex_L56
+          target_layers: [Vp_L56_BC_P00, Vp_L56_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: cortical_background_AMPA_to_BC
+
+
+        ### Retina to thalamus
+        # retina to Tp_exc and Tp_inh
+        - source_layers: [Retina_layer]
+          source_population: parrot_neuron
+          target_layers: [Tp_layer]
+          target_population: Tp_exc
+          projection_model: retinothalamic_to_exc_Tp
+        - source_layers: [Retina_layer]
+          source_population: parrot_neuron
+          target_layers: [Tp_layer]
+          target_population: Tp_inh
+          projection_model: retinothalamic_to_inh_Tp
+
+
+        ####################################
+        ######### Intra-thalamic #########
+        ####################################
+
+        ### Reticulo-reticular
+        ## Reticulo-reticular: Rp to Rp
+        - source_layers: [Rp_layer]
+          source_population: Rp_inh
+          target_layers: [Rp_layer]
+          target_population: Rp_inh
+          projection_model: Rp_to_Rp
+
+        ### Reticulo-thalamic
+        ## Reticulo-thalamic primary : Rp to Tp exc and inh, GABA_A and GABA_B
+        - source_layers: [Rp_layer]
+          source_population: Rp_inh
+          target_layers: [Tp_layer]
+          target_population: null
+          projection_model: Rp_to_Tp_GABA_A
+        - source_layers: [Rp_layer]
+          source_population: Rp_inh
+          target_layers: [Tp_layer]
+          target_population: null
+          projection_model: Rp_to_Tp_GABA_B
+
+        ### Thalamo-reticular
+        ## Thalamo-reticular primary: Tp_exc to Rp_inh, AMPA
+        - source_layers: [Tp_layer]
+          source_population: Tp_exc
+          target_layers: [Rp_layer]
+          target_population: Rp_inh
+          projection_model: Tp_to_Rp
+
+        ### Thalamo-thalamic
+        ## Thalamo-thalamic primary: Tp_inh to Tp_exc and Tp_inh, GABA_A
+        - source_layers: [Tp_layer]
+          source_population: Tp_inh
+          target_layers: [Tp_layer]
+          target_population: null
+          projection_model: Tp_inh_to_Tp
+
+
+        ####################################
+        ######### Thalamo-cortical #########
+        ####################################
+
+        ### primary rectangular : Tp to Vp L4 and L56 exc, rectangular
+        - source_layers: [Tp_layer]
+          source_population: Tp_exc
+          target_layers: [Vp_L4_PC_P00]
+          target_population: Vp_PC
+          projection_model: Tp_to_Vp_P00_L4
+        - source_layers: [Tp_layer]
+          source_population: Tp_exc
+          target_layers: [Vp_L4_PC_P90]
+          target_population: Vp_PC
+          projection_model: Tp_to_Vp_P90_L4
+        - source_layers: [Tp_layer]
+          source_population: Tp_exc
+          target_layers: [Vp_L56_PC_P00]
+          target_population: Vp_PC
+          projection_model: Tp_to_Vp_P00_L56
+        - source_layers: [Tp_layer]
+          source_population: Tp_exc
+          target_layers: [Vp_L56_PC_P90]
+          target_population: Vp_PC
+          projection_model: Tp_to_Vp_P90_L56
+
+        ### primary diffuse: Tp to Vs L4 and L56 inh, diffuse
+        - source_layers: [Tp_layer]
+          source_population: Tp_exc
+          target_layers: [Vp_L4_BC_P00, Vp_L4_BC_P90, Vp_L56_BC_P00, Vp_L56_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: Tp_Vp_diffuse
+
+
+        ####################################
+        ######### Cortico-thalamic #########
+        ####################################
+
+        ### Primary:
+        ## Vp to Tp
+        - source_layers: [Vp_L56_PC_P00, Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Tp_layer]
+          target_population: null
+          projection_model: Vp_to_Tp
+        ## Vp to Rp
+        - source_layers: [Vp_L56_PC_P00, Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Rp_layer]
+          target_population: null
+          projection_model: Vp_to_Rp
+
+
+        ####################################
+        ######### Cortico-cortical primary #
+        ####################################
+
+        ### GABA_A intralaminar
+        ## L23
+        ## same
+        # P00 to P00, BC to PC and BC
+        - source_layers: [Vp_L23_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L23_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_same
+        - source_layers: [Vp_L23_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L23_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_same
+        # P90 to P90, BC to PC and BC
+        - source_layers: [Vp_L23_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L23_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_same
+        - source_layers: [Vp_L23_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L23_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_same
+        ## diff
+        # P00 to P90, BC to PC and BC
+        - source_layers: [Vp_L23_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L23_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_diff
+        - source_layers: [Vp_L23_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L23_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_diff
+        # P90 to P00, BC to PC and BC
+        - source_layers: [Vp_L23_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L23_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_diff
+        - source_layers: [Vp_L23_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L23_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_diff
+        ## L4
+        ## same
+        # P00 to P00, BC to PC and BC
+        - source_layers: [Vp_L4_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L4_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_same
+        - source_layers: [Vp_L4_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L4_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_same
+        # P90 to P90, BC to PC and BC
+        - source_layers: [Vp_L4_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L4_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_same
+        - source_layers: [Vp_L4_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L4_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_same
+        ## diff
+        # P00 to P90, BC to PC and BC
+        - source_layers: [Vp_L4_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L4_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_diff
+        - source_layers: [Vp_L4_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L4_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_diff
+        # P90 to P00, BC to PC and BC
+        - source_layers: [Vp_L4_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L4_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_diff
+        - source_layers: [Vp_L4_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L4_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_diff
+        ## L56
+        ## same
+        # P00 to P00, BC to PC and BC
+        - source_layers: [Vp_L56_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L56_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_same
+        - source_layers: [Vp_L56_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L56_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_same
+        # P90 to P90, BC to PC and BC
+        - source_layers: [Vp_L56_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_same
+        - source_layers: [Vp_L56_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L56_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_same
+        ## diff
+        # P00 to P90, BC to PC and BC
+        - source_layers: [Vp_L56_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_diff
+        - source_layers: [Vp_L56_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L56_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_diff
+        # P90 to P00, BC to PC and BC
+        - source_layers: [Vp_L56_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L56_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_PC_diff
+        - source_layers: [Vp_L56_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L56_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_GABA_A_Vp_BC_to_BC_diff
+
+        ### Intralaminar NMDA
+        # L23 PC to L23 PC, NMDA, same orientation
+        - source_layers: [Vp_L23_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_NMDA_Vp_PC_to_PC_same
+        - source_layers: [Vp_L23_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_NMDA_Vp_PC_to_PC_same
+        # L23 PC to L23 PC, NMDA, diff orientation
+        - source_layers: [Vp_L23_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_NMDA_Vp_PC_to_PC_diff
+        - source_layers: [Vp_L23_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_NMDA_Vp_PC_to_PC_diff
+
+        ### Intralaminar AMPA
+        # L23 PC to L23 BC, AMPA, same orientation
+        - source_layers: [Vp_L23_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_PC_to_BC_same
+        - source_layers: [Vp_L23_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_PC_to_BC_same
+        # L23 PC to L23 BC, AMPA, diff orientation
+        - source_layers: [Vp_L23_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_PC_to_BC_diff
+        - source_layers: [Vp_L23_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_PC_to_BC_diff
+        # L4 PC to L4 PC and BC, AMPA, same orientation
+        - source_layers: [Vp_L4_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_AMPA_Vp_L4_PC_to_PC_same
+        - source_layers: [Vp_L4_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_L4_PC_to_BC_same
+        - source_layers: [Vp_L4_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_AMPA_Vp_L4_PC_to_PC_same
+        - source_layers: [Vp_L4_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_L4_PC_to_BC_same
+        # L4 PC to L4 PC and BC, AMPA, diff orientation
+        - source_layers: [Vp_L4_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_AMPA_Vp_L4_PC_to_PC_diff
+        - source_layers: [Vp_L4_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_L4_PC_to_BC_diff
+        - source_layers: [Vp_L4_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_AMPA_Vp_L4_PC_to_PC_diff
+        - source_layers: [Vp_L4_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_L4_PC_to_BC_diff
+        # L56 PC to L56 PC and BC, AMPA, same orientation
+        - source_layers: [Vp_L56_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_AMPA_Vp_PC_to_PC_same
+        - source_layers: [Vp_L56_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_PC_to_BC_same
+        - source_layers: [Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_AMPA_Vp_PC_to_PC_same
+        - source_layers: [Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_PC_to_BC_same
+        # L56 PC to L56 PC and BC, AMPA, diff orientation
+        - source_layers: [Vp_L56_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_AMPA_Vp_PC_to_PC_diff
+        - source_layers: [Vp_L56_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_PC_to_BC_diff
+        - source_layers: [Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: intralaminar_AMPA_Vp_PC_to_PC_diff
+        - source_layers: [Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: intralaminar_AMPA_Vp_PC_to_BC_diff
+
+        ### Interlaminar excitatory
+        ## L23 PC to L56 PC, NMDA
+        - source_layers: [Vp_L23_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_NMDA_Vp_PC_to_PC
+        - source_layers: [Vp_L23_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_NMDA_Vp_PC_to_PC
+        ## L23 PC to L56 PC and BC, AMPA
+        - source_layers: [Vp_L23_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_AMPA_Vp_L23_to_L56_PC_to_PC
+        - source_layers: [Vp_L23_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: interlaminar_AMPA_Vp_L23_to_L56_PC_to_BC
+        - source_layers: [Vp_L23_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_AMPA_Vp_L23_to_L56_PC_to_PC
+        - source_layers: [Vp_L23_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: interlaminar_AMPA_Vp_L23_to_L56_PC_to_BC
+        ## L4 PC to L23 PC and BC, AMPA
+        - source_layers: [Vp_L4_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_AMPA_Vp_PC_to_PC
+        - source_layers: [Vp_L4_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: interlaminar_AMPA_Vp_PC_to_BC
+        - source_layers: [Vp_L4_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_AMPA_Vp_PC_to_PC
+        - source_layers: [Vp_L4_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: interlaminar_AMPA_Vp_PC_to_BC
+        ## L56 PC to L23 PC and BC, AMPA
+        - source_layers: [Vp_L56_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_AMPA_Vp_PC_to_PC
+        - source_layers: [Vp_L56_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: interlaminar_AMPA_Vp_PC_to_BC
+        - source_layers: [Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_AMPA_Vp_PC_to_PC
+        - source_layers: [Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: interlaminar_AMPA_Vp_PC_to_BC
+        ## L56 PC to L4 PC and BC, AMPA
+        - source_layers: [Vp_L56_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_AMPA_Vp_PC_to_PC
+        - source_layers: [Vp_L56_PC_P00, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_BC_P00, ]
+          target_population: Vp_BC
+          projection_model: interlaminar_AMPA_Vp_PC_to_BC
+        - source_layers: [Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_AMPA_Vp_PC_to_PC
+        - source_layers: [Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L4_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: interlaminar_AMPA_Vp_PC_to_BC
+
+        ### Interlaminar GABA_B
+        ## L23 BC to L23, L4, L56 PC
+        - source_layers: [Vp_L23_BC_P00, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L23_PC_P00, Vp_L4_PC_P00, Vp_L56_PC_P00, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_GABA_B
+        - source_layers: [Vp_L23_BC_P90, ]
+          source_population: Vp_BC
+          target_layers: [Vp_L23_PC_P90, Vp_L4_PC_P90, Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: interlaminar_GABA_B
+
+        ### All to MC
+        # PC -> MC, same
+        - source_layers: [Vp_L23_PC_P00, Vp_L4_PC_P00, Vp_L56_PC_P00]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_MC_P00, ]
+          target_population: Vp_MC
+          projection_model: Vp_PC_to_MC_same
+        - source_layers: [Vp_L23_PC_P90, Vp_L4_PC_P90, Vp_L56_PC_P90]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_MC_P90, ]
+          target_population: Vp_MC
+          projection_model: Vp_PC_to_MC_same
+        # PC -> MC, diff
+        - source_layers: [Vp_L23_PC_P00, Vp_L4_PC_P00, Vp_L56_PC_P00]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_MC_P90, ]
+          target_population: Vp_MC
+          projection_model: Vp_PC_to_MC_diff
+        - source_layers: [Vp_L23_PC_P90, Vp_L4_PC_P90, Vp_L56_PC_P90]
+          source_population: Vp_PC
+          target_layers: [Vp_L56_MC_P00, ]
+          target_population: Vp_MC
+          projection_model: Vp_PC_to_MC_diff
+        # BC -> MC
+        - source_layers: [Vp_L23_BC_P00, Vp_L23_BC_P90, Vp_L4_BC_P00, Vp_L4_BC_P90, Vp_L56_BC_P00, Vp_L56_BC_P90]
+          source_population: Vp_BC
+          target_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+          target_population: Vp_MC
+          projection_model: Vp_BC_to_MC
+
+        ## MC to all
+        # MC -> PC, GABA_A and GABA_B. TODO: Same targets for GABA_A and GABA_B
+        - source_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+          source_population: Vp_MC
+          target_layers: [Vp_L23_PC_P00, Vp_L23_PC_P90, Vp_L4_PC_P00, Vp_L4_PC_P90, Vp_L56_PC_P00, Vp_L56_PC_P90]
+          target_population: Vp_PC
+          projection_model: Vp_MC_to_PC_GABA_A
+        - source_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+          source_population: Vp_MC
+          target_layers: [Vp_L23_PC_P00, Vp_L23_PC_P90, Vp_L4_PC_P00, Vp_L4_PC_P90, Vp_L56_PC_P00, Vp_L56_PC_P90]
+          target_population: Vp_PC
+          projection_model: Vp_MC_to_PC_GABA_B1a
+        # MC -> BC, GABA_A and GABA_B. TODO: Same targets for GABA_A and GABA_B
+        - source_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+          source_population: Vp_MC
+          target_layers: [Vp_L23_BC_P00, Vp_L23_BC_P90, Vp_L4_BC_P00, Vp_L4_BC_P90, Vp_L56_BC_P00, Vp_L56_BC_P90]
+          target_population: Vp_BC
+          projection_model: Vp_MC_to_BC_GABA_A
+        - source_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+          source_population: Vp_MC
+          target_layers: [Vp_L23_BC_P00, Vp_L23_BC_P90, Vp_L4_BC_P00, Vp_L4_BC_P90, Vp_L56_BC_P00, Vp_L56_BC_P90]
+          target_population: Vp_BC
+          projection_model: Vp_MC_to_BC_GABA_B1a
+
+
+        ## MC to MC gap junction
+        - source_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+          source_population: Vp_MC
+          target_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+          target_population: Vp_MC
+          projection_model: MC_gap_dummy
+        - source_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+          source_population: Vp_MC
+          target_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+          target_population: Vp_MC
+          projection_model: MC_gap

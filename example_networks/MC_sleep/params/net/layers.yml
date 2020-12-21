@@ -1,0 +1,92 @@
+network:
+  layers:
+    params:
+      type: null
+    nest_params:
+      edge_wrap: true
+      extent: [40.0, 40.0]
+      rows: 'mandatory'
+      columns: 'mandatory'
+    # Primary cortical
+    Vp:
+      params: {}
+      nest_params: {}
+      # PC units
+      Vp_PC:
+        params:
+          populations:
+            Vp_PC: 1
+        nest_params:
+          rows: 56
+          columns: 56
+        Vp_L23_PC_P00:
+        Vp_L23_PC_P90:
+        Vp_L4_PC_P00:
+        Vp_L4_PC_P90:
+        Vp_L56_PC_P00:
+        Vp_L56_PC_P90:
+      Vp_BC:
+        params:
+          populations:
+            Vp_BC: 1
+        nest_params:
+          rows: 25
+          columns: 25
+        Vp_L23_BC_P00:
+        Vp_L23_BC_P90:
+        Vp_L4_BC_P00:
+        Vp_L4_BC_P90:
+        Vp_L56_BC_P00:
+        Vp_L56_BC_P90:
+      Vp_L56_MC:
+        params:
+          populations:
+            Vp_MC: 1
+        nest_params:
+          rows: 25
+          columns: 25
+        Vp_L56_MC_P00:
+        Vp_L56_MC_P90:
+    # subcortical
+    subcortical:
+      params: {}
+      nest_params:
+        rows: 40
+        columns: 40
+      Tp_layer:
+        params:
+          populations:
+            Tp_exc: 1
+            Tp_inh: 1
+      Rp_layer:
+        params:
+          populations:
+            Rp_inh: 1
+    # Input layer
+    Retina_layer:
+      params:
+        type: 'InputLayer'
+        add_parrots: True
+        populations:
+          retina_nrn: 1
+      nest_params:
+        rows: 40
+        columns: 40
+    # Background (cortico-cortical) noise
+    Cortical_background_layers:
+      params: {}
+      nest_params:
+        rows: 1
+        columns: 1
+      Cortical_background_layer_AMPA_to_cortex:
+        params:
+          populations:
+            poisson_nrn_to_cortex_L23: 1
+            poisson_nrn_to_cortex_L4: 1
+            poisson_nrn_to_cortex_L56: 1
+      Cortical_background_layer_NMDA_to_cortex:
+        params:
+          populations:
+            poisson_nrn_to_cortex_L23: 1
+            poisson_nrn_to_cortex_L4: 1
+            poisson_nrn_to_cortex_L56: 1

@@ -1,0 +1,5 @@
+simulation:
+  params:
+    sessions: ['warmup', 'noise', 'grating', 'sleep_transition', 'sleep']
+    output_dir: output
+    input_dir: './params/input'

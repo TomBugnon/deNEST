@@ -1,0 +1,132 @@
+network:
+  populations:
+    params:
+      recorders: {}
+    # Input areas
+    input_areas:
+      params: {}
+      Retina_layer:
+        params:
+          layer: Retina_layer
+        parrot_neuron:
+    ### Primary cortical
+    primary_cortical:
+      params:
+        recorders: {}
+      # Primary cortical
+      Vp:
+        Vp_L23_PC_P00:
+          params:
+            layer: Vp_L23_PC_P00
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_PC:
+        Vp_L23_BC_P00:
+          params:
+            layer: Vp_L23_BC_P00
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_BC:
+        Vp_L23_PC_P90:
+          params:
+            layer: Vp_L23_PC_P90
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_PC:
+        Vp_L23_BC_P90:
+          params:
+            layer: Vp_L23_BC_P90
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_BC:
+        Vp_L4_PC_P00:
+          params:
+            layer: Vp_L4_PC_P00
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_PC:
+        Vp_L4_BC_P00:
+          params:
+            layer: Vp_L4_BC_P00
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_BC:
+        Vp_L4_PC_P90:
+          params:
+            layer: Vp_L4_PC_P90
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_PC:
+        Vp_L4_BC_P90:
+          params:
+            layer: Vp_L4_BC_P90
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_BC:
+        Vp_L56_PC_P00:
+          params:
+            layer: Vp_L56_PC_P00
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_PC:
+        Vp_L56_BC_P00:
+          params:
+            layer: Vp_L56_BC_P00
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_BC:
+        Vp_L56_PC_P90:
+          params:
+            layer: Vp_L56_PC_P90
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_PC:
+        Vp_L56_BC_P90:
+          params:
+            layer: Vp_L56_BC_P90
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_BC:
+        Vp_L56_MC_P00:
+          params:
+            layer: Vp_L56_MC_P00
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_MC:
+        Vp_L56_MC_P90:
+          params:
+            layer: Vp_L56_MC_P90
+            recorders:
+              multimeter: {}
+              spike_detector: {}
+          Vp_MC:
+    ### Primary thalamic
+    primary_thalamic_reticular:
+      params:
+        recorders:
+          multimeter: {}
+          spike_detector: {}
+      # Primary thalamic
+      Tp_layer:
+        params:
+          layer: Tp_layer
+        Tp_exc:
+        Tp_inh:
+      # Primary reticular
+      Rp_layer:
+        params:
+          layer: Rp_layer
+        Rp_inh:
