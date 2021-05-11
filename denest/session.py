@@ -18,6 +18,72 @@ from .utils.validation import ParameterError
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
+class HangingSimulationError(Exception):
+    def __init__(self, hanging_time):
+        self.hanging_time = hanging_time
+        self.message = f"Simulation froze at {hanging_time}ms"
+        super().__init__(self.message)
+
+def nest_run(sim_time):
+    import nest, time
+    t = time.time()
+    nest.Run(sim_time)
+    return time.time() - t
+
+def simulate_in_steps(simulation_time):
+    """Simulate in steps and catch hanging simulations."""
+    import nest
+    step = 10 # (virtual time)
+    ministep = nest.GetKernelStatus('resolution')
+    N_break = 3
+    split_t = 1 # (real time) (s) Run next chunk in mini steps if previous took longer
+    soft_break_t = 0.3 # (real time) (s) break if `N_break` consecutive mini-steps takes longer
+    hard_break_t = 1 # (real time) (s) break if any mini-step takes longer
+    total_sim_time = 0
+    kernel_time = nest.GetKernelStatus('time')
+    run_ministeps = False
+    with nest.RunManager():
+        while total_sim_time < simulation_time:
+            next_step_t = min(step, simulation_time - total_sim_time)
+            if not run_ministeps:
+                step_real_t = nest_run(next_step_t)
+                total_sim_time += next_step_t
+                print(step_real_t)
+                if step_real_t > split_t:
+                    run_ministeps = True
+                    print(f"Step took {step_real_t}, split next")
+            else:
+                # Run next {step}ms in ministeps
+                # Break if 3 consecutive ministeps last too long
+                # continue running in ministeps if any ministep lasts too long
+                consecutive_count = 0
+                total_count = 0
+                total_ministep_t = 0
+                print(f"Running next {step}ms in ministeps")
+                for _ in range(int(step/ministep)):
+                    if simulation_time == total_sim_time:
+                        break
+                    next_ministep_t = min(ministep, simulation_time - total_sim_time)
+                    t = nest_run(next_ministep_t)
+                    print(t)
+                    total_sim_time += next_ministep_t
+                    total_ministep_t += t
+                    if t > soft_break_t:
+                        print(f'ministep took {t}')
+                        total_count += 1
+                        consecutive_count += 1
+                    else:
+                        consecutive_count = 0
+                    if t > hard_break_t or consecutive_count >= N_break:
+                        raise HangingSimulationError(nest.GetKernelStatus('time'))
+                if total_count > 0 or total_ministep_t > split_t:
+                    print(f'Rerun ministeps: {consecutive_count}, {total_ministep_t}')
+                    run_ministeps = True
+                else:
+                    run_ministeps = False
+    assert nest.GetKernelStatus('time') - kernel_time == simulation_time
+
+
 class Session(ParamObject):
     """Represents a sequence of stimuli.
 
@@ -213,7 +279,8 @@ class Session(ParamObject):
         log.info("Finished initializing session\n")
         log.info("Running session '%s' for %s ms", self.name, self.simulation_time)
         start_real_time = time.time()
-        nest.Simulate(self.simulation_time)
+        # nest.Simulate(self.simulation_time)
+        simulate_in_steps(self.simulation_time)
         log.info("Finished running session")
         log.info(
             "Session '%s' virtual running time: %s ms", self.name, self.simulation_time
