@@ -1,5 +1,5 @@
 /*
- *  ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike.cpp
+ *  ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR.cpp
  *
  *  This file is part of NEST.
  *
@@ -20,7 +20,7 @@
  *
  */
 
-#include "ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike.h"
+#include "ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR.h"
 
 #ifdef HAVE_GSL
 
@@ -37,8 +37,8 @@ using namespace nest;
  * Recordables map
  * ---------------------------------------------------------------- */
 
-nest::RecordablesMap< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike >
-  mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::recordablesMap_;
+nest::RecordablesMap< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR >
+  mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::recordablesMap_;
 
 namespace nest
 {
@@ -46,27 +46,29 @@ namespace nest
 // for each quantity to be recorded.
 template <>
 void
-RecordablesMap< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike >::create()
+RecordablesMap< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR >::create()
 {
-  insert_( names::V_m, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::V_M > );
-  insert_( names::theta, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::THETA > );
+  insert_( names::V_m, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::V_M > );
+  insert_( names::theta, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::THETA > );
   insert_(
-    names::g_AMPA, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::G_AMPA > );
-  insert_( names::g_NMDA, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_g_NMDA_ );
+    names::g_AMPA, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::G_AMPA > );
+  insert_( names::g_NMDA, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_g_NMDA_ );
   insert_(
-    names::g_GABA_A, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::G_GABA_A > );
+    names::g_GABA_A, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::G_GABA_A > );
   insert_(
-    names::g_GABA_B, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::G_GABA_B > );
+    names::g_GABA_B, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::G_GABA_B > );
   insert_(
-      "g_GABA_B1a", &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_g_GABA_B1a );
+    "g_mGluR", &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_y_elem_< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::G_mGluR > );
   insert_(
-      "x_GABA_B1a", &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_x_GABA_B1a ); // Returns AMPA
-  insert_( names::I_NaP, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_I_NaP_ );
-  insert_( names::I_KNa, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_I_KNa_ );
-  insert_( names::I_T, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_I_T_ );
-  insert_( names::I_h, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_I_h_ );
+      "g_GABA_B1a", &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_g_GABA_B1a );
   insert_(
-      "I_gap", &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_I_gap_ );
+      "x_GABA_B1a", &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_x_GABA_B1a ); // Returns AMPA
+  insert_( names::I_NaP, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_I_NaP_ );
+  insert_( names::I_KNa, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_I_KNa_ );
+  insert_( names::I_T, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_I_T_ );
+  insert_( names::I_h, &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_I_h_ );
+  insert_(
+      "I_gap", &mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_I_gap_ );
 }
 }
 
@@ -75,17 +77,17 @@ RecordablesMap< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike >::creat
  * ---------------------------------------------------------------- */
 
 extern "C" inline int
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_dynamics( double time,
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR_dynamics( double time,
     const double y[],
     double f[],
     void* pnode )
 {
   // shorthand
-  typedef mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_ S;
+  typedef mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_ S;
 
   // get access to node so we can almost work as in a member class
   assert( pnode );
-  mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike& node = *( reinterpret_cast< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike* >( pnode ) );
+  mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR& node = *( reinterpret_cast< mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR* >( pnode ) );
 
   // easier access to membrane potential, clamp if requested
   const double& V = node.P_.voltage_clamp ? node.V_.V_clamp_ : y[ S::V_M ];
@@ -112,7 +114,8 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_dynamics( double time,
   const double I_syn = -y[ S::G_AMPA ] * ( V - node.P_.E_rev_AMPA )
     - y[ S::G_NMDA_TIMECOURSE ] * m_NMDA * ( V - node.P_.E_rev_NMDA )
     - y[ S::G_GABA_A ] * ( V - node.P_.E_rev_GABA_A )
-    - y[ S::G_GABA_B ] * ( V - node.P_.E_rev_GABA_B );
+    - y[ S::G_GABA_B ] * ( V - node.P_.E_rev_GABA_B )
+    - y[ S::G_mGluR ] * ( V - node.P_.E_rev_mGluR );
 
   // The post-spike K-current, only while refractory
   const double I_spike =
@@ -212,6 +215,11 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_dynamics( double time,
   f[ S::G_GABA_B ] =
     y[ S::DG_GABA_B ] - y[ S::G_GABA_B ] / node.P_.tau_decay_GABA_B;
 
+  // mGluR
+  f[ S::DG_mGluR ] = -y[ S::DG_mGluR ] / node.P_.tau_rise_mGluR;
+  f[ S::G_mGluR ] =
+    y[ S::DG_mGluR ] - y[ S::G_mGluR ] / node.P_.tau_decay_mGluR;
+
   // GABA_B1a
   // We model GABA_B1a  as a pre-synaptic removal of excitation. Since we cannot
   // model the GABA_B conductances on the synapses, we model them on the neuron
@@ -245,26 +253,26 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_dynamics( double time,
 }
 
 inline double
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::m_eq_h_( double V ) const
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::m_eq_h_( double V ) const
 {
   const double I_h_Vthreshold = -75.0;
   return 1.0 / ( 1.0 + std::exp( ( V - I_h_Vthreshold ) / 5.5 ) );
 }
 
 inline double
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::h_eq_T_( double V ) const
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::h_eq_T_( double V ) const
 {
   return 1.0 / ( 1.0 + std::exp( ( V + 83.0 ) / 4 ) );
 }
 
 inline double
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::m_eq_T_( double V ) const
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::m_eq_T_( double V ) const
 {
   return 1.0 / ( 1.0 + std::exp( -( V + 59.0 ) / 6.2 ) );
 }
 
 inline double
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::D_eq_KNa_( double V ) const
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::D_eq_KNa_( double V ) const
 {
   const double D_influx_peak = 0.025;
   const double D_thresh = -10.0;
@@ -277,13 +285,13 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::D_eq_KNa_( double V ) c
 }
 
 inline double
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::m_eq_NMDA_( double V ) const
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::m_eq_NMDA_( double V ) const
 {
   return 1.0 / ( 1.0 + std::exp( -P_.S_act_NMDA * ( V - P_.V_act_NMDA ) ) );
 }
 
 inline double
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::m_NMDA_( double V,
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::m_NMDA_( double V,
   double m_eq,
   double m_fast,
   double m_slow ) const
@@ -294,7 +302,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::m_NMDA_( double V,
 }
 
 inline double
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_g_NMDA_() const
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_g_NMDA_() const
 {
   return S_.y_[ State_::G_NMDA_TIMECOURSE ]
     * m_NMDA_( S_.y_[ State_::V_M ],
@@ -304,7 +312,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_g_NMDA_() const
 }
 
 inline double
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_x_GABA_B1a( int i_receptor ) const {
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_x_GABA_B1a( int i_receptor ) const {
   return std::max(
     0.0,
     std::min(
@@ -318,7 +326,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_x_GABA_B1a( int i_r
  * Default constructors defining default parameters and state
  * ---------------------------------------------------------------- */
 
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Parameters_::Parameters_()
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::Parameters_::Parameters_()
   : E_Na( 30.0 ) // mV
   , E_K( -90.0 ) // mV
   , g_NaL( 0.2 )
@@ -349,6 +357,10 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Parameters_::Parameters
   , tau_rise_GABA_B( 60.0 )   // ms
   , tau_decay_GABA_B( 200.0 ) // ms
   , E_rev_GABA_B( -90.0 )     // mV
+  , g_peak_mGluR( 0.0132 )
+  , tau_rise_mGluR( 60.0 )   // ms
+  , tau_decay_mGluR( 200.0 ) // ms
+  , E_rev_mGluR( -90.0 )     // mV
   , xmax_GABA_B1a( 1.0 )   // (1)
   , g_peak_GABA_B1a( 0.0 )     // (nS)
   , g_max_GABA_B1a( 1.0 )
@@ -371,7 +383,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Parameters_::Parameters
 {
 }
 
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::State_( const ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike& node, const Parameters_& p )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::State_( const ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR& node, const Parameters_& p )
   : ref_steps_( 0 )
   , I_NaP_( 0.0 )
   , I_KNa_( 0.0 )
@@ -395,7 +407,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::State_( const h
   y_[ h_IT ] = node.h_eq_T_( y_[ V_M ] );
 }
 
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::State_( const State_& s )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::State_( const State_& s )
   : ref_steps_( s.ref_steps_ )
   , I_NaP_( s.I_NaP_ )
   , I_KNa_( s.I_KNa_ )
@@ -408,7 +420,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::State_( const S
   }
 }
 
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_& mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::operator=( const State_& s )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_& mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::operator=( const State_& s )
 {
   if ( this == &s )
   {
@@ -429,7 +441,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_& mynest::ht_neur
   return *this;
 }
 
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::~State_()
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::~State_()
 {
 }
 
@@ -438,7 +450,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::~State_()
  * ---------------------------------------------------------------- */
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Parameters_::get( DictionaryDatum& d ) const
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::Parameters_::get( DictionaryDatum& d ) const
 {
   def< double >( d, names::E_Na, E_Na );
   def< double >( d, names::E_K, E_K );
@@ -470,6 +482,10 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Parameters_::get( Dicti
   def< double >( d, names::tau_rise_GABA_B, tau_rise_GABA_B );
   def< double >( d, names::tau_decay_GABA_B, tau_decay_GABA_B );
   def< double >( d, names::E_rev_GABA_B, E_rev_GABA_B );
+  def< double >( d, "g_peak_mGluR", g_peak_mGluR );
+  def< double >( d, "tau_rise_mGluR", tau_rise_mGluR );
+  def< double >( d, "tau_decay_mGluR", tau_decay_mGluR );
+  def< double >( d, "E_rev_mGluR", E_rev_mGluR );
   def< double >( d, "xmax_GABA_B1a", xmax_GABA_B1a );
   def< double >( d, "g_peak_GABA_B1a", g_peak_GABA_B1a );
   def< double >( d, "g_max_GABA_B1a", g_max_GABA_B1a );
@@ -496,7 +512,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Parameters_::get( Dicti
 }
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Parameters_::set( const DictionaryDatum& d )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::Parameters_::set( const DictionaryDatum& d )
 {
   updateValue< double >( d, names::E_Na, E_Na );
   updateValue< double >( d, names::E_K, E_K );
@@ -528,6 +544,10 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Parameters_::set( const
   updateValue< double >( d, names::tau_rise_GABA_B, tau_rise_GABA_B );
   updateValue< double >( d, names::tau_decay_GABA_B, tau_decay_GABA_B );
   updateValue< double >( d, names::E_rev_GABA_B, E_rev_GABA_B );
+  updateValue< double >( d, "g_peak_mGluR", g_peak_mGluR );
+  updateValue< double >( d, "tau_rise_mGluR", tau_rise_mGluR );
+  updateValue< double >( d, "tau_decay_mGluR", tau_decay_mGluR );
+  updateValue< double >( d, "E_rev_mGluR", E_rev_mGluR );
   updateValue< double >( d, "xmax_GABA_B1a", xmax_GABA_B1a );
   updateValue< double >( d, "g_peak_GABA_B1a", g_peak_GABA_B1a );
   updateValue< double >( d, "g_max_GABA_B1a", g_max_GABA_B1a );
@@ -585,6 +605,10 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Parameters_::set( const
   {
     throw BadParameter( "g_peak_GABA_B >= 0 required." );
   }
+  // if ( g_peak_mGluR < 0 )
+  // {
+  //   throw BadParameter( "g_peak_mGluR >= 0 required." );
+  // }
   if ( g_peak_GABA_B1a < 0 )
   {
     throw BadParameter( "g_peak_GABA_B1a >= 0 required." );
@@ -732,14 +756,14 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Parameters_::set( const
 }
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::get( DictionaryDatum& d ) const
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::get( DictionaryDatum& d ) const
 {
   def< double >( d, names::V_m, y_[ V_M ] );     // Membrane potential
   def< double >( d, names::theta, y_[ THETA ] ); // Threshold
 }
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::set( const DictionaryDatum& d, const ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike& node )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::State_::set( const DictionaryDatum& d, const ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR& node )
 {
   updateValue< double >( d, names::V_m, y_[ V_M ] );
   updateValue< double >( d, names::theta, y_[ THETA ] );
@@ -757,7 +781,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::State_::set( const Dict
   }
 }
 
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Buffers_::Buffers_( ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike& n )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::Buffers_::Buffers_( ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR& n )
   : logger_( n )
   , spike_inputs_( std::vector< RingBuffer >( SUP_SPIKE_RECEPTOR - 1 ) )
   , s_( 0 )
@@ -769,7 +793,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Buffers_::Buffers_( ht_
 {
 }
 
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Buffers_::Buffers_( const Buffers_&, ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike& n )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::Buffers_::Buffers_( const Buffers_&, ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR& n )
   : logger_( n )
   , spike_inputs_( std::vector< RingBuffer >( SUP_SPIKE_RECEPTOR - 1 ) )
   , s_( 0 )
@@ -785,7 +809,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::Buffers_::Buffers_( con
  * Default and copy constructor for node, and destructor
  * ---------------------------------------------------------------- */
 
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike()
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR()
   : Archiving_Node()
   , P_()
   , S_( *this, P_ )
@@ -794,7 +818,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::ht_neuron_minis_GABA_B1
   recordablesMap_.create();
 }
 
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike( const ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike& n )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR( const ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR& n )
   : Archiving_Node( n )
   , P_( n.P_ )
   , S_( n.S_ )
@@ -802,7 +826,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::ht_neuron_minis_GABA_B1
 {
 }
 
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::~ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike()
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::~ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR()
 {
   // GSL structs may not be initialized, so we need to protect destruction.
   if ( B_.e_ )
@@ -824,14 +848,14 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::~ht_neuron_minis_GABA_B
  * ---------------------------------------------------------------- */
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::init_state_( const Node& proto )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::init_state_( const Node& proto )
 {
-  const ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike& pr = downcast< ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike >( proto );
+  const ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR& pr = downcast< ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR >( proto );
   S_ = pr.S_;
 }
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::init_buffers_()
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::init_buffers_()
 {
   // Reset spike buffers.
   for ( std::vector< RingBuffer >::iterator it = B_.spike_inputs_.begin();
@@ -898,7 +922,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::init_buffers_()
     gsl_odeiv_evolve_reset( B_.e_ );
   }
 
-  B_.sys_.function = ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_dynamics;
+  B_.sys_.function = ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR_dynamics;
   B_.sys_.jacobian = 0;
   B_.sys_.dimension = State_::STATE_VEC_SIZE;
   B_.sys_.params = reinterpret_cast< void* >( this );
@@ -907,7 +931,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::init_buffers_()
 }
 
 double
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_synapse_constant( double tau_1,
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_synapse_constant( double tau_1,
   double tau_2,
   double g_peak )
 {
@@ -944,7 +968,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_synapse_constant( d
 }
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::calibrate()
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::calibrate()
 {
   // ensures initialization in case mm connected after Simulate
   B_.logger_.init();
@@ -964,6 +988,9 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::calibrate()
   V_.cond_steps_[ GABA_B - 1 ] = get_synapse_constant(
     P_.tau_rise_GABA_B, P_.tau_decay_GABA_B, P_.g_peak_GABA_B );
 
+  V_.cond_steps_[ mGluR - 1 ] = get_synapse_constant(
+    P_.tau_rise_mGluR, P_.tau_decay_mGluR, P_.g_peak_mGluR );
+
   V_.cond_steps_[ GABA_B1a - 1 ] = get_synapse_constant(
     P_.tau_rise_GABA_B1a, P_.tau_decay_GABA_B1a, P_.g_peak_GABA_B1a );
 
@@ -973,7 +1000,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::calibrate()
 }
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_status( DictionaryDatum& d ) const
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::get_status( DictionaryDatum& d ) const
 {
   P_.get( d );
   S_.get( d );
@@ -985,6 +1012,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_status( DictionaryD
   ( *receptor_type )[ names::NMDA ] = NMDA;
   ( *receptor_type )[ names::GABA_A ] = GABA_A;
   ( *receptor_type )[ names::GABA_B ] = GABA_B;
+  ( *receptor_type )[ "mGluR" ] = mGluR;
   ( *receptor_type )[ "GABA_B1a" ] = GABA_B1a;
   ( *receptor_type )[ "MINI" ] = MINI; //added this
 
@@ -993,7 +1021,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::get_status( DictionaryD
 }
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::set_status( const DictionaryDatum& d )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::set_status( const DictionaryDatum& d )
 {
   Parameters_ ptmp = P_; // temporary copy in case of errors
   ptmp.set( d );         // throws if BadProperty
@@ -1016,7 +1044,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::set_status( const Dicti
  * ---------------------------------------------------------------- */
 
 bool
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::update_( nest::Time const& origin,
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::update_( nest::Time const& origin,
   const long from,
   const long to,
   const bool called_from_wfr_update )
@@ -1044,7 +1072,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::update_( nest::Time con
   {
     double tt = 0.0; // it's all relative!
 
-    // B_.lag is needed by ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_dynamics to
+    // B_.lag is needed by ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR_dynamics to
     // determine the current section
     B_.lag_ = lag;
 
@@ -1054,7 +1082,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::update_( nest::Time con
       y_i = S_.y_[ State_::V_M ];
       if ( interpolation_order == 3 )
       {
-        ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_dynamics(
+        ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR_dynamics(
           0, S_.y_, f_temp, reinterpret_cast< void* >( this ) );
         hf_i = B_.step_ * f_temp[ State_::V_M ];
       }
@@ -1266,7 +1294,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::update_( nest::Time con
 
       case 3:
         y_ip1 = S_.y_[ State_::V_M ];
-        ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_dynamics(
+        ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR_dynamics(
           B_.step_, S_.y_, f_temp, reinterpret_cast< void* >( this ) );
         hf_ip1 = B_.step_ * f_temp[ State_::V_M ];
 
@@ -1312,7 +1340,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::update_( nest::Time con
 } // update_
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::handle( nest::SpikeEvent& e )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::handle( nest::SpikeEvent& e )
 {
   assert( e.get_delay_steps() > 0 );
   assert( e.get_rport() < static_cast< int >( B_.spike_inputs_.size() ) );
@@ -1323,7 +1351,7 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::handle( nest::SpikeEven
 }
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::handle( CurrentEvent& e )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::handle( CurrentEvent& e )
 {
   assert( e.get_delay_steps() > 0 );
 
@@ -1337,13 +1365,13 @@ mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::handle( CurrentEvent& e
 }
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::handle( nest::DataLoggingRequest& e )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::handle( nest::DataLoggingRequest& e )
 {
   B_.logger_.handle( e );
 }
 
 void
-mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike::handle( nest::GapJunctionEvent& e )
+mynest::ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR::handle( nest::GapJunctionEvent& e )
 {
 
   B_.sumj_g_ij_ += e.get_weight();

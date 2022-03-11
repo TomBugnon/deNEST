@@ -10,7 +10,7 @@ network:
         nest_model: multimeter
       nest_params:
         interval: 10.0 # formatting_interval = interval by default
-        record_from: ['V_m', 'g_AMPA', 'g_GABA_A', 'g_NMDA', 'I_KNa', 'I_NaP', 'g_GABA_B', 'g_GABA_B1a']
+        record_from: ['V_m', 'g_AMPA', 'g_GABA_A', 'g_NMDA', 'I_KNa', 'I_NaP', 'g_GABA_B', 'g_GABA_B1a', 'g_mGluR']
     spike_detector:
       params:
         nest_model: spike_detector

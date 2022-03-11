@@ -26,14 +26,23 @@ network:
       poisson_nrn_to_cortex_L56:
         nest_params:
           rate: 60.0
+      poisson_nrn_to_cortex_mGluR_to_PC:
+        nest_params:
+          rate: 100.0
+      poisson_nrn_to_cortex_mGluR_to_BC:
+        nest_params:
+          rate: 100.0
+      poisson_nrn_to_cortex_mGluR_to_MC:
+        nest_params:
+          rate: 0.0
 
 
     # thalamus and cortex
     cortical_thalamic:
       params:
-        nest_model: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike
+        nest_model: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR
       nest_params:
-        alpha_GABA_B1a: [1.0, 1.0, 0.0, 0.0, 0.0]
+        alpha_GABA_B1a: [1.0, 1.0, 0.0, 0.0, 1.0, 0.0]
         E_K: -90.0
         E_Na: 30.0
         E_rev_AMPA: 0.0
@@ -55,7 +64,7 @@ network:
         g_peak_h: mandatory
         g_peak_KNa: mandatory #  Modify in sleep
         g_peak_NaP: mandatory
-        g_peak_NMDA: 0.05 # (0.075 in H&T (2005) but reduced to 0.02 to get the wake state)
+        g_peak_NMDA: 0.20 # (0.075 in H&T (2005) but reduced to 0.02 to get the wake state)
         g_peak_T: mandatory
         S_act_NMDA: 0.081
         t_ref: mandatory
@@ -79,7 +88,7 @@ network:
       cortical_PC_BC:
         nest_params:
           E_rev_GABA_A: -70.0
-          g_KL: 0.7
+          g_KL: mandatory
           g_NaL: 0.2
           g_peak_AMPA: mandatory
           g_peak_GABA_A: mandatory
@@ -93,7 +102,9 @@ network:
           tau_theta: mandatory
         Vp_PC:
           nest_params:
-            g_peak_AMPA: 0.13
+            g_KL: 1.0
+            g_peak_mGluR: -0.005
+            g_peak_AMPA: 0.14
             g_peak_GABA_A: 0.165
             theta_eq: -50.0
             t_ref: 2.0
@@ -102,6 +113,8 @@ network:
             tau_theta: 2.0
         Vp_BC:
           nest_params:
+            g_KL: 0.8
+            g_peak_mGluR: -0.0025
             g_peak_AMPA: 0.11
             g_peak_GABA_A: 0.18
             g_peak_KNa: 1.0
@@ -114,10 +127,11 @@ network:
       Vp_MC:
         nest_params:
           E_rev_GABA_A: -70.0
-          g_KL: 0.28
-          g_NaL: 0.09
-          g_peak_AMPA: 0.105
+          g_KL: 0.4
+          g_NaL: 0.1
+          g_peak_AMPA: 0.1575
           g_peak_GABA_A: 0.09
+          g_peak_mGluR: 0.0
           g_peak_h: 0.0
           g_peak_KNa: 0.5
           g_peak_NaP: 0.1

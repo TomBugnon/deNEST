@@ -8,7 +8,7 @@
 #include "config.h"
 
 // include headers with your own stuff
-#include "ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike.h"
+#include "ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR.h"
 
 // Includes from nestkernel:
 #include "connection_manager_impl.h"
@@ -91,6 +91,6 @@ mynest::HTNeuronModule::init( SLIInterpreter* i )
   /* Register a neuron or device model.
      Give node type as template argument and the name as second argument.
   */
-  nest::kernel().model_manager.register_node_model< ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike >(
-    "ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike" );
+  nest::kernel().model_manager.register_node_model< ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR >(
+    "ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR" );
 } // HTNeuronModule::init()

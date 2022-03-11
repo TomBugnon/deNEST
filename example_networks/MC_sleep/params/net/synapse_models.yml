@@ -4,7 +4,7 @@ network:
 
     tsodyks2_synapse:
       params:
-        target_neuron: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike
+        target_neuron: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR
         nest_model: tsodyks2_synapse
 
       # Other (ht_synapse-like)
@@ -144,7 +144,7 @@ network:
     static_synapse:
       params:
         nest_model: static_synapse
-        target_neuron: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike
+        target_neuron: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR
       GABA_A_syn_MC_to_PC:
         params:
           receptor_type: GABA_A
@@ -190,13 +190,18 @@ network:
           receptor_type: NMDA
         # nest_params:
         #   weight (<-> Wmax): 1.0
+      cortical_background_projection_mGluR:
+        params:
+          receptor_type: mGluR
+        # nest_params:
+        #   weight (<-> Wmax): 1.0
 
 
     gap_junction_dummy_syn: # Dummy. Used only to get topological gap junctions
       params:
         nest_model: static_synapse_lbl
         receptor_type: AMPA
-        target_neuron: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike
+        target_neuron: ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR
       nest_params:
         synapse_label: 100
       # nest_params:

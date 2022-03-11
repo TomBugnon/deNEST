@@ -47,6 +47,9 @@ network:
         cortical_background_NMDA_to_PC:
           nest_params:
             synapse_model: cortical_background_projection_NMDA
+        cortical_background_mGluR:
+          nest_params:
+            synapse_model: cortical_background_projection_mGluR
 
 
       retinothalamic:
@@ -626,3 +629,40 @@ network:
         nest_params:
           model: gap_junction
           weight: 0.012
+
+    ####################################
+    # Intra-areal mGluR (ad-hoc)
+    ####################################
+
+    intraareal_mGluR_Vp:
+      params:
+        type: topological
+      nest_params:
+        synapse_model: cortical_background_projection_mGluR
+        connection_type: divergent
+        mask:
+          circular:
+            radius: 12.0
+        delays:
+          normal:
+              mean: 2.0
+              sigma: 0.25
+              min: 0.20
+      intraareal_mGluR_to_PC:
+        nest_params:
+          kernel:
+            gaussian:
+              p_center: 0.0
+              sigma: 7.0
+      intraareal_mGluR_to_BC:
+        nest_params:
+          kernel:
+            gaussian:
+              p_center: 0.0
+              sigma: 7.0
+      intraareal_mGluR_to_MC:
+        nest_params:
+          kernel:
+            gaussian:
+              p_center: 0.0
+              sigma: 7.0
