@@ -6,9 +6,24 @@ session_models:
     shift_origin: True
     synapse_changes: []
 
+  # - Wait until the tsodyks2_synapse are within ..% of their baseline
+  init_silent:
+    params:
+      simulation_time: 500.0
+      record: False
+      unit_changes:
+        # No input
+        - layers: ['Retina_layer']
+          population_name: 'retina_nrn'
+          change_type: 'constant'
+          from_array: False
+          nest_params:
+            rate: 0.0
+            amplitude: 0.0
+
   warmup:
     params:
-      simulation_time: 1000.
+      simulation_time: 2000.
       record: False
       unit_changes:
         # "noise"
@@ -22,7 +37,7 @@ session_models:
 
   noise:
     params:
-      simulation_time: 2000.0
+      simulation_time: 3000.0
       unit_changes:
         # "noise"
         - layers: ['Retina_layer']
@@ -35,7 +50,7 @@ session_models:
 
   grating:
     params:
-      simulation_time: 2000.0
+      simulation_time: 3000.0
       unit_changes:
         # "grating" vertical sinusoidal grating
         - layers: ['Retina_layer']
@@ -55,7 +70,7 @@ session_models:
 
   sleep_transition:
     params:
-      simulation_time: 2000.0
+      simulation_time: 3000.0
       record: False
       unit_changes:
         # "noise"
@@ -67,29 +82,45 @@ session_models:
             rate: 60.0
             amplitude: 0.0
         # Wake-to-sleep changes
+        # mGluR background
+        - layers: ['Cortical_background_layer_mGluR_to_cortex']
+          population_name: 'poisson_nrn_to_cortex_mGluR_to_PC'
+          change_type: 'constant'
+          from_array: False
+          nest_params:
+            rate: 200.0
+        - layers: ['Cortical_background_layer_mGluR_to_cortex']
+          population_name: 'poisson_nrn_to_cortex_mGluR_to_BC'
+          change_type: 'constant'
+          from_array: False
+          nest_params:
+            rate: 200.0
         # Cortical primary: excitatory
         - layers: [Vp_L23_PC_P00, Vp_L23_PC_P90, Vp_L4_PC_P00, Vp_L4_PC_P90, Vp_L56_PC_P00, Vp_L56_PC_P90, ]
           population_name: Vp_PC
           change_type: 'multiplicative'
           from_array: False
           nest_params:
-            g_KL: 1.20
-            g_peak_AMPA: 1.875
+            g_KL: 1.5
+            g_peak_AMPA: 1.5
+            g_peak_mGluR: 2.0
         # Cortical primary: inhibitory
         - layers: [Vp_L23_BC_P00, Vp_L23_BC_P90, Vp_L4_BC_P00, Vp_L4_BC_P90, Vp_L56_BC_P00, Vp_L56_BC_P90, ]
           population_name: Vp_BC
           change_type: 'multiplicative'
           from_array: False
           nest_params:
-            g_KL: 1.20
-            g_peak_AMPA: 1.875
+            g_KL: 1.4
+            g_peak_AMPA: 1.9
+            g_peak_mGluR: 2.0
         # Cortical primary: MC
         - layers: [Vp_L56_MC_P00, Vp_L56_MC_P90]
           population_name: Vp_MC
           change_type: 'multiplicative'
           from_array: False
           nest_params:
-            g_KL: 1.20
+            g_peak_AMPA: 1.0
+            g_KL: 2.0
         # Thalamic primary: excitatory
         - layers: [Tp_layer, ]
           population_name: Tp_exc
@@ -115,7 +146,7 @@ session_models:
 
   sleep:
     params:
-      simulation_time: 12000.0
+      simulation_time: 6000.0
       unit_changes:
         # "noise"
         - layers: ['Retina_layer']

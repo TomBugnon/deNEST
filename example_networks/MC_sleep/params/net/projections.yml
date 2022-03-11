@@ -67,6 +67,23 @@ network:
           target_population: Vp_BC
           projection_model: cortical_background_AMPA_to_BC
 
+        # cortico-cortical mGluR
+        - source_layers: [Cortical_background_layer_mGluR_to_cortex,]
+          source_population: poisson_nrn_to_cortex_mGluR_to_PC
+          target_layers: [Vp_L23_PC_P00, Vp_L23_PC_P90, Vp_L4_PC_P00, Vp_L4_PC_P90, Vp_L56_PC_P00, Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: cortical_background_mGluR
+        - source_layers: [Cortical_background_layer_mGluR_to_cortex,]
+          source_population: poisson_nrn_to_cortex_mGluR_to_BC
+          target_layers: [Vp_L23_BC_P00, Vp_L23_BC_P90, Vp_L4_BC_P00, Vp_L4_BC_P90, Vp_L56_BC_P00, Vp_L56_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: cortical_background_mGluR
+        # - source_layers: [Cortical_background_layer_mGluR_to_cortex,]
+        #   source_population: poisson_nrn_to_cortex_mGluR_to_MC
+        #   target_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+        #   target_population: Vp_MC
+        #   projection_model: cortical_background_mGluR
+
 
         ### Retina to thalamus
         # retina to Tp_exc and Tp_inh
@@ -632,3 +649,20 @@ network:
           target_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
           target_population: Vp_MC
           projection_model: MC_gap
+
+        ### Intraareal mGluR: all PC to all populations
+        - source_layers: [Vp_L23_PC_P00, Vp_L23_PC_P90, Vp_L4_PC_P00, Vp_L4_PC_P90, Vp_L56_PC_P00, Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_PC_P00, Vp_L23_PC_P90, Vp_L4_PC_P00, Vp_L4_PC_P90, Vp_L56_PC_P00, Vp_L56_PC_P90, ]
+          target_population: Vp_PC
+          projection_model: intraareal_mGluR_to_PC
+        - source_layers: [Vp_L23_PC_P00, Vp_L23_PC_P90, Vp_L4_PC_P00, Vp_L4_PC_P90, Vp_L56_PC_P00, Vp_L56_PC_P90, ]
+          source_population: Vp_PC
+          target_layers: [Vp_L23_BC_P00, Vp_L23_BC_P90, Vp_L4_BC_P00, Vp_L4_BC_P90, Vp_L56_BC_P00, Vp_L56_BC_P90, ]
+          target_population: Vp_BC
+          projection_model: intraareal_mGluR_to_BC
+        # - source_layers: [Vp_L23_PC_P00, Vp_L23_PC_P90, Vp_L4_PC_P00, Vp_L4_PC_P90, Vp_L56_PC_P00, Vp_L56_PC_P90, ]
+        #   source_population: Vp_PC
+        #   target_layers: [Vp_L56_MC_P00, Vp_L56_MC_P90, ]
+        #   target_population: Vp_MC
+        #   projection_model: intraareal_mGluR_to_MC

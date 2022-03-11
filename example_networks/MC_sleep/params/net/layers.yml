@@ -78,6 +78,12 @@ network:
       nest_params:
         rows: 1
         columns: 1
+      Cortical_background_layer_mGluR_to_cortex:
+        params:
+          populations:
+            poisson_nrn_to_cortex_mGluR_to_PC: 1
+            poisson_nrn_to_cortex_mGluR_to_BC: 1
+            poisson_nrn_to_cortex_mGluR_to_MC: 1
       Cortical_background_layer_AMPA_to_cortex:
         params:
           populations:

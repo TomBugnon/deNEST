@@ -40,7 +40,7 @@ set( MODULE_NAME ${SHORT_NAME}module )
 # 2) Add all your sources here
 set( MODULE_SOURCES
     htneuronmodule.h htneuronmodule.cpp
-    ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike.h ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike.cpp
+    ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR.h ht_neuron_minis_GABA_B1a_soft_gap_noprelimspike_mGluR.cpp
     )
 
 # 3) We require a header name like this:
