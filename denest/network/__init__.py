@@ -752,7 +752,7 @@ class Network(object):
             target_conns = nest.GetConnections(
                 synapse_model=changes['synapse_model']
             )
-            change_params = changes['params']
+            change_params = changes['nest_params']
             log.info("Changing status for %s projections of type %s. Applying dict: %s", len(target_conns), changes['synapse_model'], change_params)
             nest.SetStatus(target_conns, change_params)
 
@@ -816,6 +816,18 @@ class Network(object):
                   The ``<change_type>`` and ``<from_array>`` parameters
                   specify the interpretation of the ``<param_change>`` value.
 
+            synapse_changes (list):
+                List of dictionaries of the following form, specifying the
+                changes applied to all connections of a specific model:
+
+                    {
+                        'synapse_model': <synapse_model>,
+                        'nest_params': {<param_1>: <value_1>},
+                    }
+                where the dictionary in <nest_params> is passed to
+                ``nest.SetStatus()`` to set the parameters for all connections
+                with synapse model <synapse_model>
+
         Examples:
             >>> # Load parameter files and create the network object
             >>> import denest
@@ -875,6 +887,8 @@ class Network(object):
 
         if unit_changes is None:
             unit_changes = []
+        if synapse_changes is None:
+            synapse_changes = []
 
         for changes in sorted(unit_changes, key=_unit_sorting_map):
 
@@ -901,6 +915,8 @@ class Network(object):
                     from_array=changes['from_array'],
                     input_dir=input_dir,
                 )
+
+        self.change_synapse_states(synapse_changes)
 
     def save_metadata(self, output_dir):
         """Save network metadata.
@@ -942,4 +958,4 @@ def _unit_sorting_map(unit_change):
 def _synapse_sorting_map(synapse_change):
     """Map by (synapse_model, params_items) for sorting."""
     return (synapse_change['synapse_model'],
-            sorted(synapse_change['params'].items()))
+            sorted(synapse_change['nest_params'].items()))
